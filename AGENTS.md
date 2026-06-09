@@ -33,11 +33,12 @@ the corresponding deterministic patch is also updated.
 The generator first runs `mojo-bindgen`, then applies patch files from
 `patches/`.
 
-Current patch:
+Current patches, applied in order:
 
 - `patches/0001-libclang-raw-manual-abi.patch`
+- `patches/0002-remove-system-header-ffi.patch`
 
-This patch contains the local libclang ABI fixes:
+The first patch contains the local libclang ABI fixes:
 
 - By-value aggregate structs that need `RegisterPassable`.
 - Flattened C pointer arrays into individual typed pointer fields.
@@ -45,6 +46,15 @@ This patch contains the local libclang ABI fixes:
 - `CXIndexOptions` kept opaque because it contains C bitfields.
 - Callback ABI notes for callback typedefs and callback tables.
 - Matching layout-test field offset updates.
+
+The second patch removes spurious FFI generated from transitive system headers:
+
+- libc time/clock wrappers and timezone globals.
+- system structs used only by those removed wrappers.
+- system-header macro constants and function-like macro comments.
+- matching layout tests for removed system structs.
+
+Keep primitive aliases required by libclang APIs, such as `time_t`.
 
 If generated output changes and the patch no longer applies, `rtk pixi run
 generate` should fail during `git apply --check`. Do not bypass that failure
@@ -65,6 +75,10 @@ unless explicitly requested.
   and documented as an ABI workaround.
 - Keep bitfield-containing structs opaque unless exact target ABI packing is
   represented and tested.
+- Do not reintroduce non-libclang FFI wrappers from transitive system headers
+  unless explicitly requested. If a system type alias is still needed by a
+  libclang function signature, keep the alias but not unrelated constants,
+  function-like macro comments, functions, globals, or layout tests.
 
 ## Documentation
 

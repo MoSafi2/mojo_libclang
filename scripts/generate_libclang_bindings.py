@@ -24,6 +24,7 @@ DEFAULT_IR_OUT = REPO_ROOT / "build" / "libclang_raw.ir.json"
 DEFAULT_LAYOUT_OUT = DEFAULT_MOJO_OUT.with_name(f"{DEFAULT_MOJO_OUT.stem}_layout_tests.mojo")
 PATCH_FILES = (
     REPO_ROOT / "patches" / "0001-libclang-raw-manual-abi.patch",
+    REPO_ROOT / "patches" / "0002-remove-system-header-ffi.patch",
 )
 
 HEADER_NAMES = (

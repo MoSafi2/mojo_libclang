@@ -15,8 +15,9 @@ deterministic.
 - The generated Mojo originally failed on libclang value-return structs because
   `OwnedDLHandle.call` requires a `RegisterPassable` return type.
 - The file now contains manual patches for the known libclang aggregate ABI
-  types. These patches are stored in `patches/0001-libclang-raw-manual-abi.patch`
-  and are automatically reapplied by `scripts/generate_libclang_bindings.py`.
+  types and for removing spurious FFI declarations from transitive system
+  headers. These patches are stored in `patches/` and are automatically reapplied
+  by `scripts/generate_libclang_bindings.py`.
 
 ## Manual Fix 1: By-Value Aggregate ABI
 
@@ -148,6 +149,26 @@ These are good candidates to fix upstream:
 - Regression fixtures: add tests for libclang-like value-return structs,
   callback value parameters, bitfield records, and system-header leakage.
 
+## Manual Fix 6: System Header FFI Leakage
+
+`mojo-bindgen` currently emits some declarations from transitive system headers
+that are visible while parsing libclang headers. This repository removes the
+most obvious non-libclang FFI surface in
+`patches/0002-remove-system-header-ffi.patch`:
+
+- libc time/clock wrappers such as `time`, `mktime`, `clock_gettime`,
+  `timer_create`, and related functions.
+- timezone globals such as `tzname`, `daylight`, and their glibc aliases.
+- system structs used only by those wrappers, including `tm`, `timespec`,
+  `itimerspec`, `sigevent`, `__fsid_t`, and `__locale_struct`.
+- system-header macro constants and function-like macro comments such as
+  `_TIME_H`, `__GLIBC__`, `CLOCK_MONOTONIC`, `TIME_UTC`, and glibc attribute
+  helper macros.
+- matching generated layout tests for those removed structs.
+
+Primitive aliases that libclang APIs still use, such as `time_t` for
+`clang_getFileTime`, are intentionally retained.
+
 ## Regeneration
 
 Run:
@@ -156,10 +177,10 @@ Run:
 pixi run generate
 ```
 
-The script applies `patches/0001-libclang-raw-manual-abi.patch` with
-`git apply --check` before applying it. If upstream `mojo-bindgen` output changes
-enough that the patch no longer applies, generation fails instead of silently
-producing a different binding.
+The script applies patches from `patches/` in order with `git apply --check`
+before applying each patch. If upstream `mojo-bindgen` output changes enough
+that a patch no longer applies, generation fails instead of silently producing a
+different binding.
 
 Set `LIBCLANG_APPLY_PATCHES=0` only when intentionally inspecting pristine
 `mojo-bindgen` output. The stored patch targets the default

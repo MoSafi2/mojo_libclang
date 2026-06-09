@@ -4,7 +4,7 @@
 from std.testing import TestSuite
 from std.sys.info import align_of, size_of
 from std.reflection import reflect
-from libclang_raw import CXString, CXStringSet, __fsid_t, tm, timespec, itimerspec, __locale_struct, CXFileUniqueID, CXSourceLocation, CXSourceRange, CXSourceRangeList, CXUnsavedFile, CXVersion, CXIndexOptions, CXTUResourceUsageEntry, CXTUResourceUsage, CXCursor, CXPlatformAvailability, CXType, CXToken, CXCompletionResult, CXCodeCompleteResults, CXCursorAndRangeVisitor, CXIdxLoc, CXIdxIncludedFileInfo, CXIdxImportedASTFileInfo, CXIdxAttrInfo, CXIdxEntityInfo, CXIdxContainerInfo, CXIdxIBOutletCollectionAttrInfo, CXIdxDeclInfo, CXIdxObjCContainerDeclInfo, CXIdxBaseClassInfo, CXIdxObjCProtocolRefInfo, CXIdxObjCProtocolRefListInfo, CXIdxObjCInterfaceDeclInfo, CXIdxObjCCategoryDeclInfo, CXIdxObjCPropertyDeclInfo, CXIdxCXXClassDeclInfo, CXIdxEntityRefInfo, IndexerCallbacks, CXComment
+from libclang_raw import CXString, CXStringSet, CXFileUniqueID, CXSourceLocation, CXSourceRange, CXSourceRangeList, CXUnsavedFile, CXVersion, CXIndexOptions, CXTUResourceUsageEntry, CXTUResourceUsage, CXCursor, CXPlatformAvailability, CXType, CXToken, CXCompletionResult, CXCodeCompleteResults, CXCursorAndRangeVisitor, CXIdxLoc, CXIdxIncludedFileInfo, CXIdxImportedASTFileInfo, CXIdxAttrInfo, CXIdxEntityInfo, CXIdxContainerInfo, CXIdxIBOutletCollectionAttrInfo, CXIdxDeclInfo, CXIdxObjCContainerDeclInfo, CXIdxBaseClassInfo, CXIdxObjCProtocolRefInfo, CXIdxObjCProtocolRefListInfo, CXIdxObjCInterfaceDeclInfo, CXIdxObjCCategoryDeclInfo, CXIdxObjCPropertyDeclInfo, CXIdxCXXClassDeclInfo, CXIdxEntityRefInfo, IndexerCallbacks, CXComment
 
 
 def _check_eq(label: String, got: Int, expected: Int) raises:
@@ -26,57 +26,6 @@ def test_layout_CXStringSet() raises:
     _check_eq("CXStringSet.align", Int(align_of[CXStringSet]()), 8)
     _check_eq("CXStringSet.Strings.offset", Int(r.field_offset[index=0]()), 0)
     _check_eq("CXStringSet.Count.offset", Int(r.field_offset[index=1]()), 8)
-
-
-def test_layout___fsid_t() raises:
-    comptime r = reflect[__fsid_t]()
-    _check_eq("__fsid_t.size", Int(size_of[__fsid_t]()), 8)
-    _check_eq("__fsid_t.align", Int(align_of[__fsid_t]()), 4)
-    _check_eq("__fsid_t.__val.offset", Int(r.field_offset[index=0]()), 0)
-
-
-def test_layout_tm() raises:
-    comptime r = reflect[tm]()
-    _check_eq("tm.size", Int(size_of[tm]()), 56)
-    _check_eq("tm.align", Int(align_of[tm]()), 8)
-    _check_eq("tm.tm_sec.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("tm.tm_min.offset", Int(r.field_offset[index=1]()), 4)
-    _check_eq("tm.tm_hour.offset", Int(r.field_offset[index=2]()), 8)
-    _check_eq("tm.tm_mday.offset", Int(r.field_offset[index=3]()), 12)
-    _check_eq("tm.tm_mon.offset", Int(r.field_offset[index=4]()), 16)
-    _check_eq("tm.tm_year.offset", Int(r.field_offset[index=5]()), 20)
-    _check_eq("tm.tm_wday.offset", Int(r.field_offset[index=6]()), 24)
-    _check_eq("tm.tm_yday.offset", Int(r.field_offset[index=7]()), 28)
-    _check_eq("tm.tm_isdst.offset", Int(r.field_offset[index=8]()), 32)
-    _check_eq("tm.tm_gmtoff.offset", Int(r.field_offset[index=9]()), 40)
-    _check_eq("tm.tm_zone.offset", Int(r.field_offset[index=10]()), 48)
-
-
-def test_layout_timespec() raises:
-    comptime r = reflect[timespec]()
-    _check_eq("timespec.size", Int(size_of[timespec]()), 16)
-    _check_eq("timespec.align", Int(align_of[timespec]()), 8)
-    _check_eq("timespec.tv_sec.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("timespec.tv_nsec.offset", Int(r.field_offset[index=1]()), 8)
-
-
-def test_layout_itimerspec() raises:
-    comptime r = reflect[itimerspec]()
-    _check_eq("itimerspec.size", Int(size_of[itimerspec]()), 32)
-    _check_eq("itimerspec.align", Int(align_of[itimerspec]()), 8)
-    _check_eq("itimerspec.it_interval.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("itimerspec.it_value.offset", Int(r.field_offset[index=1]()), 16)
-
-
-def test_layout___locale_struct() raises:
-    comptime r = reflect[__locale_struct]()
-    _check_eq("__locale_struct.size", Int(size_of[__locale_struct]()), 232)
-    _check_eq("__locale_struct.align", Int(align_of[__locale_struct]()), 8)
-    _check_eq("__locale_struct.__locales.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("__locale_struct.__ctype_b.offset", Int(r.field_offset[index=1]()), 104)
-    _check_eq("__locale_struct.__ctype_tolower.offset", Int(r.field_offset[index=2]()), 112)
-    _check_eq("__locale_struct.__ctype_toupper.offset", Int(r.field_offset[index=3]()), 120)
-    _check_eq("__locale_struct.__names.offset", Int(r.field_offset[index=4]()), 128)
 
 
 def test_layout_CXFileUniqueID() raises:
