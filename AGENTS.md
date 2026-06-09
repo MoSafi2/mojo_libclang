@@ -13,6 +13,7 @@ This repository generates raw Mojo FFI bindings for LLVM libclang with
 - Generate bindings: `rtk pixi run generate`
 - Equivalent generate task: `rtk pixi run generate-libclang`
 - Verify layout bindings: `rtk pixi run mojo build src/libclang_raw_layout_tests.mojo`
+- Run raw binding smoke test: `rtk pixi run smoke-test`
 - A direct build of `src/libclang_raw.mojo` is expected to fail with
   `module does not contain a 'main' function`; this file is a library-style raw
   binding module.
