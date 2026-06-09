@@ -2,8 +2,9 @@
 
 This repository currently generates raw Mojo FFI bindings from LLVM's
 `clang-c` headers with `mojo-bindgen`. Generation is repeatable with
-`pixi run generate`, but the generated file needs manual ABI review before it
-can be treated as a correct libclang binding.
+`pixi run generate`. The generator first runs `mojo-bindgen`, then applies
+repository patch files from `patches/` so the final raw bindings are
+deterministic.
 
 ## Current Status
 
@@ -14,7 +15,8 @@ can be treated as a correct libclang binding.
 - The generated Mojo originally failed on libclang value-return structs because
   `OwnedDLHandle.call` requires a `RegisterPassable` return type.
 - The file now contains manual patches for the known libclang aggregate ABI
-  types, but these patches can be overwritten by regeneration.
+  types. These patches are stored in `patches/0001-libclang-raw-manual-abi.patch`
+  and are automatically reapplied by `scripts/generate_libclang_bindings.py`.
 
 ## Manual Fix 1: By-Value Aggregate ABI
 
@@ -146,13 +148,19 @@ These are good candidates to fix upstream:
 - Regression fixtures: add tests for libclang-like value-return structs,
   callback value parameters, bitfield records, and system-header leakage.
 
-## Regeneration Checklist
+## Regeneration
 
-After `pixi run generate`, reapply or automate the manual patches:
+Run:
 
-- Restore this documentation notice in `src/libclang_raw.mojo`.
-- Restore mixed scalar-field/flattened-pointer ABI structs for the affected CX*
-  value structs.
-- Restore layout-test expectations for the manual field names above.
-- Keep `CXIndexOptions` opaque and documented.
-- Re-check callback aliases after any aggregate ABI changes.
+```bash
+pixi run generate
+```
+
+The script applies `patches/0001-libclang-raw-manual-abi.patch` with
+`git apply --check` before applying it. If upstream `mojo-bindgen` output changes
+enough that the patch no longer applies, generation fails instead of silently
+producing a different binding.
+
+Set `LIBCLANG_APPLY_PATCHES=0` only when intentionally inspecting pristine
+`mojo-bindgen` output. The stored patch targets the default
+`src/libclang_raw*.mojo` output paths.

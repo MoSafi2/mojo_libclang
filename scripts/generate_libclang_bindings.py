@@ -6,6 +6,7 @@ Environment overrides:
   LIBCLANG_LIBRARY      Path to libclang.so/dylib/dll for owned_dl_handle output.
   LIBCLANG_RAW_OUT      Output Mojo file. Defaults to src/libclang_raw.mojo.
   LIBCLANG_RAW_IR_OUT   Output JSON IR file. Defaults to build/libclang_raw.ir.json.
+  LIBCLANG_APPLY_PATCHES Set to 0 to emit pristine mojo-bindgen output.
 """
 
 from __future__ import annotations
@@ -20,6 +21,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MOJO_OUT = REPO_ROOT / "src" / "libclang_raw.mojo"
 DEFAULT_IR_OUT = REPO_ROOT / "build" / "libclang_raw.ir.json"
+DEFAULT_LAYOUT_OUT = DEFAULT_MOJO_OUT.with_name(f"{DEFAULT_MOJO_OUT.stem}_layout_tests.mojo")
+PATCH_FILES = (
+    REPO_ROOT / "patches" / "0001-libclang-raw-manual-abi.patch",
+)
 
 HEADER_NAMES = (
     "Index.h",
@@ -98,9 +103,14 @@ def main() -> int:
         mojo_cmd.extend(["--library-path-hint", str(library_path)])
     run(mojo_cmd)
 
-    print(f"generated: {mojo_out.relative_to(REPO_ROOT)}")
-    print(f"generated: {layout_out.relative_to(REPO_ROOT)}")
-    print(f"generated: {ir_out.relative_to(REPO_ROOT)}")
+    if should_apply_patches():
+        apply_post_generation_patches(mojo_out, layout_out)
+    else:
+        print("patches:   skipped by LIBCLANG_APPLY_PATCHES=0")
+
+    print(f"generated: {display_path(mojo_out)}")
+    print(f"generated: {display_path(layout_out)}")
+    print(f"generated: {display_path(ir_out)}")
     if library_path is not None:
         print(f"libclang:  {library_path}")
     else:
@@ -210,6 +220,33 @@ def build_compile_args(include_root: Path) -> list[str]:
 def run(cmd: list[str]) -> None:
     print("+ " + shell_join(cmd))
     subprocess.run(cmd, cwd=REPO_ROOT, check=True)
+
+
+def should_apply_patches() -> bool:
+    return os.environ.get("LIBCLANG_APPLY_PATCHES", "1") not in {"0", "false", "False", "no"}
+
+
+def apply_post_generation_patches(mojo_out: Path, layout_out: Path) -> None:
+    """Apply deterministic manual patches on top of mojo-bindgen output."""
+    if mojo_out != DEFAULT_MOJO_OUT or layout_out != DEFAULT_LAYOUT_OUT:
+        raise SystemExit(
+            "error: manual patches target the default src/libclang_raw*.mojo outputs; "
+            "unset LIBCLANG_RAW_OUT or set LIBCLANG_APPLY_PATCHES=0 for pristine output"
+        )
+
+    for patch_file in PATCH_FILES:
+        if not patch_file.is_file():
+            raise SystemExit(f"error: missing post-generation patch: {display_path(patch_file)}")
+        print(f"patch:     {display_path(patch_file)}")
+        run(["git", "apply", "--check", "--whitespace=nowarn", str(patch_file)])
+        run(["git", "apply", "--whitespace=nowarn", str(patch_file)])
+
+
+def display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
 
 
 def shell_join(args: list[str]) -> str:
