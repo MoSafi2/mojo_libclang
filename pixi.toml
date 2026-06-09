@@ -1,0 +1,17 @@
+[workspace]
+authors = ["MoSafi2 <mohamed.mabrouk@rwth-aachen.de>"]
+channels = ["conda-forge", "https://conda.modular.com/max"]
+name = "mojo_libclang"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+generate = "python scripts/generate_libclang_bindings.py"
+generate-libclang = "python scripts/generate_libclang_bindings.py"
+
+[dependencies]
+python = ">=3.14.5,<3.15"
+mojo = ">=1.0.0b1,<2"
+
+[pypi-dependencies]
+mojo-bindgen = ">=0.3.1, <0.4"
