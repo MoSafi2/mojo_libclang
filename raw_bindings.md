@@ -14,10 +14,13 @@ deterministic.
   function list and also includes additional public `clang_*` C API functions.
 - The generated Mojo originally failed on libclang value-return structs because
   `OwnedDLHandle.call` requires a `RegisterPassable` return type.
-- The file now contains manual patches for the known libclang aggregate ABI
-  types and for removing spurious FFI declarations from transitive system
-  headers. These patches are stored in `patches/` and are automatically reapplied
-  by `scripts/generate_libclang_bindings.py`.
+- The file now contains deterministic post-generation patches for:
+  - aggregate layout fixes needed to make the generated Mojo structs compile
+  - a C shim route for selected by-value aggregate APIs whose direct Mojo/C ABI
+    lowering is not trustworthy
+  - removal of spurious FFI declarations from transitive system headers
+- The generator also builds `build/libclang_mojo_shim.so` from
+  `shim/libclang_mojo_shim.c` before applying patches.
 
 ## Manual Fix 1: By-Value Aggregate ABI
 
@@ -61,8 +64,9 @@ fields are directly readable/writable as normal fields. `const void *` fields us
 `Optional[ImmutOpaquePointer[ImmutExternalOrigin]]`; `void *` fields use
 `Optional[MutOpaquePointer[MutExternalOrigin]]`.
 
-The safer cross-platform solution is a small C shim that rewrites by-value
-aggregate APIs into pointer-out or pointer-in APIs, for example:
+This repository now uses that safer C shim approach for the most failure-prone
+aggregate-by-value APIs. The shim rewrites libclang entrypoints into pointer-out
+or pointer-in APIs, for example:
 
 ```c
 void mojo_clang_getNullLocation(CXSourceLocation *out) {
@@ -74,8 +78,20 @@ void mojo_clang_getCursorType(CXCursor cursor, CXType *out) {
 }
 ```
 
-Use the direct flattened-struct patch only as a local ABI bridge until the exact
-Mojo aggregate C ABI rules are supported by `mojo-bindgen`.
+The flattened-struct patch is still required so Mojo can store these records and
+pass pointers to them, but it is no longer treated as sufficient proof that the
+direct by-value call ABI is correct.
+
+Current shim coverage includes:
+
+- source location/range construction and null/equality predicates
+- source-location inspectors such as `clang_getSpellingLocation`
+- TU cursor and cursor-location/range/type fetches
+- selected cursor metadata and cursor-to-string surfaces
+- selected token APIs
+
+Remaining direct by-value surfaces should still be treated as suspect until they
+move behind the shim or are proven safe with targeted probes.
 
 ## Manual Fix 4: CXIndexOptions Bitfields
 
@@ -185,3 +201,56 @@ different binding.
 Set `LIBCLANG_APPLY_PATCHES=0` only when intentionally inspecting pristine
 `mojo-bindgen` output. The stored patch targets the default
 `src/libclang_raw*.mojo` output paths.
+
+## Functional Probe Runner
+
+The repository now includes a capability-probing runner at
+`test/raw_ffi_probe.mojo`, exposed through:
+
+```bash
+pixi run raw-ffi-probe
+```
+
+This runner is intentionally not a narrow pass-only unit test. It reports which
+raw libclang surfaces currently work across the Mojo/C boundary, which are
+known-broken, and which are still blocked by probe-harness gaps.
+
+Current observations from the default probe task:
+
+- working:
+  - `clang_getClangVersion` / `clang_getCString` / `clang_disposeString`
+    complete without throwing
+  - `clang_defaultEditingTranslationUnitOptions`
+  - filesystem-backed `clang_parseTranslationUnit`
+  - `clang_getTranslationUnitCursor`
+  - `clang_getTranslationUnitSpelling`
+  - `clang_getFile`, `clang_getFileName`, `clang_File_tryGetRealPathName`,
+    `clang_getFileTime`, and `clang_File_isEqual(file, file)`
+  - TU-cursor metadata calls such as `clang_getCursorKind`,
+    `clang_getCursorKindSpelling`, `clang_getCursorAvailability`,
+    `clang_getCursorSemanticParent`, `clang_getCursorLexicalParent`,
+    `clang_getCursorDefinition`, and `clang_getCursorReferenced`
+  - diagnostics fetch/dispose on malformed source
+- known-broken:
+  - cursor lookup by file/line/column still returns corrupted cursor metadata on
+    the current probe fixture path
+  - single-token lookup and tokenization still do not return usable tokens on
+    the current probe fixture path
+- unknown / crash-prone:
+  - the shimmed `clang_getSpellingLocation` and `clang_getFileLocation` entry
+    points compile and link, but the current probe path still crashes when
+    inspecting a location returned by `clang_getLocation`
+  - `clang_getNullCursor()` followed by `clang_getCursorKind()` /
+    `clang_isInvalid()` does not currently classify as an invalid cursor in the
+    probe runner
+- unknown / blocked:
+  - `CXUnsavedFile` parsing is waiting on a stable mutable storage pattern in
+    Mojo for the probe harness
+  - `clang_visitChildren` is waiting on a verified Mojo C-ABI callback pattern
+  - location-based cursor lookup and tokenization are disabled in the default
+    runner because `clang_getLocation` crashed during implementation
+  - `clang_getCursorType` on a translation-unit cursor is disabled in the
+    default runner because it crashed during implementation
+
+Treat these probe results as the live compatibility map for the current raw
+bindings, not as a final ABI claim.

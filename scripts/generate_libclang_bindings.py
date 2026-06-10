@@ -6,6 +6,7 @@ Environment overrides:
   LIBCLANG_LIBRARY      Path to libclang.so/dylib/dll for owned_dl_handle output.
   LIBCLANG_RAW_OUT      Output Mojo file. Defaults to src/libclang_raw.mojo.
   LIBCLANG_RAW_IR_OUT   Output JSON IR file. Defaults to build/libclang_raw.ir.json.
+  LIBCLANG_SHIM_OUT     Output shared library for the C ABI shim. Defaults to build/libclang_mojo_shim.so.
   LIBCLANG_APPLY_PATCHES Set to 0 to emit pristine mojo-bindgen output.
 """
 
@@ -22,9 +23,12 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MOJO_OUT = REPO_ROOT / "src" / "libclang_raw.mojo"
 DEFAULT_IR_OUT = REPO_ROOT / "build" / "libclang_raw.ir.json"
 DEFAULT_LAYOUT_OUT = DEFAULT_MOJO_OUT.with_name(f"{DEFAULT_MOJO_OUT.stem}_layout_tests.mojo")
+DEFAULT_SHIM_OUT = REPO_ROOT / "build" / "libclang_mojo_shim.so"
+DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
 PATCH_FILES = (
     REPO_ROOT / "patches" / "0001-libclang-raw-manual-abi.patch",
     REPO_ROOT / "patches" / "0002-remove-system-header-ffi.patch",
+    REPO_ROOT / "patches" / "0003-shim-aggregate-by-value-ffi.patch",
 )
 
 HEADER_NAMES = (
@@ -70,6 +74,7 @@ def main() -> int:
 
     compile_args = build_compile_args(include_root)
     library_path = discover_libclang_library()
+    shim_out = Path(os.environ.get("LIBCLANG_SHIM_OUT", DEFAULT_SHIM_OUT)).resolve()
 
     common = [
         mojo_bindgen,
@@ -104,6 +109,8 @@ def main() -> int:
         mojo_cmd.extend(["--library-path-hint", str(library_path)])
     run(mojo_cmd)
 
+    build_shim(include_root, library_path, shim_out)
+
     if should_apply_patches():
         apply_post_generation_patches(mojo_out, layout_out)
     else:
@@ -116,6 +123,7 @@ def main() -> int:
         print(f"libclang:  {library_path}")
     else:
         print("libclang:  no explicit library path found; generated bindings use link name")
+    print(f"shim:      {display_path(shim_out)}")
     return 0
 
 
@@ -221,6 +229,39 @@ def build_compile_args(include_root: Path) -> list[str]:
 def run(cmd: list[str]) -> None:
     print("+ " + shell_join(cmd))
     subprocess.run(cmd, cwd=REPO_ROOT, check=True)
+
+
+def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) -> None:
+    if not DEFAULT_SHIM_SRC.is_file():
+        raise SystemExit(f"error: missing shim source: {display_path(DEFAULT_SHIM_SRC)}")
+
+    cc = shutil.which("cc")
+    if cc is None:
+        raise SystemExit("error: C compiler not found; required to build libclang shim")
+
+    shim_out.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        cc,
+        "-shared",
+        "-fPIC",
+        "-I",
+        str(include_root),
+        "-o",
+        str(shim_out),
+        str(DEFAULT_SHIM_SRC),
+    ]
+    if library_path is not None:
+        cmd.extend(
+            [
+                "-L",
+                str(library_path.parent),
+                f"-l:{library_path.name}",
+                "-Wl,-rpath," + str(library_path.parent),
+            ]
+        )
+    else:
+        cmd.append("-lclang")
+    run(cmd)
 
 
 def should_apply_patches() -> bool:

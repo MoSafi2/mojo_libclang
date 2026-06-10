@@ -1,0 +1,425 @@
+diff --git a/src/libclang_raw.mojo b/src/libclang_raw.mojo
+index 62c696e..ec2537a 100644
+--- a/src/libclang_raw.mojo
++++ b/src/libclang_raw.mojo
+@@ -15,10 +15,14 @@ from std.ffi import DEFAULT_RTLD, OwnedDLHandle, c_char, c_double, c_int, c_long
+ from std.memory import ImmutOpaquePointer, MutOpaquePointer
+ 
+ comptime _BINDGEN_LIB_PATH: String = "/home/mohamed/mojo_libclang/.pixi/envs/default/lib/python3.14/site-packages/clang/native/libclang.so"
++comptime _BINDGEN_SHIM_LIB_PATH: String = "/home/mohamed/mojo_libclang/build/libclang_mojo_shim.so"
+ 
+ def _bindgen_dl() raises -> OwnedDLHandle:
+     return OwnedDLHandle(_BINDGEN_LIB_PATH)
+ 
++def _bindgen_shim_dl() raises -> OwnedDLHandle:
++    return OwnedDLHandle(_BINDGEN_SHIM_LIB_PATH)
++
+ struct GlobalVar[T: Copyable & ImplicitlyDestructible, //, link: StaticString]:
+     @staticmethod
+     def _raw() raises -> UnsafePointer[Self.T, MutAnyOrigin]:
+@@ -2453,49 +2457,75 @@ def clang_File_tryGetRealPathName(file: CXFile) raises -> CXString:
+     return _bindgen_dl().call["clang_File_tryGetRealPathName", CXString, CXFile](file)
+ 
+ def clang_getNullLocation() raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getNullLocation", CXSourceLocation]()
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    _bindgen_shim_dl().call["mojo_clang_getNullLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_equalLocations(loc1: CXSourceLocation, loc2: CXSourceLocation) raises -> c_uint:
+-    return _bindgen_dl().call["clang_equalLocations", c_uint, CXSourceLocation, CXSourceLocation](loc1, loc2)
++    var loc1_storage = InlineArray[CXSourceLocation, 1](fill=loc1)
++    var loc2_storage = InlineArray[CXSourceLocation, 1](fill=loc2)
++    return _bindgen_shim_dl().call["mojo_clang_equalLocations", c_uint, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](loc1_storage.unsafe_ptr()), rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](loc2_storage.unsafe_ptr()))
+ 
+ def clang_Location_isInSystemHeader(location: CXSourceLocation) raises -> c_int:
+-    return _bindgen_dl().call["clang_Location_isInSystemHeader", c_int, CXSourceLocation](location)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    return _bindgen_shim_dl().call["mojo_clang_Location_isInSystemHeader", c_int, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
+ 
+ def clang_Location_isFromMainFile(location: CXSourceLocation) raises -> c_int:
+-    return _bindgen_dl().call["clang_Location_isFromMainFile", c_int, CXSourceLocation](location)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    return _bindgen_shim_dl().call["mojo_clang_Location_isFromMainFile", c_int, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
+ 
+ def clang_getNullRange() raises -> CXSourceRange:
+-    return _bindgen_dl().call["clang_getNullRange", CXSourceRange]()
++    var out_storage = InlineArray[CXSourceRange, 1](fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)))
++    _bindgen_shim_dl().call["mojo_clang_getNullRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getRange(begin: CXSourceLocation, end: CXSourceLocation) raises -> CXSourceRange:
+-    return _bindgen_dl().call["clang_getRange", CXSourceRange, CXSourceLocation, CXSourceLocation](begin, end)
++    var out_storage = InlineArray[CXSourceRange, 1](fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)))
++    var begin_storage = InlineArray[CXSourceLocation, 1](fill=begin)
++    var end_storage = InlineArray[CXSourceLocation, 1](fill=end)
++    _bindgen_shim_dl().call["mojo_clang_getRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](begin_storage.unsafe_ptr()), rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_equalRanges(range1: CXSourceRange, range2: CXSourceRange) raises -> c_uint:
+-    return _bindgen_dl().call["clang_equalRanges", c_uint, CXSourceRange, CXSourceRange](range1, range2)
++    var range1_storage = InlineArray[CXSourceRange, 1](fill=range1)
++    var range2_storage = InlineArray[CXSourceRange, 1](fill=range2)
++    return _bindgen_shim_dl().call["mojo_clang_equalRanges", c_uint, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range1_storage.unsafe_ptr()), rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range2_storage.unsafe_ptr()))
+ 
+ def clang_Range_isNull(range: CXSourceRange) raises -> c_int:
+-    return _bindgen_dl().call["clang_Range_isNull", c_int, CXSourceRange](range)
++    var range_storage = InlineArray[CXSourceRange, 1](fill=range)
++    return _bindgen_shim_dl().call["mojo_clang_Range_isNull", c_int, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()))
+ 
+ def clang_getExpansionLocation(location: CXSourceLocation, file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_getExpansionLocation", NoneType, CXSourceLocation, Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, file, line, column, offset)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    _bindgen_shim_dl().call["mojo_clang_getExpansionLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()), file, line, column, offset)
+ 
+ def clang_getPresumedLocation(location: CXSourceLocation, filename: Optional[UnsafePointer[CXString, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_getPresumedLocation", NoneType, CXSourceLocation, Optional[UnsafePointer[CXString, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, filename, line, column)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    _bindgen_shim_dl().call["mojo_clang_getPresumedLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXString, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()), filename, line, column)
+ 
+ def clang_getInstantiationLocation(location: CXSourceLocation, file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_getInstantiationLocation", NoneType, CXSourceLocation, Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, file, line, column, offset)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    _bindgen_shim_dl().call["mojo_clang_getInstantiationLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()), file, line, column, offset)
+ 
+ def clang_getSpellingLocation(location: CXSourceLocation, file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_getSpellingLocation", NoneType, CXSourceLocation, Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, file, line, column, offset)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    _bindgen_shim_dl().call["mojo_clang_getSpellingLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()), file, line, column, offset)
+ 
+ def clang_getFileLocation(location: CXSourceLocation, file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_getFileLocation", NoneType, CXSourceLocation, Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, file, line, column, offset)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
++    _bindgen_shim_dl().call["mojo_clang_getFileLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()), file, line, column, offset)
+ 
+ def clang_getRangeStart(range: CXSourceRange) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getRangeStart", CXSourceLocation, CXSourceRange](range)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    var range_storage = InlineArray[CXSourceRange, 1](fill=range)
++    _bindgen_shim_dl().call["mojo_clang_getRangeStart", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getRangeEnd(range: CXSourceRange) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getRangeEnd", CXSourceLocation, CXSourceRange](range)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    var range_storage = InlineArray[CXSourceRange, 1](fill=range)
++    _bindgen_shim_dl().call["mojo_clang_getRangeEnd", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_disposeSourceRangeList(ranges: Optional[UnsafePointer[CXSourceRangeList, MutExternalOrigin]]) raises -> None:
+     _bindgen_dl().call["clang_disposeSourceRangeList", NoneType, Optional[UnsafePointer[CXSourceRangeList, MutExternalOrigin]]](ranges)
+@@ -2528,7 +2558,9 @@ def clang_getDiagnosticSeverity(a0: CXDiagnostic) raises -> CXDiagnosticSeverity
+     return _bindgen_dl().call["clang_getDiagnosticSeverity", CXDiagnosticSeverity, CXDiagnostic](a0)
+ 
+ def clang_getDiagnosticLocation(a0: CXDiagnostic) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getDiagnosticLocation", CXSourceLocation, CXDiagnostic](a0)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    _bindgen_shim_dl().call["mojo_clang_getDiagnosticLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXDiagnostic](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), a0)
++    return out_storage[0].copy()
+ 
+ def clang_getDiagnosticSpelling(a0: CXDiagnostic) raises -> CXString:
+     return _bindgen_dl().call["clang_getDiagnosticSpelling", CXString, CXDiagnostic](a0)
+@@ -2549,7 +2581,9 @@ def clang_getDiagnosticNumRanges(a0: CXDiagnostic) raises -> c_uint:
+     return _bindgen_dl().call["clang_getDiagnosticNumRanges", c_uint, CXDiagnostic](a0)
+ 
+ def clang_getDiagnosticRange(Diagnostic: CXDiagnostic, Range: c_uint) raises -> CXSourceRange:
+-    return _bindgen_dl().call["clang_getDiagnosticRange", CXSourceRange, CXDiagnostic, c_uint](Diagnostic, Range)
++    var out_storage = InlineArray[CXSourceRange, 1](fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)))
++    _bindgen_shim_dl().call["mojo_clang_getDiagnosticRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], CXDiagnostic, c_uint](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()), Diagnostic, Range)
++    return out_storage[0].copy()
+ 
+ def clang_getDiagnosticNumFixIts(Diagnostic: CXDiagnostic) raises -> c_uint:
+     return _bindgen_dl().call["clang_getDiagnosticNumFixIts", c_uint, CXDiagnostic](Diagnostic)
+@@ -2585,10 +2619,14 @@ def clang_getFileContents(tu: CXTranslationUnit, file: CXFile, size: Optional[Un
+     return _bindgen_dl().call["clang_getFileContents", Optional[UnsafePointer[c_char, ImmutExternalOrigin]], CXTranslationUnit, CXFile, Optional[UnsafePointer[size_t, MutExternalOrigin]]](tu, file, size)
+ 
+ def clang_getLocation(tu: CXTranslationUnit, file: CXFile, line: c_uint, column: c_uint) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getLocation", CXSourceLocation, CXTranslationUnit, CXFile, c_uint, c_uint](tu, file, line, column)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    _bindgen_shim_dl().call["mojo_clang_getLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, CXFile, c_uint, c_uint](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), tu, file, line, column)
++    return out_storage[0].copy()
+ 
+ def clang_getLocationForOffset(tu: CXTranslationUnit, file: CXFile, offset: c_uint) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getLocationForOffset", CXSourceLocation, CXTranslationUnit, CXFile, c_uint](tu, file, offset)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    _bindgen_shim_dl().call["mojo_clang_getLocationForOffset", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, CXFile, c_uint](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), tu, file, offset)
++    return out_storage[0].copy()
+ 
+ def clang_getSkippedRanges(tu: CXTranslationUnit, file: CXFile) raises -> Optional[UnsafePointer[CXSourceRangeList, MutExternalOrigin]]:
+     return _bindgen_dl().call["clang_getSkippedRanges", Optional[UnsafePointer[CXSourceRangeList, MutExternalOrigin]], CXTranslationUnit, CXFile](tu, file)
+@@ -2669,22 +2707,31 @@ def clang_TargetInfo_getPointerWidth(Info: CXTargetInfo) raises -> c_int:
+     return _bindgen_dl().call["clang_TargetInfo_getPointerWidth", c_int, CXTargetInfo](Info)
+ 
+ def clang_getNullCursor() raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getNullCursor", CXCursor]()
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    _bindgen_shim_dl().call["mojo_clang_getNullCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getTranslationUnitCursor(a0: CXTranslationUnit) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getTranslationUnitCursor", CXCursor, CXTranslationUnit](a0)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    _bindgen_shim_dl().call["mojo_clang_getTranslationUnitCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], CXTranslationUnit](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), a0)
++    return out_storage[0].copy()
+ 
+ def clang_equalCursors(a0: CXCursor, a1: CXCursor) raises -> c_uint:
+-    return _bindgen_dl().call["clang_equalCursors", c_uint, CXCursor, CXCursor](a0, a1)
++    var left_storage = InlineArray[CXCursor, 1](fill=a0)
++    var right_storage = InlineArray[CXCursor, 1](fill=a1)
++    return _bindgen_shim_dl().call["mojo_clang_equalCursors", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](left_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](right_storage.unsafe_ptr()))
+ 
+ def clang_Cursor_isNull(cursor: CXCursor) raises -> c_int:
+-    return _bindgen_dl().call["clang_Cursor_isNull", c_int, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_Cursor_isNull", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_hashCursor(a0: CXCursor) raises -> c_uint:
+-    return _bindgen_dl().call["clang_hashCursor", c_uint, CXCursor](a0)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    return _bindgen_shim_dl().call["mojo_clang_hashCursor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorKind(a0: CXCursor) raises -> CXCursorKind:
+-    return _bindgen_dl().call["clang_getCursorKind", CXCursorKind, CXCursor](a0)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorKind", CXCursorKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_isDeclaration(a0: CXCursorKind) raises -> c_uint:
+     return _bindgen_dl().call["clang_isDeclaration", c_uint, CXCursorKind](a0)
+@@ -2720,13 +2767,16 @@ def clang_isUnexposed(a0: CXCursorKind) raises -> c_uint:
+     return _bindgen_dl().call["clang_isUnexposed", c_uint, CXCursorKind](a0)
+ 
+ def clang_getCursorLinkage(cursor: CXCursor) raises -> CXLinkageKind:
+-    return _bindgen_dl().call["clang_getCursorLinkage", CXLinkageKind, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorLinkage", CXLinkageKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorVisibility(cursor: CXCursor) raises -> CXVisibilityKind:
+-    return _bindgen_dl().call["clang_getCursorVisibility", CXVisibilityKind, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorVisibility", CXVisibilityKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorAvailability(cursor: CXCursor) raises -> CXAvailabilityKind:
+-    return _bindgen_dl().call["clang_getCursorAvailability", CXAvailabilityKind, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorAvailability", CXAvailabilityKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorPlatformAvailability(cursor: CXCursor, always_deprecated: Optional[UnsafePointer[c_int, MutExternalOrigin]], deprecated_message: Optional[UnsafePointer[CXString, MutExternalOrigin]], always_unavailable: Optional[UnsafePointer[c_int, MutExternalOrigin]], unavailable_message: Optional[UnsafePointer[CXString, MutExternalOrigin]], availability: Optional[UnsafePointer[CXPlatformAvailability, MutExternalOrigin]], availability_size: c_int) raises -> c_int:
+     return _bindgen_dl().call["clang_getCursorPlatformAvailability", c_int, CXCursor, Optional[UnsafePointer[c_int, MutExternalOrigin]], Optional[UnsafePointer[CXString, MutExternalOrigin]], Optional[UnsafePointer[c_int, MutExternalOrigin]], Optional[UnsafePointer[CXString, MutExternalOrigin]], Optional[UnsafePointer[CXPlatformAvailability, MutExternalOrigin]], c_int](cursor, always_deprecated, deprecated_message, always_unavailable, unavailable_message, availability, availability_size)
+@@ -2735,22 +2785,30 @@ def clang_disposeCXPlatformAvailability(availability: Optional[UnsafePointer[CXP
+     _bindgen_dl().call["clang_disposeCXPlatformAvailability", NoneType, Optional[UnsafePointer[CXPlatformAvailability, MutExternalOrigin]]](availability)
+ 
+ def clang_Cursor_getVarDeclInitializer(cursor: CXCursor) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_Cursor_getVarDeclInitializer", CXCursor, CXCursor](cursor)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    _bindgen_shim_dl().call["mojo_clang_Cursor_getVarDeclInitializer", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_Cursor_hasVarDeclGlobalStorage(cursor: CXCursor) raises -> c_int:
+-    return _bindgen_dl().call["clang_Cursor_hasVarDeclGlobalStorage", c_int, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_Cursor_hasVarDeclGlobalStorage", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_Cursor_hasVarDeclExternalStorage(cursor: CXCursor) raises -> c_int:
+-    return _bindgen_dl().call["clang_Cursor_hasVarDeclExternalStorage", c_int, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_Cursor_hasVarDeclExternalStorage", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorLanguage(cursor: CXCursor) raises -> CXLanguageKind:
+-    return _bindgen_dl().call["clang_getCursorLanguage", CXLanguageKind, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorLanguage", CXLanguageKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorTLSKind(cursor: CXCursor) raises -> CXTLSKind:
+-    return _bindgen_dl().call["clang_getCursorTLSKind", CXTLSKind, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorTLSKind", CXTLSKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_Cursor_getTranslationUnit(a0: CXCursor) raises -> CXTranslationUnit:
+-    return _bindgen_dl().call["clang_Cursor_getTranslationUnit", CXTranslationUnit, CXCursor](a0)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    return _bindgen_shim_dl().call["mojo_clang_Cursor_getTranslationUnit", CXTranslationUnit, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_createCXCursorSet() raises -> CXCursorSet:
+     return _bindgen_dl().call["clang_createCXCursorSet", CXCursorSet]()
+@@ -2759,46 +2817,75 @@ def clang_disposeCXCursorSet(cset: CXCursorSet) raises -> None:
+     _bindgen_dl().call["clang_disposeCXCursorSet", NoneType, CXCursorSet](cset)
+ 
+ def clang_CXCursorSet_contains(cset: CXCursorSet, cursor: CXCursor) raises -> c_uint:
+-    return _bindgen_dl().call["clang_CXCursorSet_contains", c_uint, CXCursorSet, CXCursor](cset, cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_CXCursorSet_contains", c_uint, CXCursorSet, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cset, rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_CXCursorSet_insert(cset: CXCursorSet, cursor: CXCursor) raises -> c_uint:
+-    return _bindgen_dl().call["clang_CXCursorSet_insert", c_uint, CXCursorSet, CXCursor](cset, cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_CXCursorSet_insert", c_uint, CXCursorSet, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cset, rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursorSemanticParent(cursor: CXCursor) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getCursorSemanticParent", CXCursor, CXCursor](cursor)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    _bindgen_shim_dl().call["mojo_clang_getCursorSemanticParent", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getCursorLexicalParent(cursor: CXCursor) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getCursorLexicalParent", CXCursor, CXCursor](cursor)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    _bindgen_shim_dl().call["mojo_clang_getCursorLexicalParent", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getOverriddenCursors(cursor: CXCursor, overridden: Optional[UnsafePointer[Optional[UnsafePointer[CXCursor, MutExternalOrigin]], MutExternalOrigin]], num_overridden: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_getOverriddenCursors", NoneType, CXCursor, Optional[UnsafePointer[Optional[UnsafePointer[CXCursor, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](cursor, overridden, num_overridden)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    _bindgen_shim_dl().call["mojo_clang_getOverriddenCursors", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXCursor, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()), overridden, num_overridden)
+ 
+ def clang_disposeOverriddenCursors(overridden: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+     _bindgen_dl().call["clang_disposeOverriddenCursors", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](overridden)
+ 
+ def clang_getIncludedFile(cursor: CXCursor) raises -> CXFile:
+-    return _bindgen_dl().call["clang_getIncludedFile", CXFile, CXCursor](cursor)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
++    return _bindgen_shim_dl().call["mojo_clang_getIncludedFile", CXFile, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_getCursor(a0: CXTranslationUnit, a1: CXSourceLocation) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getCursor", CXCursor, CXTranslationUnit, CXSourceLocation](a0, a1)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=a1)
++    _bindgen_shim_dl().call["mojo_clang_getCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), a0, rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getCursorLocation(a0: CXCursor) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getCursorLocation", CXSourceLocation, CXCursor](a0)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    _bindgen_shim_dl().call["mojo_clang_getCursorLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getCursorExtent(a0: CXCursor) raises -> CXSourceRange:
+-    return _bindgen_dl().call["clang_getCursorExtent", CXSourceRange, CXCursor](a0)
++    var out_storage = InlineArray[CXSourceRange, 1](fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    _bindgen_shim_dl().call["mojo_clang_getCursorExtent", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getCursorType(C: CXCursor) raises -> CXType:
+-    return _bindgen_dl().call["clang_getCursorType", CXType, CXCursor](C)
++    var out_storage = InlineArray[CXType, 1](fill=CXType(kind=CXTypeKind(c_uint(0)), data0=None, data1=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=C)
++    _bindgen_shim_dl().call["mojo_clang_getCursorType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXType, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getTypeSpelling(CT: CXType) raises -> CXString:
+-    return _bindgen_dl().call["clang_getTypeSpelling", CXString, CXType](CT)
++    var type_storage = InlineArray[CXType, 1](fill=CT)
++    return _bindgen_shim_dl().call["mojo_clang_getTypeSpelling", CXString, Optional[UnsafePointer[CXType, MutExternalOrigin]]](rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()))
+ 
+ def clang_getTypedefDeclUnderlyingType(C: CXCursor) raises -> CXType:
+-    return _bindgen_dl().call["clang_getTypedefDeclUnderlyingType", CXType, CXCursor](C)
++    var out_storage = InlineArray[CXType, 1](fill=CXType(kind=CXTypeKind(c_uint(0)), data0=None, data1=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=C)
++    _bindgen_shim_dl().call["mojo_clang_getTypedefDeclUnderlyingType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXType, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getEnumDeclIntegerType(C: CXCursor) raises -> CXType:
+-    return _bindgen_dl().call["clang_getEnumDeclIntegerType", CXType, CXCursor](C)
++    var out_storage = InlineArray[CXType, 1](fill=CXType(kind=CXTypeKind(c_uint(0)), data0=None, data1=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=C)
++    _bindgen_shim_dl().call["mojo_clang_getEnumDeclIntegerType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXType, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getEnumConstantDeclValue(C: CXCursor) raises -> c_long_long:
+     return _bindgen_dl().call["clang_getEnumConstantDeclValue", c_long_long, CXCursor](C)
+@@ -3011,7 +3098,8 @@ def clang_visitChildrenWithBlock(parent: CXCursor, block: CXCursorVisitorBlock)
+     return _bindgen_dl().call["clang_visitChildrenWithBlock", c_uint, CXCursor, CXCursorVisitorBlock](parent, block)
+ 
+ def clang_getCursorUSR(a0: CXCursor) raises -> CXString:
+-    return _bindgen_dl().call["clang_getCursorUSR", CXString, CXCursor](a0)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorUSR", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_constructUSR_ObjCClass(class_name: Optional[UnsafePointer[c_char, ImmutExternalOrigin]]) raises -> CXString:
+     return _bindgen_dl().call["clang_constructUSR_ObjCClass", CXString, Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](class_name)
+@@ -3032,7 +3120,8 @@ def clang_constructUSR_ObjCProperty(property: Optional[UnsafePointer[c_char, Imm
+     return _bindgen_dl().call["clang_constructUSR_ObjCProperty", CXString, Optional[UnsafePointer[c_char, ImmutExternalOrigin]], CXString](property, classUSR)
+ 
+ def clang_getCursorSpelling(a0: CXCursor) raises -> CXString:
+-    return _bindgen_dl().call["clang_getCursorSpelling", CXString, CXCursor](a0)
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    return _bindgen_shim_dl().call["mojo_clang_getCursorSpelling", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+ 
+ def clang_Cursor_getSpellingNameRange(a0: CXCursor, pieceIndex: c_uint, options: c_uint) raises -> CXSourceRange:
+     return _bindgen_dl().call["clang_Cursor_getSpellingNameRange", CXSourceRange, CXCursor, c_uint, c_uint](a0, pieceIndex, options)
+@@ -3056,16 +3145,25 @@ def clang_getCursorDisplayName(a0: CXCursor) raises -> CXString:
+     return _bindgen_dl().call["clang_getCursorDisplayName", CXString, CXCursor](a0)
+ 
+ def clang_getCursorReferenced(a0: CXCursor) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getCursorReferenced", CXCursor, CXCursor](a0)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    _bindgen_shim_dl().call["mojo_clang_getCursorReferenced", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getCursorDefinition(a0: CXCursor) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getCursorDefinition", CXCursor, CXCursor](a0)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    _bindgen_shim_dl().call["mojo_clang_getCursorDefinition", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_isCursorDefinition(a0: CXCursor) raises -> c_uint:
+     return _bindgen_dl().call["clang_isCursorDefinition", c_uint, CXCursor](a0)
+ 
+ def clang_getCanonicalCursor(a0: CXCursor) raises -> CXCursor:
+-    return _bindgen_dl().call["clang_getCanonicalCursor", CXCursor, CXCursor](a0)
++    var out_storage = InlineArray[CXCursor, 1](fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None))
++    var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
++    _bindgen_shim_dl().call["mojo_clang_getCanonicalCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_Cursor_getObjCSelectorIndex(a0: CXCursor) raises -> c_int:
+     return _bindgen_dl().call["clang_Cursor_getObjCSelectorIndex", c_int, CXCursor](a0)
+@@ -3200,25 +3298,35 @@ def clang_getCursorReferenceNameRange(C: CXCursor, NameFlags: c_uint, PieceIndex
+     return _bindgen_dl().call["clang_getCursorReferenceNameRange", CXSourceRange, CXCursor, c_uint, c_uint](C, NameFlags, PieceIndex)
+ 
+ def clang_getToken(TU: CXTranslationUnit, Location: CXSourceLocation) raises -> Optional[UnsafePointer[CXToken, MutExternalOrigin]]:
+-    return _bindgen_dl().call["clang_getToken", Optional[UnsafePointer[CXToken, MutExternalOrigin]], CXTranslationUnit, CXSourceLocation](TU, Location)
++    var location_storage = InlineArray[CXSourceLocation, 1](fill=Location)
++    return _bindgen_shim_dl().call["mojo_clang_getToken", Optional[UnsafePointer[CXToken, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](TU, rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
+ 
+ def clang_getTokenKind(a0: CXToken) raises -> CXTokenKind:
+-    return _bindgen_dl().call["clang_getTokenKind", CXTokenKind, CXToken](a0)
++    var token_storage = InlineArray[CXToken, 1](fill=a0)
++    return _bindgen_shim_dl().call["mojo_clang_getTokenKind", CXTokenKind, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
+ 
+ def clang_getTokenSpelling(a0: CXTranslationUnit, a1: CXToken) raises -> CXString:
+-    return _bindgen_dl().call["clang_getTokenSpelling", CXString, CXTranslationUnit, CXToken](a0, a1)
++    var token_storage = InlineArray[CXToken, 1](fill=a1)
++    return _bindgen_shim_dl().call["mojo_clang_getTokenSpelling", CXString, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](a0, rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
+ 
+ def clang_getTokenLocation(a0: CXTranslationUnit, a1: CXToken) raises -> CXSourceLocation:
+-    return _bindgen_dl().call["clang_getTokenLocation", CXSourceLocation, CXTranslationUnit, CXToken](a0, a1)
++    var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
++    var token_storage = InlineArray[CXToken, 1](fill=a1)
++    _bindgen_shim_dl().call["mojo_clang_getTokenLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), a0, rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_getTokenExtent(a0: CXTranslationUnit, a1: CXToken) raises -> CXSourceRange:
+-    return _bindgen_dl().call["clang_getTokenExtent", CXSourceRange, CXTranslationUnit, CXToken](a0, a1)
++    var out_storage = InlineArray[CXSourceRange, 1](fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)))
++    var token_storage = InlineArray[CXToken, 1](fill=a1)
++    _bindgen_shim_dl().call["mojo_clang_getTokenExtent", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()), a0, rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
++    return out_storage[0].copy()
+ 
+ def clang_tokenize(TU: CXTranslationUnit, Range: CXSourceRange, Tokens: Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], NumTokens: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_tokenize", NoneType, CXTranslationUnit, CXSourceRange, Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](TU, Range, Tokens, NumTokens)
++    var range_storage = InlineArray[CXSourceRange, 1](fill=Range)
++    _bindgen_shim_dl().call["mojo_clang_tokenize", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](TU, rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()), Tokens, NumTokens)
+ 
+ def clang_annotateTokens(TU: CXTranslationUnit, Tokens: Optional[UnsafePointer[CXToken, MutExternalOrigin]], NumTokens: c_uint, Cursors: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+-    _bindgen_dl().call["clang_annotateTokens", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]], c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](TU, Tokens, NumTokens, Cursors)
++    _bindgen_shim_dl().call["mojo_clang_annotateTokens", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]], c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](TU, Tokens, NumTokens, Cursors)
+ 
+ def clang_disposeTokens(TU: CXTranslationUnit, Tokens: Optional[UnsafePointer[CXToken, MutExternalOrigin]], NumTokens: c_uint) raises -> None:
+     _bindgen_dl().call["clang_disposeTokens", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]], c_uint](TU, Tokens, NumTokens)
