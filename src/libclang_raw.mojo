@@ -2479,6 +2479,9 @@ def clang_getNullRange() raises -> CXSourceRange:
     _bindgen_shim_dl().call["mojo_clang_getNullRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()))
     return out_storage[0].copy()
 
+def clang_getNullRange_into(out_range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getNullRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](out_range)
+
 def clang_getRange(begin: CXSourceLocation, end: CXSourceLocation) raises -> CXSourceRange:
     var out_storage = InlineArray[CXSourceRange, 1](fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)))
     var begin_storage = InlineArray[CXSourceLocation, 1](fill=begin)
@@ -2494,6 +2497,9 @@ def clang_equalRanges(range1: CXSourceRange, range2: CXSourceRange) raises -> c_
 def clang_Range_isNull(range: CXSourceRange) raises -> c_int:
     var range_storage = InlineArray[CXSourceRange, 1](fill=range)
     return _bindgen_shim_dl().call["mojo_clang_Range_isNull", c_int, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()))
+
+def clang_Range_isNull_ref(range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Range_isNull", c_int, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](range)
 
 def clang_getExpansionLocation(location: CXSourceLocation, file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
     var location_storage = InlineArray[CXSourceLocation, 1](fill=location)
@@ -2628,6 +2634,24 @@ def clang_getLocationForOffset(tu: CXTranslationUnit, file: CXFile, offset: c_ui
     _bindgen_shim_dl().call["mojo_clang_getLocationForOffset", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, CXFile, c_uint](rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](out_storage.unsafe_ptr()), tu, file, offset)
     return out_storage[0].copy()
 
+# Pointer-safe helpers for CXSourceLocation/CXSourceRange. These bypass Mojo
+# aggregate value materialization, which is currently corrupting libclang
+# location/range records after the shim has already written correct bytes.
+def clang_getLocation_into(out_location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], tu: CXTranslationUnit, file: CXFile, line: c_uint, column: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, CXFile, c_uint, c_uint](out_location, tu, file, line, column)
+
+def clang_getLocationForOffset_into(out_location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], tu: CXTranslationUnit, file: CXFile, offset: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getLocationForOffset", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, CXFile, c_uint](out_location, tu, file, offset)
+
+def clang_getSpellingLocation_ref(location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getSpellingLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, file, line, column, offset)
+
+def clang_getFileLocation_ref(location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], file: Optional[UnsafePointer[CXFile, MutExternalOrigin]], line: Optional[UnsafePointer[c_uint, MutExternalOrigin]], column: Optional[UnsafePointer[c_uint, MutExternalOrigin]], offset: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getFileLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXFile, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](location, file, line, column, offset)
+
+def clang_getRange_into(out_range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], begin: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], end: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](out_range, begin, end)
+
 def clang_getSkippedRanges(tu: CXTranslationUnit, file: CXFile) raises -> Optional[UnsafePointer[CXSourceRangeList, MutExternalOrigin]]:
     return _bindgen_dl().call["clang_getSkippedRanges", Optional[UnsafePointer[CXSourceRangeList, MutExternalOrigin]], CXTranslationUnit, CXFile](tu, file)
 
@@ -2725,6 +2749,9 @@ def clang_Cursor_isNull(cursor: CXCursor) raises -> c_int:
     var cursor_storage = InlineArray[CXCursor, 1](fill=cursor)
     return _bindgen_shim_dl().call["mojo_clang_Cursor_isNull", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
 
+def clang_Cursor_isNull_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_isNull_ref", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
 def clang_hashCursor(a0: CXCursor) raises -> c_uint:
     var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
     return _bindgen_shim_dl().call["mojo_clang_hashCursor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
@@ -2732,6 +2759,9 @@ def clang_hashCursor(a0: CXCursor) raises -> c_uint:
 def clang_getCursorKind(a0: CXCursor) raises -> CXCursorKind:
     var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
     return _bindgen_shim_dl().call["mojo_clang_getCursorKind", CXCursorKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+
+def clang_getCursorKind_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXCursorKind:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorKind_ref", CXCursorKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
 
 def clang_isDeclaration(a0: CXCursorKind) raises -> c_uint:
     return _bindgen_dl().call["clang_isDeclaration", c_uint, CXCursorKind](a0)
@@ -2852,6 +2882,9 @@ def clang_getCursor(a0: CXTranslationUnit, a1: CXSourceLocation) raises -> CXCur
     var location_storage = InlineArray[CXSourceLocation, 1](fill=a1)
     _bindgen_shim_dl().call["mojo_clang_getCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](out_storage.unsafe_ptr()), a0, rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
     return out_storage[0].copy()
+
+def clang_getCursor_ref(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], tu: CXTranslationUnit, location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](out_cursor, tu, location)
 
 def clang_getCursorLocation(a0: CXCursor) raises -> CXSourceLocation:
     var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
@@ -3123,6 +3156,9 @@ def clang_getCursorSpelling(a0: CXCursor) raises -> CXString:
     var cursor_storage = InlineArray[CXCursor, 1](fill=a0)
     return _bindgen_shim_dl().call["mojo_clang_getCursorSpelling", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
 
+def clang_getCursorSpelling_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorSpelling_ref", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
 def clang_Cursor_getSpellingNameRange(a0: CXCursor, pieceIndex: c_uint, options: c_uint) raises -> CXSourceRange:
     return _bindgen_dl().call["clang_Cursor_getSpellingNameRange", CXSourceRange, CXCursor, c_uint, c_uint](a0, pieceIndex, options)
 
@@ -3301,13 +3337,22 @@ def clang_getToken(TU: CXTranslationUnit, Location: CXSourceLocation) raises -> 
     var location_storage = InlineArray[CXSourceLocation, 1](fill=Location)
     return _bindgen_shim_dl().call["mojo_clang_getToken", Optional[UnsafePointer[CXToken, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](TU, rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
 
+def clang_getToken_ref(TU: CXTranslationUnit, location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]) raises -> Optional[UnsafePointer[CXToken, MutExternalOrigin]]:
+    return _bindgen_shim_dl().call["mojo_clang_getToken", Optional[UnsafePointer[CXToken, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](TU, location)
+
 def clang_getTokenKind(a0: CXToken) raises -> CXTokenKind:
     var token_storage = InlineArray[CXToken, 1](fill=a0)
     return _bindgen_shim_dl().call["mojo_clang_getTokenKind", CXTokenKind, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
 
+def clang_getTokenKind_ref(token: Optional[UnsafePointer[CXToken, MutExternalOrigin]]) raises -> CXTokenKind:
+    return _bindgen_shim_dl().call["mojo_clang_getTokenKind_ref", CXTokenKind, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](token)
+
 def clang_getTokenSpelling(a0: CXTranslationUnit, a1: CXToken) raises -> CXString:
     var token_storage = InlineArray[CXToken, 1](fill=a1)
     return _bindgen_shim_dl().call["mojo_clang_getTokenSpelling", CXString, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](a0, rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
+
+def clang_getTokenSpelling_ref(tu: CXTranslationUnit, token: Optional[UnsafePointer[CXToken, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getTokenSpelling_ref", CXString, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](tu, token)
 
 def clang_getTokenLocation(a0: CXTranslationUnit, a1: CXToken) raises -> CXSourceLocation:
     var out_storage = InlineArray[CXSourceLocation, 1](fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)))
@@ -3324,6 +3369,9 @@ def clang_getTokenExtent(a0: CXTranslationUnit, a1: CXToken) raises -> CXSourceR
 def clang_tokenize(TU: CXTranslationUnit, Range: CXSourceRange, Tokens: Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], NumTokens: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
     var range_storage = InlineArray[CXSourceRange, 1](fill=Range)
     _bindgen_shim_dl().call["mojo_clang_tokenize", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](TU, rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()), Tokens, NumTokens)
+
+def clang_tokenize_ref(TU: CXTranslationUnit, range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Tokens: Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], NumTokens: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_tokenize", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](TU, range, Tokens, NumTokens)
 
 def clang_annotateTokens(TU: CXTranslationUnit, Tokens: Optional[UnsafePointer[CXToken, MutExternalOrigin]], NumTokens: c_uint, Cursors: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
     _bindgen_shim_dl().call["mojo_clang_annotateTokens", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]], c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](TU, Tokens, NumTokens, Cursors)

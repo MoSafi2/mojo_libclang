@@ -90,6 +90,13 @@ Current shim coverage includes:
 - selected cursor metadata and cursor-to-string surfaces
 - selected token APIs
 
+Because Mojo currently corrupts `CXSourceLocation` values when they are
+materialized as ordinary Mojo values, the repository now also carries a small
+set of pointer-only helper entry points in `libclang_raw` for location/range,
+cursor lookup, and tokenization workflows. These helpers keep the aggregate
+records in caller-owned storage and pass pointers back into the shim, avoiding
+the broken value-copy path.
+
 Remaining direct by-value surfaces should still be treated as suspect until they
 move behind the shim or are proven safe with targeted probes.
 
@@ -237,9 +244,9 @@ Current observations from the default probe task:
   - single-token lookup and tokenization still do not return usable tokens on
     the current probe fixture path
 - unknown / crash-prone:
-  - the shimmed `clang_getSpellingLocation` and `clang_getFileLocation` entry
-    points compile and link, but the current probe path still crashes when
-    inspecting a location returned by `clang_getLocation`
+  - value-returned `CXSourceLocation` / `CXSourceRange` records are still not
+    trustworthy as ordinary Mojo values; use the pointer-only helper path for
+    functional location/range workflows
   - `clang_getNullCursor()` followed by `clang_getCursorKind()` /
     `clang_isInvalid()` does not currently classify as an invalid cursor in the
     probe runner

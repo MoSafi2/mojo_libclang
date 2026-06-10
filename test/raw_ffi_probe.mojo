@@ -7,6 +7,7 @@ from libclang_raw import (
     CXCursorKind,
     CXFile,
     CXIndex,
+    CXSourceLocation,
     CXString,
     CXSourceRange,
     CXToken,
@@ -14,6 +15,7 @@ from libclang_raw import (
     CXTranslationUnit_None,
     CXUnsavedFile,
     clang_Range_isNull,
+    clang_Range_isNull_ref,
     clang_createIndex,
     clang_disposeDiagnostic,
     clang_disposeIndex,
@@ -23,15 +25,18 @@ from libclang_raw import (
     clang_getCString,
     clang_getClangVersion,
     clang_getCursor,
+    clang_getCursor_ref,
     clang_getCursorAvailability,
     clang_getCursorDefinition,
     clang_getCursorExtent,
     clang_getCursorKind,
+    clang_getCursorKind_ref,
     clang_getCursorKindSpelling,
     clang_getCursorLexicalParent,
     clang_getCursorReferenced,
     clang_getCursorSemanticParent,
     clang_getCursorSpelling,
+    clang_getCursorSpelling_ref,
     clang_getCursorType,
     clang_getDiagnostic,
     clang_getDiagnosticSpelling,
@@ -40,26 +45,34 @@ from libclang_raw import (
     clang_getFileName,
     clang_getFileTime,
     clang_getLocation,
+    clang_getLocation_into,
     clang_getRange,
+    clang_getRange_into,
     clang_getNullCursor,
     clang_getNullLocation,
     clang_getNullRange,
+    clang_getNullRange_into,
     clang_getNumDiagnostics,
     clang_getToken,
+    clang_getToken_ref,
     clang_getTokenKind,
+    clang_getTokenKind_ref,
     clang_getTokenExtent,
     clang_getTokenLocation,
     clang_getTokenSpelling,
+    clang_getTokenSpelling_ref,
     clang_getTranslationUnitCursor,
     clang_getTranslationUnitSpelling,
     clang_getTypeSpelling,
     clang_getSpellingLocation,
+    clang_getSpellingLocation_ref,
     clang_isDeclaration,
     clang_isExpression,
     clang_isInvalid,
     clang_isStatement,
     clang_parseTranslationUnit,
     clang_tokenize,
+    clang_tokenize_ref,
 )
 from std.ffi import c_char, c_uint, c_ulong
 from std.memory import UnsafePointer
@@ -116,10 +129,11 @@ def _probe_default_options() raises -> String:
 
 def _probe_null_struct_returns() raises -> String:
     var location = clang_getNullLocation()
-    var range = clang_getNullRange()
     var cursor = clang_getNullCursor()
+    var range_storage = InlineArray[CXSourceRange, 1](fill=clang_getNullRange())
+    clang_getNullRange_into(rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()))
 
-    _check(Bool(clang_Range_isNull(range)), "clang_getNullRange did not produce a null range")
+    _check(Bool(clang_Range_isNull_ref(rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()))), "clang_getNullRange did not produce a null range")
     _ = location
     _ = cursor
     return "null location, range, and cursor returned"
@@ -193,10 +207,46 @@ def _probe_cursor_lookup_and_spelling() raises -> String:
 
 
 def _probe_location_round_trip() raises -> String:
-    _ = clang_getFileLocation
-    _ = clang_getSpellingLocation
-    _ = CXFile
-    raise Error("risky probe disabled in default runner: clang_getSpellingLocation currently crashes on the shimmed location path")
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+
+    try:
+        var file = clang_getFile(tu, _as_c_string(path))
+        if not file:
+            raise Error("clang_getFile returned null")
+
+        var location_storage = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        var spelling_file = InlineArray[CXFile, 1](fill=None)
+        var spelling_line = InlineArray[c_uint, 1](fill=c_uint(0))
+        var spelling_column = InlineArray[c_uint, 1](fill=c_uint(0))
+        var spelling_offset = InlineArray[c_uint, 1](fill=c_uint(0))
+
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+            tu,
+            file,
+            1,
+            5,
+        )
+        clang_getSpellingLocation_ref(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXFile, MutExternalOrigin]](spelling_file.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](spelling_line.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](spelling_column.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](spelling_offset.unsafe_ptr()),
+        )
+
+        _check(spelling_line[0] == 1, "spelling line mismatch")
+        _check(spelling_column[0] == 5, "spelling column mismatch")
+        _check(Bool(clang_File_isEqual(file, spelling_file[0])), "spelling file mismatch")
+        return "line=" + String(spelling_line[0]) + ", column=" + String(spelling_column[0])
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
 
 
 def _probe_tu_cursor_metadata() raises -> String:
@@ -230,6 +280,73 @@ def _probe_tu_cursor_metadata() raises -> String:
 
 def _probe_tu_cursor_type_surface() raises -> String:
     raise Error("risky probe disabled in default runner: clang_getCursorType still crashes on the current cursor lookup path")
+
+
+def _probe_pointer_only_cursor_and_tokens() raises -> String:
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+
+    try:
+        var file = clang_getFile(tu, _as_c_string(path))
+        if not file:
+            raise Error("clang_getFile returned null")
+
+        var start_location = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        var end_location = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        var cursor_storage = InlineArray[CXCursor, 1](fill=clang_getNullCursor())
+        var range_storage = InlineArray[CXSourceRange, 1](fill=clang_getNullRange())
+        var token_storage = InlineArray[Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1](fill=None)
+        var token_count = InlineArray[c_uint, 1](fill=c_uint(0))
+
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_location.unsafe_ptr()),
+            tu,
+            file,
+            1,
+            5,
+        )
+        clang_getCursor_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()),
+            tu,
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_location.unsafe_ptr()),
+        )
+
+        var kind = clang_getCursorKind_ref(rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+        _check(not Bool(clang_isInvalid(kind)), "pointer-only cursor lookup produced an invalid kind")
+
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_location.unsafe_ptr()),
+            tu,
+            file,
+            1,
+            23,
+        )
+        clang_getRange_into(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_location.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_location.unsafe_ptr()),
+        )
+        clang_tokenize_ref(
+            tu,
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]](token_storage.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](token_count.unsafe_ptr()),
+        )
+        _check(token_count[0] > 0, "pointer-only tokenize returned zero tokens")
+        if not token_storage[0]:
+            raise Error("pointer-only tokenize returned a null token buffer")
+        try:
+            var first = _cx_string_pointer_note(clang_getTokenSpelling_ref(tu, token_storage[0].value()))
+            return "kind=" + String(kind) + ", tokens=" + String(token_count[0]) + ", first=" + first
+        finally:
+            clang_disposeTokens(tu, token_storage[0].value(), token_count[0])
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
 
 
 def _probe_diagnostics() raises -> String:
@@ -400,6 +517,11 @@ def main() raises:
         _record_success(worked, "tu-cursor-type-surface", EXPECT_UNKNOWN, _probe_tu_cursor_type_surface())
     except e:
         _record_failure(failed, working_regressions, unknown_failed, "tu-cursor-type-surface", EXPECT_UNKNOWN, String(e))
+
+    try:
+        _record_success(worked, "pointer-only-cursor-and-tokens", EXPECT_WORKING, _probe_pointer_only_cursor_and_tokens())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "pointer-only-cursor-and-tokens", EXPECT_WORKING, String(e))
 
     try:
         _record_success(worked, "diagnostics", EXPECT_WORKING, _probe_diagnostics())

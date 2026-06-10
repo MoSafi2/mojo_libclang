@@ -145,6 +145,29 @@ MOJO_SHIM_EXPORT int mojo_clang_Range_isNull(CXSourceRange *range) {
     return clang_Range_isNull(*range);
 }
 
+MOJO_SHIM_EXPORT CXCursorKind mojo_clang_getCursorKind_ref(CXCursor *cursor) {
+    return clang_getCursorKind(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getCursorSpelling_ref(CXCursor *cursor) {
+    return clang_getCursorSpelling(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_Cursor_isNull_ref(CXCursor *cursor) {
+    return clang_Cursor_isNull(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getTokenSpelling_ref(
+    CXTranslationUnit tu,
+    CXToken *token
+) {
+    return clang_getTokenSpelling(tu, *token);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getTokenKind_ref(CXToken *token) {
+    return clang_getTokenKind(*token);
+}
+
 MOJO_SHIM_EXPORT void mojo_clang_getExpansionLocation(
     CXSourceLocation *location,
     CXFile *file,
