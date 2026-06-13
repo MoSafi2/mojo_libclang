@@ -161,6 +161,14 @@
      var abortQuery: IndexerCallbacks_abortQuery_cb
      var diagnostic: IndexerCallbacks_diagnostic_cb
      var enteredMainFile: IndexerCallbacks_enteredMainFile_cb
+@@ -2618,6 +2618,6 @@
+ @align(8)
+ @fieldwise_init
+-struct CXUnsavedFile(RegisterPassable):
++struct CXUnsavedFile(Copyable, Movable, RegisterPassable):
+     var Filename: Optional[UnsafePointer[c_char, ImmutExternalOrigin]]
+     var Contents: Optional[UnsafePointer[c_char, ImmutExternalOrigin]]
+     var Length: c_ulong
 --- a/src/libclang_raw_layout_tests.mojo
 +++ b/src/libclang_raw_layout_tests.mojo
 @@ -90,17 +90,19 @@

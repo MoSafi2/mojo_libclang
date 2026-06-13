@@ -14,8 +14,8 @@
 from std.ffi import DEFAULT_RTLD, OwnedDLHandle, c_char, c_double, c_int, c_long, c_long_long, c_short, c_uchar, c_uint, c_ulong, c_ulong_long, c_ushort
 from std.memory import ImmutOpaquePointer, MutOpaquePointer
 
-comptime _BINDGEN_LIB_PATH: String = "/home/mohamed/mojo_libclang/.pixi/envs/default/lib/python3.14/site-packages/clang/native/libclang.so"
-comptime _BINDGEN_SHIM_LIB_PATH: String = "/home/mohamed/mojo_libclang/build/libclang_mojo_shim.so"
+comptime _BINDGEN_LIB_PATH: String = "/home/mohamed/Documents/Projects/mojo_libclang/.pixi/envs/default/lib/python3.14/site-packages/clang/native/libclang.so"
+comptime _BINDGEN_SHIM_LIB_PATH: String = "/home/mohamed/Documents/Projects/mojo_libclang/build/libclang_mojo_shim.so"
 
 def _bindgen_dl() raises -> OwnedDLHandle:
     return OwnedDLHandle(_BINDGEN_LIB_PATH)
@@ -2130,7 +2130,7 @@ struct CXTranslationUnitImpl(Copyable, Movable):
 
 @align(8)
 @fieldwise_init
-struct CXUnsavedFile(RegisterPassable):
+struct CXUnsavedFile(Copyable, Movable, RegisterPassable):
     var Filename: Optional[UnsafePointer[c_char, ImmutExternalOrigin]]
     var Contents: Optional[UnsafePointer[c_char, ImmutExternalOrigin]]
     var Length: c_ulong
