@@ -28,6 +28,14 @@ from src.libclang_raw import (
     clang_disposeString,
     clang_disposeTokens,
     clang_disposeTranslationUnit,
+    clang_equalCursors,
+    clang_equalCursors_ref,
+    clang_equalLocations,
+    clang_equalLocations_ref,
+    clang_equalRanges,
+    clang_equalRanges_ref,
+    clang_equalTypes,
+    clang_equalTypes_ref,
     clang_getCString,
     clang_getClangVersion,
     clang_getCursor,
@@ -56,7 +64,9 @@ from src.libclang_raw import (
     clang_getRange,
     clang_getRange_into,
     clang_getNullCursor,
+    clang_getNullCursor_ref,
     clang_getNullLocation,
+    clang_getNullLocation_ref,
     clang_getNullRange,
     clang_getNullRange_into,
     clang_getNumDiagnostics,
@@ -71,6 +81,7 @@ from src.libclang_raw import (
     clang_getTokenSpelling,
     clang_getTokenSpelling_ref,
     clang_getTranslationUnitCursor,
+    clang_getTranslationUnitCursor_ref,
     clang_getTranslationUnitSpelling,
     clang_getTypeSpelling,
     clang_getTypeSpelling_ref,
@@ -88,7 +99,7 @@ from src.libclang_raw import (
     CXClientData,
     clang_visitChildren,
 )
-from std.ffi import c_char, c_uint, c_ulong
+from std.ffi import c_char, c_int, c_uint, c_ulong
 from std.memory import UnsafePointer
 
 
@@ -615,6 +626,218 @@ def _probe_tokenize() raises -> String:
         clang_disposeIndex(index)
 
 
+def _probe_equal_types_via_direct_dl() raises -> String:
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+    try:
+        var file = clang_getFile(tu, _as_c_string(path))
+        if not file:
+            raise Error("clang_getFile returned null")
+
+        var location_storage = InlineArray[CXSourceLocation, 1](
+            fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)),
+        )
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+            tu, file, 1, 5,
+        )
+        var cursor_storage = InlineArray[CXCursor, 1](
+            fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None),
+        )
+        clang_getCursor_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()),
+            tu,
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+        )
+        var type_storage = InlineArray[CXType, 1](fill=CXType(kind=CXType_Invalid, data0=None, data1=None))
+        clang_getCursorType_ref(
+            result=rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()),
+            cursor=rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()),
+        )
+
+        var equal_self = clang_equalTypes_ref(
+            rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_self), "clang_equalTypes_ref(self, self) is false")
+
+        var invalid_type_storage = InlineArray[CXType, 1](fill=CXType(kind=CXType_Invalid, data0=None, data1=None))
+        var equal_diff = clang_equalTypes_ref(
+            rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXType, MutExternalOrigin]](invalid_type_storage.unsafe_ptr()),
+        )
+        _check(not Bool(equal_diff), "clang_equalTypes_ref(self, invalid) is true")
+
+        return "self=" + String(equal_self) + ", diff=" + String(equal_diff)
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
+def _probe_equal_cursors_via_shim() raises -> String:
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+    try:
+        var tu_cursor_storage = InlineArray[CXCursor, 1](
+            fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None),
+        )
+        clang_getTranslationUnitCursor_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](tu_cursor_storage.unsafe_ptr()), tu,
+        )
+
+        var null_cursor_storage = InlineArray[CXCursor, 1](
+            fill=CXCursor(kind=CXCursorKind(c_uint(0)), xdata=c_int(0), data0=None, data1=None, data2=None),
+        )
+        clang_getNullCursor_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](null_cursor_storage.unsafe_ptr()),
+        )
+
+        var equal_self = clang_equalCursors_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](tu_cursor_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](tu_cursor_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_self), "clang_equalCursors_ref(self, self) is false")
+
+        var equal_null = clang_equalCursors_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](null_cursor_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](null_cursor_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_null), "clang_equalCursors_ref(null, null) is false")
+
+        var equal_diff = clang_equalCursors_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](tu_cursor_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](null_cursor_storage.unsafe_ptr()),
+        )
+        _check(not Bool(equal_diff), "clang_equalCursors_ref(tu, null) is true")
+
+        return "self=" + String(equal_self) + ", null=" + String(equal_null) + ", diff=" + String(equal_diff)
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
+def _probe_equal_locations_via_shim() raises -> String:
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+    try:
+        var file = clang_getFile(tu, _as_c_string(path))
+        if not file:
+            raise Error("clang_getFile returned null")
+
+        var loc_storage = InlineArray[CXSourceLocation, 1](
+            fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)),
+        )
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](loc_storage.unsafe_ptr()),
+            tu, file, 1, 5,
+        )
+
+        var null_loc_storage = InlineArray[CXSourceLocation, 1](
+            fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)),
+        )
+        clang_getNullLocation_ref(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](null_loc_storage.unsafe_ptr()),
+        )
+
+        var equal_self = clang_equalLocations_ref(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](loc_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](loc_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_self), "clang_equalLocations_ref(self, self) is false")
+
+        var equal_null = clang_equalLocations_ref(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](null_loc_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](null_loc_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_null), "clang_equalLocations_ref(null, null) is false")
+
+        var equal_diff = clang_equalLocations_ref(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](loc_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](null_loc_storage.unsafe_ptr()),
+        )
+        _check(not Bool(equal_diff), "clang_equalLocations_ref(loc, null) is true")
+
+        return "self=" + String(equal_self) + ", null=" + String(equal_null) + ", diff=" + String(equal_diff)
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
+def _probe_equal_ranges_via_shim() raises -> String:
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+    try:
+        var null_range_storage = InlineArray[CXSourceRange, 1](
+            fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)),
+        )
+        clang_getNullRange_into(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](null_range_storage.unsafe_ptr()),
+        )
+
+        var equal_null = clang_equalRanges_ref(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](null_range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](null_range_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_null), "clang_equalRanges_ref(null, null) is false")
+
+        var file = clang_getFile(tu, _as_c_string(path))
+        if not file:
+            raise Error("clang_getFile returned null")
+
+        var start_loc = InlineArray[CXSourceLocation, 1](
+            fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)),
+        )
+        var end_loc = InlineArray[CXSourceLocation, 1](
+            fill=CXSourceLocation(ptr_data0=None, ptr_data1=None, int_data=c_uint(0)),
+        )
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_loc.unsafe_ptr()),
+            tu, file, 1, 1,
+        )
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_loc.unsafe_ptr()),
+            tu, file, 1, 5,
+        )
+
+        var range_storage = InlineArray[CXSourceRange, 1](
+            fill=CXSourceRange(ptr_data0=None, ptr_data1=None, begin_int_data=c_uint(0), end_int_data=c_uint(0)),
+        )
+        clang_getRange_into(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_loc.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_loc.unsafe_ptr()),
+        )
+
+        var equal_self = clang_equalRanges_ref(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+        )
+        _check(Bool(equal_self), "clang_equalRanges_ref(range, range) is false")
+
+        var equal_diff = clang_equalRanges_ref(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](null_range_storage.unsafe_ptr()),
+        )
+        _check(not Bool(equal_diff), "clang_equalRanges_ref(range, null) is true")
+
+        return "null=" + String(equal_null) + ", self=" + String(equal_self) + ", diff=" + String(equal_diff)
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
 def _record_success(mut worked: Int, name: String, expected: String, note: String):
     worked += 1
     print("[worked][" + expected + "] " + name + ": " + note)
@@ -709,6 +932,26 @@ def main() raises:
         _record_success(worked, "tokenize", EXPECT_WORKING, _probe_tokenize())
     except e:
         _record_failure(failed, working_regressions, unknown_failed, "tokenize", EXPECT_WORKING, String(e))
+
+    try:
+        _record_success(worked, "equal-types-via-shim-ref", EXPECT_WORKING, _probe_equal_types_via_direct_dl())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "equal-types-via-shim-ref", EXPECT_WORKING, String(e))
+
+    try:
+        _record_success(worked, "equal-cursors-via-shim-ref", EXPECT_WORKING, _probe_equal_cursors_via_shim())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "equal-cursors-via-shim-ref", EXPECT_WORKING, String(e))
+
+    try:
+        _record_success(worked, "equal-locations-via-shim-ref", EXPECT_WORKING, _probe_equal_locations_via_shim())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "equal-locations-via-shim-ref", EXPECT_WORKING, String(e))
+
+    try:
+        _record_success(worked, "equal-ranges-via-shim-ref", EXPECT_WORKING, _probe_equal_ranges_via_shim())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "equal-ranges-via-shim-ref", EXPECT_WORKING, String(e))
 
     print("")
     print("Probe summary:")

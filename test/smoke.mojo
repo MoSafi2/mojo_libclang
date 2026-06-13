@@ -1,4 +1,4 @@
-from libclang_raw import (
+from src.libclang_raw import (
     clang_createIndex,
     clang_disposeIndex,
     clang_disposeString,

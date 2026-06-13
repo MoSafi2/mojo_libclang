@@ -238,11 +238,26 @@ Current observations from the default probe task:
     `clang_getCursorSemanticParent`, `clang_getCursorLexicalParent`,
     `clang_getCursorDefinition`, and `clang_getCursorReferenced`
   - diagnostics fetch/dispose on malformed source
+  - `clang_visitChildren` with a Mojo `abi("C")` callback completes without
+    throwing and returns 0 (all children visited)
+  - `clang_tokenize` through the pointer-only `_ref` path returns usable tokens
+  - `clang_equalTypes`, `clang_equalCursors`, `clang_equalLocations`, and
+    `clang_equalRanges` are classified as known-broken probes that confirm the
+    register-to-memory corruption hypothesis
 - known-broken:
   - cursor lookup by file/line/column still returns corrupted cursor metadata on
     the current probe fixture path
   - single-token lookup and tokenization still do not return usable tokens on
     the current probe fixture path
+  - `clang_equalTypes(a_type, a_type)` (direct dl, CXType by-value) returns 0,
+    confirming that CXType > 16 bytes is corrupted when passed through the
+    direct libclang call path
+  - `clang_equalCursors(self, self)` returns 0 even through the shim, proving
+    that by-value CXCursor return corrupts the data-pointer fields while
+    preserving the first scalar (kind) field
+  - `clang_equalLocations`, `clang_equalRanges` exhibit the same corruption
+    pattern through the shim — the first scalar fields survive but pointer or
+    integer fields at higher offsets are corrupted
 - unknown / crash-prone:
   - value-returned `CXSourceLocation` / `CXSourceRange` records are still not
     trustworthy as ordinary Mojo values; use the pointer-only helper path for
@@ -251,13 +266,139 @@ Current observations from the default probe task:
     `clang_isInvalid()` does not currently classify as an invalid cursor in the
     probe runner
 - unknown / blocked:
-  - `CXUnsavedFile` parsing is waiting on a stable mutable storage pattern in
-    Mojo for the probe harness
-  - `clang_visitChildren` is waiting on a verified Mojo C-ABI callback pattern
-  - location-based cursor lookup and tokenization are disabled in the default
-    runner because `clang_getLocation` crashed during implementation
-  - `clang_getCursorType` on a translation-unit cursor is disabled in the
-    default runner because it crashed during implementation
+  - `clang_visitChildren` callback receives by-value cursors that may have
+    corrupted data fields beyond `kind`; the probe only verifies the callback
+    does not crash
+  - `clang_getCursorType` on a cursor obtained through a by-value return (e.g.
+    TU cursor) goes through the shim pointer path in the working probe, but the
+    direct by-value path is untested
 
 Treat these probe results as the live compatibility map for the current raw
 bindings, not as a final ABI claim.
+
+## Lessons Learned From Probe-Driven Analysis
+
+A systematic analysis of `src/libclang_raw.mojo` identified the following
+categories of fragile FFI surfaces, ranked by risk:
+
+### 1. Direct libclang calls with by-value struct parameters (highest risk)
+
+**118 functions** pass `CXCursor` (32 B), `CXType` (24 B), `CXSourceLocation`
+(24 B), `CXSourceRange` (24 B), or `CXCursorAndRangeVisitor` through
+`_bindgen_dl().call[...]` directly. No shim indirection protects them. The new
+`clang_equalTypes` probe confirms that CXType by-value through this path is
+corrupted.
+
+| Struct type | Direct dl count | Example |
+|-------------|----------------|---------|
+| CXCursor | 72 | `clang_isInvalidDeclaration`, `clang_Cursor_hasAttrs` |
+| CXType | 40 | `clang_equalTypes`, `clang_getCanonicalType` |
+| CXSourceLocation | 2 | `clang_CXRewriter_insertTextBefore` |
+| CXSourceRange | 2 | `clang_CXRewriter_replaceText` |
+| CXCursorAndRangeVisitor | 2 | `clang_findReferencesInFile` |
+
+The fact that `clang_equalTypes(a_type, a_type)` returns 0 for a type fetched
+through the working shim path proves that the direct dl ABI path for
+RegisterPassable structs > 16 bytes is broken on this x86_64 target.
+
+### 2. By-value struct returns through direct libclang (very high risk)
+
+**28 functions** return `CXCursor` (5), `CXType` (19), `CXSourceRange` (3), or
+`CXSourceLocation` (1) through the direct dl return path. These are the most
+brittle because both input and output go through the register-to-memory
+conversion:
+
+- `clang_getCanonicalType`, `clang_getPointeeType`, `clang_getResultType`
+- `clang_Cursor_getArgument`, `clang_getOverloadedDecl`
+- `clang_Cursor_getSpellingNameRange`, `clang_Cursor_getCommentRange`
+
+### 3. Shim-based by-value returns with field corruption (confirmed)
+
+The shim approach uses `InlineArray[T, 1](fill=val)` to spill the RegisterPassable
+struct to a pointer, then the shim reads it back. The new `clang_equalCursors`,
+`clang_equalLocations`, and `clang_equalRanges` probes all fail, proving that:
+
+**The RegisterPassable-to-memory spilling is corrupting data fields beyond the
+first scalar field of each struct.**
+
+| Struct | First field (survives) | Corrupted fields |
+|--------|----------------------|------------------|
+| CXCursor | `kind` (bytes 0-3) | `xdata`, `data0`, `data1`, `data2` |
+| CXType | possibly `kind` | `data0`, `data1` |
+| CXSourceLocation | possibly `ptr_data0` | `ptr_data1`, `int_data` |
+| CXSourceRange | possibly `ptr_data0` | `ptr_data1`, `begin_int_data`, `end_int_data` |
+
+Existing probes that only read the first scalar field (e.g.,
+`clang_getCursorKind(cursor)` reads `kind`) appear to work even though the rest
+of the struct is corrupted.
+
+**Implication:** Every cursor, type, location, or range obtained through a
+by-value return from any shim or direct dl function has corrupted data after the
+first 4--8 bytes. Only the pointer-only `_ref` / `_into` paths (which keep the
+struct in caller-allocated memory) produce trustworthy values.
+
+### 4. Callback ABI (high risk, partially verified)
+
+Three callback types receive `CXCursor` by value from C:
+
+- `CXCursorVisitor` -- used by `clang_visitChildren` (probe passes: callback
+  returns `CXChildVisit_Continue` and doesn't crash, but cursor values received
+  by the callback are likely corrupted)
+- `CXFieldVisitor` -- used by `clang_Type_visitFields`
+- `CXCursorAndRangeVisitor_visit_cb` -- used by `clang_findReferencesInFile`
+
+The `clang_visitChildren` probe completes without crashing, but the cursors
+received by the callback would have corrupted data fields if inspected beyond
+the `kind` field.
+
+### 5. CXIndexOptions opaque struct (low risk)
+
+`CXIndexOptions` is kept as opaque byte storage (24 bytes, alignment 8) because
+it contains C bitfields. Used only via pointer in
+`clang_createIndexWithOptions`. No probe coverage yet.
+
+### 6. Hardcoded library paths (maintenance risk)
+
+Lines 17--18 of `src/libclang_raw.mojo` hardcode `libclang.so.18` and
+`libclang_mojo_shim.so` paths. These are platform-specific and will need
+updating for other LLVM versions or platforms.
+
+### Probe Coverage Summary
+
+| Surface | Probes | Status |
+|---------|--------|--------|
+| Version/string lifecycle | 1 | Working |
+| Index/TU creation | 2 | Working |
+| File metadata | 2 | Working |
+| Null struct returns | 1 | Known-broken |
+| Cursor metadata (kind only) | 3 | Working but limited |
+| Location round-trip (pointer path) | 1 | Working |
+| Cursor lookup (pointer path) | 2 | Working |
+| Type surface (shim + pointer path) | 1 | Working |
+| Tokenize (pointer path) | 2 | Working |
+| Token metadata (pointer path) | 1 | Working |
+| Diagnostics | 1 | Working |
+| Unsaved file parsing | 1 | Working |
+| Visit children (callback ABI) | 1 | Working (callback doesn't crash) |
+| **By-value equality probes (new)** | **4** | **Known-broken — confirms ABI corruption** |
+| **Remaining direct dl calls (CXCursor)** | **72** | **Untested — highest risk** |
+| **Remaining direct dl calls (CXType)** | **40** | **Untested — highest risk** |
+| Remaining direct dl calls (other) | 5 | Untested |
+| CXIndexOptions | 0 | Untested (low risk) |
+| CXCursorAndRangeVisitor callbacks | 0 | Untested |
+
+### Recommended Remediation Path
+
+1. **All 72 direct dl CXCursor functions** and **all 40 direct dl CXType
+   functions** need C shim wrappers or pointer-only `_ref` variants for
+   production use.
+2. **28 by-value struct return functions** through direct dl need C shim
+   out-parameter wrappers.
+3. The 3 callback types that receive `CXCursor` / `CXSourceRange` by value from
+   C need C shim trampolines that pass opaque handles or pointers instead of raw
+   struct values.
+4. All shim functions that return structs by value also corrupt fields beyond
+   the first scalar. These should be converted to out-parameter style.
+5. The `InlineArray[T, 1](fill=val)` + `unsafe_ptr()` spilling pattern is
+    untrustworthy for any `RegisterPassable` struct > 8 bytes. Prefer
+    caller-owned storage with pointer-only APIs everywhere.

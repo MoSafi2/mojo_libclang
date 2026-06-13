@@ -32,6 +32,8 @@ typedef struct {
     void *data[2];
 } CXType;
 
+extern unsigned clang_equalTypes(CXType, CXType);
+
 typedef struct {
     unsigned int_data[4];
     void *ptr_data;
@@ -479,6 +481,10 @@ MOJO_SHIM_EXPORT void mojo_clang_tokenize(
     unsigned *num_tokens
 ) {
     clang_tokenize(tu, *range, tokens, num_tokens);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_equalTypes(CXType *left, CXType *right) {
+    return clang_equalTypes(*left, *right);
 }
 
 MOJO_SHIM_EXPORT void mojo_clang_annotateTokens(
