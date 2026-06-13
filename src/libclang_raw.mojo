@@ -2904,9 +2904,15 @@ def clang_getCursorType(C: CXCursor) raises -> CXType:
     _bindgen_shim_dl().call["mojo_clang_getCursorType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](rebind[UnsafePointer[CXType, MutExternalOrigin]](out_storage.unsafe_ptr()), rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
     return out_storage[0].copy()
 
+def clang_getCursorType_ref(result: Optional[UnsafePointer[CXType, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](result, cursor)
+
 def clang_getTypeSpelling(CT: CXType) raises -> CXString:
     var type_storage = InlineArray[CXType, 1](fill=CT)
     return _bindgen_shim_dl().call["mojo_clang_getTypeSpelling", CXString, Optional[UnsafePointer[CXType, MutExternalOrigin]]](rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()))
+
+def clang_getTypeSpelling_ref(type_ptr: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getTypeSpelling", CXString, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type_ptr)
 
 def clang_getTypedefDeclUnderlyingType(C: CXCursor) raises -> CXType:
     var out_storage = InlineArray[CXType, 1](fill=CXType(kind=CXTypeKind(c_uint(0)), data0=None, data1=None))

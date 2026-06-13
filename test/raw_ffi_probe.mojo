@@ -5,8 +5,12 @@ from src.libclang_raw import (
     clang_defaultSaveOptions,
     CXCursor,
     CXCursorKind,
+    CXType,
     CXCursor_FirstInvalid,
+    CXCursor_FunctionDecl,
     CXCursor_TranslationUnit,
+    CXType_Invalid,
+    CXTypeKind,
     CXFile,
     CXIndex,
     CXSourceLocation,
@@ -40,6 +44,7 @@ from src.libclang_raw import (
     clang_getCursorSpelling,
     clang_getCursorSpelling_ref,
     clang_getCursorType,
+    clang_getCursorType_ref,
     clang_getDiagnostic,
     clang_getDiagnosticSpelling,
     clang_getFile,
@@ -66,6 +71,7 @@ from src.libclang_raw import (
     clang_getTranslationUnitCursor,
     clang_getTranslationUnitSpelling,
     clang_getTypeSpelling,
+    clang_getTypeSpelling_ref,
     clang_getSpellingLocation,
     clang_getSpellingLocation_ref,
     clang_isDeclaration,
@@ -99,7 +105,7 @@ def _cx_string_pointer_note(cx_string: CXString) raises -> String:
     if not c_string:
         clang_disposeString(cx_string)
         raise Error("libclang returned a null C string")
-    var value = String(c_string.value())
+    var value = String(unsafe_from_utf8_ptr=c_string.value())
     clang_disposeString(cx_string)
     return value
 
@@ -202,11 +208,25 @@ def _probe_cursor_lookup_and_spelling() raises -> String:
         var file = clang_getFile(tu, _as_c_string(path))
         if not file:
             raise Error("clang_getFile returned null")
-        var location = clang_getLocation(tu, file, 1, 5)
-        var cursor = clang_getCursor(tu, location)
-        var spelling = _cx_string_pointer_note(clang_getCursorSpelling(cursor))
-        var kind = clang_getCursorKind(cursor)
-        _check(not Bool(clang_isInvalid(kind)), "cursor from clang_getCursor had an invalid kind")
+
+        var location_storage = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+            tu, file, 1, 5,
+        )
+
+        var cursor_storage = InlineArray[CXCursor, 1](fill=clang_getNullCursor())
+        clang_getCursor_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()),
+            tu,
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+        )
+
+        var kind = clang_getCursorKind_ref(rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+        _check(not Bool(clang_isInvalid(kind)), "cursor from clang_getCursor_ref had an invalid kind")
+
+        var spelling = _cx_string_pointer_note(clang_getCursorSpelling_ref(rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr())))
+        _check(spelling.byte_length() > 0, "cursor spelling was empty")
         return "kind=" + String(kind) + ", spelling=" + spelling
     finally:
         clang_disposeTranslationUnit(tu)
@@ -289,7 +309,50 @@ def _probe_tu_cursor_metadata() raises -> String:
 
 
 def _probe_tu_cursor_type_surface() raises -> String:
-    raise Error("risky probe disabled in default runner: clang_getCursorType still crashes on the current cursor lookup path")
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+
+    try:
+        var file = clang_getFile(tu, _as_c_string(path))
+        if not file:
+            raise Error("clang_getFile returned null")
+
+        var location_storage = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+            tu, file, 1, 5,
+        )
+
+        var cursor_storage = InlineArray[CXCursor, 1](fill=clang_getNullCursor())
+        clang_getCursor_ref(
+            rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()),
+            tu,
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+        )
+
+        var kind = clang_getCursorKind_ref(rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()))
+        _check(kind == CXCursor_FunctionDecl, "expected cursor at line 1 col 5 to be FunctionDecl, got " + String(kind))
+
+        var type_storage = InlineArray[CXType, 1](fill=CXType(kind=CXTypeKind(c_uint(0)), data0=None, data1=None))
+        clang_getCursorType_ref(
+            result=rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr()),
+            cursor=rebind[UnsafePointer[CXCursor, MutExternalOrigin]](cursor_storage.unsafe_ptr()),
+        )
+
+        var type_kind = type_storage[0].kind
+        _check(type_kind != CXType_Invalid, "function cursor type was CXType_Invalid")
+
+        var type_spelling = _cx_string_pointer_note(clang_getTypeSpelling_ref(rebind[UnsafePointer[CXType, MutExternalOrigin]](type_storage.unsafe_ptr())))
+        _check(type_spelling.byte_length() > 0, "function type spelling was empty")
+
+        return "cursor-kind=" + String(kind) + ", type-kind=" + String(type_kind) + ", type-spelling=" + type_spelling
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
 
 
 def _probe_pointer_only_cursor_and_tokens() raises -> String:
@@ -546,9 +609,9 @@ def main() raises:
         _record_failure(failed, working_regressions, unknown_failed, "location-round-trip", EXPECT_UNKNOWN, String(e))
 
     try:
-        _record_success(worked, "cursor-lookup-and-spelling", EXPECT_KNOWN_BROKEN, _probe_cursor_lookup_and_spelling())
+        _record_success(worked, "cursor-lookup-and-spelling", EXPECT_WORKING, _probe_cursor_lookup_and_spelling())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "cursor-lookup-and-spelling", EXPECT_KNOWN_BROKEN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "cursor-lookup-and-spelling", EXPECT_WORKING, String(e))
 
     try:
         _record_success(worked, "tu-cursor-metadata", EXPECT_WORKING, _probe_tu_cursor_metadata())
@@ -556,9 +619,9 @@ def main() raises:
         _record_failure(failed, working_regressions, unknown_failed, "tu-cursor-metadata", EXPECT_WORKING, String(e))
 
     try:
-        _record_success(worked, "tu-cursor-type-surface", EXPECT_UNKNOWN, _probe_tu_cursor_type_surface())
+        _record_success(worked, "tu-cursor-type-surface", EXPECT_WORKING, _probe_tu_cursor_type_surface())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "tu-cursor-type-surface", EXPECT_UNKNOWN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "tu-cursor-type-surface", EXPECT_WORKING, String(e))
 
     try:
         _record_success(worked, "pointer-only-cursor-and-tokens", EXPECT_WORKING, _probe_pointer_only_cursor_and_tokens())

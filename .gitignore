@@ -1,3 +1,6 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# generated shim
+build/libclang_mojo_shim.so
