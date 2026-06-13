@@ -155,6 +155,24 @@ MOJO_SHIM_EXPORT void mojo_clang_getDiagnosticRange(
     *out = clang_getDiagnosticRange(diagnostic, index);
 }
 
+MOJO_SHIM_EXPORT void mojo_clang_getDiagnosticFixIt_into(
+    CXSourceRange *out,
+    CXDiagnostic diagnostic,
+    unsigned index
+) {
+    /* Discard the returned CXString; only the range is required. */
+    CXString ignored = clang_getDiagnosticFixIt(diagnostic, index, out);
+    clang_disposeString(ignored);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getDiagnosticFixIt_text(
+    CXDiagnostic diagnostic,
+    unsigned index
+) {
+    /* Caller still needs to fetch the range with mojo_clang_getDiagnosticFixIt_into. */
+    return clang_getDiagnosticFixIt(diagnostic, index, NULL);
+}
+
 MOJO_SHIM_EXPORT void mojo_clang_getLocation(
     CXSourceLocation *out,
     CXTranslationUnit tu,

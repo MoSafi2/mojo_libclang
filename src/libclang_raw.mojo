@@ -3978,3 +3978,306 @@ def clang_install_aborting_llvm_fatal_error_handler() raises -> None:
 
 def clang_uninstall_llvm_fatal_error_handler() raises -> None:
     _bindgen_dl().call["clang_uninstall_llvm_fatal_error_handler", NoneType]()
+
+# --- V2 high-level API shim declarations ---
+# Pointer-input (`_ref`) and pointer-output (`_into`) shim declarations that
+# the v2 high-level API in src/libclang/ requires. The underlying C shim
+# functions are defined in shim/libclang_mojo_shim.c.
+
+# --- SourceLocation / Range ---
+def clang_Location_isInSystemHeader_ref(location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Location_isInSystemHeader", c_int, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](location)
+
+def clang_Location_isFromMainFile_ref(location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Location_isFromMainFile", c_int, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]]](location)
+
+def clang_getRangeStart_into(out_location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getRangeStart", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](out_location, range)
+
+def clang_getRangeEnd_into(out_location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getRangeEnd", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]]](out_location, range)
+
+# --- Cursor: scalar via _ref ---
+def clang_hashCursor_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_hashCursor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_isCursorDefinition_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_isCursorDefinition", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorLinkage_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXLinkageKind:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorLinkage", CXLinkageKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorVisibility_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXVisibilityKind:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorVisibility", CXVisibilityKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorAvailability_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXAvailabilityKind:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorAvailability", CXAvailabilityKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorLanguage_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXLanguageKind:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorLanguage", CXLanguageKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorTLSKind_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXTLSKind:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorTLSKind", CXTLSKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getTranslationUnit_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXTranslationUnit:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getTranslationUnit", CXTranslationUnit, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_hasAttrs_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_hasAttrs", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_isBitField_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_isBitField", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_isAnonymous_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_isAnonymous", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_isAnonymousRecordDecl_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_isAnonymousRecordDecl", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getFieldDeclBitWidth_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_getFieldDeclBitWidth", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getNumArguments_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getNumArguments", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getNumTemplateArguments_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getNumTemplateArguments", c_int, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getOffsetOfField_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getOffsetOfField", c_long_long, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getStorageClass_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CX_StorageClass:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getStorageClass", CX_StorageClass, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCXXAccessSpecifier_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CX_CXXAccessSpecifier:
+    return _bindgen_shim_dl().call["mojo_clang_getCXXAccessSpecifier", CX_CXXAccessSpecifier, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getEnumConstantDeclValue_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_getEnumConstantDeclValue", c_long_long, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getEnumConstantDeclUnsignedValue_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_ulong_long:
+    return _bindgen_shim_dl().call["mojo_clang_getEnumConstantDeclUnsignedValue", c_ulong_long, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getRawCommentText_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getRawCommentText", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getBriefCommentText_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getBriefCommentText", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getMangling_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getMangling", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorUSR_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorUSR", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_getCursorDisplayName_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getCursorDisplayName", CXString, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_Cursor_getTemplateArgumentKind_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], i: c_uint) raises -> CXTemplateArgumentKind:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getTemplateArgumentKind", CXTemplateArgumentKind, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], c_uint](cursor, i)
+
+def clang_Cursor_getTemplateArgumentValue_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], i: c_uint) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getTemplateArgumentValue", c_long_long, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], c_uint](cursor, i)
+
+def clang_Cursor_getTemplateArgumentUnsignedValue_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], i: c_uint) raises -> c_ulong_long:
+    return _bindgen_shim_dl().call["mojo_clang_Cursor_getTemplateArgumentUnsignedValue", c_ulong_long, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], c_uint](cursor, i)
+
+def clang_CXXMethod_isStatic_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXMethod_isStatic", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXMethod_isVirtual_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXMethod_isVirtual", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXMethod_isConst_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXMethod_isConst", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXMethod_isDefaulted_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXMethod_isDefaulted", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXMethod_isDeleted_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXMethod_isDeleted", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXMethod_isPureVirtual_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXMethod_isPureVirtual", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXConstructor_isConvertingConstructor_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXConstructor_isConvertingConstructor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXConstructor_isCopyConstructor_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXConstructor_isCopyConstructor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXConstructor_isMoveConstructor_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXConstructor_isMoveConstructor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXConstructor_isDefaultConstructor_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXConstructor_isDefaultConstructor", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_CXXRecord_isAbstract_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_CXXRecord_isAbstract", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+def clang_EnumDecl_isScoped_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_EnumDecl_isScoped", c_uint, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+# --- Cursor: aggregate-returning via _into ---
+def clang_getCursorSemanticParent_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorSemanticParent", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_cursor, cursor)
+
+def clang_getCursorLexicalParent_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorLexicalParent", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_cursor, cursor)
+
+def clang_getCursorReferenced_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorReferenced", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_cursor, cursor)
+
+def clang_getCursorDefinition_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorDefinition", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_cursor, cursor)
+
+def clang_getCanonicalCursor_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCanonicalCursor", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_cursor, cursor)
+
+def clang_getCursorLocation_into(out_location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_location, cursor)
+
+def clang_getCursorExtent_into(out_range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorExtent", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_range, cursor)
+
+def clang_getCursorType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_type, cursor)
+
+def clang_getCursorResultType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCursorResultType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_type, cursor)
+
+def clang_getTypedefDeclUnderlyingType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getTypedefDeclUnderlyingType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_type, cursor)
+
+def clang_getEnumDeclIntegerType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getEnumDeclIntegerType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_type, cursor)
+
+def clang_Cursor_getArgument_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], i: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_Cursor_getArgument", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]], c_uint](out_cursor, cursor, i)
+
+def clang_getOverloadedDecl_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], i: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getOverloadedDecl", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]], c_uint](out_cursor, cursor, i)
+
+def clang_getSpecializedCursorTemplate_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getSpecializedCursorTemplate", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](out_cursor, cursor)
+
+def clang_Cursor_getTemplateArgumentType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], i: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_Cursor_getTemplateArgumentType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXCursor, MutExternalOrigin]], c_uint](out_type, cursor, i)
+
+def clang_getIncludedFile_ref(cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]]) raises -> CXFile:
+    return _bindgen_shim_dl().call["mojo_clang_getIncludedFile", CXFile, Optional[UnsafePointer[CXCursor, MutExternalOrigin]]](cursor)
+
+# --- Type: aggregate-returning via _into ---
+def clang_getCanonicalType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getCanonicalType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getPointeeType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getPointeeType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getUnqualifiedType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getUnqualifiedType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getNonReferenceType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getNonReferenceType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getResultType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getResultType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getElementType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getElementType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getArrayElementType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getArrayElementType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getArgType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]], i: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getArgType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]], c_uint](out_type, type, i)
+
+def clang_Type_getTemplateArgumentAsType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]], i: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_Type_getTemplateArgumentAsType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]], c_uint](out_type, type, i)
+
+def clang_Type_getNamedType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_Type_getNamedType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_Type_getClassType_into(out_type: Optional[UnsafePointer[CXType, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_Type_getClassType", NoneType, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_type, type)
+
+def clang_getTypeDeclaration_into(out_cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]], type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getTypeDeclaration", NoneType, Optional[UnsafePointer[CXCursor, MutExternalOrigin]], Optional[UnsafePointer[CXType, MutExternalOrigin]]](out_cursor, type)
+
+# --- Type: scalar via _ref ---
+def clang_getTypeSpelling_ref_again(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getTypeSpelling", CXString, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_getTypedefName_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getTypedefName", CXString, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_isPODType_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_isPODType", c_uint, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_isConstQualifiedType_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_isConstQualifiedType", c_uint, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_isVolatileQualifiedType_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_isVolatileQualifiedType", c_uint, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_isRestrictQualifiedType_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_isRestrictQualifiedType", c_uint, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_isFunctionTypeVariadic_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_isFunctionTypeVariadic", c_uint, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_getAddressSpace_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_getAddressSpace", c_uint, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_getFunctionTypeCallingConv_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> CXCallingConv:
+    return _bindgen_shim_dl().call["mojo_clang_getFunctionTypeCallingConv", CXCallingConv, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_getExceptionSpecificationType_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_getExceptionSpecificationType", c_int, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_getNumArgTypes_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_getNumArgTypes", c_int, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_Type_getNumTemplateArguments_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_int:
+    return _bindgen_shim_dl().call["mojo_clang_Type_getNumTemplateArguments", c_int, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_Type_getSizeOf_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_Type_getSizeOf", c_long_long, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_Type_getAlignOf_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_Type_getAlignOf", c_long_long, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_Type_getOffsetOf_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]], fieldname: Optional[UnsafePointer[c_char, ImmutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_Type_getOffsetOf", c_long_long, Optional[UnsafePointer[CXType, MutExternalOrigin]], Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](type, fieldname)
+
+def clang_getArraySize_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_getArraySize", c_long_long, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_getNumElements_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> c_long_long:
+    return _bindgen_shim_dl().call["mojo_clang_getNumElements", c_long_long, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+def clang_Type_getCXXRefQualifier_ref(type: Optional[UnsafePointer[CXType, MutExternalOrigin]]) raises -> CXRefQualifierKind:
+    return _bindgen_shim_dl().call["mojo_clang_Type_getCXXRefQualifier", CXRefQualifierKind, Optional[UnsafePointer[CXType, MutExternalOrigin]]](type)
+
+# --- Diagnostic ---
+def clang_getDiagnosticLocation_into(out_location: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], diagnostic: CXDiagnostic) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getDiagnosticLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXDiagnostic](out_location, diagnostic)
+
+def clang_getDiagnosticRange_into(out_range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], diagnostic: CXDiagnostic, index: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getDiagnosticRange", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], CXDiagnostic, c_uint](out_range, diagnostic, index)
+
+def clang_getDiagnosticFixIt_into(out_range: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], diagnostic: CXDiagnostic, index: c_uint) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getDiagnosticFixIt_into", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], CXDiagnostic, c_uint](out_range, diagnostic, index)
+
+def clang_getDiagnosticFixIt_text(diagnostic: CXDiagnostic, index: c_uint) raises -> CXString:
+    return _bindgen_shim_dl().call["mojo_clang_getDiagnosticFixIt_text", CXString, CXDiagnostic, c_uint](diagnostic, index)
+
+# --- Visitor trampolines ---
+# `clang_visitChildren` (by-value) corrupts `CXCursor` data fields beyond
+# the first scalar per `raw_bindings.md`. The C shim has a trampoline that
+# passes cursors by pointer; expose it as a new Mojo declaration.
+
+comptime MojoCursorVisitorFn = def (cursor: UnsafePointer[CXCursor, MutExternalOrigin], parent: UnsafePointer[CXCursor, MutExternalOrigin], user_data: UnsafePointer[UInt8, MutExternalOrigin]) thin abi("C") -> c_uint
+
+def clang_visitChildren_trampoline(parent: UnsafePointer[CXCursor, MutExternalOrigin], visitor: MojoCursorVisitorFn, user_data: UnsafePointer[UInt8, MutExternalOrigin]) raises -> c_uint:
+    return _bindgen_shim_dl().call["mojo_clang_visitChildren", c_uint, UnsafePointer[CXCursor, MutExternalOrigin], MojoCursorVisitorFn, UnsafePointer[UInt8, MutExternalOrigin]](parent, visitor, user_data)

@@ -4,3 +4,6 @@
 
 # generated shim
 build/libclang_mojo_shim.so
+
+# planning documents
+plans/
