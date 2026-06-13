@@ -34,6 +34,8 @@ from src.libclang.enums import (
     CallingConv,
     ChildVisitResult,
     DiagnosticSeverity,
+)
+from src.libclang_raw import (
     # Raw enum type aliases (comptime = c_uint) for FFI interop
     CXCursorKind,
     CXTypeKind,
