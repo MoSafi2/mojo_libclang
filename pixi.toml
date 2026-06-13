@@ -11,6 +11,7 @@ generate-libclang = "python scripts/generate_libclang_bindings.py"
 smoke-test = "mojo run -I src test/smoke.mojo"
 raw-ffi-probe = "mojo run -I src test/raw_ffi_probe.mojo"
 api-test = "mojo run -I src test/api_test.mojo"
+type-test = "mojo run -I src test/type_test.mojo"
 
 [dependencies]
 python = ">=3.14.5,<3.15"

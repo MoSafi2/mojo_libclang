@@ -43,7 +43,7 @@ struct SourceLocation(Copyable, Movable):
         )
 
     @staticmethod
-    def null(tu: CXTranslationUnit) -> Self:
+    def null(tu: CXTranslationUnit) raises -> Self:
         return Self(tu=tu)
 
     @staticmethod

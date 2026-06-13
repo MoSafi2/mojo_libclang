@@ -33,8 +33,6 @@ def _visit_trampoline(
     parent: UnsafePointer[CXCursor, MutExternalOrigin],
     user_data: UnsafePointer[UInt8, MutExternalOrigin],
 ) abi("C") -> c_uint:
-    if not user_data:
-        return 0
     var collector = rebind[UnsafePointer[_Collector, MutAnyOrigin]](
         rebind[UnsafePointer[UInt8, MutAnyOrigin]](user_data),
     )

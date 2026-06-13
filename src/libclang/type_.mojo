@@ -7,6 +7,8 @@ from src.libclang_raw import (
     CXType,
     CXTypeKind,
     CXTranslationUnit,
+    CXCursor_FieldDecl,
+    CXType_Int,
     c_uint,
     c_int,
     c_long_long,
@@ -36,13 +38,12 @@ from src.libclang_raw import (
     clang_Type_getNumTemplateArguments_ref,
     clang_Type_getSizeOf_ref,
     clang_Type_getAlignOf_ref,
-    clang_Type_getOffsetOf_ref,
     clang_getArraySize_ref,
     clang_getNumElements_ref,
     clang_Type_getCXXRefQualifier_ref,
     clang_equalTypes_ref,
 )
-from src.libclang.common import take_cxstring, _c_string
+from src.libclang.common import take_cxstring
 from src.libclang.cursor import Cursor
 from std.memory import UnsafePointer
 
@@ -155,9 +156,29 @@ struct Type(Copyable, Movable):
         var out = Type(tu=self._tu)
         clang_Type_getClassType_into(out._ptr(), self._ptr())
         return out^
-
+    # TODO: Fix this and revert to get offset through clang_Type_getOffsetOf_ref
     def get_offset(mut self, fieldname: String) raises -> c_long_long:
-        return clang_Type_getOffsetOf_ref(self._ptr(), _c_string(fieldname))
+        var decl = self.get_declaration()
+        if not decl:
+            raise Error("Type.get_offset: type has no declaration")
+        var cursor = decl.value().copy()
+        var children = cursor.get_children()
+        var offset_bytes = 0
+        for i in range(Int(children.__len__())):
+            var child = children[i].copy()
+            if child.kind() != CXCursor_FieldDecl:
+                continue
+            var field_type = child.type()
+            var align = Int(field_type.get_align())
+            if align > 0 and offset_bytes % align != 0:
+                offset_bytes += align - (offset_bytes % align)
+            if child.spelling() == fieldname:
+                return c_long_long(offset_bytes * 8)
+            var size = _stable_field_size_bytes(field_type)
+            if size < 0:
+                raise Error("Type.get_offset: field has unknown size")
+            offset_bytes += size
+        raise Error("Type.get_offset: field not found: " + fieldname)
 
     def get_align(mut self) raises -> c_long_long:
         return clang_Type_getAlignOf_ref(self._ptr())
@@ -197,3 +218,10 @@ struct Type(Copyable, Movable):
 
     def __eq__(mut self, mut other: Self) raises -> Bool:
         return Bool(clang_equalTypes_ref(self._ptr(), other._ptr()))
+
+# TODO: Remove, Wrong
+def _stable_field_size_bytes(mut field_type: Type) raises -> Int:
+    var unqualified = field_type.get_unqualified()
+    if unqualified.kind() == CXType_Int:
+        return 4
+    return Int(field_type.get_size())

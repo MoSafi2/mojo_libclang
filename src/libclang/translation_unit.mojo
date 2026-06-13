@@ -32,7 +32,7 @@ from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 from src.libclang.token import TokenGroup
 from src.libclang.diagnostic import Diagnostic, DiagnosticSet
-from std.memory import UnsafePointer, MutExternalOrigin, ImmutExternalOrigin
+from std.memory import UnsafePointer
 from std.ffi import c_char
 
 
@@ -118,7 +118,7 @@ struct TranslationUnit(Movable):
     def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
         return TokenGroup(tu=self._raw, extent=extent)
 
-    def get_cursor(mut self, loc: SourceLocation) raises -> Cursor:
+    def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
         var out = Cursor(tu=self._raw)
         clang_getCursor_ref(out._ptr(), self._raw, loc._ptr())
         return out^
@@ -139,7 +139,7 @@ struct TranslationUnit(Movable):
     def reparse(
         mut self,
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-        options: c_uint = 0,
+        var options: c_uint = 0,
     ) raises:
         if options == 0:
             options = clang_defaultReparseOptions(self._raw)
@@ -164,7 +164,7 @@ def _build_unsaved_files(
         return (None, c_uint(0))
     var slot = alloc[CXUnsavedFile](len(files))
     for i in range(len(files)):
-        var f = files[i]
+        var f = files[i].copy()
         slot[i] = CXUnsavedFile(
             Filename=_c_string(f.filename),
             Contents=rebind[UnsafePointer[c_char, ImmutExternalOrigin]](_c_string(f.contents)),
