@@ -16,7 +16,7 @@ from src.libclang_raw import (
     c_uint,
 )
 from src.libclang.cursor import Cursor
-from std.memory import UnsafePointer
+from std.memory import UnsafePointer, memcpy
 
 
 comptime MAX_CHILDREN = 1024
@@ -47,7 +47,7 @@ def _visit_trampoline(
         var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](
             collector[].buffer + collector[].count,
         )
-        memcpy(dst, src, 32)  # sizeof(CXCursor) on Linux x86_64
+        memcpy(dest=dst, src=src, count=32)  # sizeof(CXCursor) on Linux x86_64
         collector[].count += 1
     return 1  # CXChildVisit_Continue = 1
 
@@ -70,7 +70,7 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
         # Same byte-copy pattern to avoid the by-value ABI corruption.
         var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](buffer + i)
         var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](c._raw.unsafe_ptr())
-        memcpy(dst, src, 32)
+        memcpy(dest=dst, src=src, count=32)
         out.append(c^)
     collector_box.free()
     buffer.free()
