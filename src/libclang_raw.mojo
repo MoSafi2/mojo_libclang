@@ -3372,6 +3372,12 @@ def clang_getTokenExtent(a0: CXTranslationUnit, a1: CXToken) raises -> CXSourceR
     _bindgen_shim_dl().call["mojo_clang_getTokenExtent", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](out_storage.unsafe_ptr()), a0, rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_storage.unsafe_ptr()))
     return out_storage[0].copy()
 
+def clang_getTokenLocation_ref(result: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], tu: CXTranslationUnit, token: Optional[UnsafePointer[CXToken, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getTokenLocation", NoneType, Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](result, tu, token)
+
+def clang_getTokenExtent_ref(result: Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], tu: CXTranslationUnit, token: Optional[UnsafePointer[CXToken, MutExternalOrigin]]) raises -> None:
+    _bindgen_shim_dl().call["mojo_clang_getTokenExtent", NoneType, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutExternalOrigin]]](result, tu, token)
+
 def clang_tokenize(TU: CXTranslationUnit, Range: CXSourceRange, Tokens: Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], NumTokens: Optional[UnsafePointer[c_uint, MutExternalOrigin]]) raises -> None:
     var range_storage = InlineArray[CXSourceRange, 1](fill=Range)
     _bindgen_shim_dl().call["mojo_clang_tokenize", NoneType, CXTranslationUnit, Optional[UnsafePointer[CXSourceRange, MutExternalOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]], Optional[UnsafePointer[c_uint, MutExternalOrigin]]](TU, rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()), Tokens, NumTokens)

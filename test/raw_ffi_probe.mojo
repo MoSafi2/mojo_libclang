@@ -65,7 +65,9 @@ from src.libclang_raw import (
     clang_getTokenKind,
     clang_getTokenKind_ref,
     clang_getTokenExtent,
+    clang_getTokenExtent_ref,
     clang_getTokenLocation,
+    clang_getTokenLocation_ref,
     clang_getTokenSpelling,
     clang_getTokenSpelling_ref,
     clang_getTranslationUnitCursor,
@@ -81,6 +83,10 @@ from src.libclang_raw import (
     clang_parseTranslationUnit,
     clang_tokenize,
     clang_tokenize_ref,
+    CXChildVisitResult,
+    CXChildVisit_Continue,
+    CXClientData,
+    clang_visitChildren,
 )
 from std.ffi import c_char, c_uint, c_ulong
 from std.memory import UnsafePointer
@@ -459,16 +465,36 @@ def _probe_single_token_surface() raises -> String:
         var file = clang_getFile(tu, _as_c_string(path))
         if not file:
             raise Error("clang_getFile returned null")
-        var location = clang_getLocation(tu, file, 1, 1)
-        var token = clang_getToken(tu, location)
+
+        var location_storage = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()),
+            tu, file, 1, 1,
+        )
+
+        var token = clang_getToken_ref(tu, rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_storage.unsafe_ptr()))
         if not token:
-            raise Error("clang_getToken returned null")
-        var token_kind = clang_getTokenKind(token.value()[0])
-        var spelling = _cx_string_pointer_note(clang_getTokenSpelling(tu, token.value()[0]))
-        var token_location = clang_getTokenLocation(tu, token.value()[0])
-        var token_extent = clang_getTokenExtent(tu, token.value()[0])
-        _check(not Bool(clang_Range_isNull(token_extent)), "token extent came back as a null range")
-        _ = token_location
+            raise Error("clang_getToken_ref returned null")
+
+        var token_ptr = token.value()
+        var token_kind = clang_getTokenKind_ref(rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_ptr))
+        var spelling = _cx_string_pointer_note(clang_getTokenSpelling_ref(tu, rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_ptr)))
+
+        var location_out = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        clang_getTokenLocation_ref(
+            result=rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](location_out.unsafe_ptr()),
+            tu=tu,
+            token=rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_ptr),
+        )
+
+        var extent_out = InlineArray[CXSourceRange, 1](fill=clang_getNullRange())
+        clang_getTokenExtent_ref(
+            result=rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](extent_out.unsafe_ptr()),
+            tu=tu,
+            token=rebind[UnsafePointer[CXToken, MutExternalOrigin]](token_ptr),
+        )
+
+        _check(not Bool(clang_Range_isNull_ref(rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](extent_out.unsafe_ptr()))), "token extent came back as a null range")
         return "kind=" + String(token_kind) + ", spelling=" + spelling
     finally:
         clang_disposeTranslationUnit(tu)
@@ -513,8 +539,25 @@ def _probe_unsaved_parse() raises -> String:
         clang_disposeIndex(index)
 
 
+def _visit_child_callback(cursor: CXCursor, parent: CXCursor, client_data: CXClientData) abi("C") -> CXChildVisitResult:
+    return CXChildVisit_Continue
+
 def _probe_visit_children() raises -> String:
-    raise Error("probe harness gap: need a verified Mojo C-ABI callback definition before clang_visitChildren can be exercised safely")
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+
+    try:
+        var tu_cursor = clang_getTranslationUnitCursor(tu)
+        var result = clang_visitChildren(tu_cursor, _visit_child_callback, None)
+        _check(result == 0, "clang_visitChildren returned non-zero, may indicate error")
+        return "result=" + String(result)
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
 
 
 def _probe_tokenize() raises -> String:
@@ -530,29 +573,43 @@ def _probe_tokenize() raises -> String:
         if not file:
             raise Error("clang_getFile returned null")
 
-        var start = clang_getLocation(tu, file, 1, 1)
-        var end = clang_getLocation(tu, file, 1, 23)
-        var range = clang_getRange(start, end)
+        var start_storage = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        var end_storage = InlineArray[CXSourceLocation, 1](fill=clang_getNullLocation())
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_storage.unsafe_ptr()),
+            tu, file, 1, 1,
+        )
+        clang_getLocation_into(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_storage.unsafe_ptr()),
+            tu, file, 1, 23,
+        )
+
+        var range_storage = InlineArray[CXSourceRange, 1](fill=clang_getNullRange())
+        clang_getRange_into(
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](start_storage.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](end_storage.unsafe_ptr()),
+        )
+
         var token_storage = InlineArray[Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1](fill=None)
         var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
 
-        clang_tokenize(
+        clang_tokenize_ref(
             tu,
-            range,
+            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](range_storage.unsafe_ptr()),
             rebind[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]](token_storage.unsafe_ptr()),
             rebind[UnsafePointer[c_uint, MutExternalOrigin]](count_storage.unsafe_ptr()),
         )
 
         var token_count = count_storage[0]
-        _check(token_count > 0, "clang_tokenize returned zero tokens")
+        _check(token_count > 0, "clang_tokenize_ref returned zero tokens")
         if not token_storage[0]:
-            raise Error("clang_tokenize returned a null token buffer")
+            raise Error("clang_tokenize_ref returned a null token buffer")
 
-        try:
-            var first = _cx_string_pointer_note(clang_getTokenSpelling(tu, token_storage[0].value()[0]))
-            return "tokens=" + String(token_count) + ", first=" + first
-        finally:
-            clang_disposeTokens(tu, token_storage[0].value(), token_count)
+        var first_ptr = token_storage[0].value()
+        var first_kind = clang_getTokenKind_ref(rebind[UnsafePointer[CXToken, MutExternalOrigin]](first_ptr))
+        var first_spelling = _cx_string_pointer_note(clang_getTokenSpelling_ref(tu, rebind[UnsafePointer[CXToken, MutExternalOrigin]](first_ptr)))
+        return "count=" + String(token_count) + ", first-kind=" + String(first_kind) + ", first=" + first_spelling
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
@@ -604,9 +661,9 @@ def main() raises:
         _record_failure(failed, working_regressions, unknown_failed, "parse-file-and-tu-cursor", EXPECT_WORKING, String(e))
 
     try:
-        _record_success(worked, "location-round-trip", EXPECT_UNKNOWN, _probe_location_round_trip())
+        _record_success(worked, "location-round-trip", EXPECT_WORKING, _probe_location_round_trip())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "location-round-trip", EXPECT_UNKNOWN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "location-round-trip", EXPECT_WORKING, String(e))
 
     try:
         _record_success(worked, "cursor-lookup-and-spelling", EXPECT_WORKING, _probe_cursor_lookup_and_spelling())
@@ -634,9 +691,9 @@ def main() raises:
         _record_failure(failed, working_regressions, unknown_failed, "diagnostics", EXPECT_WORKING, String(e))
 
     try:
-        _record_success(worked, "single-token-surface", EXPECT_KNOWN_BROKEN, _probe_single_token_surface())
+        _record_success(worked, "single-token-surface", EXPECT_WORKING, _probe_single_token_surface())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "single-token-surface", EXPECT_KNOWN_BROKEN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "single-token-surface", EXPECT_WORKING, String(e))
 
     try:
         _record_success(worked, "unsaved-parse", EXPECT_WORKING, _probe_unsaved_parse())
@@ -644,14 +701,14 @@ def main() raises:
         _record_failure(failed, working_regressions, unknown_failed, "unsaved-parse", EXPECT_WORKING, String(e))
 
     try:
-        _record_success(worked, "visit-children", EXPECT_UNKNOWN, _probe_visit_children())
+        _record_success(worked, "visit-children", EXPECT_WORKING, _probe_visit_children())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "visit-children", EXPECT_UNKNOWN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "visit-children", EXPECT_WORKING, String(e))
 
     try:
-        _record_success(worked, "tokenize", EXPECT_UNKNOWN, _probe_tokenize())
+        _record_success(worked, "tokenize", EXPECT_WORKING, _probe_tokenize())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "tokenize", EXPECT_UNKNOWN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "tokenize", EXPECT_WORKING, String(e))
 
     print("")
     print("Probe summary:")
