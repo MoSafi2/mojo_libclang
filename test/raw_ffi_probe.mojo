@@ -1,33 +1,29 @@
 from src.libclang_raw import (
     clang_File_isEqual,
     clang_File_tryGetRealPathName,
+    clang_createIndex,
+    clang_Cursor_getArgument,
+    clang_Cursor_getNumArguments,
+    clang_Cursor_getNumTemplateArguments,
+    clang_Cursor_getStorageClass,
+    clang_Cursor_hasAttrs,
+    clang_Cursor_isAnonymous,
+    clang_Cursor_isAnonymousRecordDecl,
+    clang_Cursor_isBitField,
+    clang_Cursor_isVariadic,
+    clang_CXXConstructor_isDefaultConstructor,
+    clang_CXXMethod_isConst,
+    clang_CXXMethod_isStatic,
+    clang_CXXMethod_isVirtual,
+    clang_CXXRecord_isAbstract,
     clang_defaultEditingTranslationUnitOptions,
     clang_defaultSaveOptions,
-    CXCursor,
-    CXCursorKind,
-    CXType,
-    CXCursor_FirstInvalid,
-    CXCursor_FunctionDecl,
-    CXCursor_TranslationUnit,
-    CXType_Invalid,
-    CXTypeKind,
-    CXFile,
-    CXIndex,
-    CXSourceLocation,
-    CXString,
-    CXSourceRange,
-    CXToken,
-    CXTranslationUnit,
-    CXTranslationUnit_None,
-    CXUnsavedFile,
-    clang_Range_isNull,
-    clang_Range_isNull_ref,
-    clang_createIndex,
     clang_disposeDiagnostic,
     clang_disposeIndex,
     clang_disposeString,
     clang_disposeTokens,
     clang_disposeTranslationUnit,
+    clang_EnumDecl_isScoped,
     clang_equalCursors,
     clang_equalCursors_ref,
     clang_equalLocations,
@@ -36,40 +32,67 @@ from src.libclang_raw import (
     clang_equalRanges_ref,
     clang_equalTypes,
     clang_equalTypes_ref,
-    clang_getCString,
+    clang_getAddressSpace,
+    clang_getArgType,
+    clang_getArrayElementType,
+    clang_getArraySize,
+    clang_getCanonicalCursor,
+    clang_getCanonicalType,
     clang_getClangVersion,
+    clang_getCString,
     clang_getCursor,
     clang_getCursor_ref,
     clang_getCursorAvailability,
     clang_getCursorDefinition,
+    clang_getCursorDisplayName,
+    clang_getCursorExceptionSpecificationType,
     clang_getCursorExtent,
     clang_getCursorKind,
     clang_getCursorKind_ref,
     clang_getCursorKindSpelling,
     clang_getCursorLexicalParent,
     clang_getCursorReferenced,
+    clang_getCursorResultType,
     clang_getCursorSemanticParent,
     clang_getCursorSpelling,
     clang_getCursorSpelling_ref,
     clang_getCursorType,
     clang_getCursorType_ref,
+    clang_getCursorUSR,
+    clang_getCXXAccessSpecifier,
     clang_getDiagnostic,
     clang_getDiagnosticSpelling,
+    clang_getElementType,
+    clang_getEnumConstantDeclValue,
+    clang_getExceptionSpecificationType,
+    clang_getFieldDeclBitWidth,
     clang_getFile,
     clang_getFileLocation,
     clang_getFileName,
     clang_getFileTime,
+    clang_getFunctionTypeCallingConv,
     clang_getLocation,
     clang_getLocation_into,
-    clang_getRange,
-    clang_getRange_into,
+    clang_getNonReferenceType,
     clang_getNullCursor,
     clang_getNullCursor_ref,
     clang_getNullLocation,
     clang_getNullLocation_ref,
     clang_getNullRange,
     clang_getNullRange_into,
+    clang_getNumArgTypes,
     clang_getNumDiagnostics,
+    clang_getNumElements,
+    clang_getNumOverloadedDecls,
+    clang_getOverloadedDecl,
+    clang_getPointeeType,
+    clang_getRange,
+    clang_getRange_into,
+    clang_getResultType,
+    clang_getSpecializedCursorTemplate,
+    clang_getSpellingLocation,
+    clang_getSpellingLocation_ref,
+    clang_getTemplateCursorKind,
     clang_getToken,
     clang_getToken_ref,
     clang_getTokenKind,
@@ -83,21 +106,53 @@ from src.libclang_raw import (
     clang_getTranslationUnitCursor,
     clang_getTranslationUnitCursor_ref,
     clang_getTranslationUnitSpelling,
+    clang_getTypeDeclaration,
+    clang_getTypedefName,
     clang_getTypeSpelling,
     clang_getTypeSpelling_ref,
-    clang_getSpellingLocation,
-    clang_getSpellingLocation_ref,
+    clang_getUnqualifiedType,
+    clang_isConstQualifiedType,
+    clang_isCursorDefinition,
     clang_isDeclaration,
     clang_isExpression,
+    clang_isFunctionTypeVariadic,
     clang_isInvalid,
+    clang_isPODType,
+    clang_isRestrictQualifiedType,
     clang_isStatement,
+    clang_isVirtualBase,
+    clang_isVolatileQualifiedType,
     clang_parseTranslationUnit,
+    clang_Range_isNull,
+    clang_Range_isNull_ref,
     clang_tokenize,
     clang_tokenize_ref,
+    clang_Type_getAlignOf,
+    clang_Type_getNumTemplateArguments,
+    clang_Type_getSizeOf,
+    clang_visitChildren,
+    CXCursor,
+    CXCursorKind,
+    CXCursor_EnumConstantDecl,
+    CXCursor_FirstInvalid,
+    CXCursor_FunctionDecl,
+    CXCursor_TranslationUnit,
+    CXCursor_VarDecl,
+    CXFile,
+    CXIndex,
+    CXSourceLocation,
+    CXSourceRange,
+    CXString,
+    CXToken,
+    CXTranslationUnit,
+    CXTranslationUnit_None,
+    CXType,
+    CXType_Invalid,
+    CXTypeKind,
+    CXUnsavedFile,
     CXChildVisitResult,
     CXChildVisit_Continue,
     CXClientData,
-    clang_visitChildren,
 )
 from std.ffi import c_char, c_int, c_uint, c_ulong
 from std.memory import UnsafePointer
@@ -626,6 +681,98 @@ def _probe_tokenize() raises -> String:
         clang_disposeIndex(index)
 
 
+def _probe_shim_null_cursor() raises -> String:
+    """Tests by-value shimmed functions with null cursors.
+
+    Patch 0005 converted ~111 functions from _bindgen_dl to _bindgen_shim_dl.
+    Null cursors (all-zero) exercise the pointer-wrapping path without
+    valid data pointers.  Most scalar/enum/struct-return functions work,
+    but CXType mapping functions (getCanonicalType, getUnqualifiedType)
+    on CXType_Invalid can segfault — the shim wrapper corrupts the
+    @register_passable struct's pointer fields.
+    """
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+    try:
+        var null_cursor = clang_getNullCursor()
+
+        # Scalar queries on null cursor
+        _check(not Bool(clang_Cursor_hasAttrs(null_cursor)), "hasAttrs on null")
+        _check(not Bool(clang_Cursor_isBitField(null_cursor)), "isBitField on null")
+        _check(not Bool(clang_Cursor_isAnonymous(null_cursor)), "isAnonymous on null")
+        _check(not Bool(clang_Cursor_isVariadic(null_cursor)), "isVariadic on null")
+        _check(not Bool(clang_isCursorDefinition(null_cursor)), "isCursorDefinition on null")
+        _check(clang_Cursor_getNumArguments(null_cursor) == -1, "null num_args")
+        _check(clang_Cursor_getNumTemplateArguments(null_cursor) == -1, "null template_args")
+        _check(clang_getFieldDeclBitWidth(null_cursor) == -1, "null bit_width")
+        _ = clang_getNumOverloadedDecls(null_cursor)
+
+        # Cursor→CXCursor on null cursor
+        var semantic = clang_getCursorSemanticParent(null_cursor)
+        _check(clang_getCursorKind(semantic) == CXCursor_FirstInvalid, "null semantic")
+        var lexical = clang_getCursorLexicalParent(null_cursor)
+        _check(clang_getCursorKind(lexical) == CXCursor_FirstInvalid, "null lexical")
+        var referenced = clang_getCursorReferenced(null_cursor)
+        _check(clang_getCursorKind(referenced) == CXCursor_FirstInvalid, "null referenced")
+
+        # Cursor→CXType on null cursor: invalid type
+        var cursor_type = clang_getCursorType(null_cursor)
+        _check(cursor_type.kind == CXType_Invalid, "null cursor type not Invalid")
+
+        # CXX queries on null cursor
+        _check(not Bool(clang_CXXMethod_isVirtual(null_cursor)), "isVirtual on null")
+        _check(not Bool(clang_CXXMethod_isConst(null_cursor)), "isConst on null")
+        _check(not Bool(clang_CXXRecord_isAbstract(null_cursor)), "isAbstract on null")
+
+        return "null-cursor passes"
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
+def _probe_shim_nonnull_cursor() raises -> String:
+    """Tests by-value shim with non-null TU cursor.
+
+    Functions that only read the `kind` field (offset 0, first 4 bytes)
+    work reliably.  Functions that return struct via out-param also work.
+
+    CXCursor→CXString functions (getCursorDisplayName, getCursorUSR) may
+    crash or work depending on runtime state — the InlineArray wrapper
+    may corrupt the data[0..2] pointer fields of @register_passable CXCursor.
+    """
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var tu = _parse_file(index, path)
+    try:
+        var tu_cursor = clang_getTranslationUnitCursor(tu)
+
+        # Scalar: reads only kind field at offset 0 → works
+        var kind = clang_getCursorKind(tu_cursor)
+        _check(kind == CXCursor_TranslationUnit, "TU cursor kind mismatch")
+
+        # Struct return via out-param → works
+        var semantic = clang_getCursorSemanticParent(tu_cursor)
+        _check(clang_getCursorKind(semantic) == CXCursor_TranslationUnit, "TU semantic")
+
+        _check(not Bool(clang_Cursor_hasAttrs(tu_cursor)), "hasAttrs on TU")
+
+        # CXCursor→CXString: may crash if InlineArray corrupts data ptrs
+        var display_name = _cx_string_pointer_note(
+            clang_getCursorDisplayName(tu_cursor),
+        )
+        _check(display_name.byte_length() > 0, "TU display name empty")
+
+        return "kind=" + String(kind) + ", display=" + display_name
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
 def _probe_equal_types_via_direct_dl() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
@@ -952,6 +1099,16 @@ def main() raises:
         _record_success(worked, "equal-ranges-via-shim-ref", EXPECT_WORKING, _probe_equal_ranges_via_shim())
     except e:
         _record_failure(failed, working_regressions, unknown_failed, "equal-ranges-via-shim-ref", EXPECT_WORKING, String(e))
+
+    try:
+        _record_success(worked, "shim-null-cursor", EXPECT_WORKING, _probe_shim_null_cursor())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "shim-null-cursor", EXPECT_WORKING, String(e))
+
+    try:
+        _record_success(worked, "shim-nonnull-cursor", EXPECT_WORKING, _probe_shim_nonnull_cursor())
+    except e:
+        _record_failure(failed, working_regressions, unknown_failed, "shim-nonnull-cursor", EXPECT_WORKING, String(e))
 
     print("")
     print("Probe summary:")

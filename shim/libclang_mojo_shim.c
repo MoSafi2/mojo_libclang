@@ -1,103 +1,10 @@
-typedef void *CXFile;
-typedef void *CXDiagnostic;
-typedef void *CXTranslationUnit;
-typedef unsigned CXCursorKind;
-typedef unsigned CXAvailabilityKind;
-typedef unsigned CXTypeKind;
+#include <clang-c/Index.h>
+#include <clang-c/Rewrite.h>
 
-typedef struct {
-    const void *data;
-    unsigned private_flags;
-} CXString;
-
-typedef struct {
-    const void *ptr_data[2];
-    unsigned int_data;
-} CXSourceLocation;
-
-typedef struct {
-    const void *ptr_data[2];
-    unsigned begin_int_data;
-    unsigned end_int_data;
-} CXSourceRange;
-
-typedef struct {
-    CXCursorKind kind;
-    int xdata;
-    const void *data[3];
-} CXCursor;
-
-typedef struct {
-    CXTypeKind kind;
-    void *data[2];
-} CXType;
-
-extern unsigned clang_equalTypes(CXType, CXType);
-
-typedef struct {
-    unsigned int_data[4];
-    void *ptr_data;
-} CXToken;
-
-extern CXSourceLocation clang_getNullLocation(void);
-extern unsigned clang_equalLocations(CXSourceLocation, CXSourceLocation);
-extern int clang_Location_isInSystemHeader(CXSourceLocation);
-extern int clang_Location_isFromMainFile(CXSourceLocation);
-extern CXSourceRange clang_getNullRange(void);
-extern CXSourceRange clang_getRange(CXSourceLocation, CXSourceLocation);
-extern unsigned clang_equalRanges(CXSourceRange, CXSourceRange);
-extern int clang_Range_isNull(CXSourceRange);
-extern void clang_getExpansionLocation(CXSourceLocation, CXFile *, unsigned *, unsigned *, unsigned *);
-extern void clang_getPresumedLocation(CXSourceLocation, CXString *, unsigned *, unsigned *);
-extern void clang_getInstantiationLocation(CXSourceLocation, CXFile *, unsigned *, unsigned *, unsigned *);
-extern void clang_getSpellingLocation(CXSourceLocation, CXFile *, unsigned *, unsigned *, unsigned *);
-extern void clang_getFileLocation(CXSourceLocation, CXFile *, unsigned *, unsigned *, unsigned *);
-extern CXSourceLocation clang_getRangeStart(CXSourceRange);
-extern CXSourceLocation clang_getRangeEnd(CXSourceRange);
-extern CXSourceLocation clang_getDiagnosticLocation(CXDiagnostic);
-extern CXSourceRange clang_getDiagnosticRange(CXDiagnostic, unsigned);
-extern CXSourceLocation clang_getLocation(CXTranslationUnit, CXFile, unsigned, unsigned);
-extern CXSourceLocation clang_getLocationForOffset(CXTranslationUnit, CXFile, unsigned);
-extern CXCursor clang_getNullCursor(void);
-extern CXCursor clang_getTranslationUnitCursor(CXTranslationUnit);
-extern unsigned clang_equalCursors(CXCursor, CXCursor);
-extern int clang_Cursor_isNull(CXCursor);
-extern unsigned clang_hashCursor(CXCursor);
-extern CXCursorKind clang_getCursorKind(CXCursor);
-extern unsigned clang_getCursorLinkage(CXCursor);
-extern unsigned clang_getCursorVisibility(CXCursor);
-extern CXAvailabilityKind clang_getCursorAvailability(CXCursor);
-extern CXCursor clang_Cursor_getVarDeclInitializer(CXCursor);
-extern int clang_Cursor_hasVarDeclGlobalStorage(CXCursor);
-extern int clang_Cursor_hasVarDeclExternalStorage(CXCursor);
-extern unsigned clang_getCursorLanguage(CXCursor);
-extern unsigned clang_getCursorTLSKind(CXCursor);
-extern CXTranslationUnit clang_Cursor_getTranslationUnit(CXCursor);
-extern unsigned clang_CXCursorSet_contains(void *, CXCursor);
-extern unsigned clang_CXCursorSet_insert(void *, CXCursor);
-extern CXCursor clang_getCursorSemanticParent(CXCursor);
-extern CXCursor clang_getCursorLexicalParent(CXCursor);
-extern void clang_getOverriddenCursors(CXCursor, CXCursor **, unsigned *);
-extern CXFile clang_getIncludedFile(CXCursor);
-extern CXCursor clang_getCursor(CXTranslationUnit, CXSourceLocation);
-extern CXSourceLocation clang_getCursorLocation(CXCursor);
-extern CXSourceRange clang_getCursorExtent(CXCursor);
-extern CXType clang_getCursorType(CXCursor);
-extern CXString clang_getTypeSpelling(CXType);
-extern CXType clang_getTypedefDeclUnderlyingType(CXCursor);
-extern CXType clang_getEnumDeclIntegerType(CXCursor);
-extern CXString clang_getCursorUSR(CXCursor);
-extern CXString clang_getCursorSpelling(CXCursor);
-extern CXCursor clang_getCursorReferenced(CXCursor);
-extern CXCursor clang_getCursorDefinition(CXCursor);
-extern CXCursor clang_getCanonicalCursor(CXCursor);
-extern CXToken *clang_getToken(CXTranslationUnit, CXSourceLocation);
-extern unsigned clang_getTokenKind(CXToken);
-extern CXString clang_getTokenSpelling(CXTranslationUnit, CXToken);
-extern CXSourceLocation clang_getTokenLocation(CXTranslationUnit, CXToken);
-extern CXSourceRange clang_getTokenExtent(CXTranslationUnit, CXToken);
-extern void clang_tokenize(CXTranslationUnit, CXSourceRange, CXToken **, unsigned *);
-extern void clang_annotateTokens(CXTranslationUnit, CXToken *, unsigned, CXCursor *);
+/* Typedef aliases for untagged enums so we can use them as bare type names. */
+typedef enum CXCursorKind CXCursorKind;
+typedef enum CXAvailabilityKind CXAvailabilityKind;
+typedef enum CXTypeKind CXTypeKind;
 
 #if defined(_WIN32)
 #define MOJO_SHIM_EXPORT __declspec(dllexport)
@@ -494,4 +401,531 @@ MOJO_SHIM_EXPORT void mojo_clang_annotateTokens(
     CXCursor *cursors
 ) {
     clang_annotateTokens(tu, tokens, num_tokens, cursors);
+}
+
+/* ===== CXType query functions (scalar returns) ===== */
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isConstQualifiedType(CXType *type) {
+    return clang_isConstQualifiedType(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isVolatileQualifiedType(CXType *type) {
+    return clang_isVolatileQualifiedType(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isRestrictQualifiedType(CXType *type) {
+    return clang_isRestrictQualifiedType(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getAddressSpace(CXType *type) {
+    return clang_getAddressSpace(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isFunctionTypeVariadic(CXType *type) {
+    return clang_isFunctionTypeVariadic(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isPODType(CXType *type) {
+    return clang_isPODType(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_isTransparentTagTypedef(CXType *type) {
+    return clang_Type_isTransparentTagTypedef(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getFunctionTypeCallingConv(CXType *type) {
+    return clang_getFunctionTypeCallingConv(*type);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_getExceptionSpecificationType(CXType *type) {
+    return clang_getExceptionSpecificationType(*type);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_getNumArgTypes(CXType *type) {
+    return clang_getNumArgTypes(*type);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_Type_getNumTemplateArguments(CXType *type) {
+    return clang_Type_getNumTemplateArguments(*type);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_Type_getAlignOf(CXType *type) {
+    return clang_Type_getAlignOf(*type);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_Type_getSizeOf(CXType *type) {
+    return clang_Type_getSizeOf(*type);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_Type_getOffsetOf(CXType *type, const char *fieldname) {
+    return clang_Type_getOffsetOf(*type, fieldname);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_getArraySize(CXType *type) {
+    return clang_getArraySize(*type);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_getNumElements(CXType *type) {
+    return clang_getNumElements(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_getNumObjCProtocolRefs(CXType *type) {
+    return clang_Type_getNumObjCProtocolRefs(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_getNumObjCTypeArgs(CXType *type) {
+    return clang_Type_getNumObjCTypeArgs(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_getNullability(CXType *type) {
+    return clang_Type_getNullability(*type);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_getCXXRefQualifier(CXType *type) {
+    return clang_Type_getCXXRefQualifier(*type);
+}
+
+/* ===== CXType string/opaque returns ===== */
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getTypedefName(CXType *type) {
+    return clang_getTypedefName(*type);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_Type_getObjCEncoding(CXType *type) {
+    return clang_Type_getObjCEncoding(*type);
+}
+
+/* ===== CXType -> CXType (struct returns via out-param) ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_getCanonicalType(CXType *out, CXType *type) {
+    *out = clang_getCanonicalType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getPointeeType(CXType *out, CXType *type) {
+    *out = clang_getPointeeType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getUnqualifiedType(CXType *out, CXType *type) {
+    *out = clang_getUnqualifiedType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getNonReferenceType(CXType *out, CXType *type) {
+    *out = clang_getNonReferenceType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getResultType(CXType *out, CXType *type) {
+    *out = clang_getResultType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getElementType(CXType *out, CXType *type) {
+    *out = clang_getElementType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getArrayElementType(CXType *out, CXType *type) {
+    *out = clang_getArrayElementType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getNamedType(CXType *out, CXType *type) {
+    *out = clang_Type_getNamedType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getClassType(CXType *out, CXType *type) {
+    *out = clang_Type_getClassType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getModifiedType(CXType *out, CXType *type) {
+    *out = clang_Type_getModifiedType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getValueType(CXType *out, CXType *type) {
+    *out = clang_Type_getValueType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getObjCObjectBaseType(CXType *out, CXType *type) {
+    *out = clang_Type_getObjCObjectBaseType(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getArgType(CXType *out, CXType *type, unsigned i) {
+    *out = clang_getArgType(*type, i);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getObjCTypeArg(CXType *out, CXType *type, unsigned i) {
+    *out = clang_Type_getObjCTypeArg(*type, i);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getTemplateArgumentAsType(CXType *out, CXType *type, unsigned i) {
+    *out = clang_Type_getTemplateArgumentAsType(*type, i);
+}
+
+/* ===== CXType -> CXCursor (struct returns) ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_getTypeDeclaration(CXCursor *out, CXType *type) {
+    *out = clang_getTypeDeclaration(*type);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Type_getObjCProtocolDecl(CXCursor *out, CXType *type, unsigned i) {
+    *out = clang_Type_getObjCProtocolDecl(*type, i);
+}
+
+/* ===== CXCursor query functions (scalar returns) ===== */
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_hasAttrs(CXCursor *cursor) {
+    return clang_Cursor_hasAttrs(*cursor);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_getEnumConstantDeclValue(CXCursor *cursor) {
+    return clang_getEnumConstantDeclValue(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned long long mojo_clang_getEnumConstantDeclUnsignedValue(CXCursor *cursor) {
+    return clang_getEnumConstantDeclUnsignedValue(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isBitField(CXCursor *cursor) {
+    return clang_Cursor_isBitField(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_getFieldDeclBitWidth(CXCursor *cursor) {
+    return clang_getFieldDeclBitWidth(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_Cursor_getNumArguments(CXCursor *cursor) {
+    return clang_Cursor_getNumArguments(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_Cursor_getNumTemplateArguments(CXCursor *cursor) {
+    return clang_Cursor_getNumTemplateArguments(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isMacroFunctionLike(CXCursor *cursor) {
+    return clang_Cursor_isMacroFunctionLike(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isMacroBuiltin(CXCursor *cursor) {
+    return clang_Cursor_isMacroBuiltin(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isFunctionInlined(CXCursor *cursor) {
+    return clang_Cursor_isFunctionInlined(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isAnonymous(CXCursor *cursor) {
+    return clang_Cursor_isAnonymous(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isAnonymousRecordDecl(CXCursor *cursor) {
+    return clang_Cursor_isAnonymousRecordDecl(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isInlineNamespace(CXCursor *cursor) {
+    return clang_Cursor_isInlineNamespace(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isVirtualBase(CXCursor *cursor) {
+    return clang_isVirtualBase(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getCXXAccessSpecifier(CXCursor *cursor) {
+    return clang_getCXXAccessSpecifier(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_getStorageClass(CXCursor *cursor) {
+    return clang_Cursor_getStorageClass(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getNumOverloadedDecls(CXCursor *cursor) {
+    return clang_getNumOverloadedDecls(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_isCursorDefinition(CXCursor *cursor) {
+    return clang_isCursorDefinition(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_Cursor_getObjCSelectorIndex(CXCursor *cursor) {
+    return clang_Cursor_getObjCSelectorIndex(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_Cursor_isDynamicCall(CXCursor *cursor) {
+    return clang_Cursor_isDynamicCall(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_getObjCPropertyAttributes(CXCursor *cursor, unsigned reserved) {
+    return clang_Cursor_getObjCPropertyAttributes(*cursor, reserved);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_getObjCDeclQualifiers(CXCursor *cursor) {
+    return clang_Cursor_getObjCDeclQualifiers(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isObjCOptional(CXCursor *cursor) {
+    return clang_Cursor_isObjCOptional(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isVariadic(CXCursor *cursor) {
+    return clang_Cursor_isVariadic(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getTemplateCursorKind(CXCursor *cursor) {
+    return clang_getTemplateCursorKind(*cursor);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_Cursor_getOffsetOfField(CXCursor *cursor) {
+    return clang_Cursor_getOffsetOfField(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getCursorBinaryOperatorKind(CXCursor *cursor) {
+    return clang_getCursorBinaryOperatorKind(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_getCursorUnaryOperatorKind(CXCursor *cursor) {
+    return clang_getCursorUnaryOperatorKind(*cursor);
+}
+
+MOJO_SHIM_EXPORT int mojo_clang_getCursorExceptionSpecificationType(CXCursor *cursor) {
+    return clang_getCursorExceptionSpecificationType(*cursor);
+}
+
+/* ===== CXX special member function queries ===== */
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXConstructor_isConvertingConstructor(CXCursor *cursor) {
+    return clang_CXXConstructor_isConvertingConstructor(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXConstructor_isCopyConstructor(CXCursor *cursor) {
+    return clang_CXXConstructor_isCopyConstructor(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXConstructor_isDefaultConstructor(CXCursor *cursor) {
+    return clang_CXXConstructor_isDefaultConstructor(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXConstructor_isMoveConstructor(CXCursor *cursor) {
+    return clang_CXXConstructor_isMoveConstructor(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXField_isMutable(CXCursor *cursor) {
+    return clang_CXXField_isMutable(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isDefaulted(CXCursor *cursor) {
+    return clang_CXXMethod_isDefaulted(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isDeleted(CXCursor *cursor) {
+    return clang_CXXMethod_isDeleted(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isPureVirtual(CXCursor *cursor) {
+    return clang_CXXMethod_isPureVirtual(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isStatic(CXCursor *cursor) {
+    return clang_CXXMethod_isStatic(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isVirtual(CXCursor *cursor) {
+    return clang_CXXMethod_isVirtual(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isCopyAssignmentOperator(CXCursor *cursor) {
+    return clang_CXXMethod_isCopyAssignmentOperator(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isMoveAssignmentOperator(CXCursor *cursor) {
+    return clang_CXXMethod_isMoveAssignmentOperator(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isExplicit(CXCursor *cursor) {
+    return clang_CXXMethod_isExplicit(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXRecord_isAbstract(CXCursor *cursor) {
+    return clang_CXXRecord_isAbstract(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_EnumDecl_isScoped(CXCursor *cursor) {
+    return clang_EnumDecl_isScoped(*cursor);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_CXXMethod_isConst(CXCursor *cursor) {
+    return clang_CXXMethod_isConst(*cursor);
+}
+
+/* ===== CXCursor -> CXString / opaque returns ===== */
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getCursorDisplayName(CXCursor *cursor) {
+    return clang_getCursorDisplayName(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_Cursor_getObjCPropertyGetterName(CXCursor *cursor) {
+    return clang_Cursor_getObjCPropertyGetterName(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_Cursor_getObjCPropertySetterName(CXCursor *cursor) {
+    return clang_Cursor_getObjCPropertySetterName(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_Cursor_getRawCommentText(CXCursor *cursor) {
+    return clang_Cursor_getRawCommentText(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_Cursor_getBriefCommentText(CXCursor *cursor) {
+    return clang_Cursor_getBriefCommentText(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_Cursor_getMangling(CXCursor *cursor) {
+    return clang_Cursor_getMangling(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getDeclObjCTypeEncoding(CXCursor *cursor) {
+    return clang_getDeclObjCTypeEncoding(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXString mojo_clang_getCursorPrettyPrinted(CXCursor *cursor, CXPrintingPolicy policy) {
+    return clang_getCursorPrettyPrinted(*cursor, policy);
+}
+
+MOJO_SHIM_EXPORT CXPrintingPolicy mojo_clang_getCursorPrintingPolicy(CXCursor *cursor) {
+    return clang_getCursorPrintingPolicy(*cursor);
+}
+
+MOJO_SHIM_EXPORT CXCompletionString mojo_clang_getCursorCompletionString(CXCursor *cursor) {
+    return clang_getCursorCompletionString(*cursor);
+}
+
+/* ===== CXCursor -> CXSourceRange (struct returns via out-param) ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_Cursor_getSpellingNameRange(CXSourceRange *out, CXCursor *cursor, unsigned pieceIndex, unsigned options) {
+    *out = clang_Cursor_getSpellingNameRange(*cursor, pieceIndex, options);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Cursor_getCommentRange(CXSourceRange *out, CXCursor *cursor) {
+    *out = clang_Cursor_getCommentRange(*cursor);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getCursorReferenceNameRange(CXSourceRange *out, CXCursor *cursor, unsigned nameFlags, unsigned pieceIndex) {
+    *out = clang_getCursorReferenceNameRange(*cursor, nameFlags, pieceIndex);
+}
+
+/* ===== CXCursor -> CXType (struct returns via out-param) ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_getCursorResultType(CXType *out, CXCursor *cursor) {
+    *out = clang_getCursorResultType(*cursor);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Cursor_getReceiverType(CXType *out, CXCursor *cursor) {
+    *out = clang_Cursor_getReceiverType(*cursor);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getIBOutletCollectionType(CXType *out, CXCursor *cursor) {
+    *out = clang_getIBOutletCollectionType(*cursor);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_Cursor_getTemplateArgumentType(CXType *out, CXCursor *cursor, unsigned i) {
+    *out = clang_Cursor_getTemplateArgumentType(*cursor, i);
+}
+
+/* ===== CXCursor -> CXCursor (struct returns via out-param) ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_Cursor_getArgument(CXCursor *out, CXCursor *cursor, unsigned i) {
+    *out = clang_Cursor_getArgument(*cursor, i);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getOverloadedDecl(CXCursor *out, CXCursor *cursor, unsigned index) {
+    *out = clang_getOverloadedDecl(*cursor, index);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_getSpecializedCursorTemplate(CXCursor *out, CXCursor *cursor) {
+    *out = clang_getSpecializedCursorTemplate(*cursor);
+}
+
+/* ===== CXCursor template arg value queries ===== */
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_getTemplateArgumentKind(CXCursor *cursor, unsigned i) {
+    return clang_Cursor_getTemplateArgumentKind(*cursor, i);
+}
+
+MOJO_SHIM_EXPORT long long mojo_clang_Cursor_getTemplateArgumentValue(CXCursor *cursor, unsigned i) {
+    return clang_Cursor_getTemplateArgumentValue(*cursor, i);
+}
+
+MOJO_SHIM_EXPORT unsigned long long mojo_clang_Cursor_getTemplateArgumentUnsignedValue(CXCursor *cursor, unsigned i) {
+    return clang_Cursor_getTemplateArgumentUnsignedValue(*cursor, i);
+}
+
+/* ===== CXCursor external symbol query ===== */
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Cursor_isExternalSymbol(CXCursor *cursor, CXString *language, CXString *definedIn, unsigned *isGenerated) {
+    return clang_Cursor_isExternalSymbol(*cursor, language, definedIn, isGenerated);
+}
+
+/* ===== CXCursor definition spelling and extent ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_getDefinitionSpellingAndExtent(CXCursor *cursor, const char **startBuf, const char **endBuf, unsigned *startLine, unsigned *startColumn, unsigned *endLine, unsigned *endColumn) {
+    clang_getDefinitionSpellingAndExtent(*cursor, startBuf, endBuf, startLine, startColumn, endLine, endColumn);
+}
+
+/* ===== CXType field visitor trampoline ===== */
+
+/* Mojo callback type: takes pointer to CXCursor and user data */
+typedef unsigned (*mojo_field_visitor_fn)(CXCursor *, void *);
+
+static unsigned field_visit_trampoline(CXCursor cursor, CXClientData data) {
+    struct {
+        mojo_field_visitor_fn fn;
+        void *user_data;
+    } *ctx = (void*)data;
+    return ctx->fn(&cursor, ctx->user_data);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_visitFields(CXType *type, mojo_field_visitor_fn visitor, void *user_data) {
+    /* Allocate context on the stack */
+    struct { mojo_field_visitor_fn fn; void *user_data; } ctx;
+    ctx.fn = visitor;
+    ctx.user_data = user_data;
+    return clang_Type_visitFields(*type, field_visit_trampoline, &ctx);
+}
+
+/* ===== CXCursor child visitor trampoline ===== */
+
+/* Mojo callback type: takes pointers to CXCursor cursors and user data */
+typedef unsigned (*mojo_cursor_visitor_fn)(CXCursor *, CXCursor *, void *);
+
+static unsigned cursor_visit_trampoline(CXCursor cursor, CXCursor parent, CXClientData data) {
+    struct {
+        mojo_cursor_visitor_fn fn;
+        void *user_data;
+    } *ctx = (void*)data;
+    return ctx->fn(&cursor, &parent, ctx->user_data);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_visitChildren(CXCursor *parent, mojo_cursor_visitor_fn visitor, void *user_data) {
+    struct { mojo_cursor_visitor_fn fn; void *user_data; } ctx;
+    ctx.fn = visitor;
+    ctx.user_data = user_data;
+    return clang_visitChildren(*parent, cursor_visit_trampoline, &ctx);
+}
+
+/* Direct callback-passing variants for raw bindings (no trampoline).
+   These wrap the by-value struct input but pass the C callback through unchanged. */
+MOJO_SHIM_EXPORT unsigned mojo_clang_visitChildren_direct(CXCursor *parent, CXCursorVisitor visitor, CXClientData client_data) {
+    return clang_visitChildren(*parent, visitor, client_data);
+}
+
+MOJO_SHIM_EXPORT unsigned mojo_clang_Type_visitFields_direct(CXType *type, CXFieldVisitor visitor, CXClientData client_data) {
+    return clang_Type_visitFields(*type, visitor, client_data);
+}
+
+/* ===== Rewriter functions (by-value CXSourceLocation/CXSourceRange) ===== */
+
+MOJO_SHIM_EXPORT void mojo_clang_CXRewriter_insertTextBefore(CXRewriter rew, CXSourceLocation *loc, const char *insert) {
+    clang_CXRewriter_insertTextBefore(rew, *loc, insert);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_CXRewriter_replaceText(CXRewriter rew, CXSourceRange *range, const char *replacement) {
+    clang_CXRewriter_replaceText(rew, *range, replacement);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_CXRewriter_removeText(CXRewriter rew, CXSourceRange *range) {
+    clang_CXRewriter_removeText(rew, *range);
 }

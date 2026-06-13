@@ -30,6 +30,7 @@ PATCH_FILES = (
     REPO_ROOT / "patches" / "0002-remove-system-header-ffi.patch",
     REPO_ROOT / "patches" / "0003-shim-aggregate-by-value-ffi.patch",
     REPO_ROOT / "patches" / "0004-add-remaining-ref-variants.patch",
+    REPO_ROOT / "patches" / "0005-convert-direct-dl-to-shim.patch",
 )
 
 HEADER_NAMES = (

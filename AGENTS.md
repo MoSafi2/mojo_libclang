@@ -38,6 +38,16 @@ Current patches, applied in order:
 
 - `patches/0001-libclang-raw-manual-abi.patch`
 - `patches/0002-remove-system-header-ffi.patch`
+- `patches/0003-shim-aggregate-by-value-ffi.patch`
+- `patches/0004-add-remaining-ref-variants.patch`
+- `patches/0005-convert-direct-dl-to-shim.patch`
+
+Patches 0003-0004 add shim-wrapped functions using `_bindgen_shim_dl()` for
+by-value CXSourceLocation/CXSourceRange/CXCursor/CXType aggregates.
+
+Patch 0005 converts the remaining direct-dl calls for those aggregate types to
+shim-dl calls, fixing ABI corruption when structs >16 bytes are passed by value
+through `OwnedDLHandle.call[]`.
 
 The first patch contains the local libclang ABI fixes:
 
