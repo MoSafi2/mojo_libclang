@@ -116,7 +116,7 @@ struct TranslationUnit(Movable):
         return SourceRange.from_locations(start, end)
 
     def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
-        return TokenGroup(tu=self._raw, range=extent)
+        return TokenGroup(tu=self._raw, extent=extent)
 
     def get_cursor(mut self, loc: SourceLocation) raises -> Cursor:
         var out = Cursor(tu=self._raw)

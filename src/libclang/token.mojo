@@ -1,19 +1,25 @@
-"""`Token` and `TokenGroup` — tokenization output."""
+"""`Token` and `TokenGroup` — tokenization output.
+
+`TokenGroup` owns the buffer returned by `clang_tokenize` and disposes it
+in `__del__`. Each `Token` is a borrowed pointer into that buffer plus
+the originating `CXTranslationUnit` so it can issue follow-up queries.
+"""
 from src.libclang_raw import (
     CXToken,
-    CXTokenKind,
-    CXSourceLocation,
     CXSourceRange,
     CXTranslationUnit,
+    CXTokenKind,
     c_uint,
     clang_getTokenKind_ref,
     clang_getTokenSpelling_ref,
     clang_getTokenLocation_ref,
     clang_getTokenExtent_ref,
     clang_tokenize_ref,
+    clang_annotateTokens,
     clang_disposeTokens,
 )
 from src.libclang.common import take_cxstring
+from src.libclang.cursor import Cursor
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 from std.memory import UnsafePointer
@@ -39,11 +45,17 @@ struct Token(Copyable, Movable):
 
     def extent(mut self) raises -> SourceRange:
         var out = SourceRange(tu=self._tu)
-        clang_getTokenExtent_into(out._ptr(), self._tu, self._raw)
+        clang_getTokenExtent_ref(out._ptr(), self._tu, self._raw)
+        return out^
+
+    def cursor(mut self) raises -> Cursor:
+        # `clang_annotateTokens` fills a cursor buffer. Annotating a single
+        # token writes exactly one cursor at `out._ptr()`.
+        var out = Cursor(tu=self._tu)
+        clang_annotateTokens(self._tu, self._raw, c_uint(1), out._ptr())
         return out^
 
 
-@fieldwise_init
 struct TokenGroup(Movable):
     """Owns the buffer returned by `clang_tokenize`."""
 
@@ -55,38 +67,35 @@ struct TokenGroup(Movable):
     def __init__(
         out self,
         tu: CXTranslationUnit,
-        range: SourceRange,
+        extent: SourceRange,
     ) raises:
         self._tu = tu
-        self._tokens = Optional[UnsafePointer[CXToken, MutExternalOrigin]]()
-        self._count = c_uint(0)
         self._index = 0
-        var token_ptr = Optional[UnsafePointer[CXToken, MutExternalOrigin]]()
+        # `clang_tokenize_ref` takes a `**CXToken` and a `*c_uint`. Use
+        # caller-owned `InlineArray[_, 1]` storage so the pointers stay
+        # stable for the FFI call.
+        var token_storage = InlineArray[
+            Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
+        ](fill=Optional[UnsafePointer[CXToken, MutExternalOrigin]]())
         var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
-        # `clang_tokenize_ref` takes a `**CXToken` and `*c_uint`. We have
-        # `Optional[UnsafePointer[...]]`; reinterpret as a pointer to that
-        # Optional's storage and pass.
-        var tokens_addr = UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]]](
-            to=token_ptr,
-        )
-        var token_ptr_arg = rebind[
-            UnsafePointer[
-                Optional[UnsafePointer[CXToken, MutExternalOrigin]],
-                MutExternalOrigin,
-            ]
-        ](rebind[UnsafePointer[UnsafePointer[CXToken, MutExternalOrigin], MutExternalOrigin]](
-            tokens_addr,
-        ))
-        var r = range.copy()
+        var e = extent.copy()
         clang_tokenize_ref(
             tu,
-            r._ptr(),
-            token_ptr_arg,
+            e._ptr(),
+            Optional[UnsafePointer[
+                Optional[UnsafePointer[CXToken, MutExternalOrigin]],
+                MutExternalOrigin,
+            ]](
+                rebind[UnsafePointer[
+                    Optional[UnsafePointer[CXToken, MutExternalOrigin]],
+                    MutExternalOrigin,
+                ]](token_storage.unsafe_ptr())
+            ),
             rebind[UnsafePointer[c_uint, MutExternalOrigin]](
-                count_storage.unsafe_ptr(),
+                count_storage.unsafe_ptr()
             ),
         )
-        self._tokens = token_ptr
+        self._tokens = token_storage[0]
         self._count = count_storage[0]
 
     def __del__(deinit self):
@@ -103,25 +112,3 @@ struct TokenGroup(Movable):
         if i < 0 or i >= Int(self._count):
             raise Error("TokenGroup index out of range")
         return Token(_tu=self._tu, _raw=self._tokens.value() + i)
-
-    def __iter__(mut self) -> Self:
-        self._index = 0
-        return self^
-
-    def __next__(mut self) raises -> Token:
-        if self._index >= Int(self._count):
-            raise StopIteration()
-        var item = self[self._index]
-        self._index += 1
-        return item^
-
-
-# Local shim: libclang_raw exposes `clang_getTokenExtent_ref` but the
-# convention here is the `_into` suffix for out-param APIs that target
-# caller-owned storage. Wrap the existing shim call with a clearer name.
-def clang_getTokenExtent_into(
-    out_range: UnsafePointer[CXSourceRange, MutExternalOrigin],
-    tu: CXTranslationUnit,
-    token: UnsafePointer[CXToken, MutExternalOrigin],
-) raises:
-    clang_getTokenExtent_ref(result=out_range, tu=tu, token=token)
