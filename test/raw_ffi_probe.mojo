@@ -1,10 +1,12 @@
-from libclang_raw import (
+from  libclang_raw import (
     clang_File_isEqual,
     clang_File_tryGetRealPathName,
     clang_defaultEditingTranslationUnitOptions,
     clang_defaultSaveOptions,
     CXCursor,
     CXCursorKind,
+    CXCursor_FirstInvalid,
+    CXCursor_TranslationUnit,
     CXFile,
     CXIndex,
     CXSourceLocation,
@@ -118,7 +120,10 @@ def _parse_file(index: CXIndex, path_storage: String) raises -> CXTranslationUni
 
 
 def _probe_version_string() raises -> String:
-    return "clang_getCString returned " + _cx_string_pointer_note(clang_getClangVersion())
+    var text = _cx_string_pointer_note(clang_getClangVersion())
+    _check(text.byte_length() > 0, "clang version string was empty")
+    _check(text.byte_length() < 200, "clang version string suspiciously long")
+    return "clang version: " + text
 
 
 def _probe_default_options() raises -> String:
@@ -142,8 +147,10 @@ def _probe_null_struct_returns() raises -> String:
 def _probe_null_cursor_metadata() raises -> String:
     var cursor = clang_getNullCursor()
     var kind = clang_getCursorKind(cursor)
-    var kind_name = _cx_string_pointer_note(clang_getCursorKindSpelling(kind))
+    _check(kind == CXCursor_FirstInvalid, "null cursor kind was not CXCursor_FirstInvalid")
     _check(Bool(clang_isInvalid(kind)), "null cursor kind was not classified as invalid")
+    var kind_name = _cx_string_pointer_note(clang_getCursorKindSpelling(kind))
+    _check(kind_name.byte_length() > 0, "null cursor kind spelling was empty")
     return "kind=" + String(kind) + ", spelling=" + kind_name
 
 
@@ -260,17 +267,20 @@ def _probe_tu_cursor_metadata() raises -> String:
     try:
         var cursor = clang_getTranslationUnitCursor(tu)
         var kind = clang_getCursorKind(cursor)
+        _check(kind == CXCursor_TranslationUnit, "TU cursor kind was not CXCursor_TranslationUnit")
         var kind_name = _cx_string_pointer_note(clang_getCursorKindSpelling(kind))
+        _check(kind_name.byte_length() > 0, "TU cursor kind spelling was empty")
+
         var semantic_parent = clang_getCursorSemanticParent(cursor)
         var lexical_parent = clang_getCursorLexicalParent(cursor)
+        _check(clang_getCursorKind(semantic_parent) == CXCursor_TranslationUnit, "TU cursor semantic parent kind was not CXCursor_TranslationUnit")
+        _check(clang_getCursorKind(lexical_parent) == CXCursor_TranslationUnit, "TU cursor lexical parent kind was not CXCursor_TranslationUnit")
+
         var definition = clang_getCursorDefinition(cursor)
+        _ = definition
+
         var referenced = clang_getCursorReferenced(cursor)
         var availability = clang_getCursorAvailability(cursor)
-
-        _check(Bool(clang_isDeclaration(kind)) or Bool(clang_isStatement(kind)) or Bool(clang_isExpression(kind)) or not Bool(clang_isInvalid(kind)), "TU cursor kind classification was unexpectedly invalid")
-        _ = semantic_parent
-        _ = lexical_parent
-        _ = definition
         _ = referenced
         return "kind=" + String(kind) + ", kind-spelling=" + kind_name + ", availability=" + String(availability)
     finally:
@@ -429,7 +439,11 @@ def _probe_unsaved_parse() raises -> String:
         raise Error("clang_parseTranslationUnit returned null with unsaved file")
 
     try:
+        var cursor = clang_getTranslationUnitCursor(tu)
+        var kind = clang_getCursorKind(cursor)
+        _check(kind == CXCursor_TranslationUnit, "unsaved parse TU cursor was not CXCursor_TranslationUnit")
         var diagnostics = clang_getNumDiagnostics(tu)
+        _check(diagnostics == 0, "unsaved parse of valid content produced diagnostics")
         return "diagnostics=" + String(diagnostics)
     finally:
         clang_disposeTranslationUnit(tu)
