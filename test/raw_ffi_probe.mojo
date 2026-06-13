@@ -403,9 +403,37 @@ def _probe_single_token_surface() raises -> String:
 
 
 def _probe_unsaved_parse() raises -> String:
-    _ = CXUnsavedFile
-    _ = c_ulong(0)
-    raise Error("probe harness gap: need stable mutable CXUnsavedFile storage before this can exercise libclang")
+    var index = clang_createIndex(0, 0)
+    if not index:
+        raise Error("clang_createIndex returned null")
+
+    var filename = String("test/raw_ffi_probe_fixture.c")
+    var content = String("int x = 42;")
+
+    var unsaved = alloc[CXUnsavedFile](1)
+    unsaved[].Filename = rebind[UnsafePointer[c_char, ImmutExternalOrigin]](filename.unsafe_ptr())
+    unsaved[].Contents = rebind[UnsafePointer[c_char, ImmutExternalOrigin]](content.unsafe_ptr())
+    unsaved[].Length = c_ulong(content.byte_length())
+
+    var tu = clang_parseTranslationUnit(
+        index,
+        rebind[UnsafePointer[c_char, ImmutExternalOrigin]](filename.unsafe_ptr()),
+        None,
+        0,
+        rebind[UnsafePointer[CXUnsavedFile, MutExternalOrigin]](unsaved),
+        1,
+        CXTranslationUnit_None,
+    )
+
+    if not tu:
+        raise Error("clang_parseTranslationUnit returned null with unsaved file")
+
+    try:
+        var diagnostics = clang_getNumDiagnostics(tu)
+        return "diagnostics=" + String(diagnostics)
+    finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
 
 
 def _probe_visit_children() raises -> String:
@@ -534,9 +562,9 @@ def main() raises:
         _record_failure(failed, working_regressions, unknown_failed, "single-token-surface", EXPECT_KNOWN_BROKEN, String(e))
 
     try:
-        _record_success(worked, "unsaved-parse", EXPECT_UNKNOWN, _probe_unsaved_parse())
+        _record_success(worked, "unsaved-parse", EXPECT_WORKING, _probe_unsaved_parse())
     except e:
-        _record_failure(failed, working_regressions, unknown_failed, "unsaved-parse", EXPECT_UNKNOWN, String(e))
+        _record_failure(failed, working_regressions, unknown_failed, "unsaved-parse", EXPECT_WORKING, String(e))
 
     try:
         _record_success(worked, "visit-children", EXPECT_UNKNOWN, _probe_visit_children())
