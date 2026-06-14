@@ -1,4 +1,7 @@
-from src.libclang_raw import (
+from src._ffi import (
+    CXSourceLocation,
+    CXSourceRange,
+    CXCursor,
     clang_createIndex,
     clang_disposeIndex,
     clang_disposeString,
@@ -8,6 +11,8 @@ from src.libclang_raw import (
     clang_getNullLocation,
     clang_getNullRange,
 )
+from src.libclang.common import _CXStringStorage
+from std.memory import UnsafePointer, ImmutOpaquePointer
 
 
 def _check(condition: Bool, message: String) raises:
@@ -16,11 +21,12 @@ def _check(condition: Bool, message: String) raises:
 
 
 def test_version_string() raises:
-    var version = clang_getClangVersion()
-    var c_string = clang_getCString(version)
+    var cs = _CXStringStorage()
+    clang_getClangVersion(cs.ptr())
+    var c_string = clang_getCString(cs.ptr())
     if not c_string:
         raise Error("clang_getClangVersion returned a null C string")
-    clang_disposeString(version)
+    clang_disposeString(cs.ptr())
 
 
 def test_index_lifecycle() raises:
@@ -31,16 +37,48 @@ def test_index_lifecycle() raises:
 
 
 def test_null_location_and_range() raises:
-    var location = clang_getNullLocation()
-    _ = location
+    var loc_storage = InlineArray[CXSourceLocation, 1](
+        fill=CXSourceLocation(
+            ptr_data=InlineArray[
+                Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+            ](fill=None),
+            int_data=0,
+        ),
+    )
+    var loc_ptr = rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+        loc_storage.unsafe_ptr(),
+    )
+    clang_getNullLocation(loc_ptr)
 
-    var range = clang_getNullRange()
-    _ = range
+    var range_storage = InlineArray[CXSourceRange, 1](
+        fill=CXSourceRange(
+            ptr_data=InlineArray[
+                Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+            ](fill=None),
+            begin_int_data=0,
+            end_int_data=0,
+        ),
+    )
+    var range_ptr = rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
+        range_storage.unsafe_ptr(),
+    )
+    clang_getNullRange(range_ptr)
 
 
 def test_null_cursor() raises:
-    var cursor = clang_getNullCursor()
-    _ = cursor
+    var cursor_storage = InlineArray[CXCursor, 1](
+        fill=CXCursor(
+            kind=0,
+            xdata=0,
+            data=InlineArray[
+                Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3
+            ](fill=None),
+        ),
+    )
+    var cursor_ptr = rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
+        cursor_storage.unsafe_ptr(),
+    )
+    clang_getNullCursor(cursor_ptr)
 
 
 def main() raises:

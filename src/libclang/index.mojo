@@ -1,5 +1,5 @@
 """`Index` — owns a `CXIndex` and parses translation units."""
-from src.libclang_raw import (
+from src._ffi import (
     CXIndex,
     CXTranslationUnit,
     CXUnsavedFile,
@@ -96,10 +96,20 @@ struct Index(Movable):
 
 def _build_arg_ptrs(
     args: List[String],
-) -> Tuple[Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutExternalOrigin]], ImmutExternalOrigin]], c_int]:
+) -> Tuple[
+    Optional[
+        UnsafePointer[
+            Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
+            ImmutExternalOrigin,
+        ]
+    ],
+    c_int,
+]:
     if len(args) == 0:
         return (None, c_int(0))
-    var slot = alloc[Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](len(args))
+    var slot = alloc[Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](
+        len(args),
+    )
     for i in range(len(args)):
         slot[i] = Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
             _c_string(args[i]),
@@ -124,9 +134,13 @@ def _build_unsaved_files(
     for i in range(len(files)):
         var f = files[i].copy()
         slot[i] = CXUnsavedFile(
-            Filename=_c_string(f.filename),
-            Contents=rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
-                _c_string(f.contents),
+            Filename=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                _c_string(f.filename),
+            ),
+            Contents=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
+                    _c_string(f.contents),
+                ),
             ),
             Length=c_ulong(f.contents.byte_length()),
         )

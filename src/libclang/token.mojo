@@ -4,21 +4,21 @@
 in `__del__`. Each `Token` is a borrowed pointer into that buffer plus
 the originating `CXTranslationUnit` so it can issue follow-up queries.
 """
-from src.libclang_raw import (
+from src._ffi import (
     CXToken,
     CXSourceRange,
     CXTranslationUnit,
     CXTokenKind,
     c_uint,
-    clang_getTokenKind_ref,
-    clang_getTokenSpelling_ref,
-    clang_getTokenLocation_ref,
-    clang_getTokenExtent_ref,
-    clang_tokenize_ref,
+    clang_getTokenKind,
+    clang_getTokenSpelling,
+    clang_getTokenLocation,
+    clang_getTokenExtent,
+    clang_tokenize,
     clang_annotateTokens,
     clang_disposeTokens,
 )
-from src.libclang.common import take_cxstring
+from src.libclang.common import _CXStringStorage
 from src.libclang.cursor import Cursor
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
@@ -33,26 +33,28 @@ struct Token(Copyable, Movable):
     var _raw: UnsafePointer[CXToken, MutExternalOrigin]
 
     def kind(mut self) raises -> CXTokenKind:
-        return clang_getTokenKind_ref(self._raw)
+        return clang_getTokenKind(self._raw)
 
     def spelling(mut self) raises -> String:
-        return take_cxstring(clang_getTokenSpelling_ref(self._tu, self._raw))
+        var cs = _CXStringStorage()
+        clang_getTokenSpelling(cs.ptr(), self._tu, self._raw)
+        return cs.take()
 
     def location(mut self) raises -> SourceLocation:
         var out = SourceLocation(tu=self._tu)
-        clang_getTokenLocation_ref(out._ptr(), self._tu, self._raw)
+        clang_getTokenLocation(out._ptr(), self._tu, self._raw)
         return out^
 
     def extent(mut self) raises -> SourceRange:
         var out = SourceRange(tu=self._tu)
-        clang_getTokenExtent_ref(out._ptr(), self._tu, self._raw)
+        clang_getTokenExtent(out._ptr(), self._tu, self._raw)
         return out^
 
     def cursor(mut self) raises -> Cursor:
-        # `clang_annotateTokens` fills a cursor buffer. Annotating a single
-        # token writes exactly one cursor at `out._ptr()`.
         var out = Cursor(tu=self._tu)
-        clang_annotateTokens(self._tu, self._raw, c_uint(1), out._ptr())
+        clang_annotateTokens(
+            self._tu, self._raw, c_uint(1), out._ptr()
+        )
         return out^
 
 
@@ -71,15 +73,12 @@ struct TokenGroup(Movable):
     ) raises:
         self._tu = tu
         self._index = 0
-        # `clang_tokenize_ref` takes a `**CXToken` and a `*c_uint`. Use
-        # caller-owned `InlineArray[_, 1]` storage so the pointers stay
-        # stable for the FFI call.
         var token_storage = InlineArray[
             Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
         ](fill=Optional[UnsafePointer[CXToken, MutExternalOrigin]]())
         var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
         var e = extent.copy()
-        clang_tokenize_ref(
+        clang_tokenize(
             tu,
             e._ptr(),
             Optional[UnsafePointer[
@@ -101,7 +100,9 @@ struct TokenGroup(Movable):
     def __del__(deinit self):
         if self._tokens:
             try:
-                clang_disposeTokens(self._tu, self._tokens.value(), self._count)
+                clang_disposeTokens(
+                    self._tu, self._tokens.value(), self._count
+                )
             except:
                 pass
 
@@ -111,4 +112,6 @@ struct TokenGroup(Movable):
     def __getitem__(self, i: Int) raises -> Token:
         if i < 0 or i >= Int(self._count):
             raise Error("TokenGroup index out of range")
-        return Token(_tu=self._tu, _raw=self._tokens.value() + i)
+        return Token(
+            _tu=self._tu, _raw=self._tokens.value() + i
+        )

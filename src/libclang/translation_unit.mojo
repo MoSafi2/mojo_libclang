@@ -1,22 +1,17 @@
 """`TranslationUnit` — owns a `CXTranslationUnit` and exposes queries."""
-from src.libclang_raw import (
+from src._ffi import (
     CXTranslationUnit,
     CXFile,
     CXUnsavedFile,
-    CXSourceLocation,
-    CXSourceRange,
-    CXCursor,
     clang_disposeTranslationUnit,
     clang_getTranslationUnitSpelling,
-    clang_getTranslationUnitCursor_ref,
+    clang_getTranslationUnitCursor,
     clang_getNumDiagnostics,
     clang_getDiagnostic,
     clang_getDiagnosticSetFromTU,
     clang_defaultSaveOptions,
     clang_getFile,
-    clang_getLocation_into,
-    clang_getLocationForOffset_into,
-    clang_getCursor_ref,
+    clang_getCursor,
     clang_reparseTranslationUnit,
     clang_saveTranslationUnit,
     clang_defaultReparseOptions,
@@ -25,7 +20,7 @@ from src.libclang_raw import (
     c_ulong,
 )
 from src.libclang.support import UnsavedFile, SourcePosition, SourceExtentInput
-from src.libclang.common import take_cxstring, _c_string
+from src.libclang.common import _CXStringStorage, _c_string
 from src.libclang.cursor import Cursor
 from src.libclang.file import File
 from src.libclang.source_location import SourceLocation
@@ -52,11 +47,13 @@ struct TranslationUnit(Movable):
             pass
 
     def spelling(mut self) raises -> String:
-        return take_cxstring(clang_getTranslationUnitSpelling(self._raw))
+        var cs = _CXStringStorage()
+        clang_getTranslationUnitSpelling(cs.ptr(), self._raw)
+        return cs.take()
 
     def cursor(mut self) raises -> Cursor:
         var out = Cursor(tu=self._raw)
-        clang_getTranslationUnitCursor_ref(out._ptr(), self._raw)
+        clang_getTranslationUnitCursor(out._ptr(), self._raw)
         return out^
 
     def num_diagnostics(mut self) raises -> c_uint:
@@ -66,7 +63,9 @@ struct TranslationUnit(Movable):
         return Diagnostic(_raw=clang_getDiagnostic(self._raw, index))
 
     def diagnostics(mut self) raises -> DiagnosticSet:
-        return DiagnosticSet._from_handle(clang_getDiagnosticSetFromTU(self._raw))
+        return DiagnosticSet._from_handle(
+            clang_getDiagnosticSetFromTU(self._raw),
+        )
 
     def get_file(mut self, filename: String) raises -> Optional[File]:
         return File.from_name(self._raw, filename)
@@ -82,7 +81,9 @@ struct TranslationUnit(Movable):
         if not file_handle:
             raise Error("TranslationUnit.get_location: unknown filename")
         if pos.is_offset_only():
-            return SourceLocation.from_offset(self._raw, file_handle, pos.offset.value())
+            return SourceLocation.from_offset(
+                self._raw, file_handle, pos.offset.value()
+            )
         return SourceLocation.from_position(
             self._raw,
             file_handle,
@@ -97,7 +98,9 @@ struct TranslationUnit(Movable):
     ) raises -> SourceLocation:
         var file_handle = clang_getFile(self._raw, _c_string(filename))
         if not file_handle:
-            raise Error("TranslationUnit.get_location_for_offset: unknown filename")
+            raise Error(
+                "TranslationUnit.get_location_for_offset: unknown filename",
+            )
         return SourceLocation.from_offset(self._raw, file_handle, offset)
 
     def get_extent(
@@ -120,7 +123,7 @@ struct TranslationUnit(Movable):
 
     def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
         var out = Cursor(tu=self._raw)
-        clang_getCursor_ref(out._ptr(), self._raw, loc._ptr())
+        clang_getCursor(out._ptr(), self._raw, loc._ptr())
         return out^
 
     def save(mut self, filename: String) raises:
@@ -166,8 +169,14 @@ def _build_unsaved_files(
     for i in range(len(files)):
         var f = files[i].copy()
         slot[i] = CXUnsavedFile(
-            Filename=_c_string(f.filename),
-            Contents=rebind[UnsafePointer[c_char, ImmutExternalOrigin]](_c_string(f.contents)),
+            Filename=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                _c_string(f.filename),
+            ),
+            Contents=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
+                    _c_string(f.contents),
+                ),
+            ),
             Length=c_ulong(f.contents.byte_length()),
         )
     return (slot, c_uint(len(files)))

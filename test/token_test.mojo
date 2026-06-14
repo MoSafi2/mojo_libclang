@@ -13,7 +13,7 @@ from src.libclang import (
     SourceExtentInput,
     SourceRange,
 )
-from src.libclang_raw import (
+from src._ffi import (
     CXToken_Keyword,
     CXToken_Identifier,
     CXToken_Punctuation,

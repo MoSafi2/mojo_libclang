@@ -19,7 +19,6 @@ from src.libclang.diagnostic import Diagnostic, DiagnosticSet, FixIt
 from src.libclang.index import Index
 from src.libclang.translation_unit import TranslationUnit
 from src.libclang.enums import (
-    # High-level enum wrappers
     CursorKind,
     TypeKind,
     TokenKind,
@@ -35,8 +34,7 @@ from src.libclang.enums import (
     ChildVisitResult,
     DiagnosticSeverity,
 )
-from src.libclang_raw import (
-    # Raw enum type aliases (comptime = c_uint) for FFI interop
+from src._ffi import (
     CXCursorKind,
     CXTypeKind,
     CXTokenKind,
@@ -51,7 +49,6 @@ from src.libclang_raw import (
     CXCallingConv,
     CXChildVisitResult,
     CXDiagnosticSeverity,
-    # Raw constant aliases (kept for backward compatibility)
     CXCursor_FirstInvalid,
     CXCursor_TranslationUnit,
     CXCursor_FunctionDecl,

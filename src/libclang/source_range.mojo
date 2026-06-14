@@ -1,18 +1,18 @@
 """`SourceRange` — a wrapper around `CXSourceRange`."""
-from src.libclang_raw import (
+from src._ffi import (
     CXSourceLocation,
     CXSourceRange,
     CXTranslationUnit,
-    clang_getNullRange_into,
-    clang_getRange_into,
-    clang_Range_isNull_ref,
-    clang_getRangeStart_into,
-    clang_getRangeEnd_into,
-    clang_equalRanges_ref,
+    clang_getNullRange,
+    clang_getRange,
+    clang_Range_isNull,
+    clang_getRangeStart,
+    clang_getRangeEnd,
+    clang_equalRanges,
     c_uint,
 )
 from src.libclang.source_location import SourceLocation
-from std.memory import UnsafePointer
+from std.memory import UnsafePointer, ImmutOpaquePointer
 
 
 @fieldwise_init
@@ -26,13 +26,14 @@ struct SourceRange(Copyable, Movable):
         self._tu = tu
         self._raw = InlineArray[CXSourceRange, 1](
             fill=CXSourceRange(
-                ptr_data0=None,
-                ptr_data1=None,
+                ptr_data=InlineArray[
+                    Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+                ](fill=None),
                 begin_int_data=c_uint(0),
                 end_int_data=c_uint(0),
             ),
         )
-        clang_getNullRange_into(self._ptr())
+        clang_getNullRange(self._ptr())
 
     def _ptr(mut self) -> UnsafePointer[CXSourceRange, MutExternalOrigin]:
         return rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
@@ -46,7 +47,7 @@ struct SourceRange(Copyable, Movable):
     @staticmethod
     def from_locations(start: SourceLocation, end: SourceLocation) raises -> Self:
         var out = Self(tu=start._tu)
-        clang_getRange_into(
+        clang_getRange(
             out._ptr(),
             rebind[UnsafePointer[
                 CXSourceLocation, MutExternalOrigin
@@ -59,20 +60,20 @@ struct SourceRange(Copyable, Movable):
 
     def start(mut self) raises -> SourceLocation:
         var out = SourceLocation(tu=self._tu)
-        clang_getRangeStart_into(out._ptr(), self._ptr())
+        clang_getRangeStart(out._ptr(), self._ptr())
         return out^
 
     def end(mut self) raises -> SourceLocation:
         var out = SourceLocation(tu=self._tu)
-        clang_getRangeEnd_into(out._ptr(), self._ptr())
+        clang_getRangeEnd(out._ptr(), self._ptr())
         return out^
 
     def is_null(mut self) raises -> Bool:
-        return Bool(clang_Range_isNull_ref(self._ptr()))
+        return Bool(clang_Range_isNull(self._ptr()))
 
     def __eq__(self, other: SourceRange) -> Bool:
         return Bool(
-            clang_equalRanges_ref(
+            clang_equalRanges(
                 self._ptr(),
                 rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
                     other._raw.unsafe_ptr(),

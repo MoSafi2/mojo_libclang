@@ -1,5 +1,5 @@
 """`File` — borrowed `CXFile` handle from a `TranslationUnit`."""
-from src.libclang_raw import (
+from src._ffi import (
     CXFile,
     CXTranslationUnit,
     clang_getFile,
@@ -10,7 +10,7 @@ from src.libclang_raw import (
     clang_isFileMultipleIncludeGuarded,
     time_t,
 )
-from src.libclang.common import take_cxstring, _c_string
+from src.libclang.common import _c_string, _CXStringStorage
 
 
 @fieldwise_init
@@ -32,13 +32,17 @@ struct File(Copyable, Movable):
         return Optional[Self](Self(_tu=tu, _raw=handle))
 
     def name(self) raises -> String:
-        return take_cxstring(clang_getFileName(self._raw))
+        var cs = _CXStringStorage()
+        clang_getFileName(cs.ptr(), self._raw)
+        return cs.take()
 
     def time(self) raises -> time_t:
         return clang_getFileTime(self._raw)
 
     def real_path(self) raises -> String:
-        return take_cxstring(clang_File_tryGetRealPathName(self._raw))
+        var cs = _CXStringStorage()
+        clang_File_tryGetRealPathName(cs.ptr(), self._raw)
+        return cs.take()
 
     def is_multiple_include_guarded(self) raises -> Bool:
         return Bool(clang_isFileMultipleIncludeGuarded(self._tu, self._raw))

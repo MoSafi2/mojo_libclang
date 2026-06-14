@@ -5,7 +5,7 @@ from src.libclang import (
     Cursor,
     Type,
 )
-from src.libclang_raw import (
+from src._ffi import (
     CXCursorKind,
     CXCursor_FunctionDecl,
     CXCursor_StructDecl,

@@ -1,5 +1,5 @@
 """`Diagnostic`, `DiagnosticSet`, and `FixIt` wrappers."""
-from src.libclang_raw import (
+from src._ffi import (
     CXDiagnostic,
     CXDiagnosticSet,
     CXDiagnosticSeverity,
@@ -14,10 +14,9 @@ from src.libclang_raw import (
     clang_getDiagnosticOption,
     clang_getDiagnosticNumRanges,
     clang_getDiagnosticNumFixIts,
-    clang_getDiagnosticLocation_into,
-    clang_getDiagnosticRange_into,
-    clang_getDiagnosticFixIt_into,
-    clang_getDiagnosticFixIt_text,
+    clang_getDiagnosticLocation,
+    clang_getDiagnosticRange,
+    clang_getDiagnosticFixIt,
     clang_getNumDiagnosticsInSet,
     clang_getDiagnosticInSet,
     clang_getChildDiagnostics,
@@ -26,7 +25,7 @@ from src.libclang_raw import (
     clang_disposeDiagnostic,
     clang_disposeString,
 )
-from src.libclang.common import take_cxstring
+from src.libclang.common import _CXStringStorage
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 from std.memory import UnsafePointer
@@ -50,32 +49,35 @@ struct Diagnostic(Movable):
         return clang_getDiagnosticSeverity(self._raw)
 
     def spelling(mut self) raises -> String:
-        return take_cxstring(clang_getDiagnosticSpelling(self._raw))
+        var cs = _CXStringStorage()
+        clang_getDiagnosticSpelling(cs.ptr(), self._raw)
+        return cs.take()
 
     def location(mut self) raises -> SourceLocation:
-        # Diagnostic locations do not depend on a TU; the empty TU is fine.
         var out = SourceLocation(tu=CXTranslationUnit())
-        clang_getDiagnosticLocation_into(out._ptr(), self._raw)
+        clang_getDiagnosticLocation(out._ptr(), self._raw)
         return out^
 
     def category_number(mut self) -> c_uint:
         return clang_getDiagnosticCategory(self._raw)
 
     def category_name(mut self) raises -> String:
-        return take_cxstring(clang_getDiagnosticCategoryText(self._raw))
+        var cs = _CXStringStorage()
+        clang_getDiagnosticCategoryText(cs.ptr(), self._raw)
+        return cs.take()
 
     def option(mut self) raises -> String:
-        var disable = CXString(data=None, private_flags=c_uint(0))
-        var result = take_cxstring(
-            clang_getDiagnosticOption(self._raw, UnsafePointer.address_of(disable)),
-        )
-        clang_disposeString(disable)
-        return result
+        var cs = _CXStringStorage()
+        var disable = _CXStringStorage()
+        clang_getDiagnosticOption(cs.ptr(), self._raw, disable.ptr())
+        clang_disposeString(disable.ptr())
+        return cs.take()
 
     def disable_option(mut self) raises -> String:
-        var disable = CXString(data=None, private_flags=c_uint(0))
-        _ = take_cxstring(clang_getDiagnosticOption(self._raw, UnsafePointer.address_of(disable)))
-        var value = take_cxstring(disable)
+        var cs = _CXStringStorage()
+        var disable = _CXStringStorage()
+        clang_getDiagnosticOption(cs.ptr(), self._raw, disable.ptr())
+        var value = disable.take()
         return value
 
     def num_ranges(mut self) -> c_uint:
@@ -83,7 +85,7 @@ struct Diagnostic(Movable):
 
     def range(mut self, i: c_uint) raises -> SourceRange:
         var out = SourceRange(tu=CXTranslationUnit())
-        clang_getDiagnosticRange_into(out._ptr(), self._raw, i)
+        clang_getDiagnosticRange(out._ptr(), self._raw, i)
         return out^
 
     def num_fixits(mut self) -> c_uint:
@@ -91,16 +93,18 @@ struct Diagnostic(Movable):
 
     def fixit(mut self, i: c_uint) raises -> FixIt:
         var range_out = SourceRange(tu=CXTranslationUnit())
-        var value = take_cxstring(clang_getDiagnosticFixIt_text(self._raw, i))
-        clang_getDiagnosticFixIt_into(range_out._ptr(), self._raw, i)
-        return FixIt(range=range_out^, value=value)
+        var cs = _CXStringStorage()
+        clang_getDiagnosticFixIt(cs.ptr(), self._raw, i, range_out._ptr())
+        return FixIt(range=range_out^, value=cs.take())
 
     def children(mut self) raises -> DiagnosticSet:
         return DiagnosticSet(_raw=clang_getChildDiagnostics(self._raw))
 
     def format(mut self) raises -> String:
         var options = clang_defaultDiagnosticDisplayOptions()
-        return take_cxstring(clang_formatDiagnostic(self._raw, options))
+        var cs = _CXStringStorage()
+        clang_formatDiagnostic(cs.ptr(), self._raw, options)
+        return cs.take()
 
     def __del__(deinit self):
         try:
@@ -139,13 +143,15 @@ struct DiagnosticSet(Movable):
         if self._index >= clang_getNumDiagnosticsInSet(self._raw):
             raise StopIteration()
         var n = clang_getNumDiagnosticsInSet(self._raw)
-        var result = Diagnostic(_raw=clang_getDiagnosticInSet(self._raw, self._index))
+        var result = Diagnostic(
+            _raw=clang_getDiagnosticInSet(self._raw, self._index),
+        )
         self._index += 1
         _ = n
         return result^
 
     def __del__(deinit self):
-        from src.libclang_raw import clang_disposeDiagnosticSet
+        from src._ffi import clang_disposeDiagnosticSet
         try:
             clang_disposeDiagnosticSet(self._raw)
         except:
