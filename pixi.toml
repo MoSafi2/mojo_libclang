@@ -7,8 +7,8 @@ version = "0.1.0"
 
 [tasks]
 generate-libclang = "python scripts/generate_libclang_bindings.py"
-all-tests = "mojo run -I src test/all_tests.mojo"
-test = 'mojo run -I src -Xlinker -L$PWD/build -Xlinker -Wl,-rpath,$PWD/build -Xlinker -Wl,-rpath,$PWD/.pixi/envs/default/lib/python3.14/site-packages/clang/native'
+run-test = "mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
+build-test = "mojo build -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
 
 [dependencies]
 python = ">=3.14.5,<3.15"

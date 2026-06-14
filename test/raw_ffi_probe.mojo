@@ -97,7 +97,9 @@ def _cxstring_ptr(
     return rebind[UnsafePointer[CXString, MutExternalOrigin]](storage)
 
 
-def _take_cxstring(ptr: UnsafePointer[CXString, MutExternalOrigin]) raises -> String:
+def _take_cxstring(
+    ptr: UnsafePointer[CXString, MutExternalOrigin]
+) raises -> String:
     var c_string = clang_getCString(ptr)
     if not c_string:
         clang_disposeString(ptr)
@@ -109,7 +111,9 @@ def _take_cxstring(ptr: UnsafePointer[CXString, MutExternalOrigin]) raises -> St
 
 def _source_location_zero() -> CXSourceLocation:
     return CXSourceLocation(
-        ptr_data=InlineArray[Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2](fill=None),
+        ptr_data=InlineArray[
+            Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+        ](fill=None),
         int_data=c_uint(0),
     )
 
@@ -124,7 +128,9 @@ def _source_location_ptr(
 
 def _source_range_zero() -> CXSourceRange:
     return CXSourceRange(
-        ptr_data=InlineArray[Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2](fill=None),
+        ptr_data=InlineArray[
+            Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+        ](fill=None),
         begin_int_data=c_uint(0),
         end_int_data=c_uint(0),
     )
@@ -142,30 +148,40 @@ def _cursor_zero() -> CXCursor:
     return CXCursor(
         kind=CXCursorKind(c_uint(0)),
         xdata=c_int(0),
-        data=InlineArray[Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3](fill=None),
+        data=InlineArray[Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3](
+            fill=None
+        ),
     )
 
 
 def _cursor_ptr(
     mut storage: InlineArray[CXCursor, 1],
 ) -> UnsafePointer[CXCursor, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXCursor, MutExternalOrigin]](storage.unsafe_ptr())
+    return rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
+        storage.unsafe_ptr()
+    )
 
 
 def _type_zero() -> CXType:
     return CXType(
         kind=CXTypeKind(c_uint(0)),
-        data=InlineArray[Optional[MutOpaquePointer[MutExternalOrigin]], 2](fill=None),
+        data=InlineArray[Optional[MutOpaquePointer[MutExternalOrigin]], 2](
+            fill=None
+        ),
     )
 
 
 def _type_ptr(
     mut storage: InlineArray[CXType, 1],
 ) -> UnsafePointer[CXType, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXType, MutExternalOrigin]](storage.unsafe_ptr())
+    return rebind[UnsafePointer[CXType, MutExternalOrigin]](
+        storage.unsafe_ptr()
+    )
 
 
-def _parse_file(index: CXIndex, path_storage: String) raises -> CXTranslationUnit:
+def _parse_file(
+    index: CXIndex, path_storage: String
+) raises -> CXTranslationUnit:
     var tu = clang_parseTranslationUnit(
         index,
         _as_c_string(path_storage),
@@ -198,8 +214,14 @@ def _probe_null_aggregates() raises -> String:
     clang_getNullRange(_source_range_ptr(range))
     clang_getNullCursor(_cursor_ptr(cursor))
 
-    _check(Bool(clang_Range_isNull(_source_range_ptr(range))), "null range was not null")
-    _check(Bool(clang_Cursor_isNull(_cursor_ptr(cursor))), "null cursor was not null")
+    _check(
+        Bool(clang_Range_isNull(_source_range_ptr(range))),
+        "null range was not null",
+    )
+    _check(
+        Bool(clang_Cursor_isNull(_cursor_ptr(cursor))),
+        "null cursor was not null",
+    )
     _check(
         clang_getCursorKind(_cursor_ptr(cursor)) == CXCursor_FirstInvalid,
         "null cursor kind was not CXCursor_FirstInvalid",
@@ -211,7 +233,7 @@ def _probe_parse_file_and_strings() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
-    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var path = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var tu = _parse_file(index, path)
     try:
         _check(clang_getNumDiagnostics(tu) == 0, "expected zero diagnostics")
@@ -251,7 +273,7 @@ def _probe_cursor_lookup_type_and_spelling() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
-    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var path = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var tu = _parse_file(index, path)
     try:
         var file = clang_getFile(tu, _as_c_string(path))
@@ -267,10 +289,15 @@ def _probe_cursor_lookup_type_and_spelling() raises -> String:
         clang_getLocation(_source_location_ptr(loc), tu, file, 1, 5)
         clang_getCursor(_cursor_ptr(cursor), tu, _source_location_ptr(loc))
         var kind = clang_getCursorKind(_cursor_ptr(cursor))
-        _check(kind == CXCursor_FunctionDecl, "expected FunctionDecl at line 1 column 5")
+        _check(
+            kind == CXCursor_FunctionDecl,
+            "expected FunctionDecl at line 1 column 5",
+        )
 
         clang_getCursorType(_type_ptr(typ), _cursor_ptr(cursor))
-        _check(typ[0].kind != CXType_Invalid, "function cursor type was invalid")
+        _check(
+            typ[0].kind != CXType_Invalid, "function cursor type was invalid"
+        )
         clang_getCursorSpelling(_cxstring_ptr(cursor_name), _cursor_ptr(cursor))
         clang_getTypeSpelling(_cxstring_ptr(type_name), _type_ptr(typ))
 
@@ -294,14 +321,16 @@ def _probe_locations_ranges_and_tokens() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
-    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var path = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var tu = _parse_file(index, path)
     try:
         var file = clang_getFile(tu, _as_c_string(path))
         if not file:
             raise Error("clang_getFile returned null")
 
-        var start = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
+        var start = InlineArray[CXSourceLocation, 1](
+            fill=_source_location_zero()
+        )
         var end = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
         var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
         var spelling_file = InlineArray[CXFile, 1](fill=None)
@@ -311,26 +340,47 @@ def _probe_locations_ranges_and_tokens() raises -> String:
 
         clang_getLocation(_source_location_ptr(start), tu, file, 1, 1)
         clang_getLocation(_source_location_ptr(end), tu, file, 1, 23)
-        clang_getRange(_source_range_ptr(range), _source_location_ptr(start), _source_location_ptr(end))
+        clang_getRange(
+            _source_range_ptr(range),
+            _source_location_ptr(start),
+            _source_location_ptr(end),
+        )
         clang_getSpellingLocation(
             _source_location_ptr(start),
-            rebind[UnsafePointer[CXFile, MutExternalOrigin]](spelling_file.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](spelling_line.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](spelling_column.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](spelling_offset.unsafe_ptr()),
+            rebind[UnsafePointer[CXFile, MutExternalOrigin]](
+                spelling_file.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                spelling_line.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                spelling_column.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                spelling_offset.unsafe_ptr()
+            ),
         )
         _check(spelling_line[0] == 1, "spelling line mismatch")
         _check(spelling_column[0] == 1, "spelling column mismatch")
 
-        var token_storage = InlineArray[Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1](fill=None)
+        var token_storage = InlineArray[
+            Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
+        ](fill=None)
         var token_count = InlineArray[c_uint, 1](fill=c_uint(0))
         clang_tokenize(
             tu,
             _source_range_ptr(range),
-            rebind[UnsafePointer[Optional[UnsafePointer[CXToken, MutExternalOrigin]], MutExternalOrigin]](
+            rebind[
+                UnsafePointer[
+                    Optional[UnsafePointer[CXToken, MutExternalOrigin]],
+                    MutExternalOrigin,
+                ]
+            ](
                 token_storage.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](token_count.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                token_count.unsafe_ptr()
+            ),
         )
         _check(token_count[0] > 0, "clang_tokenize returned zero tokens")
         if not token_storage[0]:
@@ -339,8 +389,12 @@ def _probe_locations_ranges_and_tokens() raises -> String:
         try:
             var first = token_storage[0].value()
             var token_text = _alloc_cxstring()
-            var token_loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
-            var token_extent = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
+            var token_loc = InlineArray[CXSourceLocation, 1](
+                fill=_source_location_zero()
+            )
+            var token_extent = InlineArray[CXSourceRange, 1](
+                fill=_source_range_zero()
+            )
             var token_kind = clang_getTokenKind(first)
             clang_getTokenSpelling(_cxstring_ptr(token_text), tu, first)
             clang_getTokenLocation(_source_location_ptr(token_loc), tu, first)
@@ -372,7 +426,7 @@ def _probe_equality() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
-    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var path = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var tu = _parse_file(index, path)
     try:
         var file = clang_getFile(tu, _as_c_string(path))
@@ -380,9 +434,13 @@ def _probe_equality() raises -> String:
             raise Error("clang_getFile returned null")
 
         var loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
-        var null_loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
+        var null_loc = InlineArray[CXSourceLocation, 1](
+            fill=_source_location_zero()
+        )
         var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
-        var null_range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
+        var null_range = InlineArray[CXSourceRange, 1](
+            fill=_source_range_zero()
+        )
         var cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
         var null_cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
         var typ = InlineArray[CXType, 1](fill=_type_zero())
@@ -390,21 +448,76 @@ def _probe_equality() raises -> String:
 
         clang_getLocation(_source_location_ptr(loc), tu, file, 1, 5)
         clang_getNullLocation(_source_location_ptr(null_loc))
-        clang_getRange(_source_range_ptr(range), _source_location_ptr(loc), _source_location_ptr(loc))
+        clang_getRange(
+            _source_range_ptr(range),
+            _source_location_ptr(loc),
+            _source_location_ptr(loc),
+        )
         clang_getNullRange(_source_range_ptr(null_range))
         clang_getCursor(_cursor_ptr(cursor), tu, _source_location_ptr(loc))
         clang_getNullCursor(_cursor_ptr(null_cursor))
         clang_getCursorType(_type_ptr(typ), _cursor_ptr(cursor))
 
-        _check(Bool(clang_equalLocations(_source_location_ptr(loc), _source_location_ptr(loc))), "location self equality failed")
-        _check(not Bool(clang_equalLocations(_source_location_ptr(loc), _source_location_ptr(null_loc))), "location/null equality was true")
-        _check(Bool(clang_equalRanges(_source_range_ptr(range), _source_range_ptr(range))), "range self equality failed")
-        _check(not Bool(clang_equalRanges(_source_range_ptr(range), _source_range_ptr(null_range))), "range/null equality was true")
-        _check(Bool(clang_equalCursors(_cursor_ptr(cursor), _cursor_ptr(cursor))), "cursor self equality failed")
-        _check(Bool(clang_equalCursors(_cursor_ptr(null_cursor), _cursor_ptr(null_cursor))), "null cursor equality failed")
-        _check(not Bool(clang_equalCursors(_cursor_ptr(cursor), _cursor_ptr(null_cursor))), "cursor/null equality was true")
-        _check(Bool(clang_equalTypes(_type_ptr(typ), _type_ptr(typ))), "type self equality failed")
-        _check(not Bool(clang_equalTypes(_type_ptr(typ), _type_ptr(invalid_type))), "type/invalid equality was true")
+        _check(
+            Bool(
+                clang_equalLocations(
+                    _source_location_ptr(loc), _source_location_ptr(loc)
+                )
+            ),
+            "location self equality failed",
+        )
+        _check(
+            not Bool(
+                clang_equalLocations(
+                    _source_location_ptr(loc), _source_location_ptr(null_loc)
+                )
+            ),
+            "location/null equality was true",
+        )
+        _check(
+            Bool(
+                clang_equalRanges(
+                    _source_range_ptr(range), _source_range_ptr(range)
+                )
+            ),
+            "range self equality failed",
+        )
+        _check(
+            not Bool(
+                clang_equalRanges(
+                    _source_range_ptr(range), _source_range_ptr(null_range)
+                )
+            ),
+            "range/null equality was true",
+        )
+        _check(
+            Bool(clang_equalCursors(_cursor_ptr(cursor), _cursor_ptr(cursor))),
+            "cursor self equality failed",
+        )
+        _check(
+            Bool(
+                clang_equalCursors(
+                    _cursor_ptr(null_cursor), _cursor_ptr(null_cursor)
+                )
+            ),
+            "null cursor equality failed",
+        )
+        _check(
+            not Bool(
+                clang_equalCursors(
+                    _cursor_ptr(cursor), _cursor_ptr(null_cursor)
+                )
+            ),
+            "cursor/null equality was true",
+        )
+        _check(
+            Bool(clang_equalTypes(_type_ptr(typ), _type_ptr(typ))),
+            "type self equality failed",
+        )
+        _check(
+            not Bool(clang_equalTypes(_type_ptr(typ), _type_ptr(invalid_type))),
+            "type/invalid equality was true",
+        )
 
         return "aggregate equality ok"
     finally:
@@ -416,7 +529,7 @@ def _probe_diagnostics() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
-    var path = String("test/raw_ffi_probe_invalid.c\00")
+    var path = String("test/fixtures/raw_ffi_probe_invalid.c\00")
     var tu = _parse_file(index, path)
     try:
         var count = clang_getNumDiagnostics(tu)
@@ -427,7 +540,12 @@ def _probe_diagnostics() raises -> String:
         try:
             var spelling = _alloc_cxstring()
             clang_getDiagnosticSpelling(_cxstring_ptr(spelling), diagnostic)
-            var result = "diagnostics=" + String(count) + ", first=" + _take_cxstring(_cxstring_ptr(spelling))
+            var result = (
+                "diagnostics="
+                + String(count)
+                + ", first="
+                + _take_cxstring(_cxstring_ptr(spelling))
+            )
             spelling.free()
             return result
         finally:
@@ -442,7 +560,7 @@ def _probe_unsaved_parse() raises -> String:
     if not index:
         raise Error("clang_createIndex returned null")
 
-    var filename = String("test/raw_ffi_probe_fixture.c")
+    var filename = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var content = String("int x = 42;")
     var unsaved = alloc[CXUnsavedFile](1)
     unsaved[].Filename = _as_c_string(filename)
@@ -461,10 +579,15 @@ def _probe_unsaved_parse() raises -> String:
     unsaved.free()
     if not tu:
         clang_disposeIndex(index)
-        raise Error("clang_parseTranslationUnit returned null with unsaved file")
+        raise Error(
+            "clang_parseTranslationUnit returned null with unsaved file"
+        )
 
     try:
-        _check(clang_getNumDiagnostics(tu) == 0, "unsaved parse produced diagnostics")
+        _check(
+            clang_getNumDiagnostics(tu) == 0,
+            "unsaved parse produced diagnostics",
+        )
         return "unsaved parse ok"
     finally:
         clang_disposeTranslationUnit(tu)
@@ -478,7 +601,9 @@ def _visit_child_callback(
 ) abi("C") -> CXChildVisitResult:
     if not client_data:
         return CXChildVisit_Continue
-    var count = rebind[UnsafePointer[c_uint, MutExternalOrigin]](client_data.value())
+    var count = rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+        client_data.value()
+    )
     count[] = count[] + 1
     _ = cursor
     _ = parent
@@ -489,7 +614,7 @@ def _probe_visit_children() raises -> String:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
-    var path = String("test/raw_ffi_probe_fixture.c\00")
+    var path = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var tu = _parse_file(index, path)
     try:
         var tu_cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
@@ -500,7 +625,9 @@ def _probe_visit_children() raises -> String:
             _visit_child_callback,
             Optional[UnsafePointer[NoneType, MutExternalOrigin]](
                 rebind[UnsafePointer[NoneType, MutExternalOrigin]](
-                    rebind[UnsafePointer[c_uint, MutExternalOrigin]](count.unsafe_ptr()),
+                    rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                        count.unsafe_ptr()
+                    ),
                 ),
             ),
         )
@@ -532,7 +659,12 @@ def main() raises:
         _record_failure(failed, "version-string", String(e))
 
     try:
-        _record_success(worked, "default-options", "edit-options=" + String(clang_defaultEditingTranslationUnitOptions()))
+        _record_success(
+            worked,
+            "default-options",
+            "edit-options="
+            + String(clang_defaultEditingTranslationUnitOptions()),
+        )
     except e:
         _record_failure(failed, "default-options", String(e))
 
@@ -542,17 +674,27 @@ def main() raises:
         _record_failure(failed, "null-aggregates", String(e))
 
     try:
-        _record_success(worked, "parse-file-and-strings", _probe_parse_file_and_strings())
+        _record_success(
+            worked, "parse-file-and-strings", _probe_parse_file_and_strings()
+        )
     except e:
         _record_failure(failed, "parse-file-and-strings", String(e))
 
     try:
-        _record_success(worked, "cursor-type-spelling", _probe_cursor_lookup_type_and_spelling())
+        _record_success(
+            worked,
+            "cursor-type-spelling",
+            _probe_cursor_lookup_type_and_spelling(),
+        )
     except e:
         _record_failure(failed, "cursor-type-spelling", String(e))
 
     try:
-        _record_success(worked, "locations-ranges-tokens", _probe_locations_ranges_and_tokens())
+        _record_success(
+            worked,
+            "locations-ranges-tokens",
+            _probe_locations_ranges_and_tokens(),
+        )
     except e:
         _record_failure(failed, "locations-ranges-tokens", String(e))
 
@@ -576,6 +718,11 @@ def main() raises:
     except e:
         _record_failure(failed, "visit-children", String(e))
 
-    print("raw ffi probe summary: worked=" + String(worked) + ", failed=" + String(failed))
+    print(
+        "raw ffi probe summary: worked="
+        + String(worked)
+        + ", failed="
+        + String(failed)
+    )
     if failed != 0:
         raise Error("raw ffi probe failed")
