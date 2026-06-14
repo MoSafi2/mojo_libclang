@@ -797,6 +797,9 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     cc = shutil.which("cc")
     if cc is None:
         raise SystemExit("error: C compiler not found; required to build libclang shim")
+    runtime_dir = shim_out.parent
+    if library_path is not None:
+        ensure_soname_link(library_path, runtime_dir)
     cmd = [
         cc,
         "-shared",
@@ -816,11 +819,45 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
                 str(library_path.parent),
                 f"-l:{library_path.name}",
                 "-Wl,-rpath," + str(library_path.parent),
+                "-Wl,-rpath," + str(runtime_dir),
             ]
         )
     else:
         cmd.append("-lclang")
     run(cmd)
+
+
+def ensure_soname_link(library_path: Path, runtime_dir: Path) -> None:
+    soname = shared_library_soname(library_path)
+    if soname is None or soname == library_path.name:
+        return
+    runtime_dir.mkdir(parents=True, exist_ok=True)
+    link = runtime_dir / soname
+    target = library_path.resolve()
+    if link.exists() or link.is_symlink():
+        if link.is_symlink() and link.resolve() == target:
+            return
+        link.unlink()
+    link.symlink_to(target)
+
+
+def shared_library_soname(library_path: Path) -> str | None:
+    readelf = shutil.which("readelf")
+    if readelf is None:
+        return None
+    try:
+        output = subprocess.check_output(
+            [readelf, "-d", str(library_path)],
+            text=True,
+            stderr=subprocess.DEVNULL,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    marker = "Library soname: ["
+    for line in output.splitlines():
+        if marker in line:
+            return line.split(marker, 1)[1].split("]", 1)[0]
+    return None
 
 
 def build_layout_tests(layout_out: Path) -> None:

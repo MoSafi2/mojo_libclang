@@ -9,7 +9,7 @@ version = "0.1.0"
 generate = "python scripts/generate_libclang_bindings.py"
 generate-libclang = "python scripts/generate_libclang_bindings.py"
 smoke-test = "mojo run -I src test/smoke.mojo"
-raw-ffi-probe = "mojo run -I src test/raw_ffi_probe.mojo"
+raw-ffi-probe = "mojo run -I . test/raw_ffi_probe.mojo"
 api-test = "mojo run -I src test/api_test.mojo"
 type-test = "mojo run -I src test/type_test.mojo"
 
