@@ -160,6 +160,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def type(mut self) raises -> Type:
         from src.libclang.type_ import Type as RealType
+
         var out = RealType(tu=self._tu)
         clang_getCursorType(out._ptr(), self._ptr())
         out._cache_spelling()
@@ -167,6 +168,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def result_type(mut self) raises -> Type:
         from src.libclang.type_ import Type as RealType
+
         var out = RealType(tu=self._tu)
         clang_getCursorResultType(out._ptr(), self._ptr())
         out._cache_spelling()
@@ -174,6 +176,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def location(mut self) raises -> SourceLocation:
         from src.libclang.source_location import SourceLocation as RealLoc
+
         var out = RealLoc(tu=self._tu)
         clang_getCursorLocation(out._ptr(), self._ptr())
         out._cache_from_ffi()
@@ -181,6 +184,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def extent(mut self) raises -> SourceRange:
         from src.libclang.source_range import SourceRange as RealRange
+
         var out = RealRange(tu=self._tu)
         clang_getCursorExtent(out._ptr(), self._ptr())
         out._cache_display()
@@ -278,6 +282,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def get_included_file(mut self) raises -> Optional[File]:
         from src.libclang.file import File as RealFile
+
         var handle = clang_getIncludedFile(self._ptr())
         if not handle:
             return None
@@ -285,6 +290,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def enum_type(mut self) raises -> Type:
         from src.libclang.type_ import Type as RealType
+
         var out = RealType(tu=self._tu)
         clang_getEnumDeclIntegerType(out._ptr(), self._ptr())
         out._cache_spelling()
@@ -298,6 +304,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def underlying_typedef_type(mut self) raises -> Type:
         from src.libclang.type_ import Type as RealType
+
         var out = RealType(tu=self._tu)
         clang_getTypedefDeclUnderlyingType(out._ptr(), self._ptr())
         out._cache_spelling()
@@ -407,6 +414,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def get_template_argument_type(mut self, i: c_uint) raises -> Type:
         from src.libclang.type_ import Type as RealType
+
         var out = RealType(tu=self._tu)
         clang_Cursor_getTemplateArgumentType(out._ptr(), self._ptr(), i)
         out._cache_spelling()
@@ -422,8 +430,10 @@ struct Cursor(Copyable, Movable, Writable):
 
     def get_children(mut self) raises -> List[Cursor]:
         from src.libclang.cursor_children import collect_children
+
         return collect_children(self)
 
     def walk_preorder(mut self) raises -> List[Cursor]:
         from src.libclang.cursor_children import walk_preorder
+
         return walk_preorder(self)
