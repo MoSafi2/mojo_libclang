@@ -19,7 +19,7 @@ from std.ffi import c_uint
 from std.testing import assert_equal, assert_true, assert_raises, TestSuite
 
 
-comptime FIXTURE_PATH: String = "test/api_test_fixture.c"
+comptime FIXTURE_PATH: String = "test/fixtures/test_fixture.c"
 
 
 def _parse_fixture() raises -> TranslationUnit:
@@ -36,6 +36,7 @@ def _first_line_extent(mut tu: TranslationUnit) raises -> SourceRange:
 
 def _find_function(mut tu: TranslationUnit, name: String) raises -> Cursor:
     from src.libclang import Cursor, CXCursor_FunctionDecl
+
     var root = tu.cursor()
     var children = root.get_children()
     for i in range(Int(children.__len__())):
@@ -71,7 +72,9 @@ def test_token_group_getitem_zero_raises_when_empty() raises:
         SourceExtentInput.from_offsets(0, 0),
     )
     var tokens = tu.get_tokens(extent)
-    assert_equal(Int(tokens.__len__()), 0, "empty extent should produce no tokens")
+    assert_equal(
+        Int(tokens.__len__()), 0, "empty extent should produce no tokens"
+    )
     with assert_raises():
         _ = tokens[0]
 
@@ -83,7 +86,9 @@ def test_token_group_empty_extent_is_empty() raises:
         SourceExtentInput.from_offsets(0, 0),
     )
     var tokens = tu.get_tokens(empty_extent)
-    assert_equal(Int(tokens.__len__()), 0, "empty extent should produce no tokens")
+    assert_equal(
+        Int(tokens.__len__()), 0, "empty extent should produce no tokens"
+    )
 
 
 def test_token_group_disposes_cleanly() raises:
@@ -145,7 +150,9 @@ def test_token_extent_matches_location() raises:
     assert_true(Int(tokens.__len__()) > 0, "expected tokens")
     var first = tokens[0]
     var token_extent = first.extent()
-    assert_false_wrapper(token_extent.is_null(), "token extent should not be null")
+    assert_false_wrapper(
+        token_extent.is_null(), "token extent should not be null"
+    )
 
 
 def test_token_cursor_returns_function_decl() raises:
@@ -155,8 +162,11 @@ def test_token_cursor_returns_function_decl() raises:
     assert_true(Int(tokens.__len__()) > 0, "expected tokens")
     var first = tokens[0]
     var c = first.cursor()
-    assert_equal(Int(c.kind()), Int(CXCursor_FunctionDecl),
-                 "annotated token cursor should be FunctionDecl")
+    assert_equal(
+        Int(c.kind()),
+        Int(CXCursor_FunctionDecl),
+        "annotated token cursor should be FunctionDecl",
+    )
 
 
 def assert_false_wrapper(cond: Bool, msg: String) raises:
@@ -175,16 +185,4 @@ def test_translation_unit_get_tokens_returns_token_group() raises:
 
 
 def main() raises:
-    test_token_group_getitem_out_of_range()
-    test_token_group_getitem_negative()
-    test_token_group_getitem_zero_raises_when_empty()
-    test_token_group_empty_extent_is_empty()
-    test_token_group_disposes_cleanly()
-    test_token_kind_keyword_classification()
-    test_token_kind_identifier_classification()
-    test_token_kind_punctuation_classification()
-    test_token_location_line_column()
-    test_token_extent_matches_location()
-    test_token_cursor_returns_function_decl()
-    test_translation_unit_get_tokens_returns_token_group()
-    print("token.mojo: all tests passed")
+    TestSuite.discover_tests[__functions_in_module()]().run()

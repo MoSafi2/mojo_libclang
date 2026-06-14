@@ -26,7 +26,7 @@ from std.ffi import c_uint
 from std.testing import assert_equal, assert_false, assert_true, TestSuite
 
 
-comptime FIXTURE_PATH: String = "test/type_test_fixture.c"
+comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
 
 
 def _parse_fixture() raises -> TranslationUnit:
@@ -39,7 +39,9 @@ def _check(cond: Bool, message: String) raises:
         raise Error(message)
 
 
-def _find_cursor(mut tu: TranslationUnit, name: String, kind: CXCursorKind) raises -> Cursor:
+def _find_cursor(
+    mut tu: TranslationUnit, name: String, kind: CXCursorKind
+) raises -> Cursor:
     var root = tu.cursor()
     var cursors = root.walk_preorder()
     for i in range(Int(cursors.__len__())):
@@ -49,7 +51,9 @@ def _find_cursor(mut tu: TranslationUnit, name: String, kind: CXCursorKind) rais
     raise Error("cursor not found: " + name)
 
 
-def _cursor_type(mut tu: TranslationUnit, name: String, kind: CXCursorKind) raises -> Type:
+def _cursor_type(
+    mut tu: TranslationUnit, name: String, kind: CXCursorKind
+) raises -> Type:
     var cursor = _find_cursor(tu, name, kind)
     return cursor.type()
 

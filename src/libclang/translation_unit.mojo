@@ -40,15 +40,12 @@ struct TranslationUnit:
         """Wrap a `CXTranslationUnit` handle produced by a shim call."""
         self._raw = handle
 
-    fn _handle(self) -> CXTranslationUnit:
+    def _handle(self) -> CXTranslationUnit:
         """Expose raw handle for internal use."""
         return self._raw
 
     def __del__(deinit self):
-        try:
-            clang_disposeTranslationUnit(self._raw)
-        except:
-            pass
+        clang_disposeTranslationUnit(self._raw)
 
     def spelling(mut self) raises -> String:
         var cs = _CXStringStorage()
@@ -160,7 +157,8 @@ struct TranslationUnit:
         if result != 0:
             raise Error(
                 "TranslationUnitReparseError: clang_reparseTranslationUnit "
-                "returned " + String(Int(result)),
+                "returned "
+                + String(Int(result)),
             )
 
 

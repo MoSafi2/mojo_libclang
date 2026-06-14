@@ -71,7 +71,7 @@ struct SourceRange(Copyable, Movable):
     def is_null(mut self) raises -> Bool:
         return Bool(clang_Range_isNull(self._ptr()))
 
-    def __eq__(self, mut other: SourceRange) -> Bool:
+    def __eq__(mut self, mut other: SourceRange) -> Bool:
         return Bool(
             clang_equalRanges(
                 self._ptr(),
