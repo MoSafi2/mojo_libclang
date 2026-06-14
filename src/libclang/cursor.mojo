@@ -350,6 +350,10 @@ struct Cursor(Copyable, Movable):
     def is_pure_virtual_method(mut self) raises -> Bool:
         return Bool(clang_CXXMethod_isPureVirtual(self._ptr()))
 
+    def __eq__(mut self, other: Cursor) raises -> Bool:
+        var other_copy = other.copy()
+        return Bool(clang_equalCursors(self._ptr(), other_copy._ptr()))
+
     def is_abstract_record(mut self) raises -> Bool:
         return Bool(clang_CXXRecord_isAbstract(self._ptr()))
 

@@ -31,7 +31,7 @@ from std.memory import UnsafePointer
 from std.ffi import c_char
 
 
-struct TranslationUnit(Movable):
+struct TranslationUnit:
     """Owns a `CXTranslationUnit`."""
 
     var _raw: CXTranslationUnit
@@ -39,6 +39,10 @@ struct TranslationUnit(Movable):
     def __init__(out self, handle: CXTranslationUnit):
         """Wrap a `CXTranslationUnit` handle produced by a shim call."""
         self._raw = handle
+
+    fn _handle(self) -> CXTranslationUnit:
+        """Expose raw handle for internal use."""
+        return self._raw
 
     def __del__(deinit self):
         try:

@@ -21,8 +21,7 @@ from std.memory import UnsafePointer
 from std.ffi import c_char
 
 
-@fieldwise_init
-struct Index(Movable):
+struct Index:
     """Owns a `CXIndex` and produces `TranslationUnit` values."""
 
     var _raw: CXIndex
