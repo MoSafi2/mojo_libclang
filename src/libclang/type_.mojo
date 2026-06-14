@@ -49,11 +49,12 @@ from std.memory import UnsafePointer, MutOpaquePointer
 
 
 @fieldwise_init
-struct Type(Copyable, Movable):
+struct Type(Copyable, Movable, Writable):
     """A `CXType` borrowed from a `TranslationUnit`."""
 
     var _tu: CXTranslationUnit
     var _raw: InlineArray[CXType, 1]
+    var _spelling: String
 
     def __init__(out self, tu: CXTranslationUnit):
         self._tu = tu
@@ -65,11 +66,20 @@ struct Type(Copyable, Movable):
                 ](fill=None),
             ),
         )
+        self._spelling = String()
 
     def _ptr(mut self) -> UnsafePointer[CXType, MutExternalOrigin]:
         return rebind[UnsafePointer[CXType, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
+
+    def _cache_spelling(mut self) raises:
+        var cs = _CXStringStorage()
+        clang_getTypeSpelling(cs.ptr(), self._ptr())
+        self._spelling = cs.take()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("Type(", self._spelling, ")")
 
     def kind(mut self) raises -> CXTypeKind:
         return self._raw[0].kind
@@ -82,36 +92,43 @@ struct Type(Copyable, Movable):
     def get_canonical(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getCanonicalType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_pointee(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getPointeeType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_unqualified(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getUnqualifiedType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_non_reference(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getNonReferenceType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_result(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getResultType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def element_type(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getElementType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_array_element_type(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getArrayElementType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_array_size(mut self) raises -> c_long_long:
@@ -126,6 +143,7 @@ struct Type(Copyable, Movable):
     def get_arg_type(mut self, i: c_uint) raises -> Type:
         var out = Type(tu=self._tu)
         clang_getArgType(out._ptr(), self._ptr(), i)
+        out._cache_spelling()
         return out^
 
     def argument_types(mut self) raises -> List[Type]:
@@ -141,23 +159,27 @@ struct Type(Copyable, Movable):
     def get_template_argument_type(mut self, i: c_uint) raises -> Type:
         var out = Type(tu=self._tu)
         clang_Type_getTemplateArgumentAsType(out._ptr(), self._ptr(), i)
+        out._cache_spelling()
         return out^
 
     def get_declaration(mut self) raises -> Optional[Cursor]:
         var out = Cursor(tu=self._tu)
         clang_getTypeDeclaration(out._ptr(), self._ptr())
+        out._cache_spelling()
         if out.is_null():
             return None
-        return out^
+        return Optional[Cursor](out^)
 
     def get_named_type(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_Type_getNamedType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_class_type(mut self) raises -> Type:
         var out = Type(tu=self._tu)
         clang_Type_getClassType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def get_offset(mut self, fieldname: String) raises -> c_long_long:

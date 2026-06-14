@@ -32,18 +32,33 @@ from std.memory import UnsafePointer
 
 
 @fieldwise_init
-struct FixIt(Copyable, Movable):
+struct FixIt(Copyable, Movable, Writable):
     """A `clang::FixIt` replacement suggestion."""
 
     var range: SourceRange
     var value: String
 
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("FixIt(")
+        self.range.write_to(writer)
+        writer.write(", ", self.value, ")")
+
 
 @fieldwise_init
-struct Diagnostic(Movable):
+struct Diagnostic(Movable, Writable):
     """Owning wrapper around `CXDiagnostic`."""
 
     var _raw: CXDiagnostic
+    var _formatted: String
+
+    def _cache_format(mut self) raises:
+        var options = clang_defaultDiagnosticDisplayOptions()
+        var cs = _CXStringStorage()
+        clang_formatDiagnostic(cs.ptr(), self._raw, options)
+        self._formatted = cs.take()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("Diagnostic(", self._formatted, ")")
 
     def severity(mut self) raises -> CXDiagnosticSeverity:
         return clang_getDiagnosticSeverity(self._raw)
@@ -56,6 +71,7 @@ struct Diagnostic(Movable):
     def location(mut self) raises -> SourceLocation:
         var out = SourceLocation(tu=CXTranslationUnit())
         clang_getDiagnosticLocation(out._ptr(), self._raw)
+        out._cache_from_ffi()
         return out^
 
     def category_number(mut self) -> c_uint:
@@ -86,6 +102,7 @@ struct Diagnostic(Movable):
     def range(mut self, i: c_uint) raises -> SourceRange:
         var out = SourceRange(tu=CXTranslationUnit())
         clang_getDiagnosticRange(out._ptr(), self._raw, i)
+        out._cache_display()
         return out^
 
     def num_fixits(mut self) -> c_uint:
@@ -95,12 +112,14 @@ struct Diagnostic(Movable):
         var range_out = SourceRange(tu=CXTranslationUnit())
         var cs = _CXStringStorage()
         clang_getDiagnosticFixIt(cs.ptr(), self._raw, i, range_out._ptr())
+        range_out._cache_display()
         return FixIt(range=range_out^, value=cs.take())
 
     def children(mut self) raises -> DiagnosticSet:
         return DiagnosticSet(raw=clang_getChildDiagnostics(self._raw))
 
     def format(mut self) raises -> String:
+        # TODO: return cached _formatted instead of re-calling FFI
         var options = clang_defaultDiagnosticDisplayOptions()
         var cs = _CXStringStorage()
         clang_formatDiagnostic(cs.ptr(), self._raw, options)
@@ -113,27 +132,37 @@ struct Diagnostic(Movable):
             pass
 
 
-struct DiagnosticSet(Movable):
+struct DiagnosticSet(Movable, Writable, Sized):
     """Owning wrapper around `CXDiagnosticSet`."""
 
     var _raw: CXDiagnosticSet
     var _index: c_uint
+    var _count: Int
 
-    def __init__(out self, raw: CXDiagnosticSet):
+    def __init__(out self, raw: CXDiagnosticSet) raises:
         self._raw = raw
         self._index = c_uint(0)
+        self._count = Int(clang_getNumDiagnosticsInSet(raw))
 
     @staticmethod
-    def _from_handle(raw: CXDiagnosticSet) -> Self:
+    def _from_handle(raw: CXDiagnosticSet) raises -> Self:
         return Self(raw)
 
-    def __len__(self) raises -> c_uint:
-        return clang_getNumDiagnosticsInSet(self._raw)
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("DiagnosticSet(count=", self._count, ")")
+
+    def __len__(self) -> Int:
+        return self._count
 
     def __getitem__(self, i: c_uint) raises -> Diagnostic:
         if i >= clang_getNumDiagnosticsInSet(self._raw):
             raise Error("DiagnosticSet index out of range")
-        return Diagnostic(_raw=clang_getDiagnosticInSet(self._raw, i))
+        var d = Diagnostic(
+            _raw=clang_getDiagnosticInSet(self._raw, i),
+            _formatted=String(),
+        )
+        d._cache_format()
+        return d^
 
 
     def __next__(mut self) raises -> Diagnostic:
@@ -142,7 +171,9 @@ struct DiagnosticSet(Movable):
         var n = clang_getNumDiagnosticsInSet(self._raw)
         var result = Diagnostic(
             _raw=clang_getDiagnosticInSet(self._raw, self._index),
+            _formatted=String(),
         )
+        result._cache_format()
         self._index += 1
         _ = n
         return result^

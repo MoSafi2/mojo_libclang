@@ -12,6 +12,7 @@ from src._ffi import (
     clang_getLocation,
     clang_getLocationForOffset,
     clang_getSpellingLocation,
+    clang_getFileName,
     clang_Location_isInSystemHeader,
     clang_Location_isFromMainFile,
     c_uint,
@@ -21,11 +22,16 @@ from std.memory import UnsafePointer, ImmutOpaquePointer
 
 
 @fieldwise_init
-struct SourceLocation(Copyable, Movable):
+struct SourceLocation(Copyable, Movable, Writable):
     """A cursor location. Borrowed from a `TranslationUnit`."""
 
     var _tu: CXTranslationUnit
     var _raw: InlineArray[CXSourceLocation, 1]
+    var _file: CXFile
+    var _line: c_uint
+    var _column: c_uint
+    var _offset: c_uint
+    var _file_name: String
 
     def __init__(out self, tu: CXTranslationUnit) raises:
         self._tu = tu
@@ -37,12 +43,37 @@ struct SourceLocation(Copyable, Movable):
                 int_data=c_uint(0),
             ),
         )
+        self._file = CXFile(None)
+        self._line = c_uint(0)
+        self._column = c_uint(0)
+        self._offset = c_uint(0)
+        self._file_name = String()
         clang_getNullLocation(self._ptr())
+        self._cache_from_ffi()
 
     def _ptr(mut self) -> UnsafePointer[CXSourceLocation, MutExternalOrigin]:
         return rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
+
+    def _cache_from_ffi(mut self) raises:
+        var (file, line, col, off) = self._spelling_parts()
+        self._file = file
+        self._line = line
+        self._column = col
+        self._offset = off
+        if file:
+            var cs = _CXStringStorage()
+            clang_getFileName(cs.ptr(), file)
+            self._file_name = cs.take()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("SourceLocation(")
+        if self._file_name:
+            writer.write(self._file_name, ":", self._line, ":", self._column)
+        else:
+            writer.write("<no file>:0:0")
+        writer.write(")")
 
     @staticmethod
     def null(tu: CXTranslationUnit) raises -> Self:
@@ -57,6 +88,7 @@ struct SourceLocation(Copyable, Movable):
     ) raises -> Self:
         var out = Self(tu=tu)
         clang_getLocation(out._ptr(), tu, file, line, column)
+        out._cache_from_ffi()
         return out^
 
     @staticmethod
@@ -67,6 +99,7 @@ struct SourceLocation(Copyable, Movable):
     ) raises -> Self:
         var out = Self(tu=tu)
         clang_getLocationForOffset(out._ptr(), tu, file, offset)
+        out._cache_from_ffi()
         return out^
 
     def _spelling_parts(
@@ -86,15 +119,19 @@ struct SourceLocation(Copyable, Movable):
         return (file_out[0], line_out[0], col_out[0], off_out[0])
 
     def file(mut self) raises -> CXFile:
+        # TODO: return cached _file instead of re-calling FFI
         return self._spelling_parts()[0]
 
     def line(mut self) raises -> c_uint:
+        # TODO: return cached _line instead of re-calling FFI
         return self._spelling_parts()[1]
 
     def column(mut self) raises -> c_uint:
+        # TODO: return cached _column instead of re-calling FFI
         return self._spelling_parts()[2]
 
     def offset(mut self) raises -> c_uint:
+        # TODO: return cached _offset instead of re-calling FFI
         return self._spelling_parts()[3]
 
     def is_in_system_header(mut self) raises -> Bool:

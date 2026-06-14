@@ -14,24 +14,33 @@ from src.libclang.common import _c_string, _CXStringStorage
 
 
 @fieldwise_init
-struct File(Copyable, Movable):
+struct File(Copyable, Movable, Writable):
     """A `CXFile` borrowed from a `TranslationUnit`."""
 
     var _tu: CXTranslationUnit
     var _raw: CXFile
+    var _name: String
 
     @staticmethod
     def null(tu: CXTranslationUnit) -> Self:
-        return Self(_tu=tu, _raw=None)
+        return Self(_tu=tu, _raw=None, _name=String())
 
     @staticmethod
     def from_name(tu: CXTranslationUnit, filename: String) raises -> Optional[Self]:
         var handle = clang_getFile(tu, _c_string(filename))
         if not handle:
             return None
-        return Optional[Self](Self(_tu=tu, _raw=handle))
+        var result = Self(_tu=tu, _raw=handle, _name=String())
+        var cs = _CXStringStorage()
+        clang_getFileName(cs.ptr(), result._raw)
+        result._name = cs.take()
+        return Optional[Self](result^)
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("File(", self._name, ")")
 
     def name(self) raises -> String:
+        # TODO: return cached _name instead of re-calling FFI
         var cs = _CXStringStorage()
         clang_getFileName(cs.ptr(), self._raw)
         return cs.take()

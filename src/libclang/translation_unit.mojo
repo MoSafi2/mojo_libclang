@@ -31,23 +31,35 @@ from std.memory import UnsafePointer
 from std.ffi import c_char
 
 
-struct TranslationUnit:
+struct TranslationUnit(Writable, SizedRaising):
     """Owns a `CXTranslationUnit`."""
 
     var _raw: CXTranslationUnit
+    var _spelling: String
 
-    def __init__(out self, handle: CXTranslationUnit):
+    def __init__(out self, handle: CXTranslationUnit) raises:
         """Wrap a `CXTranslationUnit` handle produced by a shim call."""
         self._raw = handle
+        self._spelling = String()
+        var cs = _CXStringStorage()
+        clang_getTranslationUnitSpelling(cs.ptr(), self._raw)
+        self._spelling = cs.take()
 
     def _handle(self) -> CXTranslationUnit:
         """Expose raw handle for internal use."""
         return self._raw
 
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("TranslationUnit(", self._spelling, ")")
+
+    def __len__(self) raises -> Int:
+        return Int(clang_getNumDiagnostics(self._raw))
+
     def __del__(deinit self):
         clang_disposeTranslationUnit(self._raw)
 
     def spelling(mut self) raises -> String:
+        # TODO: return cached _spelling instead of re-calling FFI
         var cs = _CXStringStorage()
         clang_getTranslationUnitSpelling(cs.ptr(), self._raw)
         return cs.take()
@@ -55,13 +67,19 @@ struct TranslationUnit:
     def cursor(mut self) raises -> Cursor:
         var out = Cursor(tu=self._raw)
         clang_getTranslationUnitCursor(out._ptr(), self._raw)
+        out._cache_spelling()
         return out^
 
     def num_diagnostics(mut self) raises -> c_uint:
         return clang_getNumDiagnostics(self._raw)
 
     def diagnostic(mut self, index: c_uint) raises -> Diagnostic:
-        return Diagnostic(_raw=clang_getDiagnostic(self._raw, index))
+        var d = Diagnostic(
+            _raw=clang_getDiagnostic(self._raw, index),
+            _formatted=String(),
+        )
+        d._cache_format()
+        return d^
 
     def diagnostics(mut self) raises -> DiagnosticSet:
         return DiagnosticSet._from_handle(
@@ -125,6 +143,7 @@ struct TranslationUnit:
     def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
         var out = Cursor(tu=self._raw)
         clang_getCursor(out._ptr(), self._raw, loc._ptr())
+        out._cache_spelling()
         return out^
 
     def save(mut self, filename: String) raises:

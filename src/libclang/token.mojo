@@ -26,16 +26,30 @@ from std.memory import UnsafePointer
 
 
 @fieldwise_init
-struct Token(Copyable, Movable):
+struct Token(Copyable, Movable, Writable):
     """A single token, borrowing storage from its `TokenGroup`."""
 
     var _tu: CXTranslationUnit
     var _raw: UnsafePointer[CXToken, MutExternalOrigin]
+    var _spelling: String
+    var _kind: CXTokenKind
+
+    def _cache_from_ffi(mut self) raises:
+        pass
+        #self._kind = clang_getTokenKind(self._raw)
+        #var cs = _CXStringStorage()
+        #clang_getTokenSpelling(cs.ptr(), self._tu, self._raw)
+        #self._spelling = cs.take()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("Token(", Int(c_uint(self._kind)), ": ", self._spelling, ")")
 
     def kind(mut self) raises -> CXTokenKind:
+        # TODO: return cached _kind instead of re-calling FFI
         return clang_getTokenKind(self._raw)
 
     def spelling(mut self) raises -> String:
+        # TODO: return cached _spelling instead of re-calling FFI
         var cs = _CXStringStorage()
         clang_getTokenSpelling(cs.ptr(), self._tu, self._raw)
         return cs.take()
@@ -43,11 +57,13 @@ struct Token(Copyable, Movable):
     def location(mut self) raises -> SourceLocation:
         var out = SourceLocation(tu=self._tu)
         clang_getTokenLocation(out._ptr(), self._tu, self._raw)
+        out._cache_from_ffi()
         return out^
 
     def extent(mut self) raises -> SourceRange:
         var out = SourceRange(tu=self._tu)
         clang_getTokenExtent(out._ptr(), self._tu, self._raw)
+        out._cache_display()
         return out^
 
     def cursor(mut self) raises -> Cursor:
@@ -55,10 +71,11 @@ struct Token(Copyable, Movable):
         clang_annotateTokens(
             self._tu, self._raw, c_uint(1), out._ptr()
         )
+        out._cache_spelling()
         return out^
 
 
-struct TokenGroup(Movable):
+struct TokenGroup(Movable, Writable, Sized):
     """Owns the buffer returned by `clang_tokenize`."""
 
     var _tu: CXTranslationUnit
@@ -106,9 +123,17 @@ struct TokenGroup(Movable):
     def __len__(self) -> Int:
         return Int(self._count)
 
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("TokenGroup(count=", Int(self._count), ")")
+
     def __getitem__(self, i: Int) raises -> Token:
         if i < 0 or i >= Int(self._count):
             raise Error("TokenGroup index out of range")
-        return Token(
-            _tu=self._tu, _raw=self._tokens.value() + i
+        var tok = Token(
+            _tu=self._tu,
+            _raw=self._tokens.value() + i,
+            _spelling=String(),
+            _kind=CXTokenKind(c_uint(0)),
         )
+        tok._cache_from_ffi()
+        return tok^

@@ -21,10 +21,12 @@ from std.memory import UnsafePointer
 from std.ffi import c_char
 
 
-struct Index:
+struct Index(Writable):
     """Owns a `CXIndex` and produces `TranslationUnit` values."""
 
     var _raw: CXIndex
+    var _exclude_decls: Bool
+    var _display_diagnostics: Bool
 
     def __init__(
         out self,
@@ -35,6 +37,8 @@ struct Index:
             c_int(1 if exclude_decls else 0),
             c_int(1 if display_diagnostics else 0),
         )
+        self._exclude_decls = exclude_decls
+        self._display_diagnostics = display_diagnostics
 
     @staticmethod
     def create(
@@ -42,6 +46,12 @@ struct Index:
         display_diagnostics: Bool = False,
     ) raises -> Self:
         return Self(exclude_decls, display_diagnostics)
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write(
+            "Index(exclude_decls=", self._exclude_decls,
+            ", display_diagnostics=", self._display_diagnostics, ")",
+        )
 
     def __del__(deinit self):
         try:

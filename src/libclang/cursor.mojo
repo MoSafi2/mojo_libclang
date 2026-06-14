@@ -99,11 +99,12 @@ from std.memory import UnsafePointer, ImmutOpaquePointer
 
 
 @fieldwise_init
-struct Cursor(Copyable, Movable):
+struct Cursor(Copyable, Movable, Writable):
     """A `CXCursor` borrowed from a `TranslationUnit`."""
 
     var _tu: CXTranslationUnit
     var _raw: InlineArray[CXCursor, 1]
+    var _spelling: String
 
     def __init__(out self, tu: CXTranslationUnit) raises:
         self._tu = tu
@@ -116,12 +117,21 @@ struct Cursor(Copyable, Movable):
                 ](fill=None),
             ),
         )
+        self._spelling = String()
         clang_getNullCursor(self._ptr())
 
     def _ptr(mut self) -> UnsafePointer[CXCursor, MutExternalOrigin]:
         return rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
+
+    def _cache_spelling(mut self) raises:
+        var cs = _CXStringStorage()
+        clang_getCursorSpelling(cs.ptr(), self._ptr())
+        self._spelling = cs.take()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("Cursor(", self._spelling, ")")
 
     @staticmethod
     def null(tu: CXTranslationUnit) raises -> Self:
@@ -152,24 +162,28 @@ struct Cursor(Copyable, Movable):
         from src.libclang.type_ import Type as RealType
         var out = RealType(tu=self._tu)
         clang_getCursorType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def result_type(mut self) raises -> Type:
         from src.libclang.type_ import Type as RealType
         var out = RealType(tu=self._tu)
         clang_getCursorResultType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def location(mut self) raises -> SourceLocation:
         from src.libclang.source_location import SourceLocation as RealLoc
         var out = RealLoc(tu=self._tu)
         clang_getCursorLocation(out._ptr(), self._ptr())
+        out._cache_from_ffi()
         return out^
 
     def extent(mut self) raises -> SourceRange:
         from src.libclang.source_range import SourceRange as RealRange
         var out = RealRange(tu=self._tu)
         clang_getCursorExtent(out._ptr(), self._ptr())
+        out._cache_display()
         return out^
 
     def translation_unit(mut self) -> CXTranslationUnit:
@@ -182,6 +196,7 @@ struct Cursor(Copyable, Movable):
     def semantic_parent(mut self) raises -> Optional[Cursor]:
         var out = self._make_cursor()
         clang_getCursorSemanticParent(out._ptr(), self._ptr())
+        out._cache_spelling()
         if Bool(clang_Cursor_isNull(out._ptr())):
             return None
         return Optional[Cursor](out^)
@@ -189,6 +204,7 @@ struct Cursor(Copyable, Movable):
     def lexical_parent(mut self) raises -> Optional[Cursor]:
         var out = self._make_cursor()
         clang_getCursorLexicalParent(out._ptr(), self._ptr())
+        out._cache_spelling()
         if Bool(clang_Cursor_isNull(out._ptr())):
             return None
         return Optional[Cursor](out^)
@@ -196,6 +212,7 @@ struct Cursor(Copyable, Movable):
     def referenced(mut self) raises -> Optional[Cursor]:
         var out = self._make_cursor()
         clang_getCursorReferenced(out._ptr(), self._ptr())
+        out._cache_spelling()
         if Bool(clang_Cursor_isNull(out._ptr())):
             return None
         return Optional[Cursor](out^)
@@ -203,6 +220,7 @@ struct Cursor(Copyable, Movable):
     def definition(mut self) raises -> Optional[Cursor]:
         var out = self._make_cursor()
         clang_getCursorDefinition(out._ptr(), self._ptr())
+        out._cache_spelling()
         if Bool(clang_Cursor_isNull(out._ptr())):
             return None
         return Optional[Cursor](out^)
@@ -210,6 +228,7 @@ struct Cursor(Copyable, Movable):
     def canonical(mut self) raises -> Cursor:
         var out = self._make_cursor()
         clang_getCanonicalCursor(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def hash(mut self) raises -> c_uint:
@@ -268,6 +287,7 @@ struct Cursor(Copyable, Movable):
         from src.libclang.type_ import Type as RealType
         var out = RealType(tu=self._tu)
         clang_getEnumDeclIntegerType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def enum_value(mut self) raises -> c_long_long:
@@ -280,6 +300,7 @@ struct Cursor(Copyable, Movable):
         from src.libclang.type_ import Type as RealType
         var out = RealType(tu=self._tu)
         clang_getTypedefDeclUnderlyingType(out._ptr(), self._ptr())
+        out._cache_spelling()
         return out^
 
     def raw_comment(mut self) raises -> String:
@@ -366,6 +387,7 @@ struct Cursor(Copyable, Movable):
     def get_argument(mut self, i: c_uint) raises -> Cursor:
         var out = self._make_cursor()
         clang_Cursor_getArgument(out._ptr(), self._ptr(), i)
+        out._cache_spelling()
         return out^
 
     def get_arguments(mut self) raises -> List[Cursor]:
@@ -387,6 +409,7 @@ struct Cursor(Copyable, Movable):
         from src.libclang.type_ import Type as RealType
         var out = RealType(tu=self._tu)
         clang_Cursor_getTemplateArgumentType(out._ptr(), self._ptr(), i)
+        out._cache_spelling()
         return out^
 
     def get_template_argument_value(mut self, i: c_uint) raises -> c_long_long:
