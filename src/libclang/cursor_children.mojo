@@ -37,7 +37,9 @@ def _visit_trampoline(
         rebind[UnsafePointer[UInt8, MutAnyOrigin]](user_bytes),
     )
     if collector[].count < MAX_CHILDREN:
-        var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](cursor.value())
+        var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](
+            cursor.value()
+        )
         var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](
             collector[].buffer + collector[].count,
         )
@@ -59,20 +61,33 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
         ),
     )
     # Use raw InlineArray like the working probe tests
-    var raw_storage = InlineArray[CXCursor, 1](fill=CXCursor(
-        kind=0, xdata=0,
-        data=InlineArray[Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3](fill=None),
-    ))
-    var raw_ptr = rebind[UnsafePointer[CXCursor, MutExternalOrigin]](raw_storage.unsafe_ptr())
-    var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](parent._raw.unsafe_ptr())
+    var raw_storage = InlineArray[CXCursor, 1](
+        fill=CXCursor(
+            kind=0,
+            xdata=0,
+            data=InlineArray[
+                Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3
+            ](fill=None),
+        )
+    )
+    var raw_ptr = rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
+        raw_storage.unsafe_ptr()
+    )
+    var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](
+        parent._raw.unsafe_ptr()
+    )
     var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](raw_ptr)
     memcpy(dest=dst, src=src, count=32)
     _ = clang_visitChildren(raw_ptr, _visit_trampoline, client_data)
     var out = List[Cursor]()
     for i in range(collector_box[].count):
         var c = Cursor(tu=parent._tu)
-        var c_src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](buffer + i)
-        var c_dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](c._raw.unsafe_ptr())
+        var c_src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](
+            buffer + i
+        )
+        var c_dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+            c._raw.unsafe_ptr()
+        )
         memcpy(dest=c_dst, src=c_src, count=32)
         out.append(c^)
     collector_box.free()
