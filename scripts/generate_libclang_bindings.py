@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Generate raw Mojo FFI bindings for libclang with mojo-bindgen.
+"""Generate Mojo FFI bindings for libclang through a C wrapper ABI.
 
 Environment overrides:
   LIBCLANG_HEADERS_DIR  Directory containing clang-c/*.h or the clang-c dir itself.
-  LIBCLANG_LIBRARY      Path to libclang.so/dylib/dll for owned_dl_handle output.
-  LIBCLANG_RAW_OUT      Output Mojo file. Defaults to src/libclang_raw.mojo.
-  LIBCLANG_RAW_IR_OUT   Output JSON IR file. Defaults to build/libclang_raw.ir.json.
-  LIBCLANG_SHIM_OUT     Output shared library for the C ABI shim. Defaults to build/libclang_mojo_shim.so.
+  LIBCLANG_LIBRARY      Path to libclang.so/dylib/dll used to build the wrapper.
+  LIBCLANG_FFI_OUT      Output Mojo file. Defaults to src/libclang/ffi.mojo.
+  LIBCLANG_FFI_IR_OUT   Output JSON IR file. Defaults to build/libclang_wrapper.ir.json.
+  LIBCLANG_WRAPPER_OUT  Output shared library for the wrapper. Defaults to build/libclang_mojo_wrapper.so.
+  LIBCLANG_GENERATE_RAW Set to 1 to run the legacy patched raw generation path.
   LIBCLANG_APPLY_PATCHES Set to 0 to emit pristine mojo-bindgen output.
 """
 
@@ -20,18 +21,19 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MOJO_OUT = REPO_ROOT / "src" / "libclang_raw.mojo"
-DEFAULT_IR_OUT = REPO_ROOT / "build" / "libclang_raw.ir.json"
-DEFAULT_LAYOUT_OUT = DEFAULT_MOJO_OUT.with_name(f"{DEFAULT_MOJO_OUT.stem}_layout_tests.mojo")
+DEFAULT_FFI_OUT = REPO_ROOT / "src" / "libclang" / "ffi.mojo"
+DEFAULT_FFI_IR_OUT = REPO_ROOT / "build" / "libclang_wrapper.ir.json"
+DEFAULT_FFI_LAYOUT_OUT = REPO_ROOT / "build" / "libclang_wrapper_layout_tests.mojo"
+DEFAULT_WRAPPER_OUT = REPO_ROOT / "build" / "libclang_mojo_wrapper.so"
+DEFAULT_WRAPPER_HEADER = REPO_ROOT / "shim" / "libclang_mojo_wrapper.h"
+DEFAULT_WRAPPER_SRC = REPO_ROOT / "shim" / "libclang_mojo_wrapper.c"
+DEFAULT_RAW_MOJO_OUT = REPO_ROOT / "src" / "libclang_raw.mojo"
+DEFAULT_RAW_IR_OUT = REPO_ROOT / "build" / "libclang_raw.ir.json"
+DEFAULT_RAW_LAYOUT_OUT = DEFAULT_RAW_MOJO_OUT.with_name(
+    f"{DEFAULT_RAW_MOJO_OUT.stem}_layout_tests.mojo"
+)
 DEFAULT_SHIM_OUT = REPO_ROOT / "build" / "libclang_mojo_shim.so"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
-PATCH_FILES = (
-    REPO_ROOT / "patches" / "0001-libclang-raw-manual-abi.patch",
-    REPO_ROOT / "patches" / "0002-remove-system-header-ffi.patch",
-    REPO_ROOT / "patches" / "0003-shim-aggregate-by-value-ffi.patch",
-    REPO_ROOT / "patches" / "0004-add-remaining-ref-variants.patch",
-    REPO_ROOT / "patches" / "0005-convert-direct-dl-to-shim.patch",
-)
 
 HEADER_NAMES = (
     "Index.h",
@@ -48,6 +50,69 @@ HEADER_NAMES = (
 
 
 def main() -> int:
+    if os.environ.get("LIBCLANG_GENERATE_RAW") in {"1", "true", "True", "yes"}:
+        return generate_raw_bindings()
+    return generate_wrapper_bindings()
+
+
+def generate_wrapper_bindings() -> int:
+    mojo_bindgen = shutil.which("mojo-bindgen")
+    if mojo_bindgen is None:
+        print("error: mojo-bindgen not found; run through `pixi run generate`", file=sys.stderr)
+        return 1
+
+    clang_c_dir = discover_clang_c_dir()
+    include_root = clang_c_dir.parent
+    compile_args = build_compile_args(DEFAULT_WRAPPER_HEADER.parent)
+    library_path = discover_libclang_library()
+    wrapper_out = Path(os.environ.get("LIBCLANG_WRAPPER_OUT", DEFAULT_WRAPPER_OUT)).resolve()
+    mojo_out = Path(os.environ.get("LIBCLANG_FFI_OUT", DEFAULT_FFI_OUT)).resolve()
+    ir_out = Path(os.environ.get("LIBCLANG_FFI_IR_OUT", DEFAULT_FFI_IR_OUT)).resolve()
+    layout_out = DEFAULT_FFI_LAYOUT_OUT.resolve()
+    for path in (mojo_out, ir_out, layout_out, wrapper_out):
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+    build_wrapper(include_root, library_path, wrapper_out)
+
+    common = [
+        mojo_bindgen,
+        str(DEFAULT_WRAPPER_HEADER),
+        "--library",
+        "libclang_mojo_wrapper",
+        "--no-doc-comments",
+    ]
+    for arg in compile_args:
+        common.append(f"--compile-arg={arg}")
+
+    ir_cmd = [*common, "--json", "-o", str(ir_out)]
+    run(ir_cmd)
+
+    mojo_cmd = [
+        *common,
+        "--linking",
+        "owned_dl_handle",
+        "--layout-tests",
+        "-o",
+        str(mojo_out),
+        "--layout-test-output",
+        str(layout_out),
+        "--library-path-hint",
+        str(wrapper_out),
+    ]
+    run(mojo_cmd)
+
+    print(f"generated: {display_path(mojo_out)}")
+    print(f"generated: {display_path(layout_out)}")
+    print(f"generated: {display_path(ir_out)}")
+    print(f"wrapper:   {display_path(wrapper_out)}")
+    if library_path is not None:
+        print(f"libclang:  {library_path}")
+    else:
+        print("libclang:  linked by name")
+    return 0
+
+
+def generate_raw_bindings() -> int:
     mojo_bindgen = shutil.which("mojo-bindgen")
     if mojo_bindgen is None:
         print("error: mojo-bindgen not found; run through `pixi run generate`", file=sys.stderr)
@@ -68,8 +133,8 @@ def main() -> int:
         print(f"error: required header not found: {primary}", file=sys.stderr)
         return 1
 
-    mojo_out = Path(os.environ.get("LIBCLANG_RAW_OUT", DEFAULT_MOJO_OUT)).resolve()
-    ir_out = Path(os.environ.get("LIBCLANG_RAW_IR_OUT", DEFAULT_IR_OUT)).resolve()
+    mojo_out = Path(os.environ.get("LIBCLANG_RAW_OUT", DEFAULT_RAW_MOJO_OUT)).resolve()
+    ir_out = Path(os.environ.get("LIBCLANG_RAW_IR_OUT", DEFAULT_RAW_IR_OUT)).resolve()
     layout_out = mojo_out.with_name(f"{mojo_out.stem}_layout_tests.mojo")
     for path in (mojo_out, ir_out, layout_out):
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -113,10 +178,6 @@ def main() -> int:
 
     build_shim(include_root, library_path, shim_out)
 
-    if should_apply_patches():
-        apply_post_generation_patches(mojo_out, layout_out)
-    else:
-        print("patches:   skipped by LIBCLANG_APPLY_PATCHES=0")
 
     print(f"generated: {display_path(mojo_out)}")
     print(f"generated: {display_path(layout_out)}")
@@ -266,24 +327,46 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     run(cmd)
 
 
+def build_wrapper(include_root: Path, library_path: Path | None, wrapper_out: Path) -> None:
+    if not DEFAULT_WRAPPER_SRC.is_file():
+        raise SystemExit(f"error: missing wrapper source: {display_path(DEFAULT_WRAPPER_SRC)}")
+    if not DEFAULT_WRAPPER_HEADER.is_file():
+        raise SystemExit(f"error: missing wrapper header: {display_path(DEFAULT_WRAPPER_HEADER)}")
+
+    cc = shutil.which("cc")
+    if cc is None:
+        raise SystemExit("error: C compiler not found; required to build libclang wrapper")
+
+    wrapper_out.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        cc,
+        "-shared",
+        "-fPIC",
+        "-I",
+        str(include_root),
+        "-I",
+        str(DEFAULT_WRAPPER_HEADER.parent),
+        "-o",
+        str(wrapper_out),
+        str(DEFAULT_WRAPPER_SRC),
+    ]
+    if library_path is not None:
+        cmd.extend(
+            [
+                "-L",
+                str(library_path.parent),
+                f"-l:{library_path.name}",
+                "-Wl,-rpath," + str(library_path.parent),
+            ]
+        )
+    else:
+        cmd.append("-lclang")
+    run(cmd)
+
+
 def should_apply_patches() -> bool:
     return os.environ.get("LIBCLANG_APPLY_PATCHES", "1") not in {"0", "false", "False", "no"}
 
-
-def apply_post_generation_patches(mojo_out: Path, layout_out: Path) -> None:
-    """Apply deterministic manual patches on top of mojo-bindgen output."""
-    if mojo_out != DEFAULT_MOJO_OUT or layout_out != DEFAULT_LAYOUT_OUT:
-        raise SystemExit(
-            "error: manual patches target the default src/libclang_raw*.mojo outputs; "
-            "unset LIBCLANG_RAW_OUT or set LIBCLANG_APPLY_PATCHES=0 for pristine output"
-        )
-
-    for patch_file in PATCH_FILES:
-        if not patch_file.is_file():
-            raise SystemExit(f"error: missing post-generation patch: {display_path(patch_file)}")
-        print(f"patch:     {display_path(patch_file)}")
-        run(["git", "apply", "--check", "--whitespace=nowarn", str(patch_file)])
-        run(["git", "apply", "--whitespace=nowarn", str(patch_file)])
 
 
 def display_path(path: Path) -> str:
