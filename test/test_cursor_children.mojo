@@ -38,8 +38,11 @@ def test_collect_children_first_typedef() raises:
     var root = tu.cursor()
     var children = collect_children(root)
     var first = children[0].copy()
-    assert_equal(Int(first.kind()), Int(CXCursor_TypedefDecl),
-                 "first child should be TypedefDecl")
+    assert_equal(
+        Int(first.kind()),
+        Int(CXCursor_TypedefDecl),
+        "first child should be TypedefDecl",
+    )
 
 
 def test_collect_children_includes_struct() raises:
@@ -71,8 +74,11 @@ def test_walk_preorder_first_is_root() raises:
     var root = tu.cursor()
     var walk = walk_preorder(root)
     var first = walk[0].copy()
-    assert_equal(Int(first.kind()), Int(CXCursor_TranslationUnit),
-                 "first element should be the root TU cursor")
+    assert_equal(
+        Int(first.kind()),
+        Int(CXCursor_TranslationUnit),
+        "first element should be the root TU cursor",
+    )
 
 
 def test_walk_preorder_deeper_than_children() raises:
@@ -80,8 +86,10 @@ def test_walk_preorder_deeper_than_children() raises:
     var root = tu.cursor()
     var children = collect_children(root)
     var walk = walk_preorder(root)
-    _check(Int(walk.__len__()) >= Int(children.__len__()),
-           "preorder walk should be at least as deep as direct children")
+    _check(
+        Int(walk.__len__()) >= Int(children.__len__()),
+        "preorder walk should be at least as deep as direct children",
+    )
 
 
 def test_collect_children_child_spelling() raises:
@@ -91,8 +99,7 @@ def test_collect_children_child_spelling() raises:
     for i in range(Int(children.__len__())):
         var c = children[i].copy()
         var s = c.spelling()
-        _check(s.byte_length() > 0,
-               "each child should have non-empty spelling")
+        _check(s.byte_length() > 0, "each child should have non-empty spelling")
 
 
 def test_walk_preorder_spelling_nonempty() raises:
@@ -102,8 +109,9 @@ def test_walk_preorder_spelling_nonempty() raises:
     for i in range(Int(walk.__len__())):
         var c = walk[i].copy()
         var s = c.spelling()
-        _check(s.byte_length() > 0,
-               "each element should have non-empty spelling")
+        _check(
+            s.byte_length() > 0, "each element should have non-empty spelling"
+        )
 
 
 def main() raises:
