@@ -70,6 +70,7 @@ from src._ffi import (
     c_ulong,
 )
 from std.memory import UnsafePointer
+from std.testing import assert_equal, assert_true, TestSuite
 
 
 def _check(condition: Bool, message: String) raises:
@@ -196,16 +197,16 @@ def _parse_file(
     return tu
 
 
-def _probe_version_string() raises -> String:
+def test_version_string() raises:
     var version = _alloc_cxstring()
     clang_getClangVersion(_cxstring_ptr(version))
     var text = _take_cxstring(_cxstring_ptr(version))
     version.free()
     _check(text.byte_length() > 0, "clang version string was empty")
-    return "clang version: " + text
 
 
-def _probe_null_aggregates() raises -> String:
+
+def test_null_aggregates() raises:
     var loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
     var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
     var cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
@@ -226,10 +227,10 @@ def _probe_null_aggregates() raises -> String:
         clang_getCursorKind(_cursor_ptr(cursor)) == CXCursor_FirstInvalid,
         "null cursor kind was not CXCursor_FirstInvalid",
     )
-    return "location/range/cursor out-params ok"
 
 
-def _probe_parse_file_and_strings() raises -> String:
+
+def test_parse_file_and_strings() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -250,26 +251,15 @@ def _probe_parse_file_and_strings() raises -> String:
 
         var file_time = clang_getFileTime(file)
         _check(Bool(clang_File_isEqual(file, file)), "file equality failed")
-        var result = (
-            "tu="
-            + _take_cxstring(_cxstring_ptr(tu_spelling))
-            + ", file="
-            + _take_cxstring(_cxstring_ptr(file_name))
-            + ", real="
-            + _take_cxstring(_cxstring_ptr(real_path))
-            + ", time="
-            + String(file_time)
-        )
         file_name.free()
         real_path.free()
         tu_spelling.free()
-        return result
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
 
 
-def _probe_cursor_lookup_type_and_spelling() raises -> String:
+def test_cursor_lookup_type_and_spelling() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -301,23 +291,16 @@ def _probe_cursor_lookup_type_and_spelling() raises -> String:
         clang_getCursorSpelling(_cxstring_ptr(cursor_name), _cursor_ptr(cursor))
         clang_getTypeSpelling(_cxstring_ptr(type_name), _type_ptr(typ))
 
-        var result = (
-            "kind="
-            + String(kind)
-            + ", cursor="
-            + _take_cxstring(_cxstring_ptr(cursor_name))
-            + ", type="
-            + _take_cxstring(_cxstring_ptr(type_name))
-        )
+        clang_disposeString(_cxstring_ptr(cursor_name))
+        clang_disposeString(_cxstring_ptr(type_name))
         cursor_name.free()
         type_name.free()
-        return result
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
 
 
-def _probe_locations_ranges_and_tokens() raises -> String:
+def test_locations_ranges_and_tokens() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -403,18 +386,8 @@ def _probe_locations_ranges_and_tokens() raises -> String:
                 not Bool(clang_Range_isNull(_source_range_ptr(token_extent))),
                 "token extent was null",
             )
-            var result = (
-                "line="
-                + String(spelling_line[0])
-                + ", tokens="
-                + String(token_count[0])
-                + ", first-kind="
-                + String(token_kind)
-                + ", first="
-                + _take_cxstring(_cxstring_ptr(token_text))
-            )
+            clang_disposeString(_cxstring_ptr(token_text))
             token_text.free()
-            return result
         finally:
             clang_disposeTokens(tu, token_storage[0].value(), token_count[0])
     finally:
@@ -422,7 +395,7 @@ def _probe_locations_ranges_and_tokens() raises -> String:
         clang_disposeIndex(index)
 
 
-def _probe_equality() raises -> String:
+def test_equality() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -519,13 +492,12 @@ def _probe_equality() raises -> String:
             "type/invalid equality was true",
         )
 
-        return "aggregate equality ok"
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
 
 
-def _probe_diagnostics() raises -> String:
+def test_diagnostics() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -540,14 +512,8 @@ def _probe_diagnostics() raises -> String:
         try:
             var spelling = _alloc_cxstring()
             clang_getDiagnosticSpelling(_cxstring_ptr(spelling), diagnostic)
-            var result = (
-                "diagnostics="
-                + String(count)
-                + ", first="
-                + _take_cxstring(_cxstring_ptr(spelling))
-            )
+            clang_disposeString(_cxstring_ptr(spelling))
             spelling.free()
-            return result
         finally:
             clang_disposeDiagnostic(diagnostic)
     finally:
@@ -555,7 +521,7 @@ def _probe_diagnostics() raises -> String:
         clang_disposeIndex(index)
 
 
-def _probe_unsaved_parse() raises -> String:
+def test_unsaved_parse() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -588,7 +554,6 @@ def _probe_unsaved_parse() raises -> String:
             clang_getNumDiagnostics(tu) == 0,
             "unsaved parse produced diagnostics",
         )
-        return "unsaved parse ok"
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
@@ -610,7 +575,7 @@ def _visit_child_callback(
     return CXChildVisit_Continue
 
 
-def _probe_visit_children() raises -> String:
+def test_visit_children() raises:
     var index = clang_createIndex(0, 0)
     if not index:
         raise Error("clang_createIndex returned null")
@@ -633,96 +598,10 @@ def _probe_visit_children() raises -> String:
         )
         _check(result == 0, "clang_visitChildren returned non-zero")
         _check(count[0] > 0, "clang_visitChildren did not visit any children")
-        return "visited=" + String(count[0])
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
 
 
-def _record_success(mut worked: Int, name: String, note: String):
-    worked += 1
-    print("[worked] " + name + ": " + note)
-
-
-def _record_failure(mut failed: Int, name: String, note: String):
-    failed += 1
-    print("[failed] " + name + ": " + note)
-
-
 def main() raises:
-    var worked = 0
-    var failed = 0
-
-    try:
-        _record_success(worked, "version-string", _probe_version_string())
-    except e:
-        _record_failure(failed, "version-string", String(e))
-
-    try:
-        _record_success(
-            worked,
-            "default-options",
-            "edit-options="
-            + String(clang_defaultEditingTranslationUnitOptions()),
-        )
-    except e:
-        _record_failure(failed, "default-options", String(e))
-
-    try:
-        _record_success(worked, "null-aggregates", _probe_null_aggregates())
-    except e:
-        _record_failure(failed, "null-aggregates", String(e))
-
-    try:
-        _record_success(
-            worked, "parse-file-and-strings", _probe_parse_file_and_strings()
-        )
-    except e:
-        _record_failure(failed, "parse-file-and-strings", String(e))
-
-    try:
-        _record_success(
-            worked,
-            "cursor-type-spelling",
-            _probe_cursor_lookup_type_and_spelling(),
-        )
-    except e:
-        _record_failure(failed, "cursor-type-spelling", String(e))
-
-    try:
-        _record_success(
-            worked,
-            "locations-ranges-tokens",
-            _probe_locations_ranges_and_tokens(),
-        )
-    except e:
-        _record_failure(failed, "locations-ranges-tokens", String(e))
-
-    try:
-        _record_success(worked, "aggregate-equality", _probe_equality())
-    except e:
-        _record_failure(failed, "aggregate-equality", String(e))
-
-    try:
-        _record_success(worked, "diagnostics", _probe_diagnostics())
-    except e:
-        _record_failure(failed, "diagnostics", String(e))
-
-    try:
-        _record_success(worked, "unsaved-parse", _probe_unsaved_parse())
-    except e:
-        _record_failure(failed, "unsaved-parse", String(e))
-
-    try:
-        _record_success(worked, "visit-children", _probe_visit_children())
-    except e:
-        _record_failure(failed, "visit-children", String(e))
-
-    print(
-        "raw ffi probe summary: worked="
-        + String(worked)
-        + ", failed="
-        + String(failed)
-    )
-    if failed != 0:
-        raise Error("raw ffi probe failed")
+    TestSuite.discover_tests[__functions_in_module()]().run()

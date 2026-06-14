@@ -98,7 +98,7 @@ struct Diagnostic(Movable):
         return FixIt(range=range_out^, value=cs.take())
 
     def children(mut self) raises -> DiagnosticSet:
-        return DiagnosticSet(_raw=clang_getChildDiagnostics(self._raw))
+        return DiagnosticSet(raw=clang_getChildDiagnostics(self._raw))
 
     def format(mut self) raises -> String:
         var options = clang_defaultDiagnosticDisplayOptions()
@@ -135,9 +135,6 @@ struct DiagnosticSet(Movable):
             raise Error("DiagnosticSet index out of range")
         return Diagnostic(_raw=clang_getDiagnosticInSet(self._raw, i))
 
-    def __iter__(mut self) -> Self:
-        self._index = c_uint(0)
-        return self^
 
     def __next__(mut self) raises -> Diagnostic:
         if self._index >= clang_getNumDiagnosticsInSet(self._raw):
@@ -152,6 +149,7 @@ struct DiagnosticSet(Movable):
 
     def __del__(deinit self):
         from src._ffi import clang_disposeDiagnosticSet
+
         try:
             clang_disposeDiagnosticSet(self._raw)
         except:
