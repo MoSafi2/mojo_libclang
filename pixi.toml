@@ -6,21 +6,13 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
-generate = "python scripts/generate_libclang_bindings.py"
 generate-libclang = "python scripts/generate_libclang_bindings.py"
-smoke-test = "mojo run -I src test/smoke.mojo"
-raw-ffi-probe = "mojo run -I . test/raw_ffi_probe.mojo"
-api-test = "mojo run -I src test/api_test.mojo"
-type-test = "mojo run -I src test/type_test.mojo"
-token-test = "mojo run -I src test/token_test.mojo"
-cursor-test = "mojo run -I src test/cursor_test.mojo"
-diagnostic-test = "mojo run -I src test/diagnostic_test.mojo"
-integration-test = "mojo run -I src test/integration_test.mojo"
 all-tests = "mojo run -I src test/all_tests.mojo"
+test = 'mojo run -I src -Xlinker -L$PWD/build -Xlinker -Wl,-rpath,$PWD/build -Xlinker -Wl,-rpath,$PWD/.pixi/envs/default/lib/python3.14/site-packages/clang/native'
 
 [dependencies]
 python = ">=3.14.5,<3.15"
 mojo = ">=1.0.0b1,<2"
 
 [pypi-dependencies]
-mojo-bindgen = {git = "git+https://github.com/MoSafi2/mojo_bindgen"}
+mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen" }

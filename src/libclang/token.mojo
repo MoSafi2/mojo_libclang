@@ -99,12 +99,9 @@ struct TokenGroup(Movable):
 
     def __del__(deinit self):
         if self._tokens:
-            try:
-                clang_disposeTokens(
-                    self._tu, self._tokens.value(), self._count
-                )
-            except:
-                pass
+            clang_disposeTokens(
+                self._tu, self._tokens.value(), self._count
+            )
 
     def __len__(self) -> Int:
         return Int(self._count)

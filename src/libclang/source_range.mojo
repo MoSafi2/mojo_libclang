@@ -41,7 +41,7 @@ struct SourceRange(Copyable, Movable):
         )
 
     @staticmethod
-    def null(tu: CXTranslationUnit) -> Self:
+    def null(tu: CXTranslationUnit) raises-> Self:
         return Self(tu=tu)
 
     @staticmethod
@@ -71,7 +71,7 @@ struct SourceRange(Copyable, Movable):
     def is_null(mut self) raises -> Bool:
         return Bool(clang_Range_isNull(self._ptr()))
 
-    def __eq__(self, other: SourceRange) -> Bool:
+    def __eq__(self, mut other: SourceRange) -> Bool:
         return Bool(
             clang_equalRanges(
                 self._ptr(),

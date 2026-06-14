@@ -146,9 +146,10 @@ def test_function_add_cursor() raises:
 
     var args = add.get_arguments()
     assert_equal(Int(args.__len__()), 2)
-    assert_equal(args[0].copy().spelling(), "a")
-    assert_equal(args[1].copy().spelling(), "b")
-
+    arg0 = args[0].copy()
+    arg1 = args[1].copy()
+    assert_equal(arg0.spelling(), "a")
+    assert_equal(arg1.spelling(), "b")
     var parent = add.semantic_parent()
     _check(parent is not None, "function should have semantic parent")
     var p = parent.value().copy()
@@ -163,8 +164,8 @@ def test_function_add_cursor() raises:
     var canon = add.canonical()
     _check(not canon.is_null(), "canonical cursor should not be null")
 
-    var ref = add.referenced()
-    _check(ref is not None, "definition cursor should reference itself")
+    var ref_ = add.referenced()
+    _check(ref_ is not None, "definition cursor should reference itself")
 
     _ = add.usr()
 
@@ -180,8 +181,10 @@ def test_function_divide_cursor() raises:
     assert_equal(divide.spelling(), "divide")
     assert_equal(Int(divide.num_arguments()), 2)
     var args = divide.get_arguments()
-    assert_equal(args[0].copy().spelling(), "x")
-    assert_equal(args[1].copy().spelling(), "y")
+    arg0 = args[0].copy()
+    assert_equal(arg0.spelling(), "x")
+    arg1 = args[1].copy()
+    assert_equal(arg1.spelling(), "y")
 
     var t = divide.type()
     assert_equal(Int(t.kind()), Int(CXType_FunctionProto))
