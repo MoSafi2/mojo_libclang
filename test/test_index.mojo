@@ -1,0 +1,165 @@
+"""Unit tests for `src/libclang/index.mojo`."""
+from src.libclang import Index, TranslationUnit, UnsavedFile
+from std.ffi import c_uint
+from std.testing import assert_equal, assert_true, assert_false, assert_raises, TestSuite
+
+
+comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
+comptime MISSING_PATH: String = "test/fixtures/__nonexistent__._"
+
+
+def _check(cond: Bool, msg: String) raises:
+    if not cond:
+        raise Error(msg)
+
+
+# -- Index creation --------------------------------------------------------
+
+
+def test_create_default() raises:
+    var index = Index.create()
+    _check(True, "Index.create() should succeed")
+
+
+def test_create_exclude_decls() raises:
+    var index = Index.create(exclude_decls=True)
+    _check(True, "Index.create(exclude_decls=True) should succeed")
+
+
+def test_create_display_diagnostics() raises:
+    var index = Index.create(display_diagnostics=True)
+    _check(True, "Index.create(display_diagnostics=True) should succeed")
+
+
+def test_create_both_flags() raises:
+    var index = Index.create(exclude_decls=True, display_diagnostics=True)
+    _check(True, "Index.create with both flags should succeed")
+
+
+def test_constructor_default() raises:
+    var index = Index()
+    _check(True, "Index() constructor should succeed")
+
+
+def test_constructor_with_flags() raises:
+    var index = Index(exclude_decls=True)
+    var index2 = Index(display_diagnostics=True)
+    var index3 = Index(exclude_decls=True, display_diagnostics=True)
+    _check(True, "Index() constructor with flags should succeed")
+
+
+# -- Parse valid files -----------------------------------------------------
+
+
+def test_parse_valid_file() raises:
+    var index = Index.create()
+    var tu = index.parse(FIXTURE_PATH)
+    _check(tu.spelling().byte_length() > 0,
+           "TU should have non-empty spelling")
+
+
+def test_parse_with_args() raises:
+    var index = Index.create()
+    var args = List[String]()
+    args.append("-std=c99")
+    var tu = index.parse(FIXTURE_PATH, args=args)
+    _check(tu.spelling().byte_length() > 0,
+           "TU with args should have spelling")
+
+
+def test_parse_with_multiple_args() raises:
+    var index = Index.create()
+    var args = List[String]()
+    args.append("-std=c99")
+    args.append("-pedantic")
+    args.append("-Wall")
+    var tu = index.parse(FIXTURE_PATH, args=args)
+    _check(tu.spelling().byte_length() > 0,
+           "TU with multiple args should have spelling")
+
+
+def test_parse_with_unsaved_file() raises:
+    var index = Index.create()
+    var unsaved = List[UnsavedFile]()
+    unsaved.append(
+        UnsavedFile(
+            filename=String(FIXTURE_PATH),
+            contents=String("int x;\n"),
+        ),
+    )
+    var tu = index.parse(FIXTURE_PATH, unsaved_files=unsaved)
+    _check(tu.spelling().byte_length() > 0,
+           "TU with unsaved file should have spelling")
+
+
+def test_parse_with_multiple_unsaved_files() raises:
+    var index = Index.create()
+    var unsaved = List[UnsavedFile]()
+    unsaved.append(
+        UnsavedFile(filename=String("test/a.c"), contents=String("int x;\n")),
+    )
+    unsaved.append(
+        UnsavedFile(
+            filename=String("test/b.c"),
+            contents=String("extern int x;\n"),
+        ),
+    )
+    var tu = index.parse(String("test/a.c"), unsaved_files=unsaved)
+    _check(tu.spelling().byte_length() > 0,
+           "TU with multiple unsaved files should succeed")
+
+
+def test_parse_with_options() raises:
+    var index = Index.create()
+    var tu = index.parse(FIXTURE_PATH, options=c_uint(1))
+    _check(tu.spelling().byte_length() > 0,
+           "TU with options should have spelling")
+
+
+def test_parse_empty_source() raises:
+    var index = Index.create()
+    var unsaved = List[UnsavedFile]()
+    unsaved.append(
+        UnsavedFile(filename=String("test/empty.c"), contents=String("")),
+    )
+    var tu = index.parse(String("test/empty.c"), unsaved_files=unsaved)
+    _check(True, "parsing empty source should not crash")
+
+
+def test_parse_reuse_index() raises:
+    var index = Index.create()
+    var tu1 = index.parse(FIXTURE_PATH)
+    _check(tu1.spelling().byte_length() > 0,
+           "first parse should succeed")
+    var tu2 = index.parse(FIXTURE_PATH)
+    _check(tu2.spelling().byte_length() > 0,
+           "second parse should succeed")
+
+
+# -- Error handling --------------------------------------------------------
+
+
+def test_parse_nonexistent_path_raises() raises:
+    var index = Index.create()
+    with assert_raises():
+        _ = index.parse(MISSING_PATH)
+
+
+def test_read_nonexistent_path_raises() raises:
+    var index = Index.create()
+    with assert_raises():
+        _ = index.read(MISSING_PATH)
+
+
+# -- Index lifecycle -------------------------------------------------------
+
+
+def test_index_drop_and_recreate() raises:
+    for i in range(5):
+        var index = Index.create()
+        var tu = index.parse(FIXTURE_PATH)
+        _ = tu.spelling()
+
+
+def main() raises:
+    TestSuite.discover_tests[__functions_in_module()]().run()
