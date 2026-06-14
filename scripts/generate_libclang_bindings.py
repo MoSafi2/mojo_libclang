@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""Generate Mojo FFI bindings for libclang through a C wrapper ABI.
+"""Generate ABI-normalized Mojo FFI bindings for LLVM libclang.
+
+The generator uses ``mojo-bindgen`` as a library:
+
+1. Parse libclang's public ``clang-c`` headers to CIR.
+2. Run mojo-bindgen's normal CIR validation/canonicalization passes.
+3. Rewrite every libclang function so Mojo never calls a C signature that
+   passes or returns libclang aggregate handles by value.
+4. Emit a deterministic C shim/header from that same rewrite.
+5. Emit Mojo bindings and layout tests from the rewritten CIR.
 
 Environment overrides:
-  LIBCLANG_HEADERS_DIR  Directory containing clang-c/*.h or the clang-c dir itself.
-  LIBCLANG_LIBRARY      Path to libclang.so/dylib/dll used to build the wrapper.
-  LIBCLANG_FFI_OUT      Output Mojo file. Defaults to src/libclang/ffi.mojo.
-  LIBCLANG_FFI_IR_OUT   Output JSON IR file. Defaults to build/libclang_wrapper.ir.json.
-  LIBCLANG_WRAPPER_OUT  Output shared library for the wrapper. Defaults to build/libclang_mojo_wrapper.so.
-  LIBCLANG_GENERATE_RAW Set to 1 to run the legacy patched raw generation path.
-  LIBCLANG_APPLY_PATCHES Set to 0 to emit pristine mojo-bindgen output.
+  LIBCLANG_HEADERS_DIR     Directory containing clang-c/*.h or the clang-c dir.
+  LIBCLANG_LIBRARY         Path to libclang.so/dylib/dll used to build the shim.
+  LIBCLANG_FFI_OUT         Output Mojo file. Defaults to src/_ffi.mojo.
+  LIBCLANG_FFI_IR_OUT      Rewritten CIR JSON. Defaults to build/_ffi.ir.json.
+  LIBCLANG_ORIGINAL_IR_OUT Pre-rewrite normalized CIR JSON.
+  LIBCLANG_SHIM_OUT        Output shared library for the shim.
 """
 
 from __future__ import annotations
@@ -17,22 +25,52 @@ import os
 import shutil
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
+
+from mojo_bindgen.analysis.pipeline import AnalysisOrchestrator
+from mojo_bindgen.codegen.mojo_ir_printer import MojoIRPrintOptions, render_mojo_module
+from mojo_bindgen.ir import (
+    Array,
+    AtomicType,
+    Const,
+    Decl,
+    Enum,
+    EnumRef,
+    FloatKind,
+    FloatType,
+    Function,
+    FunctionPtr,
+    GlobalVar,
+    IntKind,
+    IntType,
+    MacroDecl,
+    Pointer,
+    PointerMutability,
+    PointerOrigin,
+    QualifiedType,
+    OpaqueRecordRef,
+    Struct,
+    StructRef,
+    Type,
+    TypeRef,
+    Typedef,
+    Unit,
+    VoidType,
+)
+from mojo_bindgen.layout_tests import render_layout_test_module
+from mojo_bindgen.orchestrator import BindgenOptions, BindgenOrchestrator
+from mojo_bindgen.parsing.frontend import ClangOptions
+from mojo_bindgen.parsing.parser import _default_system_compile_args
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FFI_OUT = REPO_ROOT / "src" / "libclang" / "ffi.mojo"
-DEFAULT_FFI_IR_OUT = REPO_ROOT / "build" / "libclang_wrapper.ir.json"
-DEFAULT_FFI_LAYOUT_OUT = REPO_ROOT / "build" / "libclang_wrapper_layout_tests.mojo"
-DEFAULT_WRAPPER_OUT = REPO_ROOT / "build" / "libclang_mojo_wrapper.so"
-DEFAULT_WRAPPER_HEADER = REPO_ROOT / "shim" / "libclang_mojo_wrapper.h"
-DEFAULT_WRAPPER_SRC = REPO_ROOT / "shim" / "libclang_mojo_wrapper.c"
-DEFAULT_RAW_MOJO_OUT = REPO_ROOT / "src" / "libclang_raw.mojo"
-DEFAULT_RAW_IR_OUT = REPO_ROOT / "build" / "libclang_raw.ir.json"
-DEFAULT_RAW_LAYOUT_OUT = DEFAULT_RAW_MOJO_OUT.with_name(
-    f"{DEFAULT_RAW_MOJO_OUT.stem}_layout_tests.mojo"
-)
+DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "src" / "_ffi.mojo"
+DEFAULT_FFI_IR_OUT = REPO_ROOT / "build" / "_ffi.ir.json"
+DEFAULT_ORIGINAL_IR_OUT = REPO_ROOT / "build" / "_ffi.original.ir.json"
+DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
 DEFAULT_SHIM_OUT = REPO_ROOT / "build" / "libclang_mojo_shim.so"
+DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
 
 HEADER_NAMES = (
@@ -48,78 +86,33 @@ HEADER_NAMES = (
     "FatalErrorHandler.h",
 )
 
+AGGREGATE_NAMES = frozenset(
+    {
+        "CXString",
+        "CXSourceLocation",
+        "CXSourceRange",
+        "CXCursor",
+        "CXType",
+        "CXToken",
+        "CXIdxLoc",
+        "CXComment",
+        "CXCursorAndRangeVisitor",
+    }
+)
+
+
+class RewriteError(RuntimeError):
+    pass
+
 
 def main() -> int:
-    if os.environ.get("LIBCLANG_GENERATE_RAW") in {"1", "true", "True", "yes"}:
-        return generate_raw_bindings()
-    return generate_wrapper_bindings()
-
-
-def generate_wrapper_bindings() -> int:
-    mojo_bindgen = shutil.which("mojo-bindgen")
-    if mojo_bindgen is None:
-        print("error: mojo-bindgen not found; run through `pixi run generate`", file=sys.stderr)
-        return 1
-
     clang_c_dir = discover_clang_c_dir()
     include_root = clang_c_dir.parent
-    compile_args = build_compile_args(DEFAULT_WRAPPER_HEADER.parent)
-    library_path = discover_libclang_library()
-    wrapper_out = Path(os.environ.get("LIBCLANG_WRAPPER_OUT", DEFAULT_WRAPPER_OUT)).resolve()
-    mojo_out = Path(os.environ.get("LIBCLANG_FFI_OUT", DEFAULT_FFI_OUT)).resolve()
-    ir_out = Path(os.environ.get("LIBCLANG_FFI_IR_OUT", DEFAULT_FFI_IR_OUT)).resolve()
-    layout_out = DEFAULT_FFI_LAYOUT_OUT.resolve()
-    for path in (mojo_out, ir_out, layout_out, wrapper_out):
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-    build_wrapper(include_root, library_path, wrapper_out)
-
-    common = [
-        mojo_bindgen,
-        str(DEFAULT_WRAPPER_HEADER),
-        "--library",
-        "libclang_mojo_wrapper",
-        "--no-doc-comments",
-    ]
-    for arg in compile_args:
-        common.append(f"--compile-arg={arg}")
-
-    ir_cmd = [*common, "--json", "-o", str(ir_out)]
-    run(ir_cmd)
-
-    mojo_cmd = [
-        *common,
-        "--linking",
-        "owned_dl_handle",
-        "--layout-tests",
-        "-o",
-        str(mojo_out),
-        "--layout-test-output",
-        str(layout_out),
-        "--library-path-hint",
-        str(wrapper_out),
-    ]
-    run(mojo_cmd)
-
-    print(f"generated: {display_path(mojo_out)}")
-    print(f"generated: {display_path(layout_out)}")
-    print(f"generated: {display_path(ir_out)}")
-    print(f"wrapper:   {display_path(wrapper_out)}")
-    if library_path is not None:
-        print(f"libclang:  {library_path}")
-    else:
-        print("libclang:  linked by name")
-    return 0
-
-
-def generate_raw_bindings() -> int:
-    mojo_bindgen = shutil.which("mojo-bindgen")
-    if mojo_bindgen is None:
-        print("error: mojo-bindgen not found; run through `pixi run generate`", file=sys.stderr)
+    primary = clang_c_dir / "Index.h"
+    if not primary.is_file():
+        print(f"error: required header not found: {primary}", file=sys.stderr)
         return 1
 
-    clang_c_dir = discover_clang_c_dir()
-    include_root = clang_c_dir.parent
     headers = [clang_c_dir / name for name in HEADER_NAMES if (clang_c_dir / name).is_file()]
     missing = [name for name in HEADER_NAMES if not (clang_c_dir / name).is_file()]
     if missing:
@@ -128,66 +121,585 @@ def generate_raw_bindings() -> int:
             file=sys.stderr,
         )
 
-    primary = clang_c_dir / "Index.h"
-    if primary not in headers:
-        print(f"error: required header not found: {primary}", file=sys.stderr)
-        return 1
-
-    mojo_out = Path(os.environ.get("LIBCLANG_RAW_OUT", DEFAULT_RAW_MOJO_OUT)).resolve()
-    ir_out = Path(os.environ.get("LIBCLANG_RAW_IR_OUT", DEFAULT_RAW_IR_OUT)).resolve()
-    layout_out = mojo_out.with_name(f"{mojo_out.stem}_layout_tests.mojo")
-    for path in (mojo_out, ir_out, layout_out):
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-    compile_args = build_compile_args(include_root)
-    library_path = discover_libclang_library()
+    mojo_out = Path(os.environ.get("LIBCLANG_FFI_OUT", DEFAULT_FFI_MOJO_OUT)).resolve()
+    ir_out = Path(os.environ.get("LIBCLANG_FFI_IR_OUT", DEFAULT_FFI_IR_OUT)).resolve()
+    original_ir_out = Path(
+        os.environ.get("LIBCLANG_ORIGINAL_IR_OUT", DEFAULT_ORIGINAL_IR_OUT)
+    ).resolve()
+    layout_out = Path(os.environ.get("LIBCLANG_LAYOUT_TEST_OUT", DEFAULT_LAYOUT_TEST_OUT)).resolve()
     shim_out = Path(os.environ.get("LIBCLANG_SHIM_OUT", DEFAULT_SHIM_OUT)).resolve()
 
-    common = [
-        mojo_bindgen,
-        str(primary),
-        "--library",
-        "libclang",
-        "--link-name",
-        "clang",
-        "--no-doc-comments",
-        "--clang-macro-fallback",
-    ]
-    for header in headers:
-        if header != primary:
-            common.extend(["--include-header", str(header)])
-    for arg in compile_args:
-        common.append(f"--compile-arg={arg}")
+    for path in (mojo_out, ir_out, original_ir_out, layout_out, shim_out, DEFAULT_SHIM_HEADER, DEFAULT_SHIM_SRC):
+        path.parent.mkdir(parents=True, exist_ok=True)
 
-    ir_cmd = [*common, "--json", "-o", str(ir_out)]
-    run(ir_cmd)
+    raw_unit = parse_unit(primary, headers, include_root)
+    orchestrator = AnalysisOrchestrator(
+        BindgenOrchestrator(
+            BindgenOptions(
+                header=primary,
+                library="libclang_mojo_shim",
+                link_name="libclang_mojo_shim",
+                linking="owned_dl_handle",
+                library_path_hint=str(shim_out),
+                module_comment=True,
+                emit_doc_comments=False,
+            )
+        ).emit_options
+    )
+    normalized_unit = orchestrator.normalize_cir(raw_unit)
+    original_ir_out.write_text(normalized_unit.to_json(), encoding="utf-8")
 
-    mojo_cmd = [
-        *common,
-        "--linking",
-        "owned_dl_handle",
-        "--layout-tests",
-        "-o",
-        str(mojo_out),
-        "--layout-test-output",
-        str(layout_out),
-    ]
-    if library_path is not None:
-        mojo_cmd.extend(["--library-path-hint", str(library_path)])
-    run(mojo_cmd)
+    rewritten = LibclangABIRewriter(normalized_unit).rewrite()
+    DEFAULT_SHIM_HEADER.write_text(rewritten.header_text, encoding="utf-8")
+    DEFAULT_SHIM_SRC.write_text(rewritten.source_text, encoding="utf-8")
+    ir_out.write_text(rewritten.unit.to_json(), encoding="utf-8")
 
+    library_path = discover_libclang_library()
     build_shim(include_root, library_path, shim_out)
 
+    analysis = orchestrator.analyze_with_artifacts(rewritten.unit)
+    mojo_source = render_mojo_module(
+        analysis.mojo_module,
+        MojoIRPrintOptions(module_comment=True, emit_doc_comments=False),
+    )
+    layout_source = render_layout_test_module(
+        normalized_unit=analysis.normalized_unit,
+        mojo_module=analysis.mojo_module,
+        main_module_name=layout_import_module(mojo_out),
+    )
+    mojo_out.write_text(mojo_source, encoding="utf-8")
+    layout_out.write_text(layout_source, encoding="utf-8")
+    build_layout_tests(layout_out)
 
     print(f"generated: {display_path(mojo_out)}")
     print(f"generated: {display_path(layout_out)}")
     print(f"generated: {display_path(ir_out)}")
+    print(f"generated: {display_path(original_ir_out)}")
+    print(f"generated: {display_path(DEFAULT_SHIM_HEADER)}")
+    print(f"generated: {display_path(DEFAULT_SHIM_SRC)}")
+    print(f"shim:      {display_path(shim_out)}")
     if library_path is not None:
         print(f"libclang:  {library_path}")
     else:
-        print("libclang:  no explicit library path found; generated bindings use link name")
-    print(f"shim:      {display_path(shim_out)}")
+        print("libclang:  linked by name")
     return 0
+
+
+def parse_unit(primary: Path, headers: list[Path], include_root: Path) -> Unit:
+    compile_args = build_compile_args(include_root)
+    include_headers = [header for header in headers if header != primary]
+    options = BindgenOptions(
+        header=primary,
+        include_headers=include_headers,
+        library="libclang_mojo_shim",
+        link_name="libclang_mojo_shim",
+        clang_options=ClangOptions(raw_args=tuple(compile_args)),
+        linking="owned_dl_handle",
+        library_path_hint=str(DEFAULT_SHIM_OUT.resolve()),
+        module_comment=True,
+        emit_doc_comments=False,
+        clang_macro_fallback=True,
+    )
+    return BindgenOrchestrator(options).parse()
+
+
+def layout_import_module(mojo_out: Path) -> str:
+    stem = mojo_out.stem
+    if stem.startswith("_") and mojo_out.parent == (REPO_ROOT / "src").resolve():
+        return f"src.{stem}"
+    return stem
+
+
+class RewrittenUnit:
+    def __init__(self, unit: Unit, header_text: str, source_text: str) -> None:
+        self.unit = unit
+        self.header_text = header_text
+        self.source_text = source_text
+
+
+class LibclangABIRewriter:
+    def __init__(self, unit: Unit) -> None:
+        self.unit = unit
+        self.structs = {decl.name: decl for decl in unit.decls if isinstance(decl, Struct)}
+        self.typedef_names = {decl.name for decl in unit.decls if isinstance(decl, Typedef)}
+        self.callback_typedefs: dict[str, FunctionPtr] = {}
+        for decl in unit.decls:
+            if isinstance(decl, Typedef):
+                unwrapped = self._unwrap(decl.canonical)
+                if isinstance(unwrapped, FunctionPtr):
+                    self.callback_typedefs[decl.name] = unwrapped
+
+    def rewrite(self) -> RewrittenUnit:
+        decls: list[Decl] = []
+        functions: list[Function] = []
+        for decl in self.unit.decls:
+            if not self._keep_decl(decl):
+                continue
+            if isinstance(decl, Struct):
+                decls.append(self._rewrite_decl_types(decl))
+            elif isinstance(decl, Typedef):
+                decls.append(self._rewrite_typedef(decl))
+            elif isinstance(decl, Function):
+                rewritten = self._rewrite_function(decl)
+                decls.append(rewritten)
+                functions.append(rewritten)
+            else:
+                decls.append(self._rewrite_decl_types(decl))
+
+        unit = replace(
+            self.unit,
+            library="libclang_mojo_shim",
+            link_name="libclang_mojo_shim",
+            decls=decls,
+        )
+        header = self._render_header(unit, functions)
+        source = self._render_source(functions)
+        return RewrittenUnit(unit, header, source)
+
+    @staticmethod
+    def _keep_decl(decl: Decl) -> bool:
+        if isinstance(decl, Function):
+            return decl.link_name.startswith("clang_")
+        if isinstance(decl, Struct):
+            return decl.name.startswith("CX") or decl.name == "IndexerCallbacks"
+        if isinstance(decl, Enum):
+            return decl.name.startswith("CX")
+        if isinstance(decl, Typedef):
+            return (
+                decl.name.startswith("CX")
+                or decl.name == "IndexerCallbacks"
+                or decl.name == "time_t"
+            )
+        if isinstance(decl, (Const, MacroDecl)):
+            return decl.name.startswith(("CX", "CINDEX"))
+        if isinstance(decl, GlobalVar):
+            return decl.name.startswith("clang_")
+        return True
+
+    def _rewrite_decl_types(self, decl: Decl) -> Decl:
+        if isinstance(decl, Enum | MacroDecl):
+            return decl
+        if isinstance(decl, Struct):
+            return replace(
+                decl,
+                fields=[
+                    replace(field, type=self._rewrite_type(field.type))
+                    for field in decl.fields
+                ],
+            )
+        if isinstance(decl, Const):
+            return replace(decl, type=self._rewrite_type(decl.type))
+        if isinstance(decl, GlobalVar):
+            return replace(decl, type=self._rewrite_type(decl.type))
+        return decl
+
+    def _rewrite_typedef(self, decl: Typedef) -> Typedef:
+        return replace(
+            decl,
+            aliased=self._rewrite_type(decl.aliased),
+            canonical=self._rewrite_type(decl.canonical),
+        )
+
+    def _rewrite_function(self, decl: Function) -> Function:
+        params = []
+        for param in decl.params:
+            params.append(replace(param, type=self._rewrite_param_type(param.type)))
+
+        ret = self._rewrite_type(decl.ret)
+        ret_agg = self._aggregate_name(ret)
+        if ret_agg is not None:
+            out_param = replace(
+                decl.params[0] if decl.params else _synthetic_param(),
+                name="out",
+                type=self._ptr_to(ret, mut=True),
+                doc=None,
+            )
+            params = [out_param, *params]
+            ret = VoidType()
+
+        return replace(
+            decl,
+            link_name=self._shim_symbol(decl.link_name),
+            ret=ret,
+            params=params,
+        )
+
+    def _rewrite_param_type(self, typ: Type) -> Type:
+        rewritten = self._rewrite_type(typ)
+        if self._aggregate_name(rewritten) is not None:
+            return self._ptr_to(rewritten, mut=False)
+        return rewritten
+
+    def _rewrite_type(self, typ: Type) -> Type:
+        if isinstance(typ, QualifiedType):
+            return replace(typ, unqualified=self._rewrite_type(typ.unqualified))
+        if isinstance(typ, AtomicType):
+            return replace(typ, value_type=self._rewrite_type(typ.value_type))
+        if isinstance(typ, Pointer):
+            pointee = self._rewrite_type(typ.pointee) if typ.pointee is not None else None
+            return replace(typ, pointee=pointee)
+        if isinstance(typ, Array):
+            return replace(typ, element=self._rewrite_type(typ.element))
+        if isinstance(typ, FunctionPtr):
+            return self._rewrite_function_ptr(typ)
+        if isinstance(typ, TypeRef):
+            return replace(typ, canonical=self._rewrite_type(typ.canonical))
+        return typ
+
+    def _rewrite_function_ptr(self, typ: FunctionPtr) -> FunctionPtr:
+        params = [
+            replace(param, type=self._rewrite_param_type(param.type))
+            for param in typ.params
+        ]
+        ret = self._rewrite_type(typ.ret)
+        ret_agg = self._aggregate_name(ret)
+        if ret_agg is not None:
+            params = [replace(_synthetic_param(), name="out", type=self._ptr_to(ret, mut=True)), *params]
+            ret = VoidType()
+        return replace(typ, ret=ret, params=params)
+
+    def _ptr_to(self, typ: Type, *, mut: bool) -> Pointer:
+        return Pointer(
+            pointee=typ,
+            size_bytes=self.unit.target_abi.pointer_size_bytes,
+            align_bytes=self.unit.target_abi.pointer_align_bytes,
+            mutability=PointerMutability.MUT if mut else PointerMutability.IMMUT,
+            origin=PointerOrigin.EXTERNAL,
+            nullable=True,
+        )
+
+    def _unwrap(self, typ: Type) -> Type:
+        while isinstance(typ, (QualifiedType, TypeRef)):
+            typ = typ.unqualified if isinstance(typ, QualifiedType) else typ.canonical
+        return typ
+
+    def _aggregate_name(self, typ: Type) -> str | None:
+        typ = self._unwrap(typ)
+        if isinstance(typ, StructRef) and typ.name in AGGREGATE_NAMES:
+            return typ.name
+        return None
+
+    def _type_size(self, typ: Type) -> int:
+        typ = self._unwrap(typ)
+        if isinstance(typ, (IntType, FloatType, Pointer, Array, StructRef, EnumRef)):
+            return typ.size_bytes
+        if isinstance(typ, VoidType):
+            return 0
+        return self.unit.target_abi.pointer_size_bytes
+
+    @staticmethod
+    def _shim_symbol(link_name: str) -> str:
+        return "mojo_" + link_name
+
+    def _render_header(self, unit: Unit, functions: list[Function]) -> str:
+        lines = [
+            "/* Generated by scripts/generate_libclang_bindings.py - do not edit by hand. */",
+            "#pragma once",
+            "",
+            "#include <clang-c/BuildSystem.h>",
+            "#include <clang-c/CXCompilationDatabase.h>",
+            "#include <clang-c/CXDiagnostic.h>",
+            "#include <clang-c/CXFile.h>",
+            "#include <clang-c/CXSourceLocation.h>",
+            "#include <clang-c/CXString.h>",
+            "#include <clang-c/Documentation.h>",
+            "#include <clang-c/FatalErrorHandler.h>",
+            "#include <clang-c/Index.h>",
+            "#include <clang-c/Rewrite.h>",
+            "",
+            "#if defined(_WIN32)",
+            "#define MOJO_SHIM_EXPORT __declspec(dllexport)",
+            "#else",
+            "#define MOJO_SHIM_EXPORT __attribute__((visibility(\"default\")))",
+            "#endif",
+            "",
+        ]
+        for alias, fp in sorted(self.callback_typedefs.items()):
+            if self._function_ptr_has_aggregate(fp):
+                lines.append(
+                    f"typedef {self._c_function_pointer(self._rewrite_function_ptr(fp), 'mojo_' + alias)};"
+                )
+        lines.append("")
+        for fn in functions:
+            lines.append(f"MOJO_SHIM_EXPORT {self._c_function_decl(fn)};")
+        lines.append("")
+        return "\n".join(lines)
+
+    def _render_source(self, functions: list[Function]) -> str:
+        lines = [
+            "/* Generated by scripts/generate_libclang_bindings.py - do not edit by hand. */",
+            '#include "libclang_mojo_shim.h"',
+            "",
+        ]
+        lines.extend(self._render_callback_trampolines())
+        for fn in functions:
+            lines.extend(self._render_function_body(fn))
+            lines.append("")
+        return "\n".join(lines)
+
+    def _render_callback_trampolines(self) -> list[str]:
+        lines: list[str] = []
+        for alias, fp in sorted(self.callback_typedefs.items()):
+            if alias not in {"CXCursorVisitor", "CXFieldVisitor"}:
+                continue
+            if not self._function_ptr_has_aggregate(fp):
+                continue
+            ret = self._c_type(fp.ret)
+            params = ", ".join(
+                f"{self._c_type(param.type)} arg{i}" for i, param in enumerate(fp.params)
+            )
+            mojo_params = []
+            call_args = []
+            for i, param in enumerate(fp.params):
+                if self._aggregate_name(param.type) is not None:
+                    mojo_params.append(f"{self._c_type(param.type)} *arg{i}")
+                    call_args.append(f"&arg{i}")
+                else:
+                    mojo_params.append(f"{self._c_type(param.type)} arg{i}")
+                    call_args.append(f"arg{i}")
+            mojo_sig = f"{self._c_type(fp.ret)} (*fn)({', '.join(mojo_params)})"
+            lines.extend(
+                [
+                    f"typedef struct Mojo{alias}Context {{",
+                    f"    {mojo_sig};",
+                    "    void *client_data;",
+                    f"}} Mojo{alias}Context;",
+                    "",
+                    f"static {ret} mojo_{alias}_trampoline({params}) {{",
+                    f"    Mojo{alias}Context *ctx = (Mojo{alias}Context *)arg{len(fp.params) - 1};",
+                ]
+            )
+            call_args[-1] = "ctx->client_data"
+            lines.append(f"    return ctx->fn({', '.join(call_args)});")
+            lines.extend(["}", ""])
+
+        lines.extend(
+            [
+                "typedef struct MojoCXCursorAndRangeVisitorContext {",
+                "    CXCursorAndRangeVisitor *visitor;",
+                "} MojoCXCursorAndRangeVisitorContext;",
+                "",
+                "static enum CXVisitorResult mojo_CXCursorAndRangeVisitor_trampoline(",
+                "    void *context,",
+                "    CXCursor cursor,",
+                "    CXSourceRange range",
+                ") {",
+                "    MojoCXCursorAndRangeVisitorContext *ctx = (MojoCXCursorAndRangeVisitorContext *)context;",
+                "    return ((enum CXVisitorResult (*)(void *, CXCursor *, CXSourceRange *))ctx->visitor->visit)(",
+                "        ctx->visitor->context,",
+                "        &cursor,",
+                "        &range",
+                "    );",
+                "}",
+                "",
+            ]
+        )
+        return lines
+
+    def _render_function_body(self, fn: Function) -> list[str]:
+        original = fn.link_name.removeprefix("mojo_")
+        if original in {"clang_visitChildren", "clang_Type_visitFields"}:
+            return self._render_top_level_callback_body(fn, original)
+        original_fn = self._find_original_function(original)
+        if original_fn is None:
+            raise RewriteError(f"could not find original function for {original}")
+        decl = self._c_function_decl(fn)
+        lines = [f"MOJO_SHIM_EXPORT {decl} {{"]
+        call_args: list[str] = []
+        out_name: str | None = None
+
+        rewritten_offset = 0
+        if self._aggregate_name(original_fn.ret) is not None:
+            out_name = fn.params[0].name or "out"
+            rewritten_offset = 1
+
+        for i, original_param in enumerate(original_fn.params):
+            rewritten_param = fn.params[i + rewritten_offset]
+            pname = rewritten_param.name or f"arg{i + rewritten_offset}"
+            original_type = original_param.type
+            original_unwrapped = self._unwrap(original_type)
+            if isinstance(original_unwrapped, FunctionPtr):
+                if self._function_ptr_has_aggregate(original_unwrapped):
+                    call_args.append(self._callback_arg(original, rewritten_param))
+                else:
+                    call_args.append(pname)
+            elif self._aggregate_name(original_type) == "CXCursorAndRangeVisitor":
+                call_args.append(self._cursor_range_visitor_arg(pname, lines))
+            elif self._aggregate_name(original_type) is not None:
+                call_args.append(f"*{pname}")
+            else:
+                call_args.append(pname)
+
+        call = f"{original}({', '.join(call_args)})"
+        if out_name is not None:
+            lines.append(f"    *{out_name} = {call};")
+        elif isinstance(self._unwrap(fn.ret), VoidType):
+            lines.append(f"    {call};")
+        else:
+            lines.append(f"    return {call};")
+        lines.append("}")
+        return lines
+
+    def _render_top_level_callback_body(self, fn: Function, original: str) -> list[str]:
+        decl = self._c_function_decl(fn)
+        if original == "clang_visitChildren":
+            ctx_type = "MojoCXCursorVisitorContext"
+            trampoline = "mojo_CXCursorVisitor_trampoline"
+        else:
+            ctx_type = "MojoCXFieldVisitorContext"
+            trampoline = "mojo_CXFieldVisitor_trampoline"
+        first_param = fn.params[0].name or "arg0"
+        first_arg = f"*{first_param}"
+        lines = [
+            f"MOJO_SHIM_EXPORT {decl} {{",
+            f"    {ctx_type} ctx = {{ .fn = visitor, .client_data = client_data }};",
+            f"    return {original}({first_arg}, {trampoline}, &ctx);",
+            "}",
+        ]
+        return lines
+
+    def _callback_arg(self, original: str, param) -> str:
+        if original == "clang_visitChildren" and param.name == "visitor":
+            return "mojo_CXCursorVisitor_trampoline"
+        if original == "clang_Type_visitFields" and param.name == "visitor":
+            return "mojo_CXFieldVisitor_trampoline"
+        raise RewriteError(f"unsupported callback parameter in {original}: {param.name}")
+
+    def _cursor_range_visitor_arg(self, name: str, lines: list[str]) -> str:
+        lines.extend(
+            [
+                f"    MojoCXCursorAndRangeVisitorContext {name}_ctx = {{ .visitor = {name} }};",
+                "    CXCursorAndRangeVisitor normalized_visitor = {",
+                f"        .context = &{name}_ctx,",
+                "        .visit = mojo_CXCursorAndRangeVisitor_trampoline,",
+                "    };",
+            ]
+        )
+        return "normalized_visitor"
+
+    def _find_original_function(self, link_name: str) -> Function | None:
+        for decl in self.unit.decls:
+            if isinstance(decl, Function) and decl.link_name == link_name:
+                return decl
+        return None
+
+    def _points_to_aggregate(self, typ: Type) -> bool:
+        typ = self._unwrap(typ)
+        return isinstance(typ, Pointer) and typ.pointee is not None and self._aggregate_name(typ.pointee) is not None
+
+    def _points_to_named_aggregate(self, typ: Type, name: str) -> bool:
+        typ = self._unwrap(typ)
+        return (
+            isinstance(typ, Pointer)
+            and typ.pointee is not None
+            and self._aggregate_name(typ.pointee) == name
+        )
+
+    def _function_ptr_has_aggregate(self, fp: FunctionPtr) -> bool:
+        if self._aggregate_name(fp.ret) is not None:
+            return True
+        return any(self._aggregate_name(param.type) is not None for param in fp.params)
+
+    def _c_function_decl(self, fn: Function) -> str:
+        params = ", ".join(self._c_param_decl(param.type, param.name or f"arg{i}") for i, param in enumerate(fn.params))
+        if not params:
+            params = "void"
+        return f"{self._c_type(fn.ret)} {fn.link_name}({params})"
+
+    def _c_function_pointer(self, fp: FunctionPtr, name: str) -> str:
+        params = ", ".join(self._c_param_decl(param.type, param.name or f"arg{i}") for i, param in enumerate(fp.params))
+        if not params:
+            params = "void"
+        return f"{self._c_type(fp.ret)} (*{name})({params})"
+
+    def _c_param_decl(self, typ: Type, name: str) -> str:
+        typ_unwrapped = self._unwrap(typ)
+        if isinstance(typ_unwrapped, FunctionPtr):
+            return self._c_function_pointer(typ_unwrapped, name)
+        return f"{self._c_type(typ)} {name}"
+
+    def _c_type(self, typ: Type) -> str:
+        if isinstance(typ, QualifiedType):
+            base = self._c_type(typ.unqualified)
+            return f"const {base}" if typ.qualifiers.is_const else base
+        if isinstance(typ, TypeRef):
+            canonical = self._unwrap(typ.canonical)
+            if isinstance(canonical, EnumRef):
+                return typ.name
+            return typ.name
+        if isinstance(typ, VoidType):
+            return "void"
+        if isinstance(typ, IntType):
+            return self._c_int_type(typ)
+        if isinstance(typ, FloatType):
+            return self._c_float_type(typ)
+        if isinstance(typ, Pointer):
+            base = "void" if typ.pointee is None else self._c_type(typ.pointee)
+            const = (
+                "const "
+                if typ.mutability == PointerMutability.IMMUT
+                and typ.pointee is not None
+                and not base.startswith("const ")
+                else ""
+            )
+            return f"{const}{base} *"
+        if isinstance(typ, Array):
+            return f"{self._c_type(typ.element)} *"
+        if isinstance(typ, FunctionPtr):
+            return self._c_function_pointer(typ, "")
+        if isinstance(typ, StructRef):
+            if typ.c_name in self.typedef_names:
+                return typ.c_name
+            return f"struct {typ.c_name}"
+        if isinstance(typ, EnumRef):
+            return f"enum {typ.c_name}"
+        if isinstance(typ, OpaqueRecordRef):
+            return typ.c_name
+        raise RewriteError(f"unsupported C type in shim: {typ!r}")
+
+    @staticmethod
+    def _c_int_type(typ: IntType) -> str:
+        table = {
+            IntKind.BOOL: "bool",
+            IntKind.CHAR_S: "char",
+            IntKind.CHAR_U: "unsigned char",
+            IntKind.SCHAR: "signed char",
+            IntKind.UCHAR: "unsigned char",
+            IntKind.SHORT: "short",
+            IntKind.USHORT: "unsigned short",
+            IntKind.INT: "int",
+            IntKind.UINT: "unsigned int",
+            IntKind.LONG: "long",
+            IntKind.ULONG: "unsigned long",
+            IntKind.LONGLONG: "long long",
+            IntKind.ULONGLONG: "unsigned long long",
+            IntKind.WCHAR: "wchar_t",
+            IntKind.CHAR16: "char16_t",
+            IntKind.CHAR32: "char32_t",
+        }
+        try:
+            return table[typ.int_kind]
+        except KeyError as exc:
+            raise RewriteError(f"unsupported integer kind in shim: {typ.int_kind}") from exc
+
+    @staticmethod
+    def _c_float_type(typ: FloatType) -> str:
+        table = {
+            FloatKind.FLOAT: "float",
+            FloatKind.DOUBLE: "double",
+            FloatKind.LONG_DOUBLE: "long double",
+            FloatKind.FLOAT16: "_Float16",
+        }
+        try:
+            return table[typ.float_kind]
+        except KeyError as exc:
+            raise RewriteError(f"unsupported float kind in shim: {typ.float_kind}") from exc
+
+
+def _synthetic_param():
+    from mojo_bindgen.ir import Param
+
+    return Param(name="out", type=VoidType())
 
 
 def discover_clang_c_dir() -> Path:
@@ -256,12 +768,7 @@ def discover_libclang_library() -> Path | None:
     except Exception:
         pass
 
-    candidates = (
-        "libclang.so",
-        "libclang.dylib",
-        "libclang.dll",
-    )
-    for name in candidates:
+    for name in ("libclang.so", "libclang.dylib", "libclang.dll"):
         found = shutil.which(name)
         if found:
             return Path(found).resolve()
@@ -271,10 +778,7 @@ def discover_libclang_library() -> Path | None:
 def build_compile_args(include_root: Path) -> list[str]:
     args = [f"-I{include_root}"]
     seen = set(args)
-
     try:
-        from mojo_bindgen.parsing.parser import _default_system_compile_args
-
         defaults = _default_system_compile_args()
     except Exception:
         defaults = ["-I/usr/include"]
@@ -289,26 +793,18 @@ def build_compile_args(include_root: Path) -> list[str]:
     return args
 
 
-def run(cmd: list[str]) -> None:
-    print("+ " + shell_join(cmd))
-    subprocess.run(cmd, cwd=REPO_ROOT, check=True)
-
-
 def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) -> None:
-    if not DEFAULT_SHIM_SRC.is_file():
-        raise SystemExit(f"error: missing shim source: {display_path(DEFAULT_SHIM_SRC)}")
-
     cc = shutil.which("cc")
     if cc is None:
         raise SystemExit("error: C compiler not found; required to build libclang shim")
-
-    shim_out.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
         cc,
         "-shared",
         "-fPIC",
         "-I",
         str(include_root),
+        "-I",
+        str(DEFAULT_SHIM_HEADER.parent),
         "-o",
         str(shim_out),
         str(DEFAULT_SHIM_SRC),
@@ -327,46 +823,18 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     run(cmd)
 
 
-def build_wrapper(include_root: Path, library_path: Path | None, wrapper_out: Path) -> None:
-    if not DEFAULT_WRAPPER_SRC.is_file():
-        raise SystemExit(f"error: missing wrapper source: {display_path(DEFAULT_WRAPPER_SRC)}")
-    if not DEFAULT_WRAPPER_HEADER.is_file():
-        raise SystemExit(f"error: missing wrapper header: {display_path(DEFAULT_WRAPPER_HEADER)}")
-
-    cc = shutil.which("cc")
-    if cc is None:
-        raise SystemExit("error: C compiler not found; required to build libclang wrapper")
-
-    wrapper_out.parent.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        cc,
-        "-shared",
-        "-fPIC",
-        "-I",
-        str(include_root),
-        "-I",
-        str(DEFAULT_WRAPPER_HEADER.parent),
-        "-o",
-        str(wrapper_out),
-        str(DEFAULT_WRAPPER_SRC),
-    ]
-    if library_path is not None:
-        cmd.extend(
-            [
-                "-L",
-                str(library_path.parent),
-                f"-l:{library_path.name}",
-                "-Wl,-rpath," + str(library_path.parent),
-            ]
-        )
-    else:
-        cmd.append("-lclang")
-    run(cmd)
+def build_layout_tests(layout_out: Path) -> None:
+    mojo = shutil.which("mojo")
+    if mojo is None:
+        raise SystemExit("error: mojo not found; required to verify generated layout tests")
+    binary_out = REPO_ROOT / "build" / layout_out.stem
+    binary_out.parent.mkdir(parents=True, exist_ok=True)
+    run([mojo, "build", "-I", ".", "-o", str(binary_out), str(layout_out)])
 
 
-def should_apply_patches() -> bool:
-    return os.environ.get("LIBCLANG_APPLY_PATCHES", "1") not in {"0", "false", "False", "no"}
-
+def run(cmd: list[str]) -> None:
+    print("+ " + shell_join(cmd))
+    subprocess.run(cmd, cwd=REPO_ROOT, check=True)
 
 
 def display_path(path: Path) -> str:
