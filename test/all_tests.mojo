@@ -4,6 +4,8 @@ from test import (
     test_token,
     test_cursor,
     test_diagnostic,
+    test_source_location,
+    test_source_range,
     test_integration,
 )
 from std.testing import TestSuite
@@ -18,5 +20,9 @@ def main() raises:
     test_cursor.main()
     print("=== diagnostic_test ===")
     test_diagnostic.main()
+    print("=== source_location_test ===")
+    test_source_location.main()
+    print("=== source_range_test ===")
+    test_source_range.main()
     print("=== integration_test ===")
     test_integration.main()
