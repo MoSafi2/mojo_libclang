@@ -21,6 +21,12 @@ from src._ffi import (
     CXPrintingPolicy,
     CX_CXXAccessSpecifier,
     CXTemplateArgumentKind,
+    CXLinkageKind,
+    CXVisibilityKind,
+    CXAvailabilityKind,
+    CXLanguageKind,
+    CXTLSKind,
+    CX_StorageClass,
     clang_getNullCursor,
     clang_equalCursors,
     clang_Cursor_isNull,
@@ -89,6 +95,19 @@ from src._ffi import (
     clang_isVolatileQualifiedType,
     clang_isRestrictQualifiedType,
     clang_isPODType,
+    clang_getCursorLinkage,
+    clang_getCursorVisibility,
+    clang_getCursorAvailability,
+    clang_getCursorLanguage,
+    clang_getCursorTLSKind,
+    clang_getIncludedFile,
+    clang_getTypedefDeclUnderlyingType,
+    clang_getEnumDeclIntegerType,
+    clang_Cursor_isBitField,
+    clang_getFieldDeclBitWidth,
+    clang_Cursor_getOffsetOfField,
+    clang_Cursor_getStorageClass,
+    clang_Cursor_getMangling,
     c_uint,
     c_int,
     c_long_long,
@@ -614,6 +633,80 @@ struct Cursor(Copyable, Movable, Writable):
         if not value:
             return None
         return Optional[String](value)
+
+    # -----------------------------------------------------------------------
+    # Miscellaneous cursor properties
+    # -----------------------------------------------------------------------
+
+    def linkage(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_getCursorLinkage(self._ptr()))
+
+    def visibility(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_getCursorVisibility(self._ptr()))
+
+    def availability(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_getCursorAvailability(self._ptr()))
+
+    def language(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_getCursorLanguage(self._ptr()))
+
+    def tls_kind(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_getCursorTLSKind(self._ptr()))
+
+    def storage_class(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_Cursor_getStorageClass(self._ptr()))
+
+    def is_bitfield(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isBitField(self._ptr()))
+
+    def get_bitfield_width(mut self) raises -> c_int:
+        self._check_valid()
+        return clang_getFieldDeclBitWidth(self._ptr())
+
+    def get_offset_of_field(mut self) raises -> c_long_long:
+        self._check_valid()
+        return clang_Cursor_getOffsetOfField(self._ptr())
+
+    def underlying_typedef_type(mut self) raises -> Type:
+        from src.libclang.type_ import Type
+
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_getTypedefDeclUnderlyingType(out._ptr(), self._ptr())
+        out._cache_spelling()
+        return out^
+
+    def enum_type(mut self) raises -> Type:
+        from src.libclang.type_ import Type
+
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_getEnumDeclIntegerType(out._ptr(), self._ptr())
+        out._cache_spelling()
+        return out^
+
+    def mangled_name(mut self) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getMangling(cs.ptr_for_out(), self._ptr())
+        return cs.take()
+
+    def get_included_file(mut self) raises -> Optional[File]:
+        from src.libclang.file import File
+
+        self._check_valid()
+        var raw = clang_getIncludedFile(self._ptr())
+        if not raw:
+            return None
+        var f = File(tu=self._tu, raw=raw)
+        return Optional[File](f^)
 
     # -----------------------------------------------------------------------
     # Types and source locations

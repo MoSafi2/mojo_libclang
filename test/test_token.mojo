@@ -137,29 +137,24 @@ def test_token_kind_punctuation_classification() raises:
     assert_equal(Int(third.kind()), Int(CXToken_Punctuation))
 
 
-# The current token wrapper keeps kind, spelling, and cursor annotation
-# working. Token location and extent are still unstable and are documented in
-# raw_bindings.md, so these checks stay disabled for now.
-# def test_token_location_line_column() raises:
-#     var tu = _parse_fixture()
-#     var extent = _first_line_extent(tu)
-#     var tokens = tu.get_tokens(extent)
-#     assert_true(Int(tokens.__len__()) > 0, "expected tokens")
-#     var first = tokens[0]
-#     var loc = first.location()
-#     assert_equal(Int(loc.line()), 1, "first token should be at line 1")
-#
-#
-# def test_token_extent_matches_location() raises:
-#     var tu = _parse_fixture()
-#     var extent = _first_line_extent(tu)
-#     var tokens = tu.get_tokens(extent)
-#     assert_true(Int(tokens.__len__()) > 0, "expected tokens")
-#     var first = tokens[0]
-#     var token_extent = first.extent()
-#     assert_false_wrapper(
-#         token_extent.is_null(), "token extent should not be null"
-#     )
+def test_token_location_line_column() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    assert_true(Int(tokens.__len__()) > 0, "expected tokens")
+    var first = tokens[0]
+    var loc = first.location()
+    assert_equal(Int(loc.line()), 1, "first token should be at line 1")
+
+
+def test_token_extent_matches_location() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    assert_true(Int(tokens.__len__()) > 0, "expected tokens")
+    var first = tokens[0]
+    var token_extent = first.extent()
+    assert_false_wrapper(token_extent.is_null(), "token extent should not be null")
 
 
 # Token cursor annotation still crashes in this checkout; keep the note here so

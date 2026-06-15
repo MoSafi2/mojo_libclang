@@ -9,6 +9,7 @@ from src._ffi import (
     CXCursorKind,
     CXCursor_FunctionDecl,
     CXCursor_StructDecl,
+    CXCursor_ClassDecl,
     CXCursor_TypedefDecl,
     CXCursor_VarDecl,
     CXCallingConv_C,
@@ -27,6 +28,7 @@ from std.testing import assert_equal, assert_false, assert_true, TestSuite
 
 
 comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
+comptime CXX_FIXTURE_PATH: String = "test/fixtures/cxx_test_fixture.cpp"
 
 
 def _parse_fixture() raises -> TranslationUnit:
@@ -298,6 +300,55 @@ def test_type_eq() raises:
     var ptr_type = _var_type(tu, String("global_ptr"))
     assert_true(add_type == add_type_again)
     assert_false(add_type == ptr_type)
+
+
+# -----------------------------------------------------------------------
+# Phase 2.1: Type.get_fields, get_bases, get_methods
+# -----------------------------------------------------------------------
+
+def _parse_cxx() raises -> TranslationUnit:
+    var index = Index.create()
+    return index.parse(CXX_FIXTURE_PATH)
+
+
+def test_type_get_fields_on_struct() raises:
+    var tu = _parse_fixture()
+    var t = _struct_type(tu, "Pair")
+    var fields = t.get_fields()
+    var first = fields[0].copy()
+    assert_equal(Int(fields.__len__()), 2, "Pair should have 2 fields")
+    assert_equal(first.spelling(), "first", "first field should be 'first'")
+
+
+def test_type_get_fields_empty_for_non_record() raises:
+    var tu = _parse_fixture()
+    var t = _function_type(tu, "add")
+    var fields = t.get_fields()
+    assert_equal(Int(fields.__len__()), 0, "function type should have no fields")
+
+
+def test_type_get_bases_on_derived() raises:
+    var tu = _parse_cxx()
+    var c = _find_cursor(tu, "Derived", CXCursor_ClassDecl)
+    var t = c.type()
+    var bases = t.get_bases()
+    assert_equal(Int(bases.__len__()), 1, "Derived should have 1 base class")
+
+
+def test_type_get_methods_on_derived() raises:
+    var tu = _parse_cxx()
+    var c = _find_cursor(tu, "Derived", CXCursor_ClassDecl)
+    var t = c.type()
+    var methods = t.get_methods()
+    _check(Int(methods.__len__()) > 0, "Derived should have methods")
+
+
+def test_type_get_methods_on_base() raises:
+    var tu = _parse_cxx()
+    var c = _find_cursor(tu, "Base", CXCursor_ClassDecl)
+    var t = c.type()
+    var methods = t.get_methods()
+    _check(Int(methods.__len__()) >= 2, "Base should have at least 2 methods")
 
 
 def main() raises:

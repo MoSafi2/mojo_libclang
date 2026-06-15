@@ -480,6 +480,100 @@ def test_cxx_is_anonymous_record_decl() raises:
     assert_false(c.is_anonymous_record_decl(), "Derived is not anonymous record")
 
 
+def test_cxx_linkage() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var lnk = c.linkage()
+    # CXLinkage_External = 4 (or similar), just check it's non-zero
+    _check(Int(lnk) > 0, "Derived should have external linkage")
+
+
+def test_cxx_visibility() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    var vis = c.visibility()
+    # CXVisibility_Default = 0, CXVisibility_Hidden = 1, CXVisibility_Protected = 2
+    # Just check it returns a valid value without crashing
+    _check(Int(vis) >= 0, "visibility should be a non-negative value")
+
+
+def test_cxx_availability() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    var avail = c.availability()
+    # CXAvailability_Available = 0
+    _check(Int(avail) == 0, "virtual_method should be available")
+
+
+def test_cxx_language() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    var lang = c.language()
+    # CXLanguage_CPlusPlus = 3
+    assert_equal(Int(lang), 3, "C++ method should report CPlusPlus language")
+
+
+def test_cxx_storage_class() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "static_method")
+    var sc = c.storage_class()
+    # CX_SC_Static = 3
+    assert_equal(Int(sc), 3, "static_method should have static storage class")
+
+
+def test_cxx_tls_kind() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var tls = c.tls_kind()
+    # CXTLS_None = 0 for non-thread-local
+    assert_equal(Int(tls), 0, "Derived should have no TLS kind")
+
+
+def test_cxx_is_bitfield() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    assert_false(c.is_bitfield(), "Derived is not a bitfield")
+
+
+def test_cxx_get_bitfield_width_not_bitfield() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    assert_equal(Int(c.get_bitfield_width()), -1, "non-bitfield should return -1")
+
+
+def test_cxx_get_offset_of_field() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var children = c.get_children()
+    for i in range(Int(children.__len__())):
+        var child = children[i].copy()
+        if child.kind() == CXCursor_CXXBaseSpecifier:
+            _ = child.get_offset_of_field()
+            break
+
+
+def test_cxx_get_mangled_name() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    var mangled = c.mangled_name()
+    _check(mangled.byte_length() > 0, "mangled name should be non-empty")
+
+
+def test_cxx_underlying_typedef_type() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "ScopedEnum")
+    # ScopedEnum is not a typedef, but test that calling underlying_typedef_type
+    # doesn't crash
+    _ = c.underlying_typedef_type()
+
+
+def test_cxx_enum_type() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "ScopedEnum")
+    var t = c.enum_type()
+    _ = t.spelling()
+
+
 # -----------------------------------------------------------------------
 # New feature tests: Phase 1
 # -----------------------------------------------------------------------
