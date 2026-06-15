@@ -85,14 +85,14 @@ def test_num_diagnostics_positive_for_invalid() raises:
     )
 
 
-# def test_diagnostic_matches_diagnostics_set() raises:
-#     var tu = _parse_invalid()
-#     if tu.num_diagnostics() > 0:
-#         var d1 = tu.diagnostic(c_uint(0))
-#         var set = tu.diagnostics()
-#         var d2 = set[c_uint(0)]
-#         _check(d1.spelling() == d2.spelling(),
-#                "diagnostic(0) should match diagnostics()[0] spelling")
+def test_diagnostic_matches_diagnostics_set() raises:
+    var tu = _parse_invalid()
+    if tu.num_diagnostics() > 0:
+        var d1 = tu.diagnostic(c_uint(0))
+        var set = tu.diagnostics()
+        var d2 = set[c_uint(0)]
+        _check(d1.spelling() == d2.spelling(),
+               "diagnostic(0) should match diagnostics()[0] spelling")
 
 
 def test_diagnostics_count_matches_num_diagnostics() raises:
@@ -163,7 +163,7 @@ def test_get_cursor_at_function() raises:
 
 def test_get_cursor_null_location() raises:
     var tu = _parse_fixture()
-    var null_loc = SourceLocation.null(tu.raw())
+    var null_loc = SourceLocation.null(tu.state())
     var c = tu.get_cursor(null_loc)
     _check(c.is_null(), "cursor at null location should be null")
 
@@ -183,7 +183,7 @@ def test_get_tokens_nonempty() raises:
 
 def test_get_tokens_empty_extent() raises:
     var tu = _parse_fixture()
-    var tokens = tu.get_tokens(SourceRange.null(tu.raw()))
+    var tokens = tu.get_tokens(SourceRange.null(tu.state()))
     assert_equal(
         Int(tokens.__len__()), 0, "null range should produce no tokens"
     )
@@ -199,19 +199,20 @@ def test_reparse_no_changes() raises:
     _check(not c.is_null(), "cursor should be valid after reparse")
 
 
-# # def test_reparse_with_content_change() raises:
-# #     var tu = _parse_fixture()
-# #     var unsaved = List[UnsavedFile]()
-# #     unsaved.append(
-# #         UnsavedFile(
-# #             filename=String(FIXTURE_PATH),
-# #             contents=String("int y;\n"),
-# #         ),
-# #     )
-# #     tu.reparse(unsaved_files=unsaved)
-# #     var children = tu.cursor().get_children()
-# #     _check(Int(children.__len__()) > 0,
-# #            "reparsed TU should have children")
+def test_reparse_with_content_change() raises:
+    var tu = _parse_fixture()
+    var unsaved = List[UnsavedFile]()
+    unsaved.append(
+        UnsavedFile(
+            filename=String(FIXTURE_PATH),
+            contents=String("int y;\n"),
+        ),
+    )
+    tu.reparse(unsaved_files=unsaved)
+    var cursor = tu.cursor()
+    var children = cursor.get_children()
+    _check(Int(children.__len__()) > 0,
+           "reparsed TU should have children")
 
 
 def test_reparse_twice() raises:
