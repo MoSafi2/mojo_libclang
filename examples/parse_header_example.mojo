@@ -123,7 +123,7 @@ def print_cursor_tree(
         print_cursor_tree(child, indent + 1, max_depth - 1)
 
 
-def print_public_declarations(mut tu: TranslationUnit) raises:
+def print_public_declarations(tu: TranslationUnit) raises:
     """Print top-level declarations that form the C API surface."""
     print("")
     print("Public API declarations:")
@@ -139,16 +139,15 @@ def print_public_declarations(mut tu: TranslationUnit) raises:
         print("  - ", kind_label(kind), ": ", cursor.spelling(), sep="")
 
 
-def print_diagnostics(mut tu: TranslationUnit) raises:
+def print_diagnostics(tu: TranslationUnit) raises:
     """Print translation-unit diagnostics."""
     print("Diagnostics:")
 
-    for i in range(Int(tu.__len__())):
-        var d = tu.diagnostic(UInt32(i))
+    for d in tu.diagnostics():
         print("  - ", d.format(), sep="")
 
 
-def print_tokens(mut tu: TranslationUnit) raises:
+def print_tokens(tu: TranslationUnit) raises:
     """Tokenize the top part of the header and print a small sample."""
     var extent = tu.get_extent(
         HEADER_PATH,
@@ -158,14 +157,16 @@ def print_tokens(mut tu: TranslationUnit) raises:
     var tokens = tu.get_tokens(extent)
     print("")
     print("Token sample:")
-    print("  token count:", tokens.__len__())
+    print("  token count:", len(tokens))
 
-    var limit = tokens.__len__()
+    var limit = len(tokens)
     if limit > 40:
         limit = 40
 
-    for i in range(limit):
-        var token = tokens[i]
+    var i = 0
+    for token in tokens:
+        if i >= limit:
+            break
         print(
             "  [",
             i,
@@ -175,6 +176,7 @@ def print_tokens(mut tu: TranslationUnit) raises:
             token.spelling(),
             sep="",
         )
+        i += 1
 
 
 def main() raises:

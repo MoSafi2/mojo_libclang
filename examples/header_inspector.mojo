@@ -221,14 +221,10 @@ def print_token_stream(tu: TranslationUnit) raises:
 
     print()
     print("Tokens (lines 1-25):")
-    print("  count: ", tokens.__len__(), sep="")
+    print("  count: ", len(tokens), sep="")
 
-    var limit = len(tokens)
-    if limit > 25:
-        limit = 25
-
-    i = 1
-    for var tok in tokens:
+    var i = 1
+    for tok in tokens:
         indent(2)
         print(t"[{i}] kind = {tok.kind()} {tok.spelling()}")
         i += 1

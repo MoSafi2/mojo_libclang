@@ -184,7 +184,7 @@ struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](Movable):
         return Token(tu=self._tu, raw=raw)
 
 
-struct TokenGroup(Movable, Sized, Writable):
+struct TokenGroup(Movable, Sized, Writable, Iterable):
     """Owns the buffer returned by `clang_tokenize`.
 
     ```
