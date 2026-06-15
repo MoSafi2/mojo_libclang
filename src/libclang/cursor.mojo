@@ -325,6 +325,7 @@ struct Cursor(Copyable, Movable, Writable):
 
         var out = SourceLocation(self._tu)
         clang_getCursorLocation(out._ptr(), self._ptr())
+        out.refresh()
         return out^
 
     def extent(mut self) raises -> SourceRange:
