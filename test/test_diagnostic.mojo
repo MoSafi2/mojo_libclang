@@ -10,6 +10,7 @@ from src.libclang import (
     FixIt,
 )
 from std.ffi import c_uint
+from std.iter import iter, enumerate
 from std.testing import assert_equal, assert_true, TestSuite
 
 
@@ -146,6 +147,40 @@ def test_diagnostic_children() raises:
     var first = diags[c_uint(0)]
     var children = first.children()
     _ = Int(children.__len__())
+
+
+def test_diagnostic_set_for_in_iteration() raises:
+    var tu = _parse_invalid()
+    var diags = tu.diagnostics()
+    var count = 0
+    for d in diags:
+        _ = d.spelling()
+        count += 1
+    assert_true(count > 0, "for-in over DiagnosticSet should yield diagnostics")
+
+
+def test_diagnostic_set_iterable_conformance() raises:
+    var tu = _parse_invalid()
+    var diags = tu.diagnostics()
+    var it = iter(diags)
+    var first = it.__next__()
+    assert_true(
+        first.spelling().byte_length() > 0,
+        "iter(diags) should return a working Iterator",
+    )
+
+
+def test_diagnostic_set_enumerate_iteration() raises:
+    var tu = _parse_invalid()
+    var diags = tu.diagnostics()
+    var count = 0
+    for i, d in enumerate(diags):
+        _ = i
+        _ = d.spelling()
+        count += 1
+        if count >= 2:
+            break
+    assert_equal(count, 2, "enumerate(diags) should iterate diagnostics")
 
 
 def main() raises:

@@ -16,6 +16,7 @@ from src._ffi import (
     CXCursor_FunctionDecl,
 )
 from std.ffi import c_uint
+from std.iter import iter, enumerate
 from std.testing import assert_equal, assert_true, assert_raises, TestSuite
 
 
@@ -186,6 +187,43 @@ def test_translation_unit_get_tokens_returns_token_group() raises:
     var extent = _first_line_extent(tu)
     var tokens = tu.get_tokens(extent)
     _ = Int(tokens.__len__())
+
+
+def test_token_group_for_in_iteration() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    var count = 0
+    for token in tokens:
+        _ = token.spelling()
+        count += 1
+    assert_true(count > 0, "for-in over TokenGroup should yield tokens")
+
+
+def test_token_group_iterable_conformance() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    var it = iter(tokens)
+    var first = it.__next__()
+    assert_true(
+        first.spelling().byte_length() >= 0,
+        "iter(tokens) should return a working Iterator",
+    )
+
+
+def test_token_group_enumerate_iteration() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    var count = 0
+    for i, token in enumerate(tokens):
+        _ = i
+        _ = token.spelling()
+        count += 1
+        if count >= 3:
+            break
+    assert_equal(count, 3, "enumerate(tokens) should iterate tokens")
 
 
 def main() raises:

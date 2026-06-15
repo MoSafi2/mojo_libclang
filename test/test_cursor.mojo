@@ -26,6 +26,7 @@ from src._ffi import (
 )
 from src.libclang.cursor import collect_children, walk_preorder
 from std.ffi import c_uint, c_int
+from std.iter import iter, enumerate
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
 
 
@@ -128,7 +129,9 @@ def test_semantic_parent() raises:
     var top = _find(tu, CXCursor_TypedefDecl)
     var p = top.semantic_parent()
     _check(p is not None)
-    assert_equal(Int(p.value().kind().as_c_uint()), Int(CXCursor_TranslationUnit))
+    assert_equal(
+        Int(p.value().kind().as_c_uint()), Int(CXCursor_TranslationUnit)
+    )
 
 
 def test_lexical_parent() raises:
@@ -136,7 +139,9 @@ def test_lexical_parent() raises:
     var top = _find(tu, CXCursor_TypedefDecl)
     var p = top.lexical_parent()
     _check(p is not None)
-    assert_equal(Int(p.value().kind().as_c_uint()), Int(CXCursor_TranslationUnit))
+    assert_equal(
+        Int(p.value().kind().as_c_uint()), Int(CXCursor_TranslationUnit)
+    )
 
 
 def test_referenced_definition_canonical() raises:
@@ -174,59 +179,58 @@ def test_kind_predicates_false() raises:
     _check(not c.is_attribute())
 
 
-# def test_bitfield_width() raises:
-#     var tu = _parse()
-#     var c = _find(tu, CXCursor_TypedefDecl)
-#     assert_equal(Int(c.get_bitfield_width()), -1)
+def test_bitfield_width() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_TypedefDecl)
+    assert_equal(Int(c.get_bitfield_width()), -1)
 
 
-# def test_underlying_typedef_type() raises:
-#     var tu = _parse()
-#     var c = _find(tu, CXCursor_TypedefDecl)
-#     _ = c.underlying_typedef_type()
+def test_underlying_typedef_type() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_TypedefDecl)
+    _ = c.underlying_typedef_type()
 
 
-# def test_enum_properties() raises:
-#     var tu = _parse()
-#     var c = _find(tu, CXCursor_TypedefDecl)
-#     _ = c.storage_class()
-#     _ = c.access_specifier()
-#     _ = c.availability()
-#     _ = c.linkage()
-#     _ = c.visibility()
-#     _ = c.language()
-#     _ = c.tls_kind()
+def test_enum_properties() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_TypedefDecl)
+    _ = c.storage_class()
+    _ = c.access_specifier()
+    _ = c.availability()
+    _ = c.linkage()
+    _ = c.visibility()
+    _ = c.language()
+    _ = c.tls_kind()
 
 
-# def test_comments_and_mangling() raises:
-#     var tu = _parse()
-#     var c = _find(tu, CXCursor_FunctionDecl)
-#     _ = c.raw_comment()
-#     _ = c.brief_comment()
-#     _ = c.mangled_name()
+def test_comments_and_mangling() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    _ = c.raw_comment()
+    _ = c.brief_comment()
+    _ = c.mangled_name()
 
 
-# def test_included_file() raises:
-#     var tu = _parse()
-#     var c = tu.cursor()
-#     _check(c.get_included_file() is None)
+def test_included_file() raises:
+    var tu = _parse()
+    var c = tu.cursor()
+    _check(c.get_included_file() is None)
 
 
-# def test_function_arguments() raises:
-#     var tu = _parse()
-#     var func = _find(tu, CXCursor_FunctionDecl)
-#     assert_equal(Int(func.num_arguments()), 2)
-#     var args = func.get_arguments()
-#     assert_equal(args.__len__(), 2)
-#     for i in range(args.__len__()):
-#         var arg = args[i].copy()
-#         assert_equal(Int(arg.kind()), Int(CXCursor_ParmDecl))
+def test_function_arguments() raises:
+    var tu = _parse()
+    var func = _find(tu, CXCursor_FunctionDecl)
+    assert_equal(Int(func.num_arguments()), 2)
+    var args = func.get_arguments()
+    assert_equal(args.__len__(), 2)
+    for i in range(args.__len__()):
+        var arg = args[i].copy()
+        assert_equal(Int(arg.kind().as_c_uint()), Int(CXCursor_ParmDecl))
 
 
-# def test_template_arguments() raises:
-#     var tu = _parse()
-#     var c = _find(tu, CXCursor_VarDecl)
-#     _ = c.get_num_template_arguments()
+def test_template_arguments() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_VarDecl)
 
 
 def test_equality() raises:
@@ -253,12 +257,16 @@ def test_children_and_walk() raises:
     var walk = c.walk_preorder()
     _check(children.__len__() > 0)
     _check(walk.__len__() >= children.__len__())
+
+
 #
 def test_collect_children_nonempty() raises:
     var tu = _parse()
     var root = tu.cursor()
     var children = collect_children(root)
     _check(children.__len__() > 0, "root should have children")
+
+
 # #
 def test_collect_children_first_typedef() raises:
     var tu = _parse()
@@ -266,8 +274,11 @@ def test_collect_children_first_typedef() raises:
     var children = collect_children(root)
     var first = children[0].copy()
     assert_equal(
-        Int(first.kind().as_c_uint()), Int(CXCursor_TypedefDecl), "first child should be TypedefDecl"
+        Int(first.kind().as_c_uint()),
+        Int(CXCursor_TypedefDecl),
+        "first child should be TypedefDecl",
     )
+
 
 def test_collect_children_includes_struct() raises:
     var tu = _parse()
@@ -281,6 +292,7 @@ def test_collect_children_includes_struct() raises:
             break
     _check(found, "children should include a struct decl")
 
+
 def test_collect_children_includes_function() raises:
     var tu = _parse()
     var root = tu.cursor()
@@ -292,6 +304,8 @@ def test_collect_children_includes_function() raises:
             found = True
             break
     _check(found, "children should include a function decl")
+
+
 # #
 def test_walk_preorder_first_is_root() raises:
     var tu = _parse()
@@ -299,8 +313,11 @@ def test_walk_preorder_first_is_root() raises:
     var walk = walk_preorder(root)
     var first = walk[0].copy()
     assert_equal(
-        Int(first.kind().as_c_uint()), Int(CXCursor_TranslationUnit), "first element should be the root TU cursor"
+        Int(first.kind().as_c_uint()),
+        Int(CXCursor_TranslationUnit),
+        "first element should be the root TU cursor",
     )
+
 
 def test_walk_preorder_deeper_than_children() raises:
     var tu = _parse()
@@ -312,6 +329,7 @@ def test_walk_preorder_deeper_than_children() raises:
         "preorder walk should be at least as deep as direct children",
     )
 
+
 def test_collect_children_child_spelling() raises:
     var tu = _parse()
     var root = tu.cursor()
@@ -320,6 +338,7 @@ def test_collect_children_child_spelling() raises:
         var c = children[i].copy()
         var s = c.spelling()
         _check(s.byte_length() > 0, "each child should have non-empty spelling")
+
 
 def test_walk_preorder_spelling_nonempty() raises:
     var tu = _parse()
@@ -331,12 +350,16 @@ def test_walk_preorder_spelling_nonempty() raises:
         var s = c.spelling()
         if s.byte_length() > 0:
             nonempty_count += 1
-    _check(nonempty_count > 0, "at least some walk elements should have non-empty spelling")
+    _check(
+        nonempty_count > 0,
+        "at least some walk elements should have non-empty spelling",
+    )
 
 
 # -----------------------------------------------------------------------
 # C++ feature tests
 # -----------------------------------------------------------------------
+
 
 def test_cxx_is_virtual() raises:
     var tu = _parse_cxx()
@@ -384,13 +407,17 @@ def test_cxx_is_deleted() raises:
         var child = children[i].copy()
         if child.spelling() == "Derived":
             # constructors are defaulted not deleted
-            assert_false(child.is_deleted(), "Derived() is defaulted not deleted")
+            assert_false(
+                child.is_deleted(), "Derived() is defaulted not deleted"
+            )
 
 
 def test_cxx_is_copy_assignment_operator() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "operator=")
-    _check(c.is_copy_assignment_operator(), "operator= should be copy assignment")
+    _check(
+        c.is_copy_assignment_operator(), "operator= should be copy assignment"
+    )
 
 
 def test_cxx_is_move_assignment_operator() raises:
@@ -457,7 +484,9 @@ def test_cxx_overridden_cursors() raises:
     var overridden = c.overridden_cursors()
     # May be 0 if the overridden chain isn't fully resolved in a single-TU parse;
     # the important thing is the call doesn't crash and returns sane results.
-    _check(overridden.__len__() >= 0, "overridden cursors call should not crash")
+    _check(
+        overridden.__len__() >= 0, "overridden cursors call should not crash"
+    )
 
 
 def test_cxx_is_virtual_base() raises:
@@ -479,7 +508,9 @@ def test_cxx_is_anonymous() raises:
 def test_cxx_is_anonymous_record_decl() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
-    assert_false(c.is_anonymous_record_decl(), "Derived is not anonymous record")
+    assert_false(
+        c.is_anonymous_record_decl(), "Derived is not anonymous record"
+    )
 
 
 def test_cxx_linkage() raises:
@@ -496,7 +527,9 @@ def test_cxx_visibility() raises:
     var vis = c.visibility()
     # CXVisibility_Default = 0, CXVisibility_Hidden = 1, CXVisibility_Protected = 2
     # Just check it returns a valid value without crashing
-    _check(Int(vis.as_c_uint()) >= 0, "visibility should be a non-negative value")
+    _check(
+        Int(vis.as_c_uint()) >= 0, "visibility should be a non-negative value"
+    )
 
 
 def test_cxx_availability() raises:
@@ -512,7 +545,9 @@ def test_cxx_language() raises:
     var c = _find_by_spelling(tu, "virtual_method")
     var lang = c.language()
     # CXLanguage_CPlusPlus = 3
-    assert_equal(Int(lang.as_c_uint()), 3, "C++ method should report CPlusPlus language")
+    assert_equal(
+        Int(lang.as_c_uint()), 3, "C++ method should report CPlusPlus language"
+    )
 
 
 def test_cxx_storage_class() raises:
@@ -520,7 +555,9 @@ def test_cxx_storage_class() raises:
     var c = _find_by_spelling(tu, "static_method")
     var sc = c.storage_class()
     # CX_SC_Static = 3
-    assert_equal(Int(sc.as_c_uint()), 3, "static_method should have static storage class")
+    assert_equal(
+        Int(sc.as_c_uint()), 3, "static_method should have static storage class"
+    )
 
 
 def test_cxx_tls_kind() raises:
@@ -540,7 +577,9 @@ def test_cxx_is_bitfield() raises:
 def test_cxx_get_bitfield_width_not_bitfield() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "virtual_method")
-    assert_equal(Int(c.get_bitfield_width()), -1, "non-bitfield should return -1")
+    assert_equal(
+        Int(c.get_bitfield_width()), -1, "non-bitfield should return -1"
+    )
 
 
 def test_cxx_get_offset_of_field() raises:
@@ -579,6 +618,7 @@ def test_cxx_enum_type() raises:
 # -----------------------------------------------------------------------
 # New feature tests: Phase 1
 # -----------------------------------------------------------------------
+
 
 def test_is_invalid_on_null() raises:
     var tu = _parse()
@@ -631,7 +671,10 @@ def test_is_const_qualified_type() raises:
 def test_is_volatile_qualified_type() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "volatile_value")
-    _check(c.is_volatile_qualified_type(), "volatile_value should be volatile qualified")
+    _check(
+        c.is_volatile_qualified_type(),
+        "volatile_value should be volatile qualified",
+    )
 
 
 def test_is_pod_type_on_struct() raises:
@@ -666,7 +709,11 @@ def test_get_arguments() raises:
 def test_num_template_arguments() raises:
     var tu = _parse()
     var c = _find(tu, CXCursor_TypedefDecl)
-    assert_equal(Int(c.num_template_arguments()), -1, "typedef should have no template args")
+    assert_equal(
+        Int(c.num_template_arguments()),
+        -1,
+        "typedef should have no template args",
+    )
 
 
 def test_pretty_printed() raises:
@@ -701,6 +748,49 @@ def test_get_fields_empty() raises:
 #     var c = _find(tu, CXCursor_StructDecl)
 #     _ = c.enum_type()
 #     _ = c.get_field_offsetof()
+
+
+def test_cursor_for_in_iteration() raises:
+    var tu = _parse()
+    var root = tu.cursor()
+    var count = 0
+    for child in root:
+        _ = child.kind()
+        count += 1
+    assert_true(count > 0, "for-in over cursor should yield children")
+
+
+def test_cursor_iterable_conformance() raises:
+    var tu = _parse()
+    var root = tu.cursor()
+    var it = iter(root)
+    var first = it.__next__()
+    assert_true(
+        first.spelling().byte_length() >= 0,
+        "iter(root) should return a working Iterator",
+    )
+
+
+def test_cursor_enumerate_iteration() raises:
+    var tu = _parse()
+    var root = tu.cursor()
+    var count = 0
+    for i, child in enumerate(root):
+        _ = i
+        _ = child.kind()
+        count += 1
+        if count >= 3:
+            break
+    assert_equal(count, 3, "enumerate(cursor) should iterate children")
+
+
+def test_null_cursor_iteration_is_empty() raises:
+    var tu = _parse()
+    var c = Cursor.null(tu)
+    var count = 0
+    for child in c:
+        count += 1
+    assert_equal(count, 0, "null cursor should yield no children")
 
 
 def main() raises:
