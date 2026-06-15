@@ -331,6 +331,24 @@ struct _CXStringStorage:
         self._has_value = False
         return _take_cxstring(self._raw)
 
+    def _take_unchecked(mut self) -> String:
+        """Consume the stored CXString without propagating raises.
+
+        Used by hot iterator paths that have already validated the TU state.
+        """
+        if not self._has_value:
+            return String("")
+
+        self._has_value = False
+        var c_string = clang_getCString(self._raw)
+        if not c_string:
+            clang_disposeString(self._raw)
+            return String("")
+
+        var value = String(unsafe_from_utf8_ptr=c_string.value())
+        clang_disposeString(self._raw)
+        return value
+
     def take_optional(mut self) raises -> Optional[String]:
         """Consume the stored CXString and preserve null-vs-empty."""
         if not self._has_value:

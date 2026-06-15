@@ -60,6 +60,14 @@ struct TranslationUnitState(Movable):
             raise Error("TranslationUnit used after disposal")
         return self._raw
 
+    def _raw_unchecked(self) -> CXTranslationUnit:
+        """Return the raw handle without checking `alive`.
+
+        Intended for iterator hot paths that have already validated the TU
+        generation/state. Calling this on a disposed TU is unsafe.
+        """
+        return self._raw
+
     def bump_generation(mut self):
         self.generation += 1
 

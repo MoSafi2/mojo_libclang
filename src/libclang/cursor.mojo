@@ -139,6 +139,7 @@ from src.libclang.translation_unit import (
 )
 
 from std.collections import InlineArray, List
+from std.iter import Iterable, Iterator, StopIteration
 from std.memory import (
     ArcPointer,
     UnsafePointer,
@@ -147,12 +148,16 @@ from std.memory import (
 )
 
 
-struct Cursor(Copyable, Movable, Writable):
+struct Cursor(Copyable, Movable, Writable, Iterable):
     """A high-level wrapper around `CXCursor`.
 
     The raw `CXCursor` is copied by value into `_raw`.
     The owning `CXTranslationUnit` is kept alive by `_tu`.
     """
+
+    comptime IteratorType[
+        iterable_mut: Bool, //, iterable_origin: Origin[mut=iterable_mut]
+    ]: Iterator = CursorChildrenIterator
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
@@ -809,7 +814,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorExtent(out._ptr(), self._ptr())
         return out^
 
-    def __iter__(ref self) raises -> CursorChildrenIterator:
+    def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:
         """Yield immediate child cursors.
 
         Usage:
@@ -819,17 +824,37 @@ struct Cursor(Copyable, Movable, Writable):
         return CursorChildrenIterator(self)
 
 
-struct CursorChildrenIterator(Movable):
+struct CursorChildrenIterator(Movable, Iterator):
     """Iterator over immediate children of a `Cursor`."""
 
+    comptime Element = Cursor
+
+    var _tu: ArcPointer[TranslationUnitState]
+    var _generation: Int
+    var _parent_raw: InlineArray[CXCursor, 1]
     var _children: List[Cursor]
     var _index: Int
+    var _buffered: Bool
 
-    def __init__(out self, ref cursor: Cursor) raises:
-        self._children = cursor.get_children()
+    def __init__(out self, ref cursor: Cursor):
+        self._tu = cursor._tu
+        self._generation = cursor._generation
+        self._parent_raw = InlineArray[CXCursor, 1](fill=cursor._raw[0].copy())
+        self._children = List[Cursor]()
         self._index = 0
+        self._buffered = False
+
+    def _ensure_buffered(mut self) raises StopIteration:
+        if self._buffered:
+            return
+        if not self._tu[].alive or self._generation != self._tu[].generation:
+            raise StopIteration()
+        var parent = Cursor(tu=self._tu, raw=self._parent_raw[0].copy())
+        self._children = _collect_children_unchecked(parent)
+        self._buffered = True
 
     def __next__(mut self) raises StopIteration -> Cursor:
+        self._ensure_buffered()
         if self._index >= self._children.__len__():
             raise StopIteration()
         var result = self._children[self._index].copy()
@@ -932,6 +957,54 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
         raise Error(
             t"collect_children: child count exceeded MAX_CHILDREN={MAX_CHILDREN}",
         )
+
+    var out = List[Cursor]()
+
+    for i in range(collector_box[].count):
+        var child = Cursor(
+            tu=p._tu,
+            raw=buffer[i],
+        )
+        out.append(child^)
+
+    collector_box.free()
+    buffer.free()
+
+    return out^
+
+
+def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
+    """Collect immediate children without raising.
+
+    Used by `CursorChildrenIterator.__next__`, which may only raise
+    `StopIteration`. The caller must ensure `parent` is valid. If the child
+    count exceeds `MAX_CHILDREN`, the result is silently truncated.
+    """
+    var p = parent.copy()
+
+    var buffer = alloc[CXCursor](MAX_CHILDREN)
+    var collector_box = alloc[_Collector](1)
+
+    collector_box[] = _Collector(
+        buffer=buffer,
+        count=0,
+        capacity=MAX_CHILDREN,
+        truncated=False,
+    )
+
+    var client_data = CXClientData(
+        rebind[MutOpaquePointer[MutExternalOrigin]](
+            rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+                rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box),
+            ),
+        ),
+    )
+
+    _ = clang_visitChildren(
+        p._ptr(),
+        _visit_trampoline,
+        client_data,
+    )
 
     var out = List[Cursor]()
 

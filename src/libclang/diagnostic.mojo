@@ -51,6 +51,7 @@ from src.libclang.source_range import SourceRange
 from src._ffi import clang_disposeDiagnosticSet
 
 
+from std.iter import Iterable, Iterator, StopIteration
 from std.memory import ArcPointer
 
 
@@ -112,6 +113,26 @@ struct Diagnostic(Movable, Writable):
         if raw:
             self._cache_format()
 
+    def __init__(
+        out self,
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXDiagnostic,
+        owns: Bool,
+        _unchecked: Bool,
+    ):
+        """Internal non-raising constructor used by iterators.
+
+        The caller must ensure the TU is alive and at the expected generation.
+        """
+        self._tu = tu
+        self._generation = tu[].generation
+        self._raw = raw
+        self._owns = owns
+        self._formatted = String()
+
+        if raw:
+            self._cache_format_unchecked()
+
     def _check_valid(self) raises:
         if not self._tu[].alive:
             raise Error("Diagnostic used after TranslationUnit disposal")
@@ -124,13 +145,20 @@ struct Diagnostic(Movable, Writable):
 
     def _cache_format(mut self) raises:
         self._check_valid()
+        self._cache_format_unchecked()
 
+    def _cache_format_unchecked(mut self):
+        """Cache the formatted string without validity checks.
+
+        Used by the internal non-raising constructor. The caller must ensure
+        the diagnostic raw handle is usable.
+        """
         var options = DiagnosticDisplayOptions(
             clang_defaultDiagnosticDisplayOptions(),
         )
         var cs = _CXStringStorage()
         clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options.as_c_uint())
-        self._formatted = cs.take()
+        self._formatted = cs._take_unchecked()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("Diagnostic(", self._formatted, ")")
@@ -263,7 +291,7 @@ struct Diagnostic(Movable, Writable):
         clang_formatDiagnostic(cs.ptr_for_out(), self._raw, opts.as_c_uint())
         return cs.take()
 
-    def formatted(ref self) raises -> String:
+    def formatted(mut self) raises -> String:
         self._check_valid()
 
         if not self._formatted:
@@ -279,34 +307,50 @@ struct Diagnostic(Movable, Writable):
 
 struct DiagnosticSetIterator[
     mut: Bool, //, origin: Origin[mut=mut]
-](Movable):
+](Movable, Iterator):
     """Iterator over diagnostics in a `DiagnosticSet`."""
 
+    comptime Element = Diagnostic
+
     var _tu: ArcPointer[TranslationUnitState]
+    var _generation: Int
     var _raw: CXDiagnosticSet
     var _index: c_uint
 
     def __init__(out self, ref set: DiagnosticSet):
         self._tu = set._tu
+        self._generation = set._generation
         self._raw = set._raw
         self._index = c_uint(0)
 
-    def __next__(mut self) raises -> Diagnostic:
+    def __next__(mut self) raises StopIteration -> Diagnostic:
+        if not self._tu[].alive or self._generation != self._tu[].generation:
+            raise StopIteration()
+
         if self._index >= clang_getNumDiagnosticsInSet(self._raw):
             raise StopIteration()
 
         var raw = clang_getDiagnosticInSet(self._raw, self._index)
         self._index += 1
-        return Diagnostic(tu=self._tu, raw=raw, owns=True)
+        return Diagnostic(
+            tu=self._tu,
+            raw=raw,
+            owns=True,
+            _unchecked=True,
+        )
 
 
-struct DiagnosticSet(Movable, Sized, Writable):
+struct DiagnosticSet(Movable, Sized, Writable, Iterable):
     """Wrapper around `CXDiagnosticSet`.
 
     ```
     A `DiagnosticSet` may either own the raw diagnostic set or borrow it,
     depending on where the set came from.
     """
+
+    comptime IteratorType[
+        iterable_mut: Bool, //, iterable_origin: Origin[mut=iterable_mut]
+    ]: Iterator = DiagnosticSetIterator[mut=iterable_mut, origin=iterable_origin]
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
@@ -382,8 +426,8 @@ struct DiagnosticSet(Movable, Sized, Writable):
             owns=True,
         )
 
-    def __iter__(ref self) -> DiagnosticSetIterator[mut=False, origin=origin_of(self)]:
-        return DiagnosticSetIterator[mut=False, origin=origin_of(self)](self)
+    def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:
+        return DiagnosticSetIterator[origin_of(self)](self)
 
     def __del__(deinit self):
         if self._owns:
