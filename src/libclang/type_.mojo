@@ -76,6 +76,25 @@ struct Type(Copyable, Movable, Writable):
     var _raw: InlineArray[CXType, 1]
     var _spelling: String
 
+    def __init__(out self, tu: TranslationUnit) raises:
+        """Create a null type tied to `tu`."""
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXType, 1](
+            fill=_zero_type(),
+        )
+        self._spelling = String()
+
+    def __init__(
+        out self,
+        tu: TranslationUnit,
+        raw: CXType,
+    ) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXType, 1](fill=raw)
+        self._spelling = String()
+
     def __init__(
         out self,
         tu: ArcPointer[TranslationUnitState],
@@ -316,7 +335,9 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return RefQualifierKind(clang_Type_getCXXRefQualifier(self._ptr()))
 
-    def get_exception_specification_kind(mut self) raises -> ExceptionSpecificationKind:
+    def get_exception_specification_kind(
+        mut self,
+    ) raises -> ExceptionSpecificationKind:
         self._check_valid()
         return ExceptionSpecificationKind(
             c_uint(clang_getExceptionSpecificationType(self._ptr())),

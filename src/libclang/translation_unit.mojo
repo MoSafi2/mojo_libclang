@@ -202,20 +202,19 @@ struct TranslationUnit(Copyable, Movable, Writable):
         filename: String,
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
-        var filename_owner = filename.copy()
+        var file_name_c = _alloc_c_string(filename)
         var opts = options
         if opts == TranslationUnitFlags.NONE:
             opts = TranslationUnitFlags(clang_defaultSaveOptions(self.raw()))
         var result_raw = clang_saveTranslationUnit(
             self.raw(),
-            _c_string(filename_owner),
+            _c_string(file_name_c),
             opts.as_c_uint(),
         )
         var result = SaveError(c_uint(result_raw))
         if result != SaveError.NONE:
             raise Error(
-                "TranslationUnitSaveError: "
-                + String(Int(result.as_c_uint())),
+                "TranslationUnitSaveError: " + String(Int(result.as_c_uint())),
             )
 
     def reparse(

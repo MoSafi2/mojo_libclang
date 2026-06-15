@@ -42,6 +42,17 @@ struct SourceRange(Copyable, Movable, Writable):
     var _start: SourceLocation
     var _end: SourceLocation
 
+    def __init__(out self, tu: TranslationUnit) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXSourceRange, 1](
+            fill=_zero_source_range(),
+        )
+        self._start = SourceLocation.null(self._tu)
+        self._end = SourceLocation.null(self._tu)
+
+        clang_getNullRange(self._ptr())
+
     def __init__(
         out self,
         tu: ArcPointer[TranslationUnitState],
@@ -70,6 +81,10 @@ struct SourceRange(Copyable, Movable, Writable):
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("SourceRange(", self._start, ", ", self._end, ")")
+
+    @staticmethod
+    def null(tu: TranslationUnit) raises -> Self:
+        return Self(tu=tu)
 
     @staticmethod
     def null(

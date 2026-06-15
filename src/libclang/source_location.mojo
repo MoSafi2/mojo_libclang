@@ -49,6 +49,20 @@ struct SourceLocation(Copyable, Movable, Writable):
     var _offset: c_uint
     var _file_name: String
 
+    def __init__(out self, tu: TranslationUnit) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXSourceLocation, 1](
+            fill=_zero_source_location(),
+        )
+        self._file = CXFile(None)
+        self._line = c_uint(0)
+        self._column = c_uint(0)
+        self._offset = c_uint(0)
+        self._file_name = String()
+
+        clang_getNullLocation(self._ptr())
+
     def __init__(
         out self,
         tu: ArcPointer[TranslationUnitState],
@@ -112,10 +126,32 @@ struct SourceLocation(Copyable, Movable, Writable):
         writer.write(")")
 
     @staticmethod
+    def null(tu: TranslationUnit) raises -> Self:
+        return Self(tu=tu)
+
+    @staticmethod
     def null(
         tu: ArcPointer[TranslationUnitState],
     ) raises -> Self:
         return Self(tu=tu)
+
+    @staticmethod
+    def from_position(
+        tu: TranslationUnit,
+        file: CXFile,
+        line: c_uint,
+        column: c_uint,
+    ) raises -> Self:
+        var out = Self(tu=tu)
+        clang_getLocation(
+            out._ptr(),
+            out._tu_raw(),
+            file,
+            line,
+            column,
+        )
+        out._cache_from_ffi()
+        return out^
 
     @staticmethod
     def from_position(
@@ -131,6 +167,22 @@ struct SourceLocation(Copyable, Movable, Writable):
             file,
             line,
             column,
+        )
+        out._cache_from_ffi()
+        return out^
+
+    @staticmethod
+    def from_offset(
+        tu: TranslationUnit,
+        file: CXFile,
+        offset: c_uint,
+    ) raises -> Self:
+        var out = Self(tu=tu)
+        clang_getLocationForOffset(
+            out._ptr(),
+            out._tu_raw(),
+            file,
+            offset,
         )
         out._cache_from_ffi()
         return out^

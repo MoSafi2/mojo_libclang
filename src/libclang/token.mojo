@@ -55,6 +55,18 @@ struct Token(Copyable, Movable, Writable):
 
     def __init__(
         out self,
+        tu: TranslationUnit,
+        raw: CXToken,
+    ) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXToken, 1](fill=raw)
+        self._spelling = String()
+        self._kind = TokenKind(c_uint(0))
+        self._cache_from_ffi()
+
+    def __init__(
+        out self,
         tu: ArcPointer[TranslationUnitState],
         raw: CXToken,
     ) raises:
@@ -163,6 +175,68 @@ struct TokenGroup(Movable, Sized, Writable):
     var _tokens: Optional[UnsafePointer[CXToken, MutExternalOrigin]]
     var _count: c_uint
     var _index: Int
+
+    def __init__(
+        out self,
+        tu: TranslationUnit,
+        extent: SourceRange,
+    ) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._tokens = None
+        self._count = c_uint(0)
+        self._index = 0
+
+        self._check_valid()
+
+        var e = extent.copy()
+        e._check_valid()
+
+        if e._generation != self._generation:
+            raise Error(
+                (
+                    "TokenGroup: SourceRange has different TranslationUnit "
+                    "generation"
+                ),
+            )
+
+        if e._tu[].raw() != self._tu[].raw():
+            raise Error(
+                (
+                    "TokenGroup: SourceRange belongs to a different "
+                    "TranslationUnit"
+                ),
+            )
+
+        var token_storage = InlineArray[
+            Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
+        ](fill=Optional[UnsafePointer[CXToken, MutExternalOrigin]]())
+
+        var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
+
+        clang_tokenize(
+            self._tu_raw(),
+            e._ptr(),
+            Optional[
+                UnsafePointer[
+                    Optional[UnsafePointer[CXToken, MutExternalOrigin]],
+                    MutExternalOrigin,
+                ]
+            ](
+                rebind[
+                    UnsafePointer[
+                        Optional[UnsafePointer[CXToken, MutExternalOrigin]],
+                        MutExternalOrigin,
+                    ]
+                ](token_storage.unsafe_ptr())
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                count_storage.unsafe_ptr(),
+            ),
+        )
+
+        self._tokens = token_storage[0]
+        self._count = count_storage[0]
 
     def __init__(
         out self,

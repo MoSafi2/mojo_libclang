@@ -44,6 +44,19 @@ struct File(Copyable, Movable, Writable):
 
     def __init__(
         out self,
+        tu: TranslationUnit,
+        raw: CXFile,
+    ) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = raw
+        self._name = String()
+
+        if raw:
+            self._cache_name()
+
+    def __init__(
+        out self,
         tu: ArcPointer[TranslationUnitState],
         raw: CXFile,
     ) raises:
@@ -82,8 +95,23 @@ struct File(Copyable, Movable, Writable):
             self._name = cs.take()
 
     @staticmethod
+    def null(tu: TranslationUnit) raises -> Self:
+        return Self(tu=tu, raw=CXFile(None))
+
+    @staticmethod
     def null(tu: ArcPointer[TranslationUnitState]) raises -> Self:
         return Self(tu=tu, raw=CXFile(None))
+
+    @staticmethod
+    def from_handle(
+        tu: TranslationUnit,
+        handle: CXFile,
+    ) raises -> Optional[Self]:
+        if not handle:
+            return None
+
+        var result = Self(tu=tu, raw=handle)
+        return Optional[Self](result^)
 
     @staticmethod
     def from_handle(
@@ -94,6 +122,30 @@ struct File(Copyable, Movable, Writable):
             return None
 
         var result = Self(tu=tu, raw=handle)
+        return Optional[Self](result^)
+
+    @staticmethod
+    def from_name(
+        tu: TranslationUnit,
+        filename: String,
+    ) raises -> Optional[Self]:
+        var tu_state = tu.state()
+        if not tu_state[].alive:
+            raise Error("File.from_name: TranslationUnit used after disposal")
+
+        var filename_c = _alloc_c_string(filename)
+
+        var handle = clang_getFile(
+            tu_state[].raw(),
+            _c_string(filename_c),
+        )
+
+        filename_c.free()
+
+        if not handle:
+            return None
+
+        var result = Self(tu=tu_state, raw=handle)
         return Optional[Self](result^)
 
     @staticmethod

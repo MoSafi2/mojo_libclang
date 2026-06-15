@@ -139,7 +139,12 @@ from src.libclang.translation_unit import (
 )
 
 from std.collections import InlineArray, List
-from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer, MutOpaquePointer
+from std.memory import (
+    ArcPointer,
+    UnsafePointer,
+    ImmutOpaquePointer,
+    MutOpaquePointer,
+)
 
 
 struct Cursor(Copyable, Movable, Writable):
@@ -152,6 +157,19 @@ struct Cursor(Copyable, Movable, Writable):
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
     var _raw: InlineArray[CXCursor, 1]
+
+    def __init__(out self, tu: TranslationUnit) raises:
+        """Create a null cursor tied to `tu`."""
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXCursor, 1](
+            fill=_zero_cursor(),
+        )
+
+    def __init__(out self, tu: TranslationUnit, raw: CXCursor):
+        self._tu = tu.state()
+        self._generation = tu.state()[].generation
+        self._raw = InlineArray[CXCursor, 1](fill=raw)
 
     def __init__(
         out self,
@@ -175,6 +193,10 @@ struct Cursor(Copyable, Movable, Writable):
         self._tu = tu
         self._generation = tu[].generation
         self._raw = InlineArray[CXCursor, 1](fill=raw)
+
+    @staticmethod
+    def null(tu: TranslationUnit) raises -> Self:
+        return Self(tu=tu)
 
     @staticmethod
     def null(tu: ArcPointer[TranslationUnitState]) raises -> Self:
@@ -240,7 +262,11 @@ struct Cursor(Copyable, Movable, Writable):
     def write_to(mut self, mut writer: Some[Writer]):
         try:
             writer.write(
-                "Cursor(kind=", self.kind().as_c_uint(), ", spelling=", self.spelling(), ")"
+                "Cursor(kind=",
+                self.kind().as_c_uint(),
+                ", spelling=",
+                self.spelling(),
+                ")",
             )
         except:
             writer.write("Cursor(<invalid>)")
@@ -390,15 +416,19 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         var language_cs = _CXStringStorage()
         var defined_in_cs = _CXStringStorage()
-        var is_generated: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](fill=c_uint(0))
-        var result = Bool(clang_Cursor_isExternalSymbol(
-            self._ptr(),
-            language_cs.ptr_for_out(),
-            defined_in_cs.ptr_for_out(),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
-                is_generated.unsafe_ptr(),
-            ),
-        ))
+        var is_generated: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](
+            fill=c_uint(0)
+        )
+        var result = Bool(
+            clang_Cursor_isExternalSymbol(
+                self._ptr(),
+                language_cs.ptr_for_out(),
+                defined_in_cs.ptr_for_out(),
+                rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                    is_generated.unsafe_ptr(),
+                ),
+            )
+        )
         _ = language_cs.take()
         _ = defined_in_cs.take()
         return result
@@ -413,6 +443,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def is_const_qualified_type(mut self) raises -> Bool:
         from src.libclang.type_ import Type
+
         self._check_valid()
         var t = Type(tu=self._tu)
         clang_getCursorType(t._ptr(), self._ptr())
@@ -420,6 +451,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def is_volatile_qualified_type(mut self) raises -> Bool:
         from src.libclang.type_ import Type
+
         self._check_valid()
         var t = Type(tu=self._tu)
         clang_getCursorType(t._ptr(), self._ptr())
@@ -427,6 +459,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def is_restrict_qualified_type(mut self) raises -> Bool:
         from src.libclang.type_ import Type
+
         self._check_valid()
         var t = Type(tu=self._tu)
         clang_getCursorType(t._ptr(), self._ptr())
@@ -434,6 +467,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def is_pod_type(mut self) raises -> Bool:
         from src.libclang.type_ import Type
+
         self._check_valid()
         var t = Type(tu=self._tu)
         clang_getCursorType(t._ptr(), self._ptr())
@@ -526,8 +560,12 @@ struct Cursor(Copyable, Movable, Writable):
             Optional[UnsafePointer[CXCursor, MutExternalOrigin]], 1
         ] = InlineArray[
             Optional[UnsafePointer[CXCursor, MutExternalOrigin]], 1
-        ](fill=None)
-        var num_slot: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](fill=c_uint(0))
+        ](
+            fill=None
+        )
+        var num_slot: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](
+            fill=c_uint(0)
+        )
 
         clang_getOverriddenCursors(
             self._ptr(),
@@ -537,7 +575,9 @@ struct Cursor(Copyable, Movable, Writable):
                     MutExternalOrigin,
                 ]
             ](overridden_slot.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](num_slot.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                num_slot.unsafe_ptr()
+            ),
         )
 
         var raw_ptr = overridden_slot[0]
@@ -565,9 +605,13 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         return clang_Cursor_getNumTemplateArguments(self._ptr())
 
-    def template_argument_kind(mut self, i: c_uint) raises -> TemplateArgumentKind:
+    def template_argument_kind(
+        mut self, i: c_uint
+    ) raises -> TemplateArgumentKind:
         self._check_valid()
-        return TemplateArgumentKind(c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i)))
+        return TemplateArgumentKind(
+            c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i))
+        )
 
     def template_argument_type(mut self, i: c_uint) raises -> Type:
         from src.libclang.type_ import Type
@@ -582,7 +626,9 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         return clang_Cursor_getTemplateArgumentValue(self._ptr(), i)
 
-    def template_argument_unsigned_value(mut self, i: c_uint) raises -> c_ulong_long:
+    def template_argument_unsigned_value(
+        mut self, i: c_uint
+    ) raises -> c_ulong_long:
         self._check_valid()
         return clang_Cursor_getTemplateArgumentUnsignedValue(self._ptr(), i)
 
@@ -664,7 +710,9 @@ struct Cursor(Copyable, Movable, Writable):
 
     def availability(mut self) raises -> AvailabilityKind:
         self._check_valid()
-        return AvailabilityKind(c_uint(clang_getCursorAvailability(self._ptr())))
+        return AvailabilityKind(
+            c_uint(clang_getCursorAvailability(self._ptr()))
+        )
 
     def language(mut self) raises -> LanguageKind:
         self._check_valid()

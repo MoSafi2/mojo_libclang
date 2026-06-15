@@ -84,6 +84,21 @@ struct Diagnostic(Movable, Writable):
 
     def __init__(
         out self,
+        tu: TranslationUnit,
+        raw: CXDiagnostic,
+        owns: Bool = True,
+    ) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = raw
+        self._owns = owns
+        self._formatted = String()
+
+        if raw:
+            self._cache_format()
+
+    def __init__(
+        out self,
         tu: ArcPointer[TranslationUnitState],
         raw: CXDiagnostic,
         owns: Bool = True,
@@ -276,6 +291,23 @@ struct DiagnosticSet(Movable, Sized, Writable):
     var _owns: Bool
     var _index: c_uint
     var _count: Int
+
+    def __init__(
+        out self,
+        tu: TranslationUnit,
+        raw: CXDiagnosticSet,
+        owns: Bool = True,
+    ) raises:
+        self._tu = tu.state()
+        self._generation = self._tu[].generation
+        self._raw = raw
+        self._owns = owns
+        self._index = c_uint(0)
+
+        if raw:
+            self._count = Int(clang_getNumDiagnosticsInSet(raw))
+        else:
+            self._count = 0
 
     def __init__(
         out self,
