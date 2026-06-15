@@ -28,6 +28,7 @@ from src._ffi import (
     CXTranslationUnit,
 )
 
+from src.libclang.enums import TokenKind
 from src.libclang.common import _CXStringStorage
 from src.libclang.state import TranslationUnitState
 from src.libclang.cursor import Cursor
@@ -50,7 +51,7 @@ struct Token(Copyable, Movable, Writable):
     var _generation: Int
     var _raw: InlineArray[CXToken, 1]
     var _spelling: String
-    var _kind: CXTokenKind
+    var _kind: TokenKind
 
     def __init__(
         out self,
@@ -61,7 +62,7 @@ struct Token(Copyable, Movable, Writable):
         self._generation = tu[].generation
         self._raw = InlineArray[CXToken, 1](fill=raw)
         self._spelling = String()
-        self._kind = CXTokenKind(c_uint(0))
+        self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi()
 
     def _check_valid(self) raises:
@@ -96,13 +97,13 @@ struct Token(Copyable, Movable, Writable):
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
             "Token(",
-            Int(c_uint(self._kind)),
+            Int(self._kind.as_c_uint()),
             ": ",
             self._spelling,
             ")",
         )
 
-    def kind(mut self) raises -> CXTokenKind:
+    def kind(mut self) raises -> TokenKind:
         self._check_valid()
         return self._kind
 

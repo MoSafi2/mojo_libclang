@@ -116,6 +116,18 @@ from src._ffi import (
     clang_visitChildren,
 )
 
+from src.libclang.enums import (
+    CursorKind,
+    LinkageKind,
+    VisibilityKind,
+    AvailabilityKind,
+    LanguageKind,
+    TLSKind,
+    StorageClass,
+    AccessSpecifier,
+    TemplateArgumentKind,
+)
+
 from src.libclang.common import _CXStringStorage
 
 from src.libclang.translation_unit import (
@@ -237,9 +249,9 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         return Bool(clang_Cursor_isNull(self._ptr()))
 
-    def kind(mut self) raises -> CXCursorKind:
+    def kind(mut self) raises -> CursorKind:
         self._check_valid()
-        return clang_getCursorKind(self._ptr())
+        return CursorKind(clang_getCursorKind(self._ptr()))
 
     def hash(mut self) raises -> c_uint:
         self._check_valid()
@@ -423,9 +435,9 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorType(t._ptr(), self._ptr())
         return Bool(clang_isPODType(t._ptr()))
 
-    def access_specifier(mut self) raises -> c_uint:
+    def access_specifier(mut self) raises -> AccessSpecifier:
         self._check_valid()
-        return c_uint(clang_getCXXAccessSpecifier(self._ptr()))
+        return AccessSpecifier(c_uint(clang_getCXXAccessSpecifier(self._ptr())))
 
     # -----------------------------------------------------------------------
     # Cursor relations
@@ -549,9 +561,9 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         return clang_Cursor_getNumTemplateArguments(self._ptr())
 
-    def template_argument_kind(mut self, i: c_uint) raises -> c_uint:
+    def template_argument_kind(mut self, i: c_uint) raises -> TemplateArgumentKind:
         self._check_valid()
-        return c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i))
+        return TemplateArgumentKind(c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i)))
 
     def template_argument_type(mut self, i: c_uint) raises -> Type:
         from src.libclang.type_ import Type
@@ -578,9 +590,9 @@ struct Cursor(Copyable, Movable, Writable):
             return None
         return Optional[Self](out^)
 
-    def template_kind(mut self) raises -> CXCursorKind:
+    def template_kind(mut self) raises -> CursorKind:
         self._check_valid()
-        return clang_getTemplateCursorKind(self._ptr())
+        return CursorKind(clang_getTemplateCursorKind(self._ptr()))
 
     # -----------------------------------------------------------------------
     # Arguments and tokens
@@ -638,29 +650,29 @@ struct Cursor(Copyable, Movable, Writable):
     # Miscellaneous cursor properties
     # -----------------------------------------------------------------------
 
-    def linkage(mut self) raises -> c_uint:
+    def linkage(mut self) raises -> LinkageKind:
         self._check_valid()
-        return c_uint(clang_getCursorLinkage(self._ptr()))
+        return LinkageKind(c_uint(clang_getCursorLinkage(self._ptr())))
 
-    def visibility(mut self) raises -> c_uint:
+    def visibility(mut self) raises -> VisibilityKind:
         self._check_valid()
-        return c_uint(clang_getCursorVisibility(self._ptr()))
+        return VisibilityKind(c_uint(clang_getCursorVisibility(self._ptr())))
 
-    def availability(mut self) raises -> c_uint:
+    def availability(mut self) raises -> AvailabilityKind:
         self._check_valid()
-        return c_uint(clang_getCursorAvailability(self._ptr()))
+        return AvailabilityKind(c_uint(clang_getCursorAvailability(self._ptr())))
 
-    def language(mut self) raises -> c_uint:
+    def language(mut self) raises -> LanguageKind:
         self._check_valid()
-        return c_uint(clang_getCursorLanguage(self._ptr()))
+        return LanguageKind(c_uint(clang_getCursorLanguage(self._ptr())))
 
-    def tls_kind(mut self) raises -> c_uint:
+    def tls_kind(mut self) raises -> TLSKind:
         self._check_valid()
-        return c_uint(clang_getCursorTLSKind(self._ptr()))
+        return TLSKind(c_uint(clang_getCursorTLSKind(self._ptr())))
 
-    def storage_class(mut self) raises -> c_uint:
+    def storage_class(mut self) raises -> StorageClass:
         self._check_valid()
-        return c_uint(clang_Cursor_getStorageClass(self._ptr()))
+        return StorageClass(c_uint(clang_Cursor_getStorageClass(self._ptr())))
 
     def is_bitfield(mut self) raises -> Bool:
         self._check_valid()

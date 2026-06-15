@@ -3,7 +3,6 @@
 from src._ffi import (
     CXIndex,
     CXTranslationUnit,
-    CXError_Success,
     clang_createIndex,
     clang_parseTranslationUnit2,
     clang_createTranslationUnit2,
@@ -11,6 +10,8 @@ from src._ffi import (
     c_uint,
     c_int,
 )
+
+from src.libclang.enums import ErrorCode, TranslationUnitFlags
 
 from src.libclang.common import (
     UnsavedFile,
@@ -99,7 +100,7 @@ struct Index(Copyable, Movable, Writable):
         path: String,
         args: List[String] = List[String](),
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-        options: c_uint = 0,
+        options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises -> TranslationUnit:
         """Parse a source file into a `TranslationUnit`.
 
@@ -115,14 +116,14 @@ struct Index(Copyable, Movable, Writable):
         )
         var path_c = _alloc_c_string(path)
 
-        var err = clang_parseTranslationUnit2(
+        var raw_err = clang_parseTranslationUnit2(
             self.raw(),
             _c_string(path_c),
             arg_arena.ptr(),
             arg_arena.count(),
             unsaved_arena.ptr(),
             unsaved_arena.count(),
-            options,
+            options.as_c_uint(),
             rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
                 out_ptr,
             ),
@@ -130,9 +131,11 @@ struct Index(Copyable, Movable, Writable):
 
         path_c.free()
 
-        if err != CXError_Success:
+        var err = ErrorCode(raw_err)
+        if err != ErrorCode.SUCCESS:
             raise Error(
-                "TranslationUnit parse failed: error code=" + String(Int(err)),
+                "TranslationUnit parse failed: error code="
+                + String(Int(err.as_c_uint())),
             )
 
         return TranslationUnit(self.state(), out_tu)

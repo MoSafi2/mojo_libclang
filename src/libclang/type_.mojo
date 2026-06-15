@@ -14,9 +14,6 @@ Important:
 from src._ffi import (
     CXType,
     CXTypeKind,
-    CXCursor_FieldDecl,
-    CXCursor_CXXBaseSpecifier,
-    CXCursor_CXXMethod,
     c_uint,
     c_int,
     c_long_long,
@@ -52,6 +49,13 @@ from src._ffi import (
     clang_equalTypes,
 )
 
+from src.libclang.enums import (
+    TypeKind,
+    RefQualifierKind,
+    CallingConv,
+    ExceptionSpecificationKind,
+    CursorKind,
+)
 from src.libclang.common import _CXStringStorage
 from src.libclang.state import TranslationUnitState
 
@@ -119,9 +123,9 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return self._raw[0].copy()
 
-    def kind(mut self) raises -> CXTypeKind:
+    def kind(mut self) raises -> TypeKind:
         self._check_valid()
-        return self._raw[0].kind
+        return TypeKind(self._raw[0].kind)
 
     def spelling(mut self) raises -> String:
         self._check_valid()
@@ -280,7 +284,7 @@ struct Type(Copyable, Movable, Writable):
         for i in range(Int(children.__len__())):
             var child = children[i].copy()
 
-            if child.kind() != CXCursor_FieldDecl:
+            if child.kind() != CursorKind.FIELD_DECL:
                 continue
 
             var field_type = child.type()
@@ -308,17 +312,19 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return clang_Type_getSizeOf(self._ptr())
 
-    def get_ref_qualifier(mut self) raises -> c_uint:
+    def get_ref_qualifier(mut self) raises -> RefQualifierKind:
         self._check_valid()
-        return c_uint(clang_Type_getCXXRefQualifier(self._ptr()))
+        return RefQualifierKind(clang_Type_getCXXRefQualifier(self._ptr()))
 
-    def get_exception_specification_kind(mut self) raises -> c_int:
+    def get_exception_specification_kind(mut self) raises -> ExceptionSpecificationKind:
         self._check_valid()
-        return clang_getExceptionSpecificationType(self._ptr())
+        return ExceptionSpecificationKind(
+            c_uint(clang_getExceptionSpecificationType(self._ptr())),
+        )
 
-    def get_calling_conv(mut self) raises -> c_uint:
+    def get_calling_conv(mut self) raises -> CallingConv:
         self._check_valid()
-        return c_uint(clang_getFunctionTypeCallingConv(self._ptr()))
+        return CallingConv(clang_getFunctionTypeCallingConv(self._ptr()))
 
     def address_space(mut self) raises -> c_uint:
         self._check_valid()
@@ -362,7 +368,7 @@ struct Type(Copyable, Movable, Writable):
         var fields = List[Cursor]()
         for i in range(Int(children.__len__())):
             var child = children[i].copy()
-            if child.kind() == CXCursor_FieldDecl:
+            if child.kind() == CursorKind.FIELD_DECL:
                 fields.append(child^)
         return fields^
 
@@ -377,7 +383,7 @@ struct Type(Copyable, Movable, Writable):
         var bases = List[Cursor]()
         for i in range(Int(children.__len__())):
             var child = children[i].copy()
-            if child.kind() == CXCursor_CXXBaseSpecifier:
+            if child.kind() == CursorKind.CXX_BASE_SPECIFIER:
                 bases.append(child^)
         return bases^
 
@@ -392,7 +398,7 @@ struct Type(Copyable, Movable, Writable):
         var methods = List[Cursor]()
         for i in range(Int(children.__len__())):
             var child = children[i].copy()
-            if child.kind() == CXCursor_CXXMethod:
+            if child.kind() == CursorKind.CXX_METHOD:
                 methods.append(child^)
         return methods^
 

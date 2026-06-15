@@ -24,7 +24,6 @@ Ownership notes:
 from src._ffi import (
     CXDiagnostic,
     CXDiagnosticSet,
-    CXDiagnosticSeverity,
     c_uint,
     clang_getDiagnosticSeverity,
     clang_getDiagnosticSpelling,
@@ -44,6 +43,7 @@ from src._ffi import (
     clang_disposeDiagnostic,
 )
 
+from src.libclang.enums import DiagnosticSeverity, DiagnosticDisplayOptions
 from src.libclang.common import _CXStringStorage
 from src.libclang.state import TranslationUnitState
 from src.libclang.source_location import SourceLocation
@@ -110,17 +110,19 @@ struct Diagnostic(Movable, Writable):
     def _cache_format(mut self) raises:
         self._check_valid()
 
-        var options = clang_defaultDiagnosticDisplayOptions()
+        var options = DiagnosticDisplayOptions(
+            clang_defaultDiagnosticDisplayOptions(),
+        )
         var cs = _CXStringStorage()
-        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options)
+        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options.as_c_uint())
         self._formatted = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("Diagnostic(", self._formatted, ")")
 
-    def severity(mut self) raises -> CXDiagnosticSeverity:
+    def severity(mut self) raises -> DiagnosticSeverity:
         self._check_valid()
-        return clang_getDiagnosticSeverity(self._raw)
+        return DiagnosticSeverity(clang_getDiagnosticSeverity(self._raw))
 
     def spelling(mut self) raises -> String:
         self._check_valid()
@@ -231,12 +233,19 @@ struct Diagnostic(Movable, Writable):
             owns=False,
         )
 
-    def format(mut self) raises -> String:
+    def format(
+        mut self,
+        options: DiagnosticDisplayOptions = DiagnosticDisplayOptions.DEFAULT,
+    ) raises -> String:
         self._check_valid()
 
-        var options = clang_defaultDiagnosticDisplayOptions()
+        var opts = options
+        if opts == DiagnosticDisplayOptions.DEFAULT:
+            opts = DiagnosticDisplayOptions(
+                clang_defaultDiagnosticDisplayOptions(),
+            )
         var cs = _CXStringStorage()
-        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options)
+        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, opts.as_c_uint())
         return cs.take()
 
     def formatted(mut self) raises -> String:

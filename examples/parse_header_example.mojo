@@ -13,15 +13,7 @@ mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim
 examples/parse_header_example.mojo
 """
 
-from src._ffi import (
-    CXCursorKind,
-    CXCursor_FunctionDecl,
-    CXCursor_StructDecl,
-    CXCursor_EnumDecl,
-    CXCursor_TypedefDecl,
-)
-
-from src.libclang import Index, SourceExtentInput, UnsavedFile
+from src.libclang import Index, SourceExtentInput, UnsavedFile, CursorKind
 from src.libclang.cursor import Cursor
 from src.libclang.translation_unit import TranslationUnit
 

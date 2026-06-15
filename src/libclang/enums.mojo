@@ -3,27 +3,21 @@
 Each enum tag in the raw binding is exposed as a small ``Copyable,
 ImplicitlyCopyable, Movable, Equatable`` struct that:
 
-- Wraps a single ``c_uint`` value matching the C ABI.
+- Wraps a single ``c_uint`` (or ``Int``) value matching the C ABI.
 - Exposes a ``comptime`` constant for every documented case so callers can
   write ``kind == CursorKind.TRANSLATION_UNIT``.
-- Converts implicitly from ``c_uint`` (and therefore from the raw ``CX*``
-  alias, which is a ``comptime`` alias for ``c_uint``) so existing call
-  sites that return raw values keep working without manual wrapping.
-- Exposes ``as_c_uint()`` to recover the raw integer for FFI calls.
+- Converts implicitly from ``c_uint`` so existing call sites that return raw
+  values keep working without manual wrapping.
+- Exposes ``as_c_uint()`` (or ``as_int()``) to recover the raw value for FFI
+  calls.
 
 The wrapper structs are pure value types. They do **not** own libclang
 resources and are safe to copy freely.
-
-The raw ``c_uint`` aliases (e.g. ``CXCursorKind``) and the raw
-``CX*_Foo`` constant aliases (e.g. ``CXCursor_TranslationUnit``) are
-re-exported from this module for backward compatibility with code that
-prefers the raw naming.
 """
 
 from src._ffi import (
-    # Underlying C types
+    c_int,
     c_uint,
-    # Raw enum type aliases (comptime = c_uint)
     CXCursorKind,
     CXTypeKind,
     CXTokenKind,
@@ -38,7 +32,6 @@ from src._ffi import (
     CXCallingConv,
     CXChildVisitResult,
     CXDiagnosticSeverity,
-    # Raw constants: cursor kinds (group boundaries and common cases)
     CXCursor_FirstInvalid,
     CXCursor_TranslationUnit,
     CXCursor_FunctionDecl,
@@ -58,7 +51,6 @@ from src._ffi import (
     CXCursor_Namespace,
     CXCursor_TypeAliasDecl,
     CXCursor_UnexposedDecl,
-    # Raw constants: type kinds (common cases)
     CXType_Invalid,
     CXType_Void,
     CXType_Bool,
@@ -99,16 +91,79 @@ from src._ffi import (
     CXType_Dependent,
     CXType_ObjCObjectPointer,
     CXType_BFloat16,
-    # Raw constants: diagnostic severity
     CXDiagnostic_Ignored,
     CXDiagnostic_Note,
     CXDiagnostic_Warning,
     CXDiagnostic_Error,
     CXDiagnostic_Fatal,
-    # Raw constants: traversal results
     CXChildVisit_Break,
     CXChildVisit_Continue,
     CXChildVisit_Recurse,
+    CXErrorCode,
+    CXError_Success,
+    CXError_Failure,
+    CXError_Crashed,
+    CXError_InvalidArguments,
+    CXError_ASTReadError,
+    CXSaveError,
+    CXSaveError_None,
+    CXSaveError_Unknown,
+    CXSaveError_TranslationErrors,
+    CXSaveError_InvalidTU,
+    CXTranslationUnit_Flags,
+    CXTranslationUnit_None,
+    CXTranslationUnit_DetailedPreprocessingRecord,
+    CXTranslationUnit_Incomplete,
+    CXTranslationUnit_PrecompiledPreamble,
+    CXTranslationUnit_CacheCompletionResults,
+    CXTranslationUnit_ForSerialization,
+    CXTranslationUnit_CXXChainedPCH,
+    CXTranslationUnit_SkipFunctionBodies,
+    CXTranslationUnit_IncludeBriefCommentsInCodeCompletion,
+    CXTranslationUnit_CreatePreambleOnFirstParse,
+    CXTranslationUnit_KeepGoing,
+    CXTranslationUnit_SingleFileParse,
+    CXTranslationUnit_LimitSkipFunctionBodiesToPreamble,
+    CXTranslationUnit_IncludeAttributedTypes,
+    CXTranslationUnit_VisitImplicitAttributes,
+    CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles,
+    CXTranslationUnit_RetainExcludedConditionalBlocks,
+    CXDiagnosticDisplayOptions,
+    CXDiagnostic_DisplaySourceLocation,
+    CXDiagnostic_DisplayColumn,
+    CXDiagnostic_DisplaySourceRanges,
+    CXDiagnostic_DisplayOption,
+    CXDiagnostic_DisplayCategoryId,
+    CXDiagnostic_DisplayCategoryName,
+    CXTypeLayoutError,
+    CXTypeLayoutError_Invalid,
+    CXTypeLayoutError_Incomplete,
+    CXTypeLayoutError_Dependent,
+    CXTypeLayoutError_NotConstantSize,
+    CXTypeLayoutError_InvalidFieldName,
+    CXTypeLayoutError_Undeduced,
+    CXVisibilityKind,
+    CXVisibility_Invalid,
+    CXVisibility_Hidden,
+    CXVisibility_Protected,
+    CXVisibility_Default,
+    CXCursor_ExceptionSpecificationKind,
+    CXCursor_ExceptionSpecificationKind_None,
+    CXCursor_ExceptionSpecificationKind_DynamicNone,
+    CXCursor_ExceptionSpecificationKind_Dynamic,
+    CXCursor_ExceptionSpecificationKind_MSAny,
+    CXCursor_ExceptionSpecificationKind_BasicNoexcept,
+    CXCursor_ExceptionSpecificationKind_ComputedNoexcept,
+    CXCursor_ExceptionSpecificationKind_Unevaluated,
+    CXCursor_ExceptionSpecificationKind_Uninstantiated,
+    CXCursor_ExceptionSpecificationKind_Unparsed,
+    CXCursor_ExceptionSpecificationKind_NoThrow,
+    CXCodeComplete_Flags,
+    CXCodeComplete_IncludeMacros,
+    CXCodeComplete_IncludeCodePatterns,
+    CXCodeComplete_IncludeBriefComments,
+    CXCodeComplete_SkipPreamble,
+    CXCodeComplete_IncludeCompletionsWithFixIts,
 )
 
 
@@ -193,35 +248,19 @@ struct CursorKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
         return self._value == other._value
 
     # Group boundaries
-    comptime FIRST_DECL = Self(c_uint(1))
-    comptime LAST_DECL = Self(c_uint(39))
-    comptime FIRST_REF = Self(c_uint(40))
-    comptime LAST_REF = Self(c_uint(50))
-    comptime FIRST_INVALID = Self(c_uint(70))
-    comptime LAST_INVALID = Self(c_uint(73))
-    comptime FIRST_EXPR = Self(c_uint(100))
-    comptime LAST_EXPR = Self(c_uint(155))
-    comptime FIRST_STMT = Self(c_uint(200))
-    comptime LAST_STMT = Self(c_uint(306))
-    comptime FIRST_ATTR = Self(c_uint(400))
-    comptime LAST_ATTR = Self(c_uint(441))
-    comptime FIRST_PREPROCESSING = Self(c_uint(500))
-    comptime LAST_PREPROCESSING = Self(c_uint(503))
-    comptime FIRST_EXTRA_DECL = Self(c_uint(600))
-    comptime LAST_EXTRA_DECL = Self(c_uint(604))
     comptime OVERLOAD_CANDIDATE = Self(c_uint(700))
 
     # Declaration kinds
-    comptime UNEXPOSED_DECL = Self(c_uint(1))
-    comptime STRUCT_DECL = Self(c_uint(2))
-    comptime UNION_DECL = Self(c_uint(3))
-    comptime CLASS_DECL = Self(c_uint(4))
-    comptime ENUM_DECL = Self(c_uint(5))
-    comptime FIELD_DECL = Self(c_uint(6))
-    comptime ENUM_CONSTANT_DECL = Self(c_uint(7))
-    comptime FUNCTION_DECL = Self(c_uint(8))
-    comptime VAR_DECL = Self(c_uint(9))
-    comptime PARM_DECL = Self(c_uint(10))
+    comptime UNEXPOSED_DECL = Self(CXCursor_UnexposedDecl)
+    comptime STRUCT_DECL = Self(CXCursor_StructDecl)
+    comptime UNION_DECL = Self(CXCursor_UnionDecl)
+    comptime CLASS_DECL = Self(CXCursor_ClassDecl)
+    comptime ENUM_DECL = Self(CXCursor_EnumDecl)
+    comptime FIELD_DECL = Self(CXCursor_FieldDecl)
+    comptime ENUM_CONSTANT_DECL = Self(CXCursor_EnumConstantDecl)
+    comptime FUNCTION_DECL = Self(CXCursor_FunctionDecl)
+    comptime VAR_DECL = Self(CXCursor_VarDecl)
+    comptime PARM_DECL = Self(CXCursor_ParmDecl)
     comptime OBJC_INTERFACE_DECL = Self(c_uint(11))
     comptime OBJC_CATEGORY_DECL = Self(c_uint(12))
     comptime OBJC_PROTOCOL_DECL = Self(c_uint(13))
@@ -231,13 +270,13 @@ struct CursorKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
     comptime OBJC_CLASS_METHOD_DECL = Self(c_uint(17))
     comptime OBJC_IMPLEMENTATION_DECL = Self(c_uint(18))
     comptime OBJC_CATEGORY_IMPL_DECL = Self(c_uint(19))
-    comptime TYPEDEF_DECL = Self(c_uint(20))
-    comptime CXX_METHOD = Self(c_uint(21))
-    comptime NAMESPACE = Self(c_uint(22))
+    comptime TYPEDEF_DECL = Self(CXCursor_TypedefDecl)
+    comptime CXX_METHOD = Self(CXCursor_CXXMethod)
+    comptime NAMESPACE = Self(CXCursor_Namespace)
     comptime LINKAGE_SPEC = Self(c_uint(23))
-    comptime CONSTRUCTOR = Self(c_uint(24))
-    comptime DESTRUCTOR = Self(c_uint(25))
-    comptime CONVERSION_FUNCTION = Self(c_uint(26))
+    comptime CONSTRUCTOR = Self(CXCursor_Constructor)
+    comptime DESTRUCTOR = Self(CXCursor_Destructor)
+    comptime CONVERSION_FUNCTION = Self(CXCursor_ConversionFunction)
     comptime TEMPLATE_TYPE_PARAMETER = Self(c_uint(27))
     comptime NON_TYPE_TEMPLATE_PARAMETER = Self(c_uint(28))
     comptime TEMPLATE_TEMPLATE_PARAMETER = Self(c_uint(29))
@@ -247,7 +286,7 @@ struct CursorKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
     comptime NAMESPACE_ALIAS = Self(c_uint(33))
     comptime USING_DIRECTIVE = Self(c_uint(34))
     comptime USING_DECLARATION = Self(c_uint(35))
-    comptime TYPE_ALIAS_DECL = Self(c_uint(36))
+    comptime TYPE_ALIAS_DECL = Self(CXCursor_TypeAliasDecl)
     comptime OBJC_SYNTHESIZE_DECL = Self(c_uint(37))
     comptime OBJC_DYNAMIC_DECL = Self(c_uint(38))
     comptime CXX_ACCESS_SPECIFIER = Self(c_uint(39))
@@ -360,7 +399,7 @@ struct CursorKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
     comptime DECL_STMT = Self(c_uint(231))
 
     # Root
-    comptime TRANSLATION_UNIT = Self(c_uint(350))
+    comptime TRANSLATION_UNIT = Self(CXCursor_TranslationUnit)
 
     # Attribute kinds
     comptime UNEXPOSED_ATTR = Self(c_uint(400))
@@ -815,9 +854,9 @@ struct ChildVisitResult(Copyable, ImplicitlyCopyable, Movable, Equatable):
     def __eq__(self, other: Self) -> Bool:
         return self._value == other._value
 
-    comptime BREAK = Self(c_uint(0))
-    comptime CONTINUE = Self(c_uint(1))
-    comptime RECURSE = Self(c_uint(2))
+    comptime BREAK = Self(CXChildVisit_Break)
+    comptime CONTINUE = Self(CXChildVisit_Continue)
+    comptime RECURSE = Self(CXChildVisit_Recurse)
 
 
 # ---------------------------------------------------------------------------
@@ -840,8 +879,279 @@ struct DiagnosticSeverity(Copyable, ImplicitlyCopyable, Movable, Equatable):
     def __eq__(self, other: Self) -> Bool:
         return self._value == other._value
 
-    comptime IGNORED = Self(c_uint(0))
-    comptime NOTE = Self(c_uint(1))
-    comptime WARNING = Self(c_uint(2))
-    comptime ERROR = Self(c_uint(3))
-    comptime FATAL = Self(c_uint(4))
+    comptime IGNORED = Self(CXDiagnostic_Ignored)
+    comptime NOTE = Self(CXDiagnostic_Note)
+    comptime WARNING = Self(CXDiagnostic_Warning)
+    comptime ERROR = Self(CXDiagnostic_Error)
+    comptime FATAL = Self(CXDiagnostic_Fatal)
+
+
+# ---------------------------------------------------------------------------
+# ErrorCode
+# ---------------------------------------------------------------------------
+
+
+struct ErrorCode(Copyable, ImplicitlyCopyable, Movable, Equatable):
+    """Return code from ``clang_parseTranslationUnit2`` etc."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime SUCCESS = Self(CXError_Success)
+    comptime FAILURE = Self(CXError_Failure)
+    comptime CRASHED = Self(CXError_Crashed)
+    comptime INVALID_ARGUMENTS = Self(CXError_InvalidArguments)
+    comptime AST_READ_ERROR = Self(CXError_ASTReadError)
+
+
+# ---------------------------------------------------------------------------
+# SaveError
+# ---------------------------------------------------------------------------
+
+
+struct SaveError(Copyable, ImplicitlyCopyable, Movable, Equatable):
+    """Return code from ``clang_saveTranslationUnit``."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime NONE = Self(CXSaveError_None)
+    comptime UNKNOWN = Self(CXSaveError_Unknown)
+    comptime TRANSLATION_ERRORS = Self(CXSaveError_TranslationErrors)
+    comptime INVALID_TU = Self(CXSaveError_InvalidTU)
+
+
+# ---------------------------------------------------------------------------
+# TranslationUnitFlags  (bit flags)
+# ---------------------------------------------------------------------------
+
+
+struct TranslationUnitFlags(Copyable, ImplicitlyCopyable, Movable):
+    """Bit flags for ``TranslationUnit`` creation / reparse options.
+
+    Supports ``contains()`` and ``|`` for composing options.
+    """
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def contains(self, flag: Self) -> Bool:
+        return (self._value & flag._value) != c_uint(0)
+
+    def __or__(self, other: Self) -> Self:
+        return Self(self._value | other._value)
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime NONE = Self(CXTranslationUnit_None)
+    comptime DETAILED_PREPROCESSING_RECORD = Self(
+        CXTranslationUnit_DetailedPreprocessingRecord,
+    )
+    comptime INCOMPLETE = Self(CXTranslationUnit_Incomplete)
+    comptime PRECOMPILED_PREAMBLE = Self(CXTranslationUnit_PrecompiledPreamble)
+    comptime CACHE_COMPLETION_RESULTS = Self(CXTranslationUnit_CacheCompletionResults)
+    comptime FOR_SERIALIZATION = Self(CXTranslationUnit_ForSerialization)
+    comptime CXX_CHAINED_PCH = Self(CXTranslationUnit_CXXChainedPCH)
+    comptime SKIP_FUNCTION_BODIES = Self(CXTranslationUnit_SkipFunctionBodies)
+    comptime INCLUDE_BRIEF_COMMENTS_IN_CODE_COMPLETION = Self(
+        CXTranslationUnit_IncludeBriefCommentsInCodeCompletion,
+    )
+    comptime CREATE_PREAMBLE_ON_FIRST_PARSE = Self(
+        CXTranslationUnit_CreatePreambleOnFirstParse,
+    )
+    comptime KEEP_GOING = Self(CXTranslationUnit_KeepGoing)
+    comptime SINGLE_FILE_PARSE = Self(CXTranslationUnit_SingleFileParse)
+    comptime LIMIT_SKIP_FUNCTION_BODIES_TO_PREAMBLE = Self(
+        CXTranslationUnit_LimitSkipFunctionBodiesToPreamble,
+    )
+    comptime INCLUDE_ATTRIBUTED_TYPES = Self(CXTranslationUnit_IncludeAttributedTypes)
+    comptime VISIT_IMPLICIT_ATTRIBUTES = Self(CXTranslationUnit_VisitImplicitAttributes)
+    comptime IGNORE_NON_ERRORS_FROM_INCLUDED_FILES = Self(
+        CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles,
+    )
+    comptime RETAIN_EXCLUDED_CONDITIONAL_BLOCKS = Self(
+        CXTranslationUnit_RetainExcludedConditionalBlocks,
+    )
+
+
+# ---------------------------------------------------------------------------
+# DiagnosticDisplayOptions  (bit flags)
+# ---------------------------------------------------------------------------
+
+
+struct DiagnosticDisplayOptions(Copyable, ImplicitlyCopyable, Movable):
+    """Bit flags for ``clang_formatDiagnostic`` options."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def contains(self, flag: Self) -> Bool:
+        return (self._value & flag._value) != c_uint(0)
+
+    def __or__(self, other: Self) -> Self:
+        return Self(self._value | other._value)
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime DEFAULT = Self(c_uint(0))
+    comptime SOURCE_LOCATION = Self(CXDiagnostic_DisplaySourceLocation)
+    comptime COLUMN = Self(CXDiagnostic_DisplayColumn)
+    comptime SOURCE_RANGES = Self(CXDiagnostic_DisplaySourceRanges)
+    comptime OPTION = Self(CXDiagnostic_DisplayOption)
+    comptime CATEGORY_ID = Self(CXDiagnostic_DisplayCategoryId)
+    comptime CATEGORY_NAME = Self(CXDiagnostic_DisplayCategoryName)
+
+
+# ---------------------------------------------------------------------------
+# TypeLayoutError  (signed — layout APIs return negative error codes)
+# ---------------------------------------------------------------------------
+
+
+struct TypeLayoutError(Copyable, ImplicitlyCopyable, Movable, Equatable):
+    """Signed error code from ``clang_Type_getSizeOf`` etc."""
+
+    var _value: Int
+
+    @implicit
+    def __init__(out self, value: Int):
+        self._value = value
+
+    def as_int(self) -> Int:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime INVALID = Self(Int(CXTypeLayoutError_Invalid))
+    comptime INCOMPLETE = Self(Int(CXTypeLayoutError_Incomplete))
+    comptime DEPENDENT = Self(Int(CXTypeLayoutError_Dependent))
+    comptime NOT_CONSTANT_SIZE = Self(Int(CXTypeLayoutError_NotConstantSize))
+    comptime INVALID_FIELD_NAME = Self(Int(CXTypeLayoutError_InvalidFieldName))
+    comptime UNDEDUCED = Self(Int(CXTypeLayoutError_Undeduced))
+
+
+# ---------------------------------------------------------------------------
+# VisibilityKind
+# ---------------------------------------------------------------------------
+
+
+struct VisibilityKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+    """Visibility of a cursor/declaration."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime INVALID = Self(CXVisibility_Invalid)
+    comptime HIDDEN = Self(CXVisibility_Hidden)
+    comptime PROTECTED = Self(CXVisibility_Protected)
+    comptime DEFAULT = Self(CXVisibility_Default)
+
+
+# ---------------------------------------------------------------------------
+# ExceptionSpecificationKind
+# ---------------------------------------------------------------------------
+
+
+struct ExceptionSpecificationKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+    """Exception specification kind on a function type."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime NONE = Self(CXCursor_ExceptionSpecificationKind_None)
+    comptime DYNAMIC_NONE = Self(CXCursor_ExceptionSpecificationKind_DynamicNone)
+    comptime DYNAMIC = Self(CXCursor_ExceptionSpecificationKind_Dynamic)
+    comptime MS_ANY = Self(CXCursor_ExceptionSpecificationKind_MSAny)
+    comptime BASIC_NOEXCEPT = Self(CXCursor_ExceptionSpecificationKind_BasicNoexcept)
+    comptime COMPUTED_NOEXCEPT = Self(
+        CXCursor_ExceptionSpecificationKind_ComputedNoexcept,
+    )
+    comptime UNEVALUATED = Self(CXCursor_ExceptionSpecificationKind_Unevaluated)
+    comptime UNINSTANTIATED = Self(CXCursor_ExceptionSpecificationKind_Uninstantiated)
+    comptime UNPARSED = Self(CXCursor_ExceptionSpecificationKind_Unparsed)
+    comptime NO_THROW = Self(CXCursor_ExceptionSpecificationKind_NoThrow)
+
+
+# ---------------------------------------------------------------------------
+# CodeCompleteFlags  (bit flags)
+# ---------------------------------------------------------------------------
+
+
+struct CodeCompleteFlags(Copyable, ImplicitlyCopyable, Movable):
+    """Bit flags for code-completion options."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def contains(self, flag: Self) -> Bool:
+        return (self._value & flag._value) != c_uint(0)
+
+    def __or__(self, other: Self) -> Self:
+        return Self(self._value | other._value)
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime INCLUDE_MACROS = Self(CXCodeComplete_IncludeMacros)
+    comptime INCLUDE_CODE_PATTERNS = Self(CXCodeComplete_IncludeCodePatterns)
+    comptime INCLUDE_BRIEF_COMMENTS = Self(CXCodeComplete_IncludeBriefComments)
+    comptime SKIP_PREAMBLE = Self(CXCodeComplete_SkipPreamble)
+    comptime INCLUDE_COMPLETIONS_WITH_FIX_ITS = Self(
+        CXCodeComplete_IncludeCompletionsWithFixIts,
+    )

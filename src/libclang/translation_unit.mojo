@@ -16,6 +16,8 @@ from src._ffi import (
     c_uint,
 )
 
+from src.libclang.enums import TranslationUnitFlags, SaveError
+
 from src.libclang.common import (
     UnsavedFile,
     SourcePosition,
@@ -195,29 +197,35 @@ struct TranslationUnit(Copyable, Movable, Writable):
         clang_getCursor(out._ptr(), self.raw(), loc._ptr())
         return out^
 
-    def save(mut self, filename: String) raises:
+    def save(
+        mut self,
+        filename: String,
+        options: TranslationUnitFlags = TranslationUnitFlags.NONE,
+    ) raises:
         var filename_owner = filename.copy()
-        var options = clang_defaultSaveOptions(self.raw())
-
-        var result = clang_saveTranslationUnit(
+        var opts = options
+        if opts == TranslationUnitFlags.NONE:
+            opts = TranslationUnitFlags(clang_defaultSaveOptions(self.raw()))
+        var result_raw = clang_saveTranslationUnit(
             self.raw(),
             _c_string(filename_owner),
-            options,
+            opts.as_c_uint(),
         )
-
-        if result != 0:
+        var result = SaveError(c_uint(result_raw))
+        if result != SaveError.NONE:
             raise Error(
-                "TranslationUnitSaveError: clang_saveTranslationUnit returned "
-                + String(Int(result)),
+                "TranslationUnitSaveError: "
+                + String(Int(result.as_c_uint())),
             )
 
     def reparse(
         mut self,
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-        var options: c_uint = 0,
+        options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
-        if options == 0:
-            options = clang_defaultReparseOptions(self.raw())
+        var opts = options
+        if opts == TranslationUnitFlags.NONE:
+            opts = TranslationUnitFlags(clang_defaultReparseOptions(self.raw()))
 
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
@@ -225,7 +233,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
             self.raw(),
             unsaved_arena.count(),
             unsaved_arena.ptr(),
-            options,
+            opts.as_c_uint(),
         )
 
         if result != 0:
