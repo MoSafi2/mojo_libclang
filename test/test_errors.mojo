@@ -7,6 +7,7 @@ from src.libclang import (
     CompilationDatabaseError,
     SaveError,
 )
+from std.ffi import c_uint
 from std.testing import assert_raises, TestSuite
 
 

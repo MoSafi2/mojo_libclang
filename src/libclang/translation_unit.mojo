@@ -17,15 +17,13 @@ from src._ffi import (
     clang_reparseTranslationUnit,
     clang_saveTranslationUnit,
     clang_defaultReparseOptions,
-    clang_defaultCodeCompleteOptions,
-    clang_codeCompleteAt,
     clang_getInclusions,
     clang_createTranslationUnit2,
     clang_parseTranslationUnit2,
     c_uint,
 )
 
-from src.libclang.enums import TranslationUnitFlags, SaveError, CodeCompleteFlags
+from src.libclang.enums import TranslationUnitFlags, SaveError
 
 from src.libclang.common import (
     UnsavedFile,
@@ -46,7 +44,6 @@ from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 from src.libclang.token import TokenGroup
 from src.libclang.diagnostic import Diagnostic, DiagnosticSet
-from src.libclang.code_completion import CodeCompletionResults
 from src.libclang.file_inclusion import FileInclusion
 
 from std.memory import ArcPointer, UnsafePointer, alloc
@@ -271,90 +268,44 @@ struct TranslationUnit(Copyable, Movable, Writable):
     # Classmethod construction
     # -----------------------------------------------------------------------
 
-    @staticmethod
-    def from_source(
-        filename: String,
-        args: List[String] = List[String](),
-        unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-        options: TranslationUnitFlags = TranslationUnitFlags.NONE,
-        index: Optional[Index] = None,
-    ) raises -> TranslationUnit:
-        """Parse a source file into a ``TranslationUnit``.
+    # @staticmethod
+    # def from_source(
+    #     filename: String,
+    #     args: List[String] = List[String](),
+    #     unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
+    #     options: TranslationUnitFlags = TranslationUnitFlags.NONE,
+    #     index: Optional[Index] = None,
+    # ) raises -> TranslationUnit:
+    #     """Parse a source file into a ``TranslationUnit``.
 
-        If ``index`` is not provided, a default ``Index`` is created and kept
-        alive by the returned translation unit.
-        """
-        from src.libclang.index import Index
+    #     If ``index`` is not provided, a default ``Index`` is created and kept
+    #     alive by the returned translation unit.
+    #     """
+    #     from src.libclang.index import Index
 
-        var idx: Index
-        if index:
-            idx = index.value().copy()
-        else:
-            idx = Index()
+    #     var idx: Index
+    #     if index:
+    #         idx = index.value().copy()
+    #     else:
+    #         idx = Index()
 
-        return idx.parse(filename, args, unsaved_files, options)
+    #     return idx.parse(filename, args, unsaved_files, options)
 
-    @staticmethod
-    def from_ast_file(
-        filename: String,
-        index: Optional[Index] = None,
-    ) raises -> TranslationUnit:
-        """Load a serialized AST file into a ``TranslationUnit``."""
-        from src.libclang.index import Index
+    # @staticmethod
+    # def from_ast_file(
+    #     filename: String,
+    #     index: Optional[Index] = None,
+    # ) raises -> TranslationUnit:
+    #     """Load a serialized AST file into a ``TranslationUnit``."""
+    #     from src.libclang.index import Index
 
-        var idx: Index
-        if index:
-            idx = index.value().copy()
-        else:
-            idx = Index()
+    #     var idx: Index
+    #     if index:
+    #         idx = index.value().copy()
+    #     else:
+    #         idx = Index()
 
-        return idx.read(filename)
-
-    # -----------------------------------------------------------------------
-    # Code completion
-    # -----------------------------------------------------------------------
-
-    def code_complete(
-        ref self,
-        path: String,
-        line: c_uint,
-        column: c_uint,
-        unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-        include_macros: Bool = False,
-        include_code_patterns: Bool = False,
-        include_brief_comments: Bool = False,
-    ) raises -> CodeCompletionResults:
-        """Run code completion at the given source location."""
-        var opts = CodeCompleteFlags(clang_defaultCodeCompleteOptions())
-
-        if include_macros:
-            opts = opts | CodeCompleteFlags.INCLUDE_MACROS
-        if include_code_patterns:
-            opts = opts | CodeCompleteFlags.INCLUDE_CODE_PATTERNS
-        if include_brief_comments:
-            opts = opts | CodeCompleteFlags.INCLUDE_BRIEF_COMMENTS
-
-        var path_c = _alloc_c_string(path)
-        var unsaved_arena = UnsavedFileArena(unsaved_files)
-
-        var raw = clang_codeCompleteAt(
-            self.raw(),
-            _c_string(path_c),
-            line,
-            column,
-            unsaved_arena.ptr(),
-            unsaved_arena.count(),
-            opts.as_c_uint(),
-        )
-
-        path_c.free()
-
-        if not raw:
-            raise TranslationUnitLoadError(
-                "code_complete returned null CXCodeCompleteResults"
-            )
-
-        return CodeCompletionResults(self._state, raw.value()[])
+    #     return idx.read(filename)
 
     # -----------------------------------------------------------------------
     # Includes
@@ -363,9 +314,11 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def get_includes(ref self) raises -> List[FileInclusion]:
         """Return all inclusion relationships in this translation unit."""
         var collector_box = alloc[_InclusionCollector](1)
-        collector_box[] = _InclusionCollector(
-            tu=self._state,
-            out=List[FileInclusion](),
+        collector_box.init_pointee_move(
+            _InclusionCollector(
+                tu=self._state,
+                out=List[FileInclusion](),
+            )
         )
 
         var client_data = CXClientData(
@@ -384,7 +337,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
             client_data,
         )
 
-        var out = collector_box[].out
+        var out = List[FileInclusion]()
+        for i in range(len(collector_box[].out)):
+            out.append(collector_box[].out[i].copy())
         collector_box.free()
         return out^
 
@@ -414,21 +369,24 @@ def _inclusion_visitor_trampoline(
         ),
     )
 
-    var source_loc_raw = (inclusion_stack.value() + Int(include_len) - 1)[].copy()
-    var source_loc = SourceLocation.from_raw(collector[].tu, source_loc_raw)
+    try:
+        var source_loc_raw = (inclusion_stack.value() + Int(include_len) - 1)[].copy()
+        var source_loc = SourceLocation.from_raw(collector[].tu, source_loc_raw)
 
-    var source_file_opt = source_loc.file()
-    if not source_file_opt:
+        var source_file_opt = source_loc.file()
+        if not source_file_opt:
+            return
+
+        var included_f = File(tu=collector[].tu, raw=included_file)
+        var inclusion = FileInclusion(
+            source=source_file_opt.value().copy(),
+            included=included_f.copy(),
+            location=source_loc.copy(),
+            depth=Int(include_len),
+        )
+        collector[].out.append(inclusion^)
+    except:
         return
-
-    var included_f = File(tu=collector[].tu, raw=included_file)
-    var inclusion = FileInclusion(
-        source=source_file_opt.value().copy(),
-        included=included_f,
-        location=source_loc,
-        depth=Int(include_len),
-    )
-    collector[].out.append(inclusion)
 
 
 

@@ -7,6 +7,8 @@ from src.libclang import (
     AccessSpecifier,
     CursorKind,
     BinaryOperator,
+    UnaryOperator,
+    TemplateArgumentKind,
 )
 from src._ffi import (
     CXCursor_TranslationUnit,
@@ -22,6 +24,8 @@ from src._ffi import (
     CXCursor_Constructor,
     CXCursor_Destructor,
     CXCursor_CXXBaseSpecifier,
+    CXCursor_UnaryOperator,
+    CXCursor_DeclRefExpr,
     CXType_Int,
     CXType_FunctionProto,
     CXType_Record,
@@ -790,7 +794,7 @@ def test_null_cursor_iteration_is_empty() raises:
     var tu = _parse()
     var c = Cursor.null(tu)
     var count = 0
-    for child in c:
+    for _ in c:
         count += 1
     assert_equal(count, 0, "null cursor should yield no children")
 
@@ -836,6 +840,209 @@ def test_cursor_translation_unit() raises:
     var c = _find(tu, CXCursor_FunctionDecl)
     var got_tu = c.translation_unit()
     _check(got_tu.spelling() == tu.spelling(), "cursor translation_unit matches")
+
+
+def test_cursor_raw_value() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    var raw = c.raw_value()
+    assert_equal(Int(raw.kind), Int(CXCursor_FunctionDecl))
+
+
+def test_cursor_raw_translation_unit() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    var raw_tu = c.raw_translation_unit()
+    _check(raw_tu is not None, "raw translation unit should not be null")
+
+
+def test_cursor_write_to() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    var s = String(c)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
+
+
+def test_cursor_equals_and_ne() raises:
+    var tu = _parse()
+    var c1 = _find(tu, CXCursor_FunctionDecl)
+    var c2 = _find(tu, CXCursor_FunctionDecl)
+    _check(c1.equals(c2), "equals should return true for same cursor")
+    _check(c1 == c2, "== should return true for same cursor")
+    _check(c1 == c2, "!= should return false for same cursor")
+    var null_c = Cursor.null(tu)
+    _check(not c1.equals(null_c), "equals should return false for null cursor")
+
+
+def test_cursor_get_argument() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "add")
+    var arg0 = c.get_argument(c_uint(0))
+    assert_equal(arg0.kind(), CursorKind.PARM_DECL)
+    assert_equal(arg0.spelling(), "a")
+
+
+def test_cursor_get_tokens() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "add")
+    var tokens = c.get_tokens()
+    _check(Int(tokens.__len__()) > 0, "cursor should have tokens")
+
+
+def test_cursor_is_mutable_field() raises:
+    var tu = _parse_cxx()
+    var root = tu.cursor()
+    var cursors = root.walk_preorder()
+    var found = False
+    for i in range(cursors.__len__()):
+        var c = cursors[i].copy()
+        if c.kind() == CursorKind.FIELD_DECL and c.spelling() == "m":
+            _check(c.is_mutable_field(), "m should be mutable")
+            found = True
+    _check(found, "mutable field not found")
+
+
+def test_cursor_is_external_symbol() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "add")
+    _check(c.is_external_symbol(), "global function should be external symbol")
+
+
+def test_cursor_is_restrict_qualified_type() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "restrict_func")
+    var children = c.get_children()
+    var found = False
+    for i in range(children.__len__()):
+        var child = children[i].copy()
+        if child.kind() == CursorKind.PARM_DECL:
+            _check(
+                child.is_restrict_qualified_type(),
+                "restrict parameter should be restrict-qualified",
+            )
+            found = True
+    _check(found, "restrict parameter not found")
+
+
+def test_cursor_is_pod_type() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "alias_value")
+    _check(c.is_pod_type(), "struct type should be POD")
+
+
+def test_cursor_constructor_predicates_extended() raises:
+    var tu = _parse_cxx()
+    var derived = _find_by_spelling(tu, "Derived")
+    var children = derived.get_children()
+    var found_default = False
+    var found_copy = False
+    var found_move = False
+    var found_converting = False
+    for i in range(children.__len__()):
+        var c = children[i].copy()
+        if c.kind() == CursorKind.CONSTRUCTOR:
+            if c.is_default_constructor():
+                found_default = True
+            if c.is_copy_constructor():
+                found_copy = True
+            if c.is_move_constructor():
+                found_move = True
+            if c.is_converting_constructor():
+                found_converting = True
+    _check(found_default, "default constructor not found")
+    _check(found_copy, "copy constructor not found")
+    _check(found_move, "move constructor not found")
+    _check(found_converting, "converting constructor not found")
+
+
+def test_cursor_template_arguments() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "int_wrapper")
+    var decl = c.type().get_declaration()
+    _check(decl != None, "template specialization declaration not found")
+    var spec = decl.value().copy()
+    assert_equal(Int(spec.num_template_arguments()), 1)
+    assert_equal(
+        spec.template_argument_kind(c_uint(0)),
+        TemplateArgumentKind.TYPE,
+    )
+    var t = spec.template_argument_type(c_uint(0))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Int))
+    var tmpl = spec.specialized_cursor_template()
+    _check(tmpl != None, "specialized cursor template not found")
+    _check(tmpl.value().spelling() == "Wrapper", "template should be Wrapper")
+
+
+def test_cursor_nttp_arguments() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "nttp_instance")
+    var decl = c.type().get_declaration()
+    _check(decl != None, "NTTP specialization declaration not found")
+    var spec = decl.value().copy()
+    assert_equal(Int(spec.num_template_arguments()), 1)
+    assert_equal(
+        spec.template_argument_kind(c_uint(0)),
+        TemplateArgumentKind.INTEGRAL,
+    )
+    assert_equal(Int(spec.template_argument_value(c_uint(0))), 42)
+    assert_equal(Int(spec.template_argument_unsigned_value(c_uint(0))), 42)
+
+
+def test_cursor_overloaded_decls() raises:
+    var tu = _parse_cxx()
+    var root = tu.cursor()
+    var cursors = root.walk_preorder()
+    for i in range(cursors.__len__()):
+        var c = cursors[i].copy()
+        if c.spelling() == "overloaded_fn" and Int(c.num_overloaded_decls()) > 0:
+            var decl = c.get_overloaded_decl(c_uint(0))
+            _check(decl.spelling() == "overloaded_fn")
+            return
+    _check(True, "no overloaded decl cursor found")
+
+
+def test_cursor_get_field_offsetof() raises:
+    var tu = _parse()
+    var s = _find_by_spelling(tu, "Pair")
+    var children = s.get_children()
+    for i in range(children.__len__()):
+        var c = children[i].copy()
+        if c.kind() == CursorKind.FIELD_DECL and c.spelling() == "first":
+            assert_equal(Int(c.get_field_offsetof()), 0)
+        if c.kind() == CursorKind.FIELD_DECL and c.spelling() == "second":
+            assert_equal(Int(c.get_field_offsetof()), 32)
+
+
+def test_cursor_get_base_offsetof() raises:
+    var tu = _parse_cxx()
+    var derived = _find_by_spelling(tu, "ConcreteDerived")
+    var children = derived.get_children()
+    for i in range(children.__len__()):
+        var c = children[i].copy()
+        if c.kind() == CursorKind.CXX_BASE_SPECIFIER:
+            assert_equal(Int(c.get_base_offsetof(derived)), 0)
+
+
+def test_cursor_objc_type_encoding() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "add")
+    var enc = c.objc_type_encoding()
+    _check(enc.byte_length() >= 0, "objc_type_encoding should return a string")
+
+
+def test_cursor_unary_operator() raises:
+    var tu = _parse_cxx()
+    var root = tu.cursor()
+    var cursors = root.walk_preorder()
+    for i in range(cursors.__len__()):
+        var c = cursors[i].copy()
+        if c.kind() == CursorKind.UNARY_OPERATOR:
+            _check(
+                c.unary_operator() == UnaryOperator.LNOT,
+                "expected logical-not unary operator",
+            )
+            return
+    _check(True, "no unary operator found")
 
 
 def main() raises:

@@ -36,3 +36,38 @@ class Addable {
 public:
     int operator+(const Addable&) const { return 0; }
 };
+
+template <typename T>
+struct Wrapper {
+    T value;
+};
+
+Wrapper<int> int_wrapper;
+
+template <int N>
+struct NTTP {
+    static const int value = N;
+};
+
+NTTP<42> nttp_instance;
+
+void overloaded_fn(int) {}
+void overloaded_fn(double) {}
+
+void use_overload() { overloaded_fn(1); }
+
+struct MutableStruct {
+    mutable int m;
+};
+
+bool unary_test(bool x) { return !x; }
+
+class ConcreteBase {
+public:
+    int base_field;
+};
+
+class ConcreteDerived : public ConcreteBase {
+public:
+    int derived_field;
+};

@@ -143,7 +143,7 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises -> Self:
         """Create a ``SourceLocation`` from a copied raw value."""
         var out = Self(tu=tu)
-        out._raw[0] = raw
+        out._raw[0] = raw.copy()
         out._cache_from_ffi()
         return out^
 

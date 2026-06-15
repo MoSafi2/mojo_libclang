@@ -59,10 +59,7 @@ struct Rewriter(Movable, Writable):
 
     def __del__(deinit self):
         if self._raw:
-            try:
-                clang_CXRewriter_dispose(self._raw)
-            except:
-                pass
+            clang_CXRewriter_dispose(self._raw)
 
     def insert_text_before(
         ref self,

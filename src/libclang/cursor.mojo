@@ -162,7 +162,7 @@ from std.memory import (
 )
 
 
-struct Cursor(Copyable, Movable, Writable, Iterable):
+struct Cursor(Copyable, Iterable, Movable, Writable):
     """A high-level wrapper around `CXCursor`.
 
     The raw `CXCursor` is copied by value into `_raw`.
@@ -226,6 +226,9 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         if self._generation != other._generation:
             return False
         return Bool(clang_equalCursors(self._ptr(), other._ptr()))
+
+    def __ne__(ref self, ref other: Self) raises -> Bool:
+        return not self.__eq__(other)
 
     def _check_valid(self) raises:
         """Reject use after TU disposal or in-place reparse."""
@@ -960,7 +963,7 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         return CursorChildrenIterator(self)
 
 
-struct CursorChildrenIterator(Movable, Iterator):
+struct CursorChildrenIterator(Iterator, Movable):
     """Iterator over immediate children of a `Cursor`."""
 
     comptime Element = Cursor
@@ -1091,7 +1094,10 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
         collector_box.free()
         buffer.free()
         raise Error(
-            t"collect_children: child count exceeded MAX_CHILDREN={MAX_CHILDREN}",
+            (
+                t"collect_children: child count exceeded"
+                t" MAX_CHILDREN={MAX_CHILDREN}"
+            ),
         )
 
     var out = List[Cursor]()

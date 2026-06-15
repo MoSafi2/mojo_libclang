@@ -172,7 +172,7 @@ def test_read_nonexistent_path_raises() raises:
 
 
 def test_index_drop_and_recreate() raises:
-    for i in range(5):
+    for _ in range(5):
         var index = Index.create()
         var tu = index.parse(FIXTURE_PATH)
         _ = tu.spelling()

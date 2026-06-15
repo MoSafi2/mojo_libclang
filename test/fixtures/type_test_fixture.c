@@ -26,3 +26,5 @@ struct Pair make_pair(int first, int second) {
 
 PairAlias alias_value;
 MyInt my_int_value;
+
+void restrict_func(int *restrict p) { (void)p; }

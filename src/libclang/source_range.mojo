@@ -180,9 +180,7 @@ struct SourceRange(Copyable, Movable, Writable):
         if self._tu[].raw() != other._tu[].raw():
             return False
 
-        var s = self._start
-        var e = self._end
-        return s <= other and other <= e
+        return self._start <= other and other <= self._end
 
 
 def _zero_source_range() -> CXSourceRange:

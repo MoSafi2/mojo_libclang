@@ -30,7 +30,6 @@ struct IndexState(Movable):
         if self.alive:
             if self._raw:
                 clang_disposeIndex(self._raw)
-            self.alive = False
 
 
 struct TranslationUnitState(Movable):
@@ -75,4 +74,3 @@ struct TranslationUnitState(Movable):
         if self.alive:
             if self._raw:
                 clang_disposeTranslationUnit(self._raw)
-            self.alive = False
