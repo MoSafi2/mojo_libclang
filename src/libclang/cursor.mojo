@@ -44,6 +44,8 @@ from src._ffi import (
     clang_isAttribute,
     c_uint,
     c_int,
+    CXClientData,
+    clang_visitChildren,
 )
 
 from src.libclang.common import _CXStringStorage
@@ -111,6 +113,22 @@ struct Cursor(Copyable, Movable, Writable):
         return rebind[UnsafePointer[CXCursor, ImmutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
+
+    def children(mut self) raises -> List[Cursor]:
+        """Return immediate child cursors."""
+
+        self._check_valid()
+        return collect_children(self.copy())
+
+    def get_children(mut self) raises -> List[Cursor]:
+        """Alias for `children()`."""
+        return self.children()
+
+    def walk_preorder(mut self) raises -> List[Cursor]:
+        """Return this cursor and all descendants in preorder."""
+
+        self._check_valid()
+        return walk_preorder(self.copy())
 
     def raw_value(self) raises -> CXCursor:
         """Return a copied raw cursor value.
@@ -323,3 +341,120 @@ def _zero_cursor() -> CXCursor:
             fill=None
         ),
     )
+
+
+comptime MAX_CHILDREN = 4096
+
+
+@fieldwise_init
+struct _Collector(Movable):
+    var buffer: UnsafePointer[CXCursor, MutAnyOrigin]
+    var count: Int
+    var capacity: Int
+    var truncated: Bool
+
+
+def _visit_trampoline(
+    cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    parent: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    client_data: CXClientData,
+) abi("C") -> CXChildVisitResult:
+    if not cursor:
+        return CXChildVisit_Continue
+
+    var opaque = client_data.value()
+    var collector = rebind[UnsafePointer[_Collector, MutAnyOrigin]](
+        rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+            rebind[UnsafePointer[UInt8, MutExternalOrigin]](opaque),
+        ),
+    )
+
+    if collector[].count >= collector[].capacity:
+        collector[].truncated = True
+        return CXChildVisit_Continue
+
+    # Copy the CXCursor value itself. Do not memcpy a guessed byte count.
+    collector[].buffer[collector[].count] = cursor.value()[].copy()
+    collector[].count += 1
+
+    _ = parent
+    return CXChildVisit_Continue
+
+
+def collect_children(parent: Cursor) raises -> List[Cursor]:
+    """Collect the immediate children of `parent`.
+
+    ```
+    The returned cursors keep the same translation-unit state as `parent`.
+    """
+    var p = parent.copy()
+    p._check_valid()
+
+    var buffer = alloc[CXCursor](MAX_CHILDREN)
+    var collector_box = alloc[_Collector](1)
+
+    collector_box[] = _Collector(
+        buffer=buffer,
+        count=0,
+        capacity=MAX_CHILDREN,
+        truncated=False,
+    )
+
+    var client_data = CXClientData(
+        rebind[MutOpaquePointer[MutExternalOrigin]](
+            rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+                rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box),
+            ),
+        ),
+    )
+
+    _ = clang_visitChildren(
+        p._ptr(),
+        _visit_trampoline,
+        client_data,
+    )
+
+    # Catch a reparse that happened during or immediately after traversal.
+    p._check_valid()
+
+    if collector_box[].truncated:
+        collector_box.free()
+        buffer.free()
+        raise Error(
+            "collect_children: child count exceeded MAX_CHILDREN="
+            + String(MAX_CHILDREN),
+        )
+
+    var out = List[Cursor]()
+
+    for i in range(collector_box[].count):
+        var child = Cursor(
+            tu=p._tu,
+            raw=buffer[i],
+        )
+        out.append(child^)
+
+    collector_box.free()
+    buffer.free()
+
+    return out^
+
+
+def walk_preorder(root: Cursor) raises -> List[Cursor]:
+    """Return cursors in preorder: root, then descendants."""
+    var out = List[Cursor]()
+
+    var r = root.copy()
+    r._check_valid()
+    out.append(r.copy())
+
+    var children = collect_children(r)
+
+    for i in range(Int(children.__len__())):
+        var child = children[i].copy()
+        var descendants = walk_preorder(child)
+
+        for j in range(Int(descendants.__len__())):
+            out.append(descendants[j].copy())
+
+    return out^
