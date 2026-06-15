@@ -9,3 +9,4 @@ build/libclang.so.*
 
 # planning documents
 plans/
+example.mojo

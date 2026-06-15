@@ -15,6 +15,7 @@ The wrapper structs are pure value types. They do **not** own libclang
 resources and are safe to copy freely.
 """
 
+from std import reflection
 from src._ffi import (
     c_int,
     c_uint,
@@ -1449,7 +1450,9 @@ struct CompilationDatabaseErrorCode(Equatable, ImplicitlyCopyable, Writable):
         return self._value == other._value
 
     comptime NO_ERROR = Self(CXCompilationDatabase_NoError)
-    comptime CANNOT_LOAD_DATABASE = Self(CXCompilationDatabase_CanNotLoadDatabase)
+    comptime CANNOT_LOAD_DATABASE = Self(
+        CXCompilationDatabase_CanNotLoadDatabase
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1475,27 +1478,47 @@ struct PrintingPolicyProperty(Equatable, ImplicitlyCopyable, Writable):
     comptime INDENTATION = Self(CXPrintingPolicy_Indentation)
     comptime SUPPRESS_SPECIFIERS = Self(CXPrintingPolicy_SuppressSpecifiers)
     comptime SUPPRESS_TAG_KEYWORD = Self(CXPrintingPolicy_SuppressTagKeyword)
-    comptime INCLUDE_TAG_DEFINITION = Self(CXPrintingPolicy_IncludeTagDefinition)
+    comptime INCLUDE_TAG_DEFINITION = Self(
+        CXPrintingPolicy_IncludeTagDefinition
+    )
     comptime SUPPRESS_SCOPE = Self(CXPrintingPolicy_SuppressScope)
-    comptime SUPPRESS_UNWRITTEN_SCOPE = Self(CXPrintingPolicy_SuppressUnwrittenScope)
+    comptime SUPPRESS_UNWRITTEN_SCOPE = Self(
+        CXPrintingPolicy_SuppressUnwrittenScope
+    )
     comptime SUPPRESS_INITIALIZERS = Self(CXPrintingPolicy_SuppressInitializers)
-    comptime CONSTANT_ARRAY_SIZE_AS_WRITTEN = Self(CXPrintingPolicy_ConstantArraySizeAsWritten)
-    comptime ANONYMOUS_TAG_LOCATIONS = Self(CXPrintingPolicy_AnonymousTagLocations)
-    comptime SUPPRESS_STRONG_LIFETIME = Self(CXPrintingPolicy_SuppressStrongLifetime)
-    comptime SUPPRESS_LIFETIME_QUALIFIERS = Self(CXPrintingPolicy_SuppressLifetimeQualifiers)
-    comptime SUPPRESS_TEMPLATE_ARGS_IN_CXX_CONSTRUCTORS = Self(CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors)
+    comptime CONSTANT_ARRAY_SIZE_AS_WRITTEN = Self(
+        CXPrintingPolicy_ConstantArraySizeAsWritten
+    )
+    comptime ANONYMOUS_TAG_LOCATIONS = Self(
+        CXPrintingPolicy_AnonymousTagLocations
+    )
+    comptime SUPPRESS_STRONG_LIFETIME = Self(
+        CXPrintingPolicy_SuppressStrongLifetime
+    )
+    comptime SUPPRESS_LIFETIME_QUALIFIERS = Self(
+        CXPrintingPolicy_SuppressLifetimeQualifiers
+    )
+    comptime SUPPRESS_TEMPLATE_ARGS_IN_CXX_CONSTRUCTORS = Self(
+        CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors
+    )
     comptime BOOL = Self(CXPrintingPolicy_Bool)
     comptime RESTRICT = Self(CXPrintingPolicy_Restrict)
     comptime ALIGNOF = Self(CXPrintingPolicy_Alignof)
     comptime UNDERSCORE_ALIGNOF = Self(CXPrintingPolicy_UnderscoreAlignof)
-    comptime USE_VOID_FOR_ZERO_PARAMS = Self(CXPrintingPolicy_UseVoidForZeroParams)
+    comptime USE_VOID_FOR_ZERO_PARAMS = Self(
+        CXPrintingPolicy_UseVoidForZeroParams
+    )
     comptime TERSE_OUTPUT = Self(CXPrintingPolicy_TerseOutput)
-    comptime POLISH_FOR_DECLARATION = Self(CXPrintingPolicy_PolishForDeclaration)
+    comptime POLISH_FOR_DECLARATION = Self(
+        CXPrintingPolicy_PolishForDeclaration
+    )
     comptime HALF = Self(CXPrintingPolicy_Half)
     comptime MSW_CHAR = Self(CXPrintingPolicy_MSWChar)
     comptime INCLUDE_NEWLINES = Self(CXPrintingPolicy_IncludeNewlines)
     comptime MSVC_FORMATTING = Self(CXPrintingPolicy_MSVCFormatting)
     comptime CONSTANTS_AS_WRITTEN = Self(CXPrintingPolicy_ConstantsAsWritten)
-    comptime SUPPRESS_IMPLICIT_BASE = Self(CXPrintingPolicy_SuppressImplicitBase)
+    comptime SUPPRESS_IMPLICIT_BASE = Self(
+        CXPrintingPolicy_SuppressImplicitBase
+    )
     comptime FULLY_QUALIFIED_NAME = Self(CXPrintingPolicy_FullyQualifiedName)
     comptime LAST_PROPERTY = Self(CXPrintingPolicy_LastProperty)
