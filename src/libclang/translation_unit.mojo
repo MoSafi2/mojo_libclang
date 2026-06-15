@@ -2,6 +2,10 @@
 
 from src._ffi import (
     CXTranslationUnit,
+    CXCodeCompleteResults,
+    CXFile,
+    CXSourceLocation,
+    CXClientData,
     clang_getTranslationUnitSpelling,
     clang_getTranslationUnitCursor,
     clang_getNumDiagnostics,
@@ -13,10 +17,15 @@ from src._ffi import (
     clang_reparseTranslationUnit,
     clang_saveTranslationUnit,
     clang_defaultReparseOptions,
+    clang_defaultCodeCompleteOptions,
+    clang_codeCompleteAt,
+    clang_getInclusions,
+    clang_createTranslationUnit2,
+    clang_parseTranslationUnit2,
     c_uint,
 )
 
-from src.libclang.enums import TranslationUnitFlags, SaveError
+from src.libclang.enums import TranslationUnitFlags, SaveError, CodeCompleteFlags
 
 from src.libclang.common import (
     UnsavedFile,
@@ -30,14 +39,17 @@ from src.libclang.common import (
 
 from src.libclang.state import IndexState, TranslationUnitState
 
+from src.libclang.errors import TranslationUnitLoadError, TranslationUnitSaveError
 from src.libclang.cursor import Cursor
 from src.libclang.file import File
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 from src.libclang.token import TokenGroup
 from src.libclang.diagnostic import Diagnostic, DiagnosticSet
+from src.libclang.code_completion import CodeCompletionResults
+from src.libclang.file_inclusion import FileInclusion
 
-from std.memory import ArcPointer
+from std.memory import ArcPointer, UnsafePointer, alloc
 
 
 struct TranslationUnit(Copyable, Movable, Writable):
@@ -57,7 +69,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
         raw: CXTranslationUnit,
     ) raises:
         if not raw:
-            raise Error("TranslationUnit received null CXTranslationUnit")
+            raise TranslationUnitLoadError(
+                "TranslationUnit received null CXTranslationUnit"
+            )
 
         self._state = ArcPointer(TranslationUnitState(index, raw))
         self._spelling = String()
@@ -213,8 +227,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
         var result = SaveError(c_uint(result_raw))
         if result != SaveError.NONE:
-            raise Error(
-                t"TranslationUnitSaveError: {Int(result.as_c_uint())}",
+            raise TranslationUnitSaveError(
+                result,
+                "save failed: " + String(Int(result.as_c_uint())),
             )
 
     def reparse(
@@ -236,8 +251,175 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
         if result != 0:
-            raise Error(
-                t"TranslationUnitReparseError: clang_reparseTranslationUnit returned {Int(result)}",
+            raise TranslationUnitLoadError(
+                "reparse failed: clang_reparseTranslationUnit returned "
+                + String(Int(result)),
             )
 
         self._state[].bump_generation()
+
+    # -----------------------------------------------------------------------
+    # Classmethod construction
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def from_source(
+        filename: String,
+        args: List[String] = List[String](),
+        unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
+        options: TranslationUnitFlags = TranslationUnitFlags.NONE,
+        index: Optional[Index] = None,
+    ) raises -> TranslationUnit:
+        """Parse a source file into a ``TranslationUnit``.
+
+        If ``index`` is not provided, a default ``Index`` is created and kept
+        alive by the returned translation unit.
+        """
+        from src.libclang.index import Index
+
+        var idx: Index
+        if index:
+            idx = index.value().copy()
+        else:
+            idx = Index()
+
+        return idx.parse(filename, args, unsaved_files, options)
+
+    @staticmethod
+    def from_ast_file(
+        filename: String,
+        index: Optional[Index] = None,
+    ) raises -> TranslationUnit:
+        """Load a serialized AST file into a ``TranslationUnit``."""
+        from src.libclang.index import Index
+
+        var idx: Index
+        if index:
+            idx = index.value().copy()
+        else:
+            idx = Index()
+
+        return idx.read(filename)
+
+    # -----------------------------------------------------------------------
+    # Code completion
+    # -----------------------------------------------------------------------
+
+    def code_complete(
+        ref self,
+        path: String,
+        line: c_uint,
+        column: c_uint,
+        unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
+        include_macros: Bool = False,
+        include_code_patterns: Bool = False,
+        include_brief_comments: Bool = False,
+    ) raises -> CodeCompletionResults:
+        """Run code completion at the given source location."""
+        var opts = CodeCompleteFlags(clang_defaultCodeCompleteOptions())
+
+        if include_macros:
+            opts = opts | CodeCompleteFlags.INCLUDE_MACROS
+        if include_code_patterns:
+            opts = opts | CodeCompleteFlags.INCLUDE_CODE_PATTERNS
+        if include_brief_comments:
+            opts = opts | CodeCompleteFlags.INCLUDE_BRIEF_COMMENTS
+
+        var path_c = _alloc_c_string(path)
+        var unsaved_arena = UnsavedFileArena(unsaved_files)
+
+        var raw = clang_codeCompleteAt(
+            self.raw(),
+            _c_string(path_c),
+            line,
+            column,
+            unsaved_arena.ptr(),
+            unsaved_arena.count(),
+            opts.as_c_uint(),
+        )
+
+        path_c.free()
+
+        if not raw:
+            raise TranslationUnitLoadError(
+                "code_complete returned null CXCodeCompleteResults"
+            )
+
+        return CodeCompletionResults(self._state, raw.value()[])
+
+    # -----------------------------------------------------------------------
+    # Includes
+    # -----------------------------------------------------------------------
+
+    def get_includes(ref self) raises -> List[FileInclusion]:
+        """Return all inclusion relationships in this translation unit."""
+        var collector_box = alloc[_InclusionCollector](1)
+        collector_box[] = _InclusionCollector(
+            tu=self._state,
+            out=List[FileInclusion](),
+        )
+
+        var client_data = CXClientData(
+            rebind[MutOpaquePointer[MutExternalOrigin]](
+                rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+                    rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+                        collector_box,
+                    )
+                )
+            )
+        )
+
+        clang_getInclusions(
+            self.raw(),
+            _inclusion_visitor_trampoline,
+            client_data,
+        )
+
+        var out = collector_box[].out
+        collector_box.free()
+        return out^
+
+
+@fieldwise_init
+struct _InclusionCollector(Movable):
+    var tu: ArcPointer[TranslationUnitState]
+    var out: List[FileInclusion]
+
+
+def _inclusion_visitor_trampoline(
+    included_file: CXFile,
+    inclusion_stack: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]],
+    include_len: c_uint,
+    client_data: CXClientData,
+) abi("C") -> None:
+    if not included_file:
+        return
+
+    if not inclusion_stack or include_len == c_uint(0):
+        return
+
+    var opaque = client_data.value()
+    var collector = rebind[UnsafePointer[_InclusionCollector, MutAnyOrigin]](
+        rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+            rebind[UnsafePointer[UInt8, MutExternalOrigin]](opaque),
+        ),
+    )
+
+    var source_loc_raw = (inclusion_stack.value() + Int(include_len) - 1)[].copy()
+    var source_loc = SourceLocation.from_raw(collector[].tu, source_loc_raw)
+
+    var source_file_opt = source_loc.file()
+    if not source_file_opt:
+        return
+
+    var included_f = File(tu=collector[].tu, raw=included_file)
+    var inclusion = FileInclusion(
+        source=source_file_opt.value().copy(),
+        included=included_f,
+        location=source_loc,
+        depth=Int(include_len),
+    )
+    collector[].out.append(inclusion)
+
+
+

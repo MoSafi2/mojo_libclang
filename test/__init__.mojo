@@ -11,6 +11,7 @@ from src.libclang.common import (
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 from src.libclang.file import File
+from src.libclang.file_inclusion import FileInclusion
 from src.libclang.cursor import Cursor
 from src.libclang.cursor import collect_children, walk_preorder
 from src.libclang.type_ import Type
@@ -18,6 +19,24 @@ from src.libclang.token import Token, TokenGroup
 from src.libclang.diagnostic import Diagnostic, DiagnosticSet, FixIt
 from src.libclang.index import Index
 from src.libclang.translation_unit import TranslationUnit
+from src.libclang.code_completion import (
+    CodeCompletionResults,
+    CodeCompletionResult,
+    CompletionString,
+    CompletionChunk,
+)
+from src.libclang.compilation_database import (
+    CompilationDatabase,
+    CompileCommands,
+    CompileCommand,
+)
+from src.libclang.rewriter import Rewriter
+from src.libclang.printing_policy import PrintingPolicy
+from src.libclang.errors import (
+    TranslationUnitLoadError,
+    TranslationUnitSaveError,
+    CompilationDatabaseError,
+)
 from src.libclang.enums import (
     CursorKind,
     TypeKind,
@@ -33,6 +52,11 @@ from src.libclang.enums import (
     CallingConv,
     ChildVisitResult,
     DiagnosticSeverity,
+    BinaryOperator,
+    UnaryOperator,
+    CompletionChunkKind,
+    CompilationDatabaseErrorCode,
+    PrintingPolicyProperty,
 )
 from src._ffi import (
     CXCursorKind,

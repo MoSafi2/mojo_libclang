@@ -27,6 +27,7 @@ from src._ffi import (
 
 from src.libclang.common import _CXStringStorage
 from src.libclang.state import TranslationUnitState
+from src.libclang.file import File
 
 from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
 
@@ -136,6 +137,17 @@ struct SourceLocation(Copyable, Movable, Writable):
         return Self(tu=tu)
 
     @staticmethod
+    def from_raw(
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXSourceLocation,
+    ) raises -> Self:
+        """Create a ``SourceLocation`` from a copied raw value."""
+        var out = Self(tu=tu)
+        out._raw[0] = raw
+        out._cache_from_ffi()
+        return out^
+
+    @staticmethod
     def from_position(
         tu: TranslationUnit,
         file: CXFile,
@@ -231,9 +243,21 @@ struct SourceLocation(Copyable, Movable, Writable):
 
         return (file_out[0], line_out[0], col_out[0], off_out[0])
 
-    def file(ref self) raises -> CXFile:
+    def raw_file(ref self) raises -> CXFile:
+        """Return the raw ``CXFile`` handle for this location."""
         self._check_valid()
         return self._file
+
+    def file(ref self) raises -> Optional[File]:
+        """Return the ``File`` wrapper for this location.
+
+        Matches the Python ``SourceLocation.file`` property.
+        """
+        self._check_valid()
+        if not self._file:
+            return None
+        var f = File(tu=self._tu, raw=self._file)
+        return Optional[File](f^)
 
     def file_name(ref self) raises -> String:
         self._check_valid()
@@ -276,6 +300,34 @@ struct SourceLocation(Copyable, Movable, Writable):
             and self._raw[0].ptr_data[1] == other._raw[0].ptr_data[1]
             and self._raw[0].int_data == other._raw[0].int_data
         )
+
+    def __ne__(self, other: SourceLocation) -> Bool:
+        return not self.__eq__(other)
+
+    def __lt__(ref self, ref other: SourceLocation) raises -> Bool:
+        """Ordering based on cached spelling location.
+
+        Note: The upstream Python bindings use ``clang_isBeforeInTranslationUnit``,
+        which is not exposed by this libclang FFI. This fallback orders by file
+        name, line, and column.
+        """
+        self._check_valid()
+        other._check_valid()
+
+        if self._file_name != other._file_name:
+            return self._file_name < other._file_name
+        if self._line != other._line:
+            return self._line < other._line
+        return self._column < other._column
+
+    def __le__(ref self, ref other: SourceLocation) raises -> Bool:
+        return self.__lt__(other) or self.__eq__(other)
+
+    def __gt__(ref self, ref other: SourceLocation) raises -> Bool:
+        return not self.__le__(other)
+
+    def __ge__(ref self, ref other: SourceLocation) raises -> Bool:
+        return not self.__lt__(other)
 
 
 def _zero_source_location() -> CXSourceLocation:

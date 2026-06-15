@@ -108,6 +108,17 @@ from src._ffi import (
     clang_Cursor_getOffsetOfField,
     clang_Cursor_getStorageClass,
     clang_Cursor_getMangling,
+    clang_getEnumConstantDeclValue,
+    clang_getEnumConstantDeclUnsignedValue,
+    clang_CXXConstructor_isConvertingConstructor,
+    clang_CXXConstructor_isCopyConstructor,
+    clang_CXXConstructor_isDefaultConstructor,
+    clang_CXXConstructor_isMoveConstructor,
+    clang_CXXField_isMutable,
+    clang_getDeclObjCTypeEncoding,
+    clang_getCursorBinaryOperatorKind,
+    clang_getCursorUnaryOperatorKind,
+    clang_Cursor_isFunctionInlined,
     c_uint,
     c_int,
     c_long_long,
@@ -122,6 +133,7 @@ from src._ffi import (
 
 from src.libclang.enums import (
     CursorKind,
+    TypeKind,
     LinkageKind,
     VisibilityKind,
     AvailabilityKind,
@@ -130,6 +142,8 @@ from src.libclang.enums import (
     StorageClass,
     AccessSpecifier,
     TemplateArgumentKind,
+    BinaryOperator,
+    UnaryOperator,
 )
 
 from src.libclang.common import _CXStringStorage
@@ -170,6 +184,7 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         self._raw = InlineArray[CXCursor, 1](
             fill=_zero_cursor(),
         )
+        clang_getNullCursor(self._ptr())
 
     def __init__(out self, tu: TranslationUnit, raw: CXCursor):
         self._tu = tu.state()
@@ -259,7 +274,14 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         self._check_valid()
         return self._raw[0].copy()
 
-    def translation_unit(self) raises -> CXTranslationUnit:
+    def translation_unit(self) raises -> TranslationUnit:
+        """Return the TranslationUnit to which this cursor belongs."""
+        from src.libclang.translation_unit import TranslationUnit
+
+        self._check_valid()
+        return TranslationUnit(self._tu[]._index, self._tu[].raw())
+
+    def raw_translation_unit(self) raises -> CXTranslationUnit:
         """Return the borrowed raw TU handle after validity checks."""
         self._check_valid()
         return self._tu[].raw()
@@ -401,6 +423,30 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
     def is_explicit(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isExplicit(self._ptr()))
+
+    def is_explicit_method(ref self) raises -> Bool:
+        """Alias for ``is_explicit()`` that matches the Python binding name."""
+        return self.is_explicit()
+
+    def is_converting_constructor(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXConstructor_isConvertingConstructor(self._ptr()))
+
+    def is_copy_constructor(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXConstructor_isCopyConstructor(self._ptr()))
+
+    def is_default_constructor(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXConstructor_isDefaultConstructor(self._ptr()))
+
+    def is_move_constructor(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXConstructor_isMoveConstructor(self._ptr()))
+
+    def is_mutable_field(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXField_isMutable(self._ptr()))
 
     def is_abstract_record(ref self) raises -> Bool:
         self._check_valid()
@@ -548,12 +594,29 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
     # Cursor info (pretty-printed, overridden, overloaded, template)
     # -----------------------------------------------------------------------
 
-    def pretty_printed(ref self) raises -> String:
+    def pretty_printed(
+        ref self,
+        policy: Optional[PrintingPolicy] = None,
+    ) raises -> String:
+        """Pretty-print the declaration referenced by this cursor.
+
+        If no ``PrintingPolicy`` is provided, a default policy is created and
+        disposed automatically.
+        """
+        from src.libclang.printing_policy import PrintingPolicy
+
         self._check_valid()
-        var policy = clang_getCursorPrintingPolicy(self._ptr())
+
         var cs = _CXStringStorage()
-        clang_getCursorPrettyPrinted(cs.ptr_for_out(), self._ptr(), policy)
-        clang_PrintingPolicy_dispose(policy)
+        if policy:
+            clang_getCursorPrettyPrinted(
+                cs.ptr_for_out(), self._ptr(), policy.value()._raw
+            )
+        else:
+            var default_policy = PrintingPolicy(self._ptr())
+            clang_getCursorPrettyPrinted(
+                cs.ptr_for_out(), self._ptr(), default_policy._raw
+            )
         return cs.take()
 
     def overridden_cursors(ref self) raises -> List[Cursor]:
@@ -734,6 +797,25 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         self._check_valid()
         return clang_Cursor_getOffsetOfField(self._ptr())
 
+    def get_field_offsetof(ref self) raises -> c_long_long:
+        """Alias for ``get_offset_of_field()`` matching the Python name."""
+        return self.get_offset_of_field()
+
+    def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
+        """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``.
+
+        Note: This falls back to ``clang_Cursor_getOffsetOfField`` because the
+        upstream ``clang_getOffsetOfBase`` helper is not exposed by the
+        generated raw FFI for this libclang version.
+        """
+        self._check_valid()
+        parent._check_valid()
+        return clang_Cursor_getOffsetOfField(self._ptr())
+
+    def is_function_inlined(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isFunctionInlined(self._ptr()))
+
     def underlying_typedef_type(ref self) raises -> Type:
         from src.libclang.type_ import Type
 
@@ -757,6 +839,60 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         var cs = _CXStringStorage()
         clang_Cursor_getMangling(cs.ptr_for_out(), self._ptr())
         return cs.take()
+
+    def enum_value(ref self) raises -> c_long_long:
+        """Return the value of an enum constant declaration.
+
+        This inspects the underlying integer type to decide whether to use the
+        signed or unsigned libclang accessor, matching the Python bindings.
+        """
+        self._check_valid()
+
+        if self.kind() != CursorKind.ENUM_CONSTANT_DECL:
+            raise Error(
+                "Cursor.enum_value: cursor is not an ENUM_CONSTANT_DECL"
+            )
+
+        var underlying = self.type()
+        if underlying.kind() == TypeKind.ENUM:
+            var decl = underlying.get_declaration()
+            if decl:
+                underlying = decl.value().enum_type()
+
+        var uk = underlying.kind()
+        if (
+            uk == TypeKind.CHAR_U
+            or uk == TypeKind.UCHAR
+            or uk == TypeKind.CHAR16
+            or uk == TypeKind.CHAR32
+            or uk == TypeKind.USHORT
+            or uk == TypeKind.UINT
+            or uk == TypeKind.ULONG
+            or uk == TypeKind.ULONG_LONG
+            or uk == TypeKind.UINT128
+        ):
+            return c_long_long(
+                clang_getEnumConstantDeclUnsignedValue(self._ptr())
+            )
+
+        return clang_getEnumConstantDeclValue(self._ptr())
+
+    def objc_type_encoding(ref self) raises -> String:
+        """Return the Objective-C type encoding for this cursor."""
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_getDeclObjCTypeEncoding(cs.ptr_for_out(), self._ptr())
+        return cs.take()
+
+    def binary_operator(ref self) raises -> BinaryOperator:
+        """Return the binary operator kind for a binary operator cursor."""
+        self._check_valid()
+        return BinaryOperator(clang_getCursorBinaryOperatorKind(self._ptr()))
+
+    def unary_operator(ref self) raises -> UnaryOperator:
+        """Return the unary operator kind for a unary operator cursor."""
+        self._check_valid()
+        return UnaryOperator(clang_getCursorUnaryOperatorKind(self._ptr()))
 
     def get_included_file(ref self) raises -> Optional[File]:
         from src.libclang.file import File

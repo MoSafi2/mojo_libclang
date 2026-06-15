@@ -164,6 +164,110 @@ from src._ffi import (
     CXCodeComplete_IncludeBriefComments,
     CXCodeComplete_SkipPreamble,
     CXCodeComplete_IncludeCompletionsWithFixIts,
+    CXBinaryOperatorKind,
+    CXBinaryOperator_Invalid,
+    CXBinaryOperator_PtrMemD,
+    CXBinaryOperator_PtrMemI,
+    CXBinaryOperator_Mul,
+    CXBinaryOperator_Div,
+    CXBinaryOperator_Rem,
+    CXBinaryOperator_Add,
+    CXBinaryOperator_Sub,
+    CXBinaryOperator_Shl,
+    CXBinaryOperator_Shr,
+    CXBinaryOperator_Cmp,
+    CXBinaryOperator_LT,
+    CXBinaryOperator_GT,
+    CXBinaryOperator_LE,
+    CXBinaryOperator_GE,
+    CXBinaryOperator_EQ,
+    CXBinaryOperator_NE,
+    CXBinaryOperator_And,
+    CXBinaryOperator_Xor,
+    CXBinaryOperator_Or,
+    CXBinaryOperator_LAnd,
+    CXBinaryOperator_LOr,
+    CXBinaryOperator_Assign,
+    CXBinaryOperator_MulAssign,
+    CXBinaryOperator_DivAssign,
+    CXBinaryOperator_RemAssign,
+    CXBinaryOperator_AddAssign,
+    CXBinaryOperator_SubAssign,
+    CXBinaryOperator_ShlAssign,
+    CXBinaryOperator_ShrAssign,
+    CXBinaryOperator_AndAssign,
+    CXBinaryOperator_XorAssign,
+    CXBinaryOperator_OrAssign,
+    CXBinaryOperator_Comma,
+    CXUnaryOperatorKind,
+    CXUnaryOperator_Invalid,
+    CXUnaryOperator_PostInc,
+    CXUnaryOperator_PostDec,
+    CXUnaryOperator_PreInc,
+    CXUnaryOperator_PreDec,
+    CXUnaryOperator_AddrOf,
+    CXUnaryOperator_Deref,
+    CXUnaryOperator_Plus,
+    CXUnaryOperator_Minus,
+    CXUnaryOperator_Not,
+    CXUnaryOperator_LNot,
+    CXUnaryOperator_Real,
+    CXUnaryOperator_Imag,
+    CXUnaryOperator_Extension,
+    CXUnaryOperator_Coawait,
+    CXCompletionChunkKind,
+    CXCompletionChunk_Optional,
+    CXCompletionChunk_TypedText,
+    CXCompletionChunk_Text,
+    CXCompletionChunk_Placeholder,
+    CXCompletionChunk_Informative,
+    CXCompletionChunk_CurrentParameter,
+    CXCompletionChunk_LeftParen,
+    CXCompletionChunk_RightParen,
+    CXCompletionChunk_LeftBracket,
+    CXCompletionChunk_RightBracket,
+    CXCompletionChunk_LeftBrace,
+    CXCompletionChunk_RightBrace,
+    CXCompletionChunk_LeftAngle,
+    CXCompletionChunk_RightAngle,
+    CXCompletionChunk_Comma,
+    CXCompletionChunk_ResultType,
+    CXCompletionChunk_Colon,
+    CXCompletionChunk_SemiColon,
+    CXCompletionChunk_Equal,
+    CXCompletionChunk_HorizontalSpace,
+    CXCompletionChunk_VerticalSpace,
+    CXCompilationDatabase_Error,
+    CXCompilationDatabase_NoError,
+    CXCompilationDatabase_CanNotLoadDatabase,
+    CXPrintingPolicyProperty,
+    CXPrintingPolicy_Indentation,
+    CXPrintingPolicy_SuppressSpecifiers,
+    CXPrintingPolicy_SuppressTagKeyword,
+    CXPrintingPolicy_IncludeTagDefinition,
+    CXPrintingPolicy_SuppressScope,
+    CXPrintingPolicy_SuppressUnwrittenScope,
+    CXPrintingPolicy_SuppressInitializers,
+    CXPrintingPolicy_ConstantArraySizeAsWritten,
+    CXPrintingPolicy_AnonymousTagLocations,
+    CXPrintingPolicy_SuppressStrongLifetime,
+    CXPrintingPolicy_SuppressLifetimeQualifiers,
+    CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors,
+    CXPrintingPolicy_Bool,
+    CXPrintingPolicy_Restrict,
+    CXPrintingPolicy_Alignof,
+    CXPrintingPolicy_UnderscoreAlignof,
+    CXPrintingPolicy_UseVoidForZeroParams,
+    CXPrintingPolicy_TerseOutput,
+    CXPrintingPolicy_PolishForDeclaration,
+    CXPrintingPolicy_Half,
+    CXPrintingPolicy_MSWChar,
+    CXPrintingPolicy_IncludeNewlines,
+    CXPrintingPolicy_MSVCFormatting,
+    CXPrintingPolicy_ConstantsAsWritten,
+    CXPrintingPolicy_SuppressImplicitBase,
+    CXPrintingPolicy_FullyQualifiedName,
+    CXPrintingPolicy_LastProperty,
 )
 
 
@@ -1167,3 +1271,231 @@ struct CodeCompleteFlags(Equatable, ImplicitlyCopyable, Writable):
     comptime INCLUDE_COMPLETIONS_WITH_FIX_ITS = Self(
         CXCodeComplete_IncludeCompletionsWithFixIts,
     )
+
+
+# ---------------------------------------------------------------------------
+# BinaryOperator
+# ---------------------------------------------------------------------------
+
+
+struct BinaryOperator(Equatable, ImplicitlyCopyable, Writable):
+    """High-level wrapper around ``CXBinaryOperatorKind``."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def is_invalid(self) -> Bool:
+        return self._value == c_uint(0)
+
+    def is_assignment(self) -> Bool:
+        var v = self._value
+        return v >= CXBinaryOperator_Assign and v < CXBinaryOperator_Comma
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    def __bool__(self) -> Bool:
+        return self._value != c_uint(0)
+
+    comptime INVALID = Self(CXBinaryOperator_Invalid)
+    comptime PTR_MEM_D = Self(CXBinaryOperator_PtrMemD)
+    comptime PTR_MEM_I = Self(CXBinaryOperator_PtrMemI)
+    comptime MUL = Self(CXBinaryOperator_Mul)
+    comptime DIV = Self(CXBinaryOperator_Div)
+    comptime REM = Self(CXBinaryOperator_Rem)
+    comptime ADD = Self(CXBinaryOperator_Add)
+    comptime SUB = Self(CXBinaryOperator_Sub)
+    comptime SHL = Self(CXBinaryOperator_Shl)
+    comptime SHR = Self(CXBinaryOperator_Shr)
+    comptime CMP = Self(CXBinaryOperator_Cmp)
+    comptime LT = Self(CXBinaryOperator_LT)
+    comptime GT = Self(CXBinaryOperator_GT)
+    comptime LE = Self(CXBinaryOperator_LE)
+    comptime GE = Self(CXBinaryOperator_GE)
+    comptime EQ = Self(CXBinaryOperator_EQ)
+    comptime NE = Self(CXBinaryOperator_NE)
+    comptime AND = Self(CXBinaryOperator_And)
+    comptime XOR = Self(CXBinaryOperator_Xor)
+    comptime OR = Self(CXBinaryOperator_Or)
+    comptime LAND = Self(CXBinaryOperator_LAnd)
+    comptime LOR = Self(CXBinaryOperator_LOr)
+    comptime ASSIGN = Self(CXBinaryOperator_Assign)
+    comptime MUL_ASSIGN = Self(CXBinaryOperator_MulAssign)
+    comptime DIV_ASSIGN = Self(CXBinaryOperator_DivAssign)
+    comptime REM_ASSIGN = Self(CXBinaryOperator_RemAssign)
+    comptime ADD_ASSIGN = Self(CXBinaryOperator_AddAssign)
+    comptime SUB_ASSIGN = Self(CXBinaryOperator_SubAssign)
+    comptime SHL_ASSIGN = Self(CXBinaryOperator_ShlAssign)
+    comptime SHR_ASSIGN = Self(CXBinaryOperator_ShrAssign)
+    comptime AND_ASSIGN = Self(CXBinaryOperator_AndAssign)
+    comptime XOR_ASSIGN = Self(CXBinaryOperator_XorAssign)
+    comptime OR_ASSIGN = Self(CXBinaryOperator_OrAssign)
+    comptime COMMA = Self(CXBinaryOperator_Comma)
+
+
+# ---------------------------------------------------------------------------
+# UnaryOperator
+# ---------------------------------------------------------------------------
+
+
+struct UnaryOperator(Equatable, ImplicitlyCopyable, Writable):
+    """High-level wrapper around ``CXUnaryOperatorKind``."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def is_invalid(self) -> Bool:
+        return self._value == c_uint(0)
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    def __bool__(self) -> Bool:
+        return self._value != c_uint(0)
+
+    comptime INVALID = Self(CXUnaryOperator_Invalid)
+    comptime POST_INC = Self(CXUnaryOperator_PostInc)
+    comptime POST_DEC = Self(CXUnaryOperator_PostDec)
+    comptime PRE_INC = Self(CXUnaryOperator_PreInc)
+    comptime PRE_DEC = Self(CXUnaryOperator_PreDec)
+    comptime ADDR_OF = Self(CXUnaryOperator_AddrOf)
+    comptime DEREF = Self(CXUnaryOperator_Deref)
+    comptime PLUS = Self(CXUnaryOperator_Plus)
+    comptime MINUS = Self(CXUnaryOperator_Minus)
+    comptime NOT = Self(CXUnaryOperator_Not)
+    comptime LNOT = Self(CXUnaryOperator_LNot)
+    comptime REAL = Self(CXUnaryOperator_Real)
+    comptime IMAG = Self(CXUnaryOperator_Imag)
+    comptime EXTENSION = Self(CXUnaryOperator_Extension)
+    comptime COAWAIT = Self(CXUnaryOperator_Coawait)
+
+
+# ---------------------------------------------------------------------------
+# CompletionChunkKind
+# ---------------------------------------------------------------------------
+
+
+struct CompletionChunkKind(Equatable, ImplicitlyCopyable, Writable):
+    """High-level wrapper around ``CXCompletionChunkKind``."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    def __bool__(self) -> Bool:
+        return True
+
+    comptime OPTIONAL = Self(CXCompletionChunk_Optional)
+    comptime TYPED_TEXT = Self(CXCompletionChunk_TypedText)
+    comptime TEXT = Self(CXCompletionChunk_Text)
+    comptime PLACEHOLDER = Self(CXCompletionChunk_Placeholder)
+    comptime INFORMATIVE = Self(CXCompletionChunk_Informative)
+    comptime CURRENT_PARAMETER = Self(CXCompletionChunk_CurrentParameter)
+    comptime LEFT_PAREN = Self(CXCompletionChunk_LeftParen)
+    comptime RIGHT_PAREN = Self(CXCompletionChunk_RightParen)
+    comptime LEFT_BRACKET = Self(CXCompletionChunk_LeftBracket)
+    comptime RIGHT_BRACKET = Self(CXCompletionChunk_RightBracket)
+    comptime LEFT_BRACE = Self(CXCompletionChunk_LeftBrace)
+    comptime RIGHT_BRACE = Self(CXCompletionChunk_RightBrace)
+    comptime LEFT_ANGLE = Self(CXCompletionChunk_LeftAngle)
+    comptime RIGHT_ANGLE = Self(CXCompletionChunk_RightAngle)
+    comptime COMMA = Self(CXCompletionChunk_Comma)
+    comptime RESULT_TYPE = Self(CXCompletionChunk_ResultType)
+    comptime COLON = Self(CXCompletionChunk_Colon)
+    comptime SEMI_COLON = Self(CXCompletionChunk_SemiColon)
+    comptime EQUAL = Self(CXCompletionChunk_Equal)
+    comptime HORIZONTAL_SPACE = Self(CXCompletionChunk_HorizontalSpace)
+    comptime VERTICAL_SPACE = Self(CXCompletionChunk_VerticalSpace)
+
+
+# ---------------------------------------------------------------------------
+# CompilationDatabaseError
+# ---------------------------------------------------------------------------
+
+
+struct CompilationDatabaseErrorCode(Equatable, ImplicitlyCopyable, Writable):
+    """High-level wrapper around ``CXCompilationDatabase_Error``."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime NO_ERROR = Self(CXCompilationDatabase_NoError)
+    comptime CANNOT_LOAD_DATABASE = Self(CXCompilationDatabase_CanNotLoadDatabase)
+
+
+# ---------------------------------------------------------------------------
+# PrintingPolicyProperty
+# ---------------------------------------------------------------------------
+
+
+struct PrintingPolicyProperty(Equatable, ImplicitlyCopyable, Writable):
+    """High-level wrapper around ``CXPrintingPolicyProperty``."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime INDENTATION = Self(CXPrintingPolicy_Indentation)
+    comptime SUPPRESS_SPECIFIERS = Self(CXPrintingPolicy_SuppressSpecifiers)
+    comptime SUPPRESS_TAG_KEYWORD = Self(CXPrintingPolicy_SuppressTagKeyword)
+    comptime INCLUDE_TAG_DEFINITION = Self(CXPrintingPolicy_IncludeTagDefinition)
+    comptime SUPPRESS_SCOPE = Self(CXPrintingPolicy_SuppressScope)
+    comptime SUPPRESS_UNWRITTEN_SCOPE = Self(CXPrintingPolicy_SuppressUnwrittenScope)
+    comptime SUPPRESS_INITIALIZERS = Self(CXPrintingPolicy_SuppressInitializers)
+    comptime CONSTANT_ARRAY_SIZE_AS_WRITTEN = Self(CXPrintingPolicy_ConstantArraySizeAsWritten)
+    comptime ANONYMOUS_TAG_LOCATIONS = Self(CXPrintingPolicy_AnonymousTagLocations)
+    comptime SUPPRESS_STRONG_LIFETIME = Self(CXPrintingPolicy_SuppressStrongLifetime)
+    comptime SUPPRESS_LIFETIME_QUALIFIERS = Self(CXPrintingPolicy_SuppressLifetimeQualifiers)
+    comptime SUPPRESS_TEMPLATE_ARGS_IN_CXX_CONSTRUCTORS = Self(CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors)
+    comptime BOOL = Self(CXPrintingPolicy_Bool)
+    comptime RESTRICT = Self(CXPrintingPolicy_Restrict)
+    comptime ALIGNOF = Self(CXPrintingPolicy_Alignof)
+    comptime UNDERSCORE_ALIGNOF = Self(CXPrintingPolicy_UnderscoreAlignof)
+    comptime USE_VOID_FOR_ZERO_PARAMS = Self(CXPrintingPolicy_UseVoidForZeroParams)
+    comptime TERSE_OUTPUT = Self(CXPrintingPolicy_TerseOutput)
+    comptime POLISH_FOR_DECLARATION = Self(CXPrintingPolicy_PolishForDeclaration)
+    comptime HALF = Self(CXPrintingPolicy_Half)
+    comptime MSW_CHAR = Self(CXPrintingPolicy_MSWChar)
+    comptime INCLUDE_NEWLINES = Self(CXPrintingPolicy_IncludeNewlines)
+    comptime MSVC_FORMATTING = Self(CXPrintingPolicy_MSVCFormatting)
+    comptime CONSTANTS_AS_WRITTEN = Self(CXPrintingPolicy_ConstantsAsWritten)
+    comptime SUPPRESS_IMPLICIT_BASE = Self(CXPrintingPolicy_SuppressImplicitBase)
+    comptime FULLY_QUALIFIED_NAME = Self(CXPrintingPolicy_FullyQualifiedName)
+    comptime LAST_PROPERTY = Self(CXPrintingPolicy_LastProperty)

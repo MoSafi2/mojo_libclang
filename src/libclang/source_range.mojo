@@ -166,6 +166,24 @@ struct SourceRange(Copyable, Movable, Writable):
             ),
         )
 
+    def __ne__(ref self, ref other: SourceRange) raises -> Bool:
+        return not self.__eq__(other)
+
+    def __contains__(ref self, ref other: SourceLocation) raises -> Bool:
+        """Return true if ``other`` lies inside this range (inclusive)."""
+        self._check_valid()
+        other._check_valid()
+
+        if self._generation != other._generation:
+            return False
+
+        if self._tu[].raw() != other._tu[].raw():
+            return False
+
+        var s = self._start
+        var e = self._end
+        return s <= other and other <= e
+
 
 def _zero_source_range() -> CXSourceRange:
     return CXSourceRange(

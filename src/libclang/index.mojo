@@ -21,6 +21,7 @@ from src.libclang.common import (
     _alloc_c_string,
 )
 
+from src.libclang.errors import TranslationUnitLoadError
 from src.libclang.state import IndexState
 from src.libclang.translation_unit import TranslationUnit
 
@@ -53,7 +54,7 @@ struct Index(Copyable, Movable, Writable):
         )
 
         if not raw:
-            raise Error("clang_createIndex returned null")
+            raise Error("IndexError: clang_createIndex returned null")
 
         self._state = ArcPointer(IndexState(raw))
         self._exclude_decls = exclude_decls
@@ -133,8 +134,8 @@ struct Index(Copyable, Movable, Writable):
 
         var err = ErrorCode(raw_err)
         if err != ErrorCode.SUCCESS:
-            raise Error(
-                t"TranslationUnit parse failed: error code={Int(err.as_c_uint())}",
+            raise TranslationUnitLoadError(
+                "parse failed: error code=" + String(Int(err.as_c_uint())),
             )
 
         return TranslationUnit(self.state(), out_tu)
@@ -161,8 +162,8 @@ struct Index(Copyable, Movable, Writable):
         path_c.free()
 
         if err != ErrorCode.SUCCESS:
-            raise Error(
-                t"TranslationUnit read failed: error code={Int(err.as_c_uint())}",
+            raise TranslationUnitLoadError(
+                "read failed: error code=" + String(Int(err.as_c_uint())),
             )
 
         return TranslationUnit(self.state(), out_tu)

@@ -1,0 +1,59 @@
+"""Printing policy wrapper.
+
+Mirrors the Python ``PrintingPolicy`` class.
+"""
+
+from src._ffi import (
+    CXCursor,
+    CXPrintingPolicy,
+    CXPrintingPolicyProperty,
+    clang_getCursorPrintingPolicy,
+    clang_PrintingPolicy_dispose,
+    clang_PrintingPolicy_getProperty,
+    clang_PrintingPolicy_setProperty,
+    c_uint,
+)
+
+from src.libclang.enums import PrintingPolicyProperty
+
+from std.memory import UnsafePointer, rebind
+
+
+struct PrintingPolicy(Movable, Writable):
+    """Owning wrapper around ``CXPrintingPolicy``."""
+
+    var _raw: CXPrintingPolicy
+
+    def __init__(out self, cursor_ptr: UnsafePointer[CXCursor, MutExternalOrigin]) raises:
+        """Create a policy from a cursor.
+
+        The caller must ensure the cursor pointer is valid for the duration of
+        the call.
+        """
+        self._raw = clang_getCursorPrintingPolicy(cursor_ptr)
+        if not self._raw:
+            raise Error("PrintingPolicy: clang_getCursorPrintingPolicy returned null")
+
+    def __del__(deinit self):
+        if self._raw:
+            try:
+                clang_PrintingPolicy_dispose(self._raw)
+            except:
+                pass
+
+    def get_property(ref self, property: PrintingPolicyProperty) -> c_uint:
+        return clang_PrintingPolicy_getProperty(self._raw, property.as_c_uint())
+
+    def set_property(
+        ref self,
+        property: PrintingPolicyProperty,
+        value: c_uint,
+    ):
+        clang_PrintingPolicy_setProperty(
+            self._raw,
+            property.as_c_uint(),
+            value,
+        )
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("PrintingPolicy()")

@@ -331,6 +331,13 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return clang_Type_getSizeOf(self._ptr())
 
+    def translation_unit(ref self) raises -> TranslationUnit:
+        """Return the TranslationUnit to which this type belongs."""
+        from src.libclang.translation_unit import TranslationUnit
+
+        self._check_valid()
+        return TranslationUnit(self._tu[]._index, self._tu[].raw())
+
     def get_ref_qualifier(ref self) raises -> RefQualifierKind:
         self._check_valid()
         return RefQualifierKind(clang_Type_getCXXRefQualifier(self._ptr()))
@@ -434,6 +441,9 @@ struct Type(Copyable, Movable, Writable):
             return False
 
         return Bool(clang_equalTypes(self._ptr(), other._ptr()))
+
+    def __ne__(ref self, ref other: Self) raises -> Bool:
+        return not self.__eq__(other)
 
 
 def _zero_type() -> CXType:
