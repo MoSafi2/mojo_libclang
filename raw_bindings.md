@@ -135,6 +135,33 @@ Do not flatten C arrays in higher-level code just to make a wrapper easier to
 write. The raw aggregate should remain a faithful low-level representation, and
 the wrapper should adapt around it.
 
+## Lessons Learned From `SourceLocation` And `SourceRange`
+
+The source-location and source-range wrappers exposed a second class of bugs
+that is different from raw ABI normalization: repeated FFI round-trips on
+wrapper-owned state can still be unstable even when the raw binding compiles
+and the basic one-shot probe passes.
+
+Key takeaways:
+
+- Cache derived data in the wrapper after the first successful libclang call.
+  `SourceLocation` was safe once `file`, `line`, `column`, and `offset` returned
+  cached fields instead of re-calling `clang_getSpellingLocation` on every
+  accessor.
+- Prefer value-object semantics for borrowed wrapper state. `SourceRange`
+  became stable once it stored copies of the start and end `SourceLocation`
+  values instead of asking libclang to reconstruct them on demand.
+- If a non-null object crashes while a null object survives, the bug is often
+  in the wrapper's post-construction query path, not in the raw zero/null
+  initialization.
+- When a test fails only after the same borrowed value is reused, suspect
+  wrapper lifetime or mutation, then copy the inputs before handing them to the
+  C API.
+- Keep the test surface focused on behavior the wrapper can guarantee. For
+  these types, nullness, equality, and start/end or line/column access were the
+  reliable acceptance checks once the wrappers stopped round-tripping through
+  libclang unnecessarily.
+
 ## What Not To Do
 
 - Do not reintroduce direct libclang signatures into Mojo FFI when they pass or
