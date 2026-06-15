@@ -303,10 +303,7 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         var cs = _CXStringStorage()
         clang_getCursorUSR(cs.ptr_for_out(), self._ptr())
-        var value = cs.take()
-        if not value:
-            return None
-        return Optional[String](value)
+        return cs.take_optional()
 
     # -----------------------------------------------------------------------
     # Classification
@@ -682,19 +679,13 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Cursor_getBriefCommentText(cs.ptr_for_out(), self._ptr())
-        var value = cs.take()
-        if not value:
-            return None
-        return Optional[String](value)
+        return cs.take_optional()
 
     def raw_comment(mut self) raises -> Optional[String]:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Cursor_getRawCommentText(cs.ptr_for_out(), self._ptr())
-        var value = cs.take()
-        if not value:
-            return None
-        return Optional[String](value)
+        return cs.take_optional()
 
     # -----------------------------------------------------------------------
     # Miscellaneous cursor properties

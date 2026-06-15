@@ -1,5 +1,11 @@
 """Unit tests for `src/libclang/common.mojo`."""
-from src.libclang.common import _c_string, _take_cxstring, _CXStringStorage, _alloc_c_string
+from src.libclang.common import (
+    _alloc_c_string,
+    _c_string,
+    _take_cxstring,
+    _take_cxstring_optional,
+    _CXStringStorage,
+)
 from src._ffi import CXString
 from std.ffi import c_uint
 from std.memory import UnsafePointer
@@ -30,17 +36,31 @@ def test_c_string_empty() raises:
     _check(True, "_c_string on empty text should succeed")
 
 
+def test_c_string_embedded_nul_rejected() raises:
+    var rejected = False
+    try:
+        var text = String("a\00b")
+        var buf = _alloc_c_string(text)
+        buf.free()
+    except:
+        rejected = True
+
+    _check(rejected, "embedded NUL should be rejected")
+
+
 # -- _CXStringStorage ------------------------------------------------------
 
 
 def test_cxstring_storage_create() raises:
     var cs = _CXStringStorage()
+    _ = cs
     _check(True, "_CXStringStorage creation should succeed")
 
 
 def test_cxstring_storage_ptr_not_null() raises:
     var cs = _CXStringStorage()
     var ptr = cs.ptr()
+    _ = ptr
     _check(True, "ptr() should return successfully")
 
 
@@ -49,6 +69,13 @@ def test_cxstring_storage_take_empty() raises:
     var s = cs.take()
     assert_equal(s, String(""),
                  "take() on zeroed storage should return empty string")
+
+
+def test_cxstring_storage_take_optional_null() raises:
+    var cs = _CXStringStorage()
+    var s = cs.take_optional()
+    assert_equal(s, None,
+                 "take_optional() on zeroed storage should return None")
 
 
 def test_cxstring_storage_drop() raises:
@@ -75,6 +102,16 @@ def test_take_cxstring_disposes_storage() raises:
     owned[] = CXString(data=None, private_flags=c_uint(0))
     var raw = rebind[UnsafePointer[CXString, MutExternalOrigin]](owned)
     _ = _take_cxstring(raw)
+    owned.free()
+
+
+def test_take_cxstring_optional_null_returns_none() raises:
+    var owned = alloc[CXString](1)
+    owned[] = CXString(data=None, private_flags=c_uint(0))
+    var raw = rebind[UnsafePointer[CXString, MutExternalOrigin]](owned)
+    var s = _take_cxstring_optional(raw)
+    assert_equal(s, None,
+                 "_take_cxstring_optional with null data should return None")
     owned.free()
 
 

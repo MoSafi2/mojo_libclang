@@ -17,9 +17,12 @@ foundation those modules use:
     CStringArray
     UnsavedFileArena
 
-- CXString handling:
+- string handling:
+    _alloc_c_string()
+    _c_string()
     _CXStringStorage
     _take_cxstring()
+    _take_cxstring_optional()
     _borrow_c_string_unsafe()
 
 - validation helpers:
@@ -231,14 +234,29 @@ def _take_cxstring(
     The input `CXString` is consumed. Public wrapper APIs should return
     `String`, never `CXString`.
     """
+    var value = _take_cxstring_optional(cxstr_ref)
+    if not value:
+        return String("")
+
+    return value.value()
+
+
+def _take_cxstring_optional(
+    mut cxstr_ref: UnsafePointer[CXString, MutExternalOrigin],
+) raises -> Optional[String]:
+    """Copy a `CXString` into `Optional[String]` and dispose it.
+
+    Use this for libclang APIs that can return a null `CXString` sentinel.
+    Empty strings remain `Some(String(""))`.
+    """
     var c_string = clang_getCString(cxstr_ref)
     if not c_string:
         clang_disposeString(cxstr_ref)
-        return String("")
+        return None
 
     var value = String(unsafe_from_utf8_ptr=c_string.value())
     clang_disposeString(cxstr_ref)
-    return value
+    return Optional[String](value)
 
 
 struct _CXStringStorage:
@@ -293,6 +311,14 @@ struct _CXStringStorage:
         self._has_value = False
         return _take_cxstring(self._raw)
 
+    def take_optional(mut self) raises -> Optional[String]:
+        """Consume the stored CXString and preserve null-vs-empty."""
+        if not self._has_value:
+            return None
+
+        self._has_value = False
+        return _take_cxstring_optional(self._raw)
+
     def __del__(deinit self):
         if self._has_value:
             clang_disposeString(self._raw)
@@ -315,7 +341,7 @@ struct CStringArray(Movable):
     ]
     var _count: c_int
 
-    def __init__(out self, args: List[String]):
+    def __init__(out self, args: List[String]) raises:
         self._strings = List[UnsafePointer[c_char, MutAnyOrigin]]()
         self._slots = None
         self._count = c_int(len(args))
@@ -379,7 +405,7 @@ struct UnsavedFileArena(Movable):
     var _slots: Optional[UnsafePointer[CXUnsavedFile, MutAnyOrigin]]
     var _count: c_uint
 
-    def __init__(out self, files: List[UnsavedFile]):
+    def __init__(out self, files: List[UnsavedFile]) raises:
         self._filenames = List[UnsafePointer[c_char, MutAnyOrigin]]()
         self._contents = List[UnsafePointer[c_char, MutAnyOrigin]]()
         self._slots = None
@@ -442,15 +468,19 @@ struct UnsavedFileArena(Movable):
 # ---------------------------------------------------------------------------
 
 
-def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutAnyOrigin]:
+def _alloc_c_string(text: String) raises -> UnsafePointer[c_char, MutAnyOrigin]:
     """Allocate a null-terminated C string.
 
-    Caller owns the returned pointer and must free it.
+    Caller owns the returned pointer and must free it. Embedded NUL bytes are
+    rejected because libclang expects a single null-terminated C string.
     """
     var bytes = text.as_bytes()
     var ptr = alloc[c_char](len(bytes) + 1)
 
     for i in range(len(bytes)):
+        if bytes[i] == 0:
+            ptr.free()
+            raise Error("CStringError: embedded NUL byte")
         ptr[i] = c_char(bytes[i])
 
     ptr[len(bytes)] = c_char(0)

@@ -124,6 +124,11 @@ Higher-level wrappers should also:
 
 - convert `CXString` to `String` as soon as possible and dispose the raw string
   immediately
+- use the shared string helpers in `src/libclang/common.mojo` for all
+  Mojo-to-C and C-to-Mojo string movement
+- reject embedded NUL bytes when converting a Mojo `String` into a C string
+- use the optional `CXString` path only for APIs that can return a null
+  sentinel; empty strings should stay empty, not become `None`
 - keep pointer ownership clear, especially for borrowed values from a
   translation unit
 - hide callback trampolines behind wrapper methods rather than exposing raw
@@ -134,6 +139,20 @@ Higher-level wrappers should also:
 Do not flatten C arrays in higher-level code just to make a wrapper easier to
 write. The raw aggregate should remain a faithful low-level representation, and
 the wrapper should adapt around it.
+
+## String Model
+
+There are three string paths, and they are intentionally different:
+
+- Mojo `String` to libclang C string: use `_alloc_c_string(text)` and borrow it
+  with `_c_string(...)` for the call. The helper validates that `text` does not
+  contain embedded NUL bytes.
+- libclang `CXString` to Mojo `String`: use `_CXStringStorage` plus either
+  `take()` for normal string-returning APIs or `take_optional()` for APIs that
+  use a null `CXString` sentinel.
+- borrowed `const char *` from existing owned storage: use `_borrow_c_string_unsafe`
+  only when the pointed-to bytes are already owned and known to stay alive for
+  the duration of the call.
 
 ## Lessons Learned From `SourceLocation` And `SourceRange`
 
