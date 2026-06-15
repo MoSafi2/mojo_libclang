@@ -5,9 +5,16 @@ from src.libclang.common import (
     _take_cxstring,
     _take_cxstring_optional,
     _CXStringStorage,
+    UnsavedFile,
+    SourcePosition,
+    SourceExtentInput,
+    FileLocationValue,
+    PresumedLocationValue,
+    CStringArray,
+    UnsavedFileArena,
 )
 from src._ffi import CXString
-from std.ffi import c_uint
+from std.ffi import c_uint, c_int, c_ulong
 from std.memory import UnsafePointer
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
 
@@ -113,6 +120,75 @@ def test_take_cxstring_optional_null_returns_none() raises:
     assert_equal(s, None,
                  "_take_cxstring_optional with null data should return None")
     owned.free()
+
+
+def test_unsaved_file_write_to() raises:
+    var uf = UnsavedFile(filename="test.c", contents="int x;")
+    var s = String(uf)
+    _check(s.byte_length() > 0, "UnsavedFile write_to should produce output")
+
+
+def test_source_position_write_to() raises:
+    var pos = SourcePosition.from_line_column(c_uint(1), c_uint(2))
+    var s = String(pos)
+    _check(s.byte_length() > 0, "SourcePosition write_to should produce output")
+
+
+def test_source_extent_input_write_to() raises:
+    var extent = SourceExtentInput.from_line_columns(
+        c_uint(1), c_uint(1), c_uint(1), c_uint(5)
+    )
+    var s = String(extent)
+    _check(s.byte_length() > 0, "SourceExtentInput write_to should produce output")
+
+
+def test_file_location_value_write_to() raises:
+    var loc = FileLocationValue(
+        file_name=Optional[String]("test.c"),
+        line=c_uint(1),
+        column=c_uint(2),
+        offset=c_uint(0),
+    )
+    var s = String(loc)
+    _check(s.byte_length() > 0, "FileLocationValue write_to should produce output")
+
+
+def test_presumed_location_value_write_to() raises:
+    var loc = PresumedLocationValue(
+        filename="test.c",
+        line=c_uint(1),
+        column=c_uint(2),
+    )
+    var s = String(loc)
+    _check(s.byte_length() > 0, "PresumedLocationValue write_to should produce output")
+
+
+def test_cstring_array() raises:
+    var args = List[String]()
+    args.append("-xc++")
+    args.append("-std=c++17")
+    var arena = CStringArray(args)
+    _check(Int(arena.count()) == 2, "CStringArray count should match input")
+    _check(arena.ptr() is not None, "CStringArray ptr should not be null for non-empty args")
+
+
+def test_cstring_array_empty() raises:
+    var arena = CStringArray(List[String]())
+    _check(Int(arena.count()) == 0, "empty CStringArray count should be 0")
+
+
+def test_unsaved_file_arena() raises:
+    var files = List[UnsavedFile]()
+    files.append(UnsavedFile(filename="a.c", contents="int a;"))
+    files.append(UnsavedFile(filename="b.c", contents="int b;"))
+    var arena = UnsavedFileArena(files)
+    _check(Int(arena.count()) == 2, "UnsavedFileArena count should match input")
+    _check(arena.ptr() is not None, "UnsavedFileArena ptr should not be null")
+
+
+def test_unsaved_file_arena_empty() raises:
+    var arena = UnsavedFileArena(List[UnsavedFile]())
+    _check(Int(arena.count()) == 0, "empty UnsavedFileArena count should be 0")
 
 
 def main() raises:

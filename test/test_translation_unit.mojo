@@ -10,6 +10,7 @@ from src.libclang.cursor import Cursor
 from src.libclang.translation_unit import TranslationUnit
 
 from src.libclang.source_location import SourceLocation
+from src.libclang.file_inclusion import FileInclusion
 
 from src._ffi import (
     CXCursor_TypedefDecl,
@@ -300,6 +301,18 @@ def test_translation_unit_copy() raises:
     var tu = _parse_fixture()
     var tu2 = tu.copy()
     _check(tu2.spelling() == tu.spelling(), "copied TU should share state")
+
+
+def test_file_inclusion_fields() raises:
+    var index = Index.create()
+    var tu = index.parse("test/fixtures/include_test.c")
+    var includes = tu.get_includes()
+    _check(len(includes) > 0, "should have at least one inclusion")
+    var inc = includes[0].copy()
+    _check(inc.depth > 0, "included file should have depth > 0")
+    _check(not inc.is_input_file(), "included file should not be input file")
+    var s = String(inc)
+    _check(s.byte_length() > 0, "FileInclusion write_to should produce output")
 
 
 def main() raises:
