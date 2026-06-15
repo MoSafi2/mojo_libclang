@@ -165,18 +165,11 @@ def print_type_fields(c: Cursor) raises:
         var field = fields[i].copy()
         var ft = field.type()
         indent(2)
-        print(
-            "  [",
-            i,
-            "] ",
-            field.spelling(),
-            " : ",
-            ft.spelling(),
-            " (kind=",
-            Int(ft.kind().as_c_uint()),
-            ")",
-            sep="",
+        var x = (
+            t" [{i}] {field.spelling()} :"
+            t" {ft.spelling()} (kind='{ft.kind().as_c_uint()})' "
         )
+        print(x)
 
 
 def print_type_canon(c: Cursor) raises:
@@ -189,20 +182,13 @@ def print_type_canon(c: Cursor) raises:
 
     print()
     indent(1)
-    print(
-        "Typedef: '",
-        c.spelling(),
-        "' -> canonical: '",
-        canon.spelling(),
-        "'",
-        sep="",
-    )
+    print(t"Typedef: '{c.spelling()} -> canonical: {canon.spelling()}'")
 
     # If canonical is a pointer, show pointee
     if canon.kind() == TypeKind.POINTER:
         var pointee = canon.get_pointee()
         indent(2)
-        print("  pointee: ", pointee.spelling(), sep="")
+        print(t"pointee: {pointee.spelling()}")
 
         var pointee_canon = pointee.get_canonical()
         if pointee_canon.spelling() != pointee.spelling():
