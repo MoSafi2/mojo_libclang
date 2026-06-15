@@ -166,23 +166,23 @@ struct TranslationUnit(Copyable, Movable, Writable):
             offset,
         )
 
-    # def get_extent(
-    #     mut self,
-    #     filename: String,
-    #     locations: SourceExtentInput,
-    # ) raises -> SourceRange:
-    #     locations.validate()
+    def get_extent(
+        mut self,
+        filename: String,
+        locations: SourceExtentInput,
+    ) raises -> SourceRange:
+        locations.validate()
 
-    #     var start = self.get_location(
-    #         filename,
-    #         locations.start,
-    #     )
-    #     var end = self.get_location(
-    #         filename,
-    #         locations.end,
-    #     )
+        var start = self.get_location(
+            filename,
+            locations.start,
+        )
+        var end = self.get_location(
+            filename,
+            locations.end,
+        )
 
-    #     return SourceRange.from_locations(start, end)
+        return SourceRange.from_locations(start, end)
 
     # def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
     #     return TokenGroup(tu=self.state(), extent=extent)
