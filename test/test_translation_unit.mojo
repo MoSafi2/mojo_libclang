@@ -183,13 +183,9 @@ def test_get_tokens_nonempty() raises:
 
 def test_get_tokens_empty_extent() raises:
     var tu = _parse_fixture()
-    var extent = tu.get_extent(
-        FIXTURE_PATH,
-        SourceExtentInput.from_offsets(0, 0),
-    )
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.get_tokens(SourceRange.null(tu.raw()))
     assert_equal(
-        Int(tokens.__len__()), 0, "zero-width extent should produce no tokens"
+        Int(tokens.__len__()), 0, "null range should produce no tokens"
     )
 
 

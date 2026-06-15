@@ -22,10 +22,6 @@ foundation those modules use:
     _take_cxstring()
     _borrow_c_string_unsafe()
 
-- ARC-backed libclang owners:
-    IndexState
-    TranslationUnitState
-
 - validation helpers:
     _check_index_alive()
     _check_translation_unit_alive()

@@ -84,6 +84,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def generation(self) -> Int:
         return self._state[].generation
 
+    def state(self) -> ArcPointer[TranslationUnitState]:
+        return self._state
+
     def _handle(self) raises -> CXTranslationUnit:
         """Expose raw handle for internal use."""
         return self.raw()
@@ -100,7 +103,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         return cs.take()
 
     def cursor(mut self) raises -> Cursor:
-        var out = Cursor(tu=self.raw())
+        var out = Cursor(tu=self.state())
         clang_getTranslationUnitCursor(out._ptr(), self.raw())
         out._cache_spelling()
         return out^
@@ -175,11 +178,11 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
         return TokenGroup(tu=self.raw(), extent=extent)
 
-    def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
-        var out = Cursor(tu=self.raw())
-        clang_getCursor(out._ptr(), self.raw(), loc._ptr())
-        out._cache_spelling()
-        return out^
+    # def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
+    #     var out = Cursor(tu=self._state)
+    #     clang_getCursor(out._ptr(), self.raw(), loc._ptr())
+    #     out._cache_spelling()
+    #     return out^
 
     def save(mut self, filename: String) raises:
         var options = clang_defaultSaveOptions(self.raw())
