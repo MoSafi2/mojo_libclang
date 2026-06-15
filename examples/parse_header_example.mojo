@@ -197,7 +197,6 @@ def main() raises:
     )
 
     print("Parsed translation unit:")
-    print("  ", tu, sep="")
 
     print_diagnostics(tu)
     print_public_declarations(tu)
