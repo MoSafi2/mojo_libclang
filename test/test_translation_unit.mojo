@@ -60,7 +60,7 @@ def test_cursor_not_null() raises:
 def test_cursor_kind_translation_unit() raises:
     var tu = _parse_fixture()
     var c = tu.cursor()
-    assert_equal(Int(c.kind()), Int(CXCursor_TranslationUnit))
+    assert_equal(Int(c.kind().as_c_uint()), Int(CXCursor_TranslationUnit))
 
 
 # -- Diagnostics --------------------------------------------------------------
@@ -138,7 +138,7 @@ def test_get_cursor_at_typedef() raises:
     )
     var c = tu.get_cursor(loc)
     assert_equal(
-        Int(c.kind()),
+        Int(c.kind().as_c_uint()),
         Int(CXCursor_TypedefDecl),
         "cursor at line 1 col 1 should be TypedefDecl",
     )

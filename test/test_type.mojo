@@ -75,13 +75,13 @@ def _struct_type(mut tu: TranslationUnit, name: String) raises -> Type:
 def test_type_default_kind_is_invalid() raises:
     var tu = _parse_fixture()
     var t = Type(tu=tu.state())
-    assert_equal(Int(t.kind()), Int(CXType_Invalid))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Invalid))
 
 
 def test_type_spelling_and_kind_from_cursor() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
-    assert_equal(Int(t.kind()), Int(CXType_FunctionProto))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_FunctionProto))
     assert_equal(t.spelling(), String("int (int, int)"))
 
 
@@ -90,8 +90,8 @@ def test_type_get_canonical_for_typedef() raises:
     var elaborated = _var_type(tu, String("my_int_value"))
     var t = elaborated.get_named_type()
     var canonical = t.get_canonical()
-    assert_equal(Int(t.kind()), Int(CXType_Typedef))
-    assert_equal(Int(canonical.kind()), Int(CXType_Int))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Typedef))
+    assert_equal(Int(canonical.kind().as_c_uint()), Int(CXType_Int))
     assert_equal(canonical.spelling(), String("int"))
 
 
@@ -99,8 +99,8 @@ def test_type_get_pointee() raises:
     var tu = _parse_fixture()
     var t = _var_type(tu, String("global_ptr"))
     var pointee = t.get_pointee()
-    assert_equal(Int(t.kind()), Int(CXType_Pointer))
-    assert_equal(Int(pointee.kind()), Int(CXType_Int))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Pointer))
+    assert_equal(Int(pointee.kind().as_c_uint()), Int(CXType_Int))
     assert_equal(pointee.spelling(), String("int"))
 
 
@@ -108,7 +108,7 @@ def test_type_get_result() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
     var result = t.get_result()
-    assert_equal(Int(result.kind()), Int(CXType_Int))
+    assert_equal(Int(result.kind().as_c_uint()), Int(CXType_Int))
     assert_equal(result.spelling(), String("int"))
 
 
@@ -116,8 +116,8 @@ def test_type_get_array_element_type() raises:
     var tu = _parse_fixture()
     var t = _var_type(tu, String("array_values"))
     var element = t.get_array_element_type()
-    assert_equal(Int(t.kind()), Int(CXType_ConstantArray))
-    assert_equal(Int(element.kind()), Int(CXType_Int))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_ConstantArray))
+    assert_equal(Int(element.kind().as_c_uint()), Int(CXType_Int))
     assert_equal(element.spelling(), String("int"))
 
 
@@ -134,8 +134,8 @@ def test_type_get_arg_type() raises:
     var t = _function_type(tu, String("add"))
     var first = t.get_arg_type(c_uint(0))
     var second = t.get_arg_type(c_uint(1))
-    assert_equal(Int(first.kind()), Int(CXType_Int))
-    assert_equal(Int(second.kind()), Int(CXType_Int))
+    assert_equal(Int(first.kind().as_c_uint()), Int(CXType_Int))
+    assert_equal(Int(second.kind().as_c_uint()), Int(CXType_Int))
     assert_true(first == second)
 
 
@@ -144,15 +144,15 @@ def test_type_argument_types() raises:
     var t = _function_type(tu, String("add"))
     var args = t.argument_types()
     assert_equal(Int(args.__len__()), 2)
-    assert_equal(Int(args[0].kind()), Int(CXType_Int))
-    assert_equal(Int(args[1].kind()), Int(CXType_Int))
+    assert_equal(Int(args[0].kind().as_c_uint()), Int(CXType_Int))
+    assert_equal(Int(args[1].kind().as_c_uint()), Int(CXType_Int))
 
 
 def test_type_get_template_argument_type_for_non_template_is_invalid() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
     var arg = t.get_template_argument_type(c_uint(0))
-    assert_equal(Int(arg.kind()), Int(CXType_Invalid))
+    assert_equal(Int(arg.kind().as_c_uint()), Int(CXType_Invalid))
 
 
 def test_type_get_named_type_for_elaborated_record() raises:
@@ -160,7 +160,7 @@ def test_type_get_named_type_for_elaborated_record() raises:
     var t = _function_type(tu, String("make_pair"))
     var result = t.get_result()
     var named = result.get_named_type()
-    assert_equal(Int(named.kind()), Int(CXType_Record))
+    assert_equal(Int(named.kind().as_c_uint()), Int(CXType_Record))
     assert_equal(named.spelling(), String("struct Pair"))
 
 
@@ -168,7 +168,7 @@ def test_type_get_class_type_for_non_objc_is_invalid() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
     var class_type = t.get_class_type()
-    assert_equal(Int(class_type.kind()), Int(CXType_Invalid))
+    assert_equal(Int(class_type.kind().as_c_uint()), Int(CXType_Invalid))
 
 
 def test_type_get_unqualified() raises:
@@ -177,7 +177,7 @@ def test_type_get_unqualified() raises:
     assert_true(t.is_const_qualified())
     var unqualified = t.get_unqualified()
     assert_false(unqualified.is_const_qualified())
-    assert_equal(Int(unqualified.kind()), Int(CXType_Int))
+    assert_equal(Int(unqualified.kind().as_c_uint()), Int(CXType_Int))
 
 
 def test_type_get_non_reference_keeps_non_reference_type() raises:
@@ -210,14 +210,14 @@ def test_type_address_space() raises:
 def test_type_get_ref_qualifier() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
-    assert_equal(Int(t.get_ref_qualifier()), Int(CXRefQualifier_None))
+    assert_equal(Int(t.get_ref_qualifier().as_c_uint()), Int(CXRefQualifier_None))
 
 
 def test_type_get_exception_specification_kind() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
     assert_equal(
-        Int(t.get_exception_specification_kind()),
+        Int(t.get_exception_specification_kind().as_c_uint()),
         Int(CXCursor_ExceptionSpecificationKind_None),
     )
 
@@ -225,7 +225,7 @@ def test_type_get_exception_specification_kind() raises:
 def test_type_get_calling_conv() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
-    assert_equal(Int(t.get_calling_conv()), Int(CXCallingConv_C))
+    assert_equal(Int(t.get_calling_conv().as_c_uint()), Int(CXCallingConv_C))
 
 
 def test_type_qualifiers() raises:
@@ -279,7 +279,7 @@ def test_type_typedef_name() raises:
     var tu = _parse_fixture()
     var elaborated = _var_type(tu, String("my_int_value"))
     var t = elaborated.get_named_type()
-    assert_equal(Int(t.kind()), Int(CXType_Typedef))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Typedef))
     assert_equal(t.typedef_name(), String("MyInt"))
 
 
@@ -290,7 +290,7 @@ def test_type_get_declaration() raises:
     _check(decl != None, "record type did not return a declaration cursor")
     var cursor = decl.value().copy()
     assert_equal(cursor.spelling(), String("Pair"))
-    assert_equal(Int(cursor.kind()), Int(CXCursor_StructDecl))
+    assert_equal(Int(cursor.kind().as_c_uint()), Int(CXCursor_StructDecl))
 
 
 def test_type_eq() raises:

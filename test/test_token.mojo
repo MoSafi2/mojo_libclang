@@ -112,7 +112,7 @@ def test_token_kind_keyword_classification() raises:
     var tokens = tu.get_tokens(extent)
     assert_true(Int(tokens.__len__()) > 0, "expected at least one token")
     var first = tokens[0]
-    assert_equal(Int(first.kind()), Int(CXToken_Keyword))
+    assert_equal(Int(first.kind().as_c_uint()), Int(CXToken_Keyword))
     assert_equal(first.spelling(), "int")
 
 
@@ -123,7 +123,7 @@ def test_token_kind_identifier_classification() raises:
     # Tokens: int(Keyword) add(Identifier) ( int a , int b ) {
     assert_true(Int(tokens.__len__()) >= 2, "expected at least 2 tokens")
     var second = tokens[1]
-    assert_equal(Int(second.kind()), Int(CXToken_Identifier))
+    assert_equal(Int(second.kind().as_c_uint()), Int(CXToken_Identifier))
     assert_equal(second.spelling(), "add")
 
 
@@ -134,7 +134,7 @@ def test_token_kind_punctuation_classification() raises:
     # Token 3 is '('
     assert_true(Int(tokens.__len__()) >= 3, "expected at least 3 tokens")
     var third = tokens[2]
-    assert_equal(Int(third.kind()), Int(CXToken_Punctuation))
+    assert_equal(Int(third.kind().as_c_uint()), Int(CXToken_Punctuation))
 
 
 def test_token_location_line_column() raises:

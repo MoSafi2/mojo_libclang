@@ -69,24 +69,24 @@ const char* path
 """
 
 
-def kind_label(kind: CXCursorKind) -> String:
-    if kind == CXCursor_FunctionDecl:
+def kind_label(kind: CursorKind) -> String:
+    if kind == CursorKind.FUNCTION_DECL:
         return "function"
-    if kind == CXCursor_StructDecl:
+    if kind == CursorKind.STRUCT_DECL:
         return "struct"
-    if kind == CXCursor_EnumDecl:
+    if kind == CursorKind.ENUM_DECL:
         return "enum"
-    if kind == CXCursor_TypedefDecl:
+    if kind == CursorKind.TYPEDEF_DECL:
         return "typedef"
     return "other"
 
 
-def is_public_api_kind(kind: CXCursorKind) -> Bool:
+def is_public_api_kind(kind: CursorKind) -> Bool:
     return (
-        kind == CXCursor_FunctionDecl
-        or kind == CXCursor_StructDecl
-        or kind == CXCursor_EnumDecl
-        or kind == CXCursor_TypedefDecl
+        kind == CursorKind.FUNCTION_DECL
+        or kind == CursorKind.STRUCT_DECL
+        or kind == CursorKind.ENUM_DECL
+        or kind == CursorKind.TYPEDEF_DECL
     )
 
 

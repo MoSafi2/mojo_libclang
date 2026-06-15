@@ -85,7 +85,7 @@ def test_null_cursor() raises:
 def test_tu_cursor() raises:
     var tu = _parse()
     var c = tu.cursor()
-    assert_equal(Int(c.kind()), Int(CXCursor_TranslationUnit))
+    assert_equal(Int(c.kind().as_c_uint()), Int(CXCursor_TranslationUnit))
 
 
 def test_spelling() raises:
@@ -126,7 +126,7 @@ def test_semantic_parent() raises:
     var top = _find(tu, CXCursor_TypedefDecl)
     var p = top.semantic_parent()
     _check(p is not None)
-    assert_equal(Int(p.value().kind()), Int(CXCursor_TranslationUnit))
+    assert_equal(Int(p.value().kind().as_c_uint()), Int(CXCursor_TranslationUnit))
 
 
 def test_lexical_parent() raises:
@@ -134,7 +134,7 @@ def test_lexical_parent() raises:
     var top = _find(tu, CXCursor_TypedefDecl)
     var p = top.lexical_parent()
     _check(p is not None)
-    assert_equal(Int(p.value().kind()), Int(CXCursor_TranslationUnit))
+    assert_equal(Int(p.value().kind().as_c_uint()), Int(CXCursor_TranslationUnit))
 
 
 def test_referenced_definition_canonical() raises:
@@ -264,7 +264,7 @@ def test_collect_children_first_typedef() raises:
     var children = collect_children(root)
     var first = children[0].copy()
     assert_equal(
-        Int(first.kind()), Int(CXCursor_TypedefDecl), "first child should be TypedefDecl"
+        Int(first.kind().as_c_uint()), Int(CXCursor_TypedefDecl), "first child should be TypedefDecl"
     )
 
 def test_collect_children_includes_struct() raises:
@@ -297,7 +297,7 @@ def test_walk_preorder_first_is_root() raises:
     var walk = walk_preorder(root)
     var first = walk[0].copy()
     assert_equal(
-        Int(first.kind()), Int(CXCursor_TranslationUnit), "first element should be the root TU cursor"
+        Int(first.kind().as_c_uint()), Int(CXCursor_TranslationUnit), "first element should be the root TU cursor"
     )
 
 def test_walk_preorder_deeper_than_children() raises:
@@ -430,7 +430,7 @@ def test_cxx_access_specifier() raises:
     var c = _find_by_spelling(tu, "virtual_method")
     var spec = c.access_specifier()
     # public = 1
-    assert_equal(Int(spec), 1, "virtual_method should be public")
+    assert_equal(Int(spec.as_c_uint()), 1, "virtual_method should be public")
 
 
 def test_cxx_get_bases() raises:
@@ -485,7 +485,7 @@ def test_cxx_linkage() raises:
     var c = _find_by_spelling(tu, "Derived")
     var lnk = c.linkage()
     # CXLinkage_External = 4 (or similar), just check it's non-zero
-    _check(Int(lnk) > 0, "Derived should have external linkage")
+    _check(Int(lnk.as_c_uint()) > 0, "Derived should have external linkage")
 
 
 def test_cxx_visibility() raises:
@@ -494,7 +494,7 @@ def test_cxx_visibility() raises:
     var vis = c.visibility()
     # CXVisibility_Default = 0, CXVisibility_Hidden = 1, CXVisibility_Protected = 2
     # Just check it returns a valid value without crashing
-    _check(Int(vis) >= 0, "visibility should be a non-negative value")
+    _check(Int(vis.as_c_uint()) >= 0, "visibility should be a non-negative value")
 
 
 def test_cxx_availability() raises:
@@ -502,7 +502,7 @@ def test_cxx_availability() raises:
     var c = _find_by_spelling(tu, "virtual_method")
     var avail = c.availability()
     # CXAvailability_Available = 0
-    _check(Int(avail) == 0, "virtual_method should be available")
+    _check(Int(avail.as_c_uint()) == 0, "virtual_method should be available")
 
 
 def test_cxx_language() raises:
@@ -510,7 +510,7 @@ def test_cxx_language() raises:
     var c = _find_by_spelling(tu, "virtual_method")
     var lang = c.language()
     # CXLanguage_CPlusPlus = 3
-    assert_equal(Int(lang), 3, "C++ method should report CPlusPlus language")
+    assert_equal(Int(lang.as_c_uint()), 3, "C++ method should report CPlusPlus language")
 
 
 def test_cxx_storage_class() raises:
@@ -518,7 +518,7 @@ def test_cxx_storage_class() raises:
     var c = _find_by_spelling(tu, "static_method")
     var sc = c.storage_class()
     # CX_SC_Static = 3
-    assert_equal(Int(sc), 3, "static_method should have static storage class")
+    assert_equal(Int(sc.as_c_uint()), 3, "static_method should have static storage class")
 
 
 def test_cxx_tls_kind() raises:
@@ -526,7 +526,7 @@ def test_cxx_tls_kind() raises:
     var c = _find_by_spelling(tu, "Derived")
     var tls = c.tls_kind()
     # CXTLS_None = 0 for non-thread-local
-    assert_equal(Int(tls), 0, "Derived should have no TLS kind")
+    assert_equal(Int(tls.as_c_uint()), 0, "Derived should have no TLS kind")
 
 
 def test_cxx_is_bitfield() raises:
@@ -658,7 +658,7 @@ def test_get_arguments() raises:
     assert_equal(Int(args.__len__()), 2, "add() should have 2 args")
     for i in range(Int(args.__len__())):
         var arg = args[i].copy()
-        assert_equal(Int(arg.kind()), Int(CXCursor_ParmDecl))
+        assert_equal(Int(arg.kind().as_c_uint()), Int(CXCursor_ParmDecl))
 
 
 def test_num_template_arguments() raises:

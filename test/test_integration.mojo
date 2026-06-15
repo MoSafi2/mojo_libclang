@@ -16,6 +16,8 @@ from src.libclang import (
     Token,
     TokenGroup,
     Diagnostic,
+)
+from src._ffi import (
     CXCursor_FunctionDecl,
     CXCursor_StructDecl,
     CXCursor_VarDecl,
@@ -25,8 +27,6 @@ from src.libclang import (
     CXType_Pointer,
     CXType_Record,
     CXType_Invalid,
-)
-from src._ffi import (
     CXToken_Keyword,
     CXToken_Identifier,
     CXToken_Punctuation,
@@ -97,7 +97,7 @@ def test_tu_cursor() raises:
     var c = tu.cursor()
     _check(not c.is_null(), "TU cursor should not be null")
     assert_equal(
-        Int(c.kind()), Int(CXCursor_TranslationUnit), "TU cursor kind mismatch"
+        Int(c.kind().as_c_uint()), Int(CXCursor_TranslationUnit), "TU cursor kind mismatch"
     )
 
 
@@ -228,15 +228,15 @@ def test_tokenize_line1() raises:
     var tokens = tu.get_tokens(extent)
     _check(Int(tokens.__len__()) > 0, "expected at least one token")
     var first = tokens[0]
-    assert_equal(Int(first.kind()), Int(CXToken_Keyword))
+    assert_equal(Int(first.kind().as_c_uint()), Int(CXToken_Keyword))
     assert_equal(first.spelling(), "int")
 
     var second = tokens[1]
-    assert_equal(Int(second.kind()), Int(CXToken_Identifier))
+    assert_equal(Int(second.kind().as_c_uint()), Int(CXToken_Identifier))
     assert_equal(second.spelling(), "add")
 
     var third = tokens[2]
-    assert_equal(Int(third.kind()), Int(CXToken_Punctuation))
+    assert_equal(Int(third.kind().as_c_uint()), Int(CXToken_Punctuation))
 
 
 def test_tokenize_whole_file() raises:
@@ -290,7 +290,7 @@ def test_token_cursor_annotation() raises:
     var tokens = tu.get_tokens(extent)
     var first = tokens[0]
     var c = first.cursor()
-    assert_equal(Int(c.kind()), Int(CXCursor_FunctionDecl),
+    assert_equal(Int(c.kind().as_c_uint()), Int(CXCursor_FunctionDecl),
                  "annotated cursor for 'int' keyword should be FunctionDecl")
 
 
