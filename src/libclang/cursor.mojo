@@ -113,6 +113,10 @@ from src._ffi import (
     c_long_long,
     c_ulong_long,
     CXClientData,
+    CXCursorVisitor,
+    CXChildVisitResult,
+    CXChildVisit_Continue,
+    CXChildVisit_Break,
     clang_visitChildren,
 )
 
@@ -236,7 +240,7 @@ struct Cursor(Copyable, Movable, Writable):
     def write_to(mut self, mut writer: Some[Writer]):
         try:
             writer.write(
-                "Cursor(kind=", self.kind(), ", spelling=", self.spelling(), ")"
+                "Cursor(kind=", self.kind().as_c_uint(), ", spelling=", self.spelling(), ")"
             )
         except:
             writer.write("Cursor(<invalid>)")

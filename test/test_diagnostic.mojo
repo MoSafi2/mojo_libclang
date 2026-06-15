@@ -8,7 +8,6 @@ from src.libclang import (
     Diagnostic,
     DiagnosticSet,
     FixIt,
-    CXDiagnostic_Error,
 )
 from std.ffi import c_uint
 from std.testing import assert_equal, assert_true, TestSuite

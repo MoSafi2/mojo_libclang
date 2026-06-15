@@ -35,7 +35,7 @@ def _first_line_extent(mut tu: TranslationUnit) raises -> SourceRange:
 
 
 def _find_function(mut tu: TranslationUnit, name: String) raises -> Cursor:
-    from src.libclang import Cursor, CXCursor_FunctionDecl
+    from src.libclang import Cursor
 
     var root = tu.cursor()
     var children = root.get_children()

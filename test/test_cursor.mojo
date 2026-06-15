@@ -4,6 +4,9 @@ from src.libclang import (
     TranslationUnit,
     Cursor,
     Type,
+    AccessSpecifier,
+)
+from src._ffi import (
     CXCursor_TranslationUnit,
     CXCursor_TypedefDecl,
     CXCursor_FunctionDecl,
@@ -16,12 +19,11 @@ from src.libclang import (
     CXCursor_EnumDecl,
     CXCursor_Constructor,
     CXCursor_Destructor,
+    CXCursor_CXXBaseSpecifier,
     CXType_Int,
     CXType_FunctionProto,
     CXType_Record,
-    AccessSpecifier,
 )
-from src._ffi import CXCursor_CXXBaseSpecifier
 from src.libclang.cursor import collect_children, walk_preorder
 from std.ffi import c_uint, c_int
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
@@ -107,9 +109,9 @@ def test_type_and_result_type() raises:
     var tu = _parse()
     var func = _find(tu, CXCursor_FunctionDecl)
     var typ = func.type()
-    assert_equal(Int(typ.kind()), Int(CXType_FunctionProto))
+    assert_equal(Int(typ.kind().as_c_uint()), Int(CXType_FunctionProto))
     var rt = func.result_type()
-    assert_equal(Int(rt.kind()), Int(CXType_Int))
+    assert_equal(Int(rt.kind().as_c_uint()), Int(CXType_Int))
 
 
 def test_location_and_extent() raises:
