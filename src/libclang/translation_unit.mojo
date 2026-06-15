@@ -19,9 +19,16 @@ from src._ffi import (
     c_int,
     c_ulong,
     clang_parseTranslationUnit2,
+    clang_createTranslationUnit2,
+    CXError_Success,
 )
-from src.libclang.common import UnsavedFile, SourcePosition, SourceExtentInput
-from src.libclang.index import IndexState
+from src.libclang.common import (
+    UnsavedFile,
+    SourcePosition,
+    SourceExtentInput,
+    _c_string,
+)
+from src.libclang.index import IndexState, Index
 from src.libclang.common import _CXStringStorage, CStringArray, UnsavedFileArena
 from src.libclang.cursor import Cursor
 from src.libclang.file import File
@@ -71,69 +78,11 @@ struct TranslationUnit(Copyable, Movable, Writable):
         self._state = ArcPointer(TranslationUnitState(raw))
         self._spelling = String()
 
-    def __init__(out self, *, copy: Self):
-        self._state = copy._state
-        self._spelling = copy._spelling
-
     def raw(self) raises -> CXTranslationUnit:
         return self._state[].raw()
 
     def generation(self) -> Int:
         return self._state[].generation
-
-    def parse(
-        mut self,
-        path: String,
-        args: List[String] = List[String](),
-        unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-        options: c_uint = 0,
-    ) raises -> Self:
-        var f = unsaved_files.copy()
-        f = rebind[List[UnsavedFile]](f).copy()
-        var arg_arena = CStringArray(args)
-        var unsaved_arena = UnsavedFileArena(f)
-
-        var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](to=out_tu)
-
-        var err = clang_parseTranslationUnit2(
-            self.raw(),
-            _c_string(path),
-            arg_arena.ptr(),
-            arg_arena.count(),
-            unsaved_arena.ptr(),
-            unsaved_arena.count(),
-            options,
-            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
-                out_ptr
-            ),
-        )
-
-    if err != CXError_Success:
-        raise Error(
-            "TranslationUnit parse failed: error code=" + String(Int(err)),
-        )
-
-    return self(self._state, out_tu)
-
-    def read(mut self, path: String) raises -> Self:
-        var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](to=out_tu)
-
-        var err = clang_createTranslationUnit2(
-            self.raw(),
-            _c_string(path),
-            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
-                out_ptr
-            ),
-        )
-
-        if err != CXError_Success:
-            raise Error(
-                "TranslationUnit read failed: error code=" + String(Int(err)),
-            )
-
-        return Self(self._state, out_tu)
 
     def _handle(self) raises -> CXTranslationUnit:
         """Expose raw handle for internal use."""

@@ -1,16 +1,22 @@
 """Unit tests for `src/libclang/translation_unit.mojo`."""
-from src.libclang import (
-    Index,
-    TranslationUnit,
-    Cursor,
-    SourceLocation,
+from src.libclang.index import Index
+from src.libclang.common import (
+    UnsavedFile,
     SourcePosition,
     SourceExtentInput,
-    UnsavedFile,
+)
+from src.libclang.source_range import SourceRange
+from src.libclang.cursor import Cursor
+from src.libclang.translation_unit import TranslationUnit
+
+from src.libclang.source_location import SourceLocation
+
+from src._ffi import (
     CXCursor_TypedefDecl,
     CXCursor_TranslationUnit,
     CXCursor_VarDecl,
 )
+
 from std.ffi import c_uint
 from std.testing import (
     assert_equal,
@@ -74,8 +80,9 @@ def test_num_diagnostics_zero_for_valid() raises:
 
 def test_num_diagnostics_positive_for_invalid() raises:
     var tu = _parse_invalid()
-    _check(tu.num_diagnostics() > 0,
-           "invalid source should produce diagnostics")
+    _check(
+        tu.num_diagnostics() > 0, "invalid source should produce diagnostics"
+    )
 
 
 # def test_diagnostic_matches_diagnostics_set() raises:
@@ -137,8 +144,11 @@ def test_get_cursor_at_typedef() raises:
         SourcePosition.from_line_column(1, 1),
     )
     var c = tu.get_cursor(loc)
-    assert_equal(Int(c.kind()), Int(CXCursor_TypedefDecl),
-                 "cursor at line 1 col 1 should be TypedefDecl")
+    assert_equal(
+        Int(c.kind()),
+        Int(CXCursor_TypedefDecl),
+        "cursor at line 1 col 1 should be TypedefDecl",
+    )
 
 
 def test_get_cursor_at_function() raises:
@@ -153,7 +163,7 @@ def test_get_cursor_at_function() raises:
 
 def test_get_cursor_null_location() raises:
     var tu = _parse_fixture()
-    var null_loc = SourceLocation.null(tu._raw)
+    var null_loc = SourceLocation.null(tu.raw())
     var c = tu.get_cursor(null_loc)
     _check(c.is_null(), "cursor at null location should be null")
 
@@ -178,7 +188,9 @@ def test_get_tokens_empty_extent() raises:
         SourceExtentInput.from_offsets(0, 0),
     )
     var tokens = tu.get_tokens(extent)
-    assert_equal(Int(tokens.__len__()), 0, "zero-width extent should produce no tokens")
+    assert_equal(
+        Int(tokens.__len__()), 0, "zero-width extent should produce no tokens"
+    )
 
 
 # -- reparse -------------------------------------------------------------------
@@ -222,8 +234,10 @@ def test_save_then_read() raises:
     tu.save(SAVE_PATH)
     var index = Index.create()
     var tu2 = index.read(SAVE_PATH)
-    _check(tu2.spelling().byte_length() > 0,
-           "restored TU should have non-empty spelling")
+    _check(
+        tu2.spelling().byte_length() > 0,
+        "restored TU should have non-empty spelling",
+    )
 
 
 def test_save_then_read_cursor() raises:

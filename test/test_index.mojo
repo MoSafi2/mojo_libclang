@@ -1,7 +1,15 @@
 """Unit tests for `src/libclang/index.mojo`."""
-from src.libclang import Index, TranslationUnit, UnsavedFile
+from src.libclang.index import Index
+from src.libclang.common import UnsavedFile
+from src.libclang.translation_unit import TranslationUnit
 from std.ffi import c_uint
-from std.testing import assert_equal, assert_true, assert_false, assert_raises, TestSuite
+from std.testing import (
+    assert_equal,
+    assert_true,
+    assert_false,
+    assert_raises,
+    TestSuite,
+)
 
 
 comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
@@ -54,8 +62,7 @@ def test_constructor_with_flags() raises:
 def test_parse_valid_file() raises:
     var index = Index.create()
     var tu = index.parse(FIXTURE_PATH)
-    _check(tu.spelling().byte_length() > 0,
-           "TU should have non-empty spelling")
+    _check(tu.spelling().byte_length() > 0, "TU should have non-empty spelling")
 
 
 def test_parse_with_args() raises:
@@ -63,8 +70,7 @@ def test_parse_with_args() raises:
     var args = List[String]()
     args.append("-std=c99")
     var tu = index.parse(FIXTURE_PATH, args=args)
-    _check(tu.spelling().byte_length() > 0,
-           "TU with args should have spelling")
+    _check(tu.spelling().byte_length() > 0, "TU with args should have spelling")
 
 
 def test_parse_with_multiple_args() raises:
@@ -74,8 +80,10 @@ def test_parse_with_multiple_args() raises:
     args.append("-pedantic")
     args.append("-Wall")
     var tu = index.parse(FIXTURE_PATH, args=args)
-    _check(tu.spelling().byte_length() > 0,
-           "TU with multiple args should have spelling")
+    _check(
+        tu.spelling().byte_length() > 0,
+        "TU with multiple args should have spelling",
+    )
 
 
 def test_parse_with_unsaved_file() raises:
@@ -88,8 +96,10 @@ def test_parse_with_unsaved_file() raises:
         ),
     )
     var tu = index.parse(FIXTURE_PATH, unsaved_files=unsaved)
-    _check(tu.spelling().byte_length() > 0,
-           "TU with unsaved file should have spelling")
+    _check(
+        tu.spelling().byte_length() > 0,
+        "TU with unsaved file should have spelling",
+    )
 
 
 def test_parse_with_multiple_unsaved_files() raises:
@@ -105,15 +115,18 @@ def test_parse_with_multiple_unsaved_files() raises:
         ),
     )
     var tu = index.parse(String("test/a.c"), unsaved_files=unsaved)
-    _check(tu.spelling().byte_length() > 0,
-           "TU with multiple unsaved files should succeed")
+    _check(
+        tu.spelling().byte_length() > 0,
+        "TU with multiple unsaved files should succeed",
+    )
 
 
 def test_parse_with_options() raises:
     var index = Index.create()
     var tu = index.parse(FIXTURE_PATH, options=c_uint(1))
-    _check(tu.spelling().byte_length() > 0,
-           "TU with options should have spelling")
+    _check(
+        tu.spelling().byte_length() > 0, "TU with options should have spelling"
+    )
 
 
 def test_parse_empty_source() raises:
@@ -129,11 +142,9 @@ def test_parse_empty_source() raises:
 def test_parse_reuse_index() raises:
     var index = Index.create()
     var tu1 = index.parse(FIXTURE_PATH)
-    _check(tu1.spelling().byte_length() > 0,
-           "first parse should succeed")
+    _check(tu1.spelling().byte_length() > 0, "first parse should succeed")
     var tu2 = index.parse(FIXTURE_PATH)
-    _check(tu2.spelling().byte_length() > 0,
-           "second parse should succeed")
+    _check(tu2.spelling().byte_length() > 0, "second parse should succeed")
 
 
 # -- Error handling --------------------------------------------------------

@@ -14,8 +14,7 @@ from src._ffi import (
     c_int,
     c_ulong,
 )
-from src.libclang.support import UnsavedFile
-from src.libclang.common import _c_string
+from src.libclang.common import _c_string, UnsavedFile
 from src.libclang.translation_unit import TranslationUnit
 from std.memory import UnsafePointer, ArcPointer
 from std.ffi import c_char
