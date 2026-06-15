@@ -84,16 +84,10 @@ const char* sensor_last_error(SensorConfig* cfg);
 # -- Helpers -----------------------------------------------------------------
 
 
-def print_diagnostics(mut tu: TranslationUnit) raises:
-    """Print diagnostics by indexing into the DiagnosticSet.
-
-    Note: `for d in tu.diagnostics()` works syntactically, but
-    Diagnostic methods require `mut self`, so we need a mutable
-    local via indexed access.
-    """
+def print_diagnostics(tu: TranslationUnit) raises:
+    """Print diagnostics from the translation unit."""
     var diags = tu.diagnostics()
-    var count = len(diags)
-    if count == 0:
+    if len(diags) == 0:
         print("  (no diagnostics)")
         return
 
@@ -155,19 +149,18 @@ def print_type_fields(c: Cursor) raises:
         return
 
     var fields = t.get_fields()
-    if fields.__len__() == 0:
+    if len(fields) == 0:
         return
 
     print()
     indent(1)
     print("Fields of '", c.spelling(), "':", sep="")
-    for i in range(Int(fields.__len__())):
-        var field = fields[i].copy()
+    for i, field in enumerate(fields):
         var ft = field.type()
         indent(2)
         var x = (
             t" [{i}] {field.spelling()} :"
-            t" {ft.spelling()} (kind='{ft.kind().as_c_uint()})' "
+            t" {ft.spelling()} (kind='{ft.kind().as_c_uint()}')' "
         )
         print(x)
 
@@ -196,20 +189,16 @@ def print_type_canon(c: Cursor) raises:
             print("  pointee canonical: ", pointee_canon.spelling(), sep="")
 
 
-def print_enumerators(mut tu: TranslationUnit, mut root: Cursor) raises:
+def print_enumerators(root: Cursor) raises:
     """Find enum declarations and list their enumerator values."""
-    var all_cursors = root.walk_preorder()
-    for i in range(Int(all_cursors.__len__())):
-        var c = all_cursors[i].copy()
+    for c in root.walk_preorder():
         if c.kind() != CursorKind.ENUM_DECL:
             continue
 
         print()
         indent(1)
         print("Enum '", c.spelling(), "':", sep="")
-        var enumerators = c.get_children()
-        for j in range(Int(enumerators.__len__())):
-            var e = enumerators[j].copy()
+        for e in c:
             indent(2)
             print(
                 "  ",
@@ -221,7 +210,7 @@ def print_enumerators(mut tu: TranslationUnit, mut root: Cursor) raises:
             )
 
 
-def print_token_stream(mut tu: TranslationUnit) raises:
+def print_token_stream(tu: TranslationUnit) raises:
     """Tokenize a portion of the header using the new for-in TokenGroup iterator.
     """
     var extent = tu.get_extent(
@@ -279,14 +268,13 @@ def main() raises:
     print()
     print("=== Type Details =================================================")
 
-    var all_cursors = root.walk_preorder()
-    for c in all_cursors:
+    for c in root.walk_preorder():
         if c.kind() == CursorKind.TYPEDEF_DECL:
             print_type_canon(c)
         if c.kind() == CursorKind.STRUCT_DECL:
             print_type_fields(c)
 
-    print_enumerators(tu, root)
+    print_enumerators(root)
 
     # 5. Tokens --------------------------------------------------------------
     print_token_stream(tu)

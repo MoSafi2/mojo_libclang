@@ -79,7 +79,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         """Expose raw handle for internal FFI calls."""
         return self.raw()
 
-    def write_to(ref self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         writer.write("TranslationUnit(", self._spelling, ")")
 
     def __len__(self) raises -> Int:
