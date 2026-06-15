@@ -162,6 +162,34 @@ Key takeaways:
   reliable acceptance checks once the wrappers stopped round-tripping through
   libclang unnecessarily.
 
+## Lessons Learned From `Token`
+
+Token wrapping shows the same general rule, but with a sharper edge:
+
+- A token wrapper should cache `kind` and `spelling` immediately, but token
+  location queries are more fragile than plain location objects.
+- `clang_getTokenLocation` produced a raw `CXSourceLocation` that crashed when
+  we tried to feed it through the usual location-formatting helpers
+  (`clang_getSpellingLocation`, `clang_getExpansionLocation`, and
+  `clang_getFileLocation`).
+- That means a token location should not be assumed to behave like a normal
+  `SourceLocation` obtained from `TranslationUnit.get_location`.
+- If token location support is needed, the wrapper likely needs a separate
+  probe and possibly a different strategy than the current location cache
+  pattern.
+- `TokenGroup` should still own and dispose the token buffer, but `Token`
+  accessors should avoid repeated FFI round-trips and should only expose fields
+  that are known to be stable.
+
+Current status:
+
+- `kind()`, `spelling()`, and `cursor()` are implemented and exercised by the
+  token tests.
+- `location()` and `extent()` are intentionally left as documented failures.
+  In this checkout, the raw token location path crashed when we tried to feed
+  it through the usual location helpers, so those methods are not part of the
+  supported surface yet.
+
 ## What Not To Do
 
 - Do not reintroduce direct libclang signatures into Mojo FFI when they pass or
