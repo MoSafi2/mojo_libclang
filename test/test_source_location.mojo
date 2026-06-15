@@ -4,6 +4,7 @@ from src.libclang import (
     TranslationUnit,
     SourceLocation,
     SourcePosition,
+    File,
 )
 from std.ffi import c_uint
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
@@ -176,6 +177,84 @@ def test_location_ordering() raises:
     _check(b > a, "later location should be greater")
     _check(b >= a, "later location should be greater or equal")
     _check(a != b, "different locations should not be equal")
+
+
+def test_source_location_null_arc_pointer() raises:
+    var tu = _parse_fixture()
+    var loc1 = SourceLocation.null(tu)
+    var loc2 = SourceLocation.null(tu.state())
+    _check(loc1 == loc2, "null locations should be equal")
+
+
+def test_source_location_from_position_arc_pointer() raises:
+    var tu = _parse_fixture()
+    var file_handle = tu.get_file(FIXTURE_PATH).value().raw_value()
+    var loc = SourceLocation.from_position(
+        tu.state(), file_handle, c_uint(1), c_uint(1)
+    )
+    _check(loc.line() == c_uint(1), "line should be 1")
+
+
+def test_source_location_from_offset_arc_pointer() raises:
+    var tu = _parse_fixture()
+    var file_handle = tu.get_file(FIXTURE_PATH).value().raw_value()
+    var loc = SourceLocation.from_offset(tu.state(), file_handle, c_uint(0))
+    _check(loc.offset() == c_uint(0), "offset should be 0")
+
+
+def test_source_location_from_raw() raises:
+    var tu = _parse_fixture()
+    var loc = SourceLocation.null(tu)
+    var raw = loc.raw_value()
+    var loc2 = SourceLocation.from_raw(tu.state(), raw)
+    _check(loc == loc2, "from_raw should reconstruct equal location")
+
+
+def test_source_location_raw_file() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    var f = File(tu=tu.state(), raw=loc.raw_file())
+    _check(f.name().byte_length() > 0, "raw_file should yield a valid file")
+
+
+def test_source_location_file_name() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    _check(loc.file_name().byte_length() > 0, "file_name should not be empty")
+
+
+def test_source_location_spelling_tuple() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    var (_, line, col, _) = loc.spelling_tuple()
+    _check(line == c_uint(1), "line should be 1")
+    _check(col == c_uint(1), "column should be 1")
+
+
+def test_source_location_refresh() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    loc.refresh()
+    _check(loc.line() == c_uint(1), "refresh should keep line 1")
+
+
+def test_source_location_write_to() raises:
+    var tu = _parse_fixture()
+    var loc = SourceLocation.null(tu)
+    var s = String(loc)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
 
 
 def main() raises:

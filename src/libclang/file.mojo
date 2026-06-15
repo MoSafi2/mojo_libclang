@@ -81,6 +81,11 @@ struct File(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("File used after TranslationUnit.reparse()")
 
+    def raw_value(ref self) raises -> CXFile:
+        """Return the raw ``CXFile`` handle."""
+        self._check_valid()
+        return self._raw
+
     def _tu_raw(self) raises -> CXTranslationUnit:
         self._check_valid()
         return self._tu[].raw()

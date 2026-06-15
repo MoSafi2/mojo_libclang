@@ -97,6 +97,11 @@ struct SourceLocation(Copyable, Movable, Writable):
             self._raw.unsafe_ptr(),
         )
 
+    def raw_value(ref self) raises -> CXSourceLocation:
+        """Return a copied raw ``CXSourceLocation`` value."""
+        self._check_valid()
+        return self._raw[0].copy()
+
     def _cache_from_ffi(mut self) raises:
         self._check_valid()
 

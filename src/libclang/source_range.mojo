@@ -79,6 +79,11 @@ struct SourceRange(Copyable, Movable, Writable):
             self._raw.unsafe_ptr(),
         )
 
+    def raw_value(ref self) raises -> CXSourceRange:
+        """Return a copied raw ``CXSourceRange`` value."""
+        self._check_valid()
+        return self._raw[0].copy()
+
     def write_to(self, mut writer: Some[Writer]):
         writer.write("SourceRange(", self._start, ", ", self._end, ")")
 

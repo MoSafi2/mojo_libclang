@@ -268,44 +268,44 @@ struct TranslationUnit(Copyable, Movable, Writable):
     # Classmethod construction
     # -----------------------------------------------------------------------
 
-    # @staticmethod
-    # def from_source(
-    #     filename: String,
-    #     args: List[String] = List[String](),
-    #     unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
-    #     options: TranslationUnitFlags = TranslationUnitFlags.NONE,
-    #     index: Optional[Index] = None,
-    # ) raises -> TranslationUnit:
-    #     """Parse a source file into a ``TranslationUnit``.
+    @staticmethod
+    def from_source(
+        filename: String,
+        args: List[String] = List[String](),
+        unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
+        options: TranslationUnitFlags = TranslationUnitFlags.NONE,
+        index: Optional[Index] = None,
+    ) raises -> TranslationUnit:
+        """Parse a source file into a ``TranslationUnit``.
 
-    #     If ``index`` is not provided, a default ``Index`` is created and kept
-    #     alive by the returned translation unit.
-    #     """
-    #     from src.libclang.index import Index
+        If ``index`` is not provided, a default ``Index`` is created and kept
+        alive by the returned translation unit.
+        """
+        from src.libclang.index import Index
 
-    #     var idx: Index
-    #     if index:
-    #         idx = index.value().copy()
-    #     else:
-    #         idx = Index()
+        var idx: Index
+        if index:
+            idx = index.value().copy()
+        else:
+            idx = Index()
 
-    #     return idx.parse(filename, args, unsaved_files, options)
+        return idx.parse(filename, args, unsaved_files, options)
 
-    # @staticmethod
-    # def from_ast_file(
-    #     filename: String,
-    #     index: Optional[Index] = None,
-    # ) raises -> TranslationUnit:
-    #     """Load a serialized AST file into a ``TranslationUnit``."""
-    #     from src.libclang.index import Index
+    @staticmethod
+    def from_ast_file(
+        filename: String,
+        index: Optional[Index] = None,
+    ) raises -> TranslationUnit:
+        """Load a serialized AST file into a ``TranslationUnit``."""
+        from src.libclang.index import Index
 
-    #     var idx: Index
-    #     if index:
-    #         idx = index.value().copy()
-    #     else:
-    #         idx = Index()
+        var idx: Index
+        if index:
+            idx = index.value().copy()
+        else:
+            idx = Index()
 
-    #     return idx.read(filename)
+        return idx.read(filename)
 
     # -----------------------------------------------------------------------
     # Includes

@@ -11,6 +11,10 @@ int add(int a, int b) {
     return a + b;
 }
 
+int use_add() {
+    return add(1, 2);
+}
+
 int *global_ptr;
 const int const_value;
 volatile int volatile_value;

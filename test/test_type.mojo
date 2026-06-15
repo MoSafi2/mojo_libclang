@@ -351,5 +351,33 @@ def test_type_get_methods_on_base() raises:
     _check(Int(methods.__len__()) >= 2, "Base should have at least 2 methods")
 
 
+def test_type_raw_value() raises:
+    var tu = _parse_fixture()
+    var t = _function_type(tu, "add")
+    var raw = t.raw_value()
+    assert_equal(Int(raw.kind), Int(CXType_FunctionProto))
+
+
+def test_type_translation_unit() raises:
+    var tu = _parse_fixture()
+    var t = _function_type(tu, "add")
+    var got_tu = t.translation_unit()
+    _check(got_tu.spelling() == tu.spelling(), "translation unit spelling matches")
+
+
+def test_type_write_to() raises:
+    var tu = _parse_fixture()
+    var t = _function_type(tu, "add")
+    var s = String(t)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
+
+
+def test_type_ne() raises:
+    var tu = _parse_fixture()
+    var add_type = _function_type(tu, "add")
+    var ptr_type = _var_type(tu, "global_ptr")
+    _check(add_type != ptr_type, "different types should be !=")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

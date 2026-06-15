@@ -289,7 +289,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def write_to(ref self, mut writer: Some[Writer]):
+    def write_to(self, mut writer: Some[Writer]):
         try:
             writer.write(
                 "Cursor(kind=",

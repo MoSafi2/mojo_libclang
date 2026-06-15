@@ -243,19 +243,19 @@ def test_save_then_read_cursor() raises:
     _check(not c.is_null(), "restored TU cursor should not be null")
 
 
-# def test_from_source() raises:
-#     var tu = TranslationUnit.from_source(FIXTURE_PATH)
-#     _check(tu.spelling().byte_length() > 0, "from_source should produce a TU")
+def test_from_source() raises:
+    var tu = TranslationUnit.from_source(FIXTURE_PATH)
+    _check(tu.spelling().byte_length() > 0, "from_source should produce a TU")
 
 
-# def test_from_ast_file() raises:
-#     var tu = _parse_fixture()
-#     tu.save(SAVE_PATH)
-#     var tu2 = TranslationUnit.from_ast_file(SAVE_PATH)
-#     _check(
-#         tu2.spelling().byte_length() > 0,
-#         "from_ast_file should produce a TU with non-empty spelling",
-#     )
+def test_from_ast_file() raises:
+    var tu = _parse_fixture()
+    tu.save(SAVE_PATH)
+    var tu2 = TranslationUnit.from_ast_file(SAVE_PATH)
+    _check(
+        tu2.spelling().byte_length() > 0,
+        "from_ast_file should produce a TU with non-empty spelling",
+    )
 
 
 def test_get_includes() raises:
@@ -271,6 +271,35 @@ def test_get_includes_with_actual_include() raises:
     _check(
         len(includes) > 0, "include_test.c should have at least one inclusion"
     )
+
+
+def test_translation_unit_generation_and_state() raises:
+    var tu = _parse_fixture()
+    _check(tu.generation() == 0, "initial generation should be 0")
+    _check(tu.state()[].generation == tu.generation(), "state generation matches")
+
+
+def test_translation_unit_raw() raises:
+    var tu = _parse_fixture()
+    var raw = tu.raw()
+    _check(raw is not None, "raw CXTranslationUnit should not be null")
+
+
+def test_translation_unit_len() raises:
+    var tu = _parse_invalid()
+    _check(Int(tu.__len__()) > 0, "invalid TU should have positive diagnostic count")
+
+
+def test_translation_unit_write_to() raises:
+    var tu = _parse_fixture()
+    var s = String(tu)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
+
+
+def test_translation_unit_copy() raises:
+    var tu = _parse_fixture()
+    var tu2 = tu.copy()
+    _check(tu2.spelling() == tu.spelling(), "copied TU should share state")
 
 
 def main() raises:

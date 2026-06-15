@@ -183,5 +183,37 @@ def test_diagnostic_set_enumerate_iteration() raises:
     assert_equal(count, 2, "enumerate(diags) should iterate diagnostics")
 
 
+def test_diagnostic_write_to() raises:
+    var tu = _parse_invalid()
+    var d = tu.diagnostic(c_uint(0))
+    var s = String(d)
+    _check(s.byte_length() > 0, "Diagnostic write_to should produce output")
+
+
+def test_diagnostic_formatted() raises:
+    var tu = _parse_invalid()
+    var d = tu.diagnostic(c_uint(0))
+    var s = d.formatted()
+    _check(s.byte_length() > 0, "formatted diagnostic should not be empty")
+
+
+def test_diagnostic_set_write_to() raises:
+    var tu = _parse_invalid()
+    var diags = tu.diagnostics()
+    var s = String(diags)
+    _check(s.byte_length() > 0, "DiagnosticSet write_to should produce output")
+
+
+def test_fixit_write_to() raises:
+    var tu = _parse_invalid()
+    var d = tu.diagnostic(c_uint(0))
+    if d.num_fixits() > c_uint(0):
+        var fix = d.fixit(c_uint(0))
+        var s = String(fix)
+        _check(s.byte_length() > 0, "FixIt write_to should produce output")
+    else:
+        _check(True, "no fixits available to test write_to")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

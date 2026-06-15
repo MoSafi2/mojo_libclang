@@ -13,6 +13,7 @@ from std.testing import (
 
 comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
 comptime MISSING_PATH: String = "test/fixtures/__nonexistent__._"
+comptime SAVE_PATH: String = "/tmp/libclang_test_index_save.ast"
 
 
 def _check(cond: Bool, msg: String) raises:
@@ -176,6 +177,41 @@ def test_index_drop_and_recreate() raises:
         var index = Index.create()
         var tu = index.parse(FIXTURE_PATH)
         _ = tu.spelling()
+
+
+def test_index_state_and_raw() raises:
+    var index = Index.create()
+    var state = index.state()
+    _check(state[].alive, "state should be alive")
+    var raw = index.raw()
+    _check(Bool(raw), "raw CXIndex should not be null")
+
+
+def test_index_write_to() raises:
+    var index = Index.create()
+    var s = String(index)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
+
+
+def test_index_default_editing_options() raises:
+    var index = Index.create()
+    var opts = index.default_editing_options()
+    _check(Int(opts) >= 0, "default editing options should be non-negative")
+
+
+def test_index_read_success() raises:
+    var index = Index.create()
+    var tu = index.parse(FIXTURE_PATH)
+    tu.save(SAVE_PATH)
+    var tu2 = index.read(SAVE_PATH)
+    _check(tu2.spelling().byte_length() > 0, "read should load saved AST")
+
+
+def test_index_copy() raises:
+    var index = Index.create()
+    var index2 = index.copy()
+    var tu = index2.parse(FIXTURE_PATH)
+    _check(tu.spelling().byte_length() > 0, "copied index should parse")
 
 
 def main() raises:

@@ -6,6 +6,7 @@ from src.libclang import (
     Index,
     TranslationUnit,
     Cursor,
+    Token,
     SourceExtentInput,
     SourceRange,
 )
@@ -224,6 +225,23 @@ def test_token_group_enumerate_iteration() raises:
         if count >= 3:
             break
     assert_equal(count, 3, "enumerate(tokens) should iterate tokens")
+
+
+def test_token_write_to() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    var token = tokens[0]
+    var s = String(token)
+    assert_true(s.byte_length() > 0, "Token write_to should produce output")
+
+
+def test_token_group_write_to() raises:
+    var tu = _parse_fixture()
+    var extent = _first_line_extent(tu)
+    var tokens = tu.get_tokens(extent)
+    var s = String(tokens)
+    assert_true(s.byte_length() > 0, "TokenGroup write_to should produce output")
 
 
 def main() raises:

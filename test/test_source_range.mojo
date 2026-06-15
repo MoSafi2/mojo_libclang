@@ -203,5 +203,34 @@ def test_range_contains() raises:
     _check(before not in extent, "before location should not be inside range")
 
 
+def test_source_range_null_arc_pointer() raises:
+    var tu = _parse_fixture()
+    var rng1 = SourceRange.null(tu)
+    var rng2 = SourceRange.null(tu.state())
+    _check(rng1 == rng2, "null ranges should be equal")
+
+
+def test_source_range_ne() raises:
+    var tu = _parse_fixture()
+    var start = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    var end = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 8),
+    )
+    var rng = SourceRange.from_locations(start, end)
+    var null_rng = SourceRange.null(tu)
+    _check(rng != null_rng, "non-null range should != null range")
+
+
+def test_source_range_write_to() raises:
+    var tu = _parse_fixture()
+    var rng = SourceRange.null(tu)
+    var s = String(rng)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

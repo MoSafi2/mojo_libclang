@@ -101,5 +101,39 @@ def test_equality_two_null() raises:
     _check(null1 == null2, "two null files should be equal")
 
 
+def test_null_file_arc_pointer() raises:
+    var tu = _parse_fixture()
+    var f1 = File.null(tu)
+    var f2 = File.null(tu.state())
+    _check(f1 == f2, "null files from ArcPointer should be equal")
+
+
+def test_file_from_name_arc_pointer() raises:
+    var tu = _parse_fixture()
+    var f_opt = File.from_name(tu.state(), FIXTURE_PATH)
+    _check(f_opt is not None, "from_name with ArcPointer should find file")
+
+
+def test_file_from_handle_null_returns_none() raises:
+    var tu = _parse_fixture()
+    from src._ffi import CXFile
+    var f_opt = File.from_handle(tu, CXFile(None))
+    _check(f_opt is None, "from_handle with null CXFile should return None")
+
+
+def test_file_copy() raises:
+    var tu = _parse_fixture()
+    var f1 = tu.get_file(FIXTURE_PATH).value().copy()
+    var f2 = f1.copy()
+    _check(f1 == f2, "copied file should be equal")
+
+
+def test_file_write_to() raises:
+    var tu = _parse_fixture()
+    var f = tu.get_file(FIXTURE_PATH).value().copy()
+    var s = String(f)
+    _check(s.byte_length() > 0, "write_to should produce non-empty string")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()
