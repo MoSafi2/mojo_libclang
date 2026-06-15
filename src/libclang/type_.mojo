@@ -14,6 +14,7 @@ Important:
 from src._ffi import (
     CXType,
     CXTypeKind,
+    c_char,
     c_uint,
     c_int,
     c_long_long,
@@ -43,6 +44,7 @@ from src._ffi import (
     clang_Type_getNumTemplateArguments,
     clang_Type_getSizeOf,
     clang_Type_getAlignOf,
+    clang_Type_getOffsetOf,
     clang_getArraySize,
     clang_getNumElements,
     clang_Type_getCXXRefQualifier,
@@ -56,7 +58,7 @@ from src.libclang.enums import (
     ExceptionSpecificationKind,
     CursorKind,
 )
-from src.libclang.common import _CXStringStorage
+from src.libclang.common import _CXStringStorage, _alloc_c_string, _c_string
 from src.libclang.state import TranslationUnitState
 
 from std.memory import ArcPointer, UnsafePointer, MutOpaquePointer
@@ -286,42 +288,24 @@ struct Type(Copyable, Movable, Writable):
     def get_offset(ref self, fieldname: String) raises -> c_long_long:
         """Return field offset in bits.
 
-        This is a high-level fallback implementation that walks field
-        declarations and estimates layout from child field sizes/alignments.
-        Prefer a direct libclang offset API if your raw bindings expose one.
+        Wraps ``clang_Type_getOffsetOf``.
         """
         self._check_valid()
 
-        var decl = self.get_declaration()
-        if not decl:
-            raise Error("Type.get_offset: type has no declaration")
+        var fieldname_c = _alloc_c_string(fieldname)
+        var result = clang_Type_getOffsetOf(
+            self._ptr(),
+            _c_string(fieldname_c),
+        )
+        fieldname_c.free()
 
-        var cursor = decl.value().copy()
-        var children = cursor.get_children()
-        var offset_bytes = 0
+        if result < c_long_long(0):
+            raise Error(
+                t"Type.get_offset: layout error "
+                t"{Int(result)} for field '{fieldname}'"
+            )
 
-        for i in range(Int(children.__len__())):
-            var child = children[i].copy()
-
-            if child.kind() != CursorKind.FIELD_DECL:
-                continue
-
-            var field_type = child.type()
-            var align = Int(field_type.get_align())
-
-            if align > 0 and offset_bytes % align != 0:
-                offset_bytes += align - (offset_bytes % align)
-
-            if child.spelling() == fieldname:
-                return c_long_long(offset_bytes * 8)
-
-            var size = Int(field_type.get_size())
-            if size < 0:
-                raise Error("Type.get_offset: field has unknown size")
-
-            offset_bytes += size
-
-        raise Error(t"Type.get_offset: field not found: {fieldname}")
+        return result
 
     def get_align(ref self) raises -> c_long_long:
         self._check_valid()
