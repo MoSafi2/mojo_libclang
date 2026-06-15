@@ -1,46 +1,40 @@
-"""`Index` — owns a `CXIndex` and parses translation units."""
+"""`Index` — shared owner handle for a `CXIndex` and parser of translation units."""
+
 from src._ffi import (
     CXIndex,
     CXTranslationUnit,
-    CXUnsavedFile,
-    CXErrorCode,
     CXError_Success,
     clang_createIndex,
-    clang_disposeIndex,
     clang_parseTranslationUnit2,
     clang_createTranslationUnit2,
     clang_defaultEditingTranslationUnitOptions,
     c_uint,
     c_int,
-    c_ulong,
 )
-from src.libclang.common import _c_string, UnsavedFile
+
+from src.libclang.common import (
+    UnsavedFile,
+    CStringArray,
+    UnsavedFileArena,
+    _c_string,
+)
+
+from src.libclang.state import IndexState
 from src.libclang.translation_unit import TranslationUnit
+
 from std.memory import UnsafePointer, ArcPointer
-from std.ffi import c_char
-
-
-struct IndexState(Movable):
-    var _raw: CXIndex
-    var alive: Bool
-
-    def __init__(out self, raw: CXIndex):
-        self._raw = raw
-        self.alive = True
-
-    def raw(self) raises -> CXIndex:
-        if not self.alive:
-            raise Error("IndexState used after dispose")
-        return self._raw
-
-    def __del__(deinit self):
-        if self.alive:
-            if self._raw:
-                clang_disposeIndex(self._raw)
 
 
 struct Index(Copyable, Movable, Writable):
-    """Shared owner handle for a `CXIndex`."""
+    """Shared owner handle for a `CXIndex`.
+
+    ```
+    The actual `CXIndex` is owned by `IndexState`, which is held behind
+    `ArcPointer[IndexState]`.
+
+    Translation units produced by this index receive a copy of `_state`, so
+    the index cannot be disposed before the translation units created from it.
+    """
 
     var _state: ArcPointer[IndexState]
     var _exclude_decls: Bool
@@ -55,6 +49,7 @@ struct Index(Copyable, Movable, Writable):
             c_int(1 if exclude_decls else 0),
             c_int(1 if display_diagnostics else 0),
         )
+
         if not raw:
             raise Error("clang_createIndex returned null")
 
@@ -74,6 +69,14 @@ struct Index(Copyable, Movable, Writable):
     ) raises -> Self:
         return Self(exclude_decls, display_diagnostics)
 
+    def state(self) -> ArcPointer[IndexState]:
+        """Return the shared index state.
+
+        This is passed into `TranslationUnit`, so the translation unit keeps
+        the index alive.
+        """
+        return self._state
+
     def raw(self) raises -> CXIndex:
         return self._state[].raw()
 
@@ -86,6 +89,10 @@ struct Index(Copyable, Movable, Writable):
             ")",
         )
 
+    def default_editing_options(self) -> c_uint:
+        """Return libclang's default editing translation-unit parse options."""
+        return clang_defaultEditingTranslationUnitOptions()
+
     def parse(
         mut self,
         path: String,
@@ -93,96 +100,63 @@ struct Index(Copyable, Movable, Writable):
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
         options: c_uint = 0,
     ) raises -> TranslationUnit:
-        var arg_ptrs = _build_arg_ptrs(args)
-        var unsaved = _build_unsaved_files(unsaved_files)
+        """Parse a source file into a `TranslationUnit`.
+
+        `CStringArray` and `UnsavedFileArena` keep command-line argument
+        strings and unsaved-file strings alive until the libclang call returns.
+        """
+        var path_owner = path.copy()
+        var arg_arena = CStringArray(args)
+        var unsaved_arena = UnsavedFileArena(unsaved_files)
+
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](to=out_tu)
+        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
+            to=out_tu,
+        )
+
         var err = clang_parseTranslationUnit2(
             self.raw(),
-            _c_string(path),
-            arg_ptrs[0],
-            arg_ptrs[1],
-            unsaved[0],
-            unsaved[1],
+            _c_string(path_owner),
+            arg_arena.ptr(),
+            arg_arena.count(),
+            unsaved_arena.ptr(),
+            unsaved_arena.count(),
             options,
             rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
-                out_ptr
+                out_ptr,
             ),
         )
+
         if err != CXError_Success:
             raise Error(
                 "TranslationUnit parse failed: error code=" + String(Int(err)),
             )
-        return TranslationUnit(out_tu)
+
+        return TranslationUnit(self.state(), out_tu)
 
     def read(mut self, path: String) raises -> TranslationUnit:
+        """Read a serialized AST file into a `TranslationUnit`."""
+        var path_owner = path.copy()
+
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](to=out_tu)
+        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
+            to=out_tu,
+        )
+
         var err = clang_createTranslationUnit2(
             self.raw(),
-            _c_string(path),
+            _c_string(path_owner),
             rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
-                out_ptr
+                out_ptr,
             ),
         )
+
         if err != CXError_Success:
             raise Error(
                 "TranslationUnit read failed: error code=" + String(Int(err)),
             )
-        return TranslationUnit(out_tu)
 
-
-def _build_arg_ptrs(
-    args: List[String],
-) -> Tuple[
-    Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
-            ImmutExternalOrigin,
-        ]
-    ],
-    c_int,
-]:
-    if len(args) == 0:
-        return (None, c_int(0))
-    var slot = alloc[Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](
-        len(args),
-    )
-    for i in range(len(args)):
-        slot[i] = Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
-            _c_string(args[i]),
-        )
-    return (
-        rebind[
-            UnsafePointer[
-                Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
-                ImmutExternalOrigin,
-            ]
-        ](slot),
-        c_int(len(args)),
-    )
-
-
-def _build_unsaved_files(
-    files: List[UnsavedFile],
-) -> Tuple[Optional[UnsafePointer[CXUnsavedFile, MutExternalOrigin]], c_uint]:
-    if len(files) == 0:
-        return (None, c_uint(0))
-    var slot = alloc[CXUnsavedFile](len(files))
-    for i in range(len(files)):
-        var f = files[i].copy()
-        slot[i] = CXUnsavedFile(
-            Filename=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
-                _c_string(f.filename),
-            ),
-            Contents=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
-                rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
-                    _c_string(f.contents),
-                ),
-            ),
-            Length=c_ulong(f.contents.byte_length()),
-        )
-    return (slot, c_uint(len(files)))
+        return TranslationUnit(self.state(), out_tu)
 
 
 def _check_index_alive(state: ArcPointer[IndexState]) raises:

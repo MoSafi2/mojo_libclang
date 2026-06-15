@@ -310,6 +310,9 @@ struct Cursor(Copyable, Movable, Writable):
     #     return out^
 
 
+def main():
+    print("cursor.mojo module OK")
+
 def _zero_cursor() -> CXCursor:
     """Return a zero-initialized `CXCursor` value.
 
