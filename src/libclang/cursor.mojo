@@ -92,6 +92,15 @@ struct Cursor(Copyable, Movable, Writable):
         self._generation = tu[].generation
         self._raw = InlineArray[CXCursor, 1](fill=raw)
 
+    @staticmethod
+    def null(tu: ArcPointer[TranslationUnitState]) raises -> Self:
+        return Self(tu=tu)
+
+    def __eq__(mut self, mut other: Self) raises -> Bool:
+        if self._generation != other._generation:
+            return False
+        return Bool(clang_equalCursors(self._ptr(), other._ptr()))
+
     def _check_valid(self) raises:
         """Reject use after TU disposal or in-place reparse."""
         if self._generation != self._tu[].generation:
