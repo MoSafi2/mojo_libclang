@@ -109,8 +109,8 @@ struct TranslationUnit(Copyable, Movable, Writable):
     #         clang_getDiagnosticSetFromTU(self.raw()),
     #     )
 
-    # def get_file(mut self, filename: String) raises -> Optional[File]:
-    #     return File.from_name(self.state(), filename)
+    def get_file(mut self, filename: String) raises -> Optional[File]:
+        return File.from_name(self.state(), filename)
 
     def get_location(
         mut self,
