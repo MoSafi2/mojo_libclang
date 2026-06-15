@@ -277,6 +277,29 @@ struct Diagnostic(Movable, Writable):
                 clang_disposeDiagnostic(self._raw)
 
 
+struct DiagnosticSetIterator[
+    mut: Bool, //, origin: Origin[mut=mut]
+](Movable):
+    """Iterator over diagnostics in a `DiagnosticSet`."""
+
+    var _tu: ArcPointer[TranslationUnitState]
+    var _raw: CXDiagnosticSet
+    var _index: c_uint
+
+    def __init__(out self, ref set: DiagnosticSet):
+        self._tu = set._tu
+        self._raw = set._raw
+        self._index = c_uint(0)
+
+    def __next__(mut self) raises StopIteration -> Diagnostic:
+        if self._index >= clang_getNumDiagnosticsInSet(self._raw):
+            raise StopIteration()
+
+        var raw = clang_getDiagnosticInSet(self._raw, self._index)
+        self._index += 1
+        return Diagnostic(tu=self._tu, raw=raw, owns=True)
+
+
 struct DiagnosticSet(Movable, Sized, Writable):
     """Wrapper around `CXDiagnosticSet`.
 
@@ -289,7 +312,6 @@ struct DiagnosticSet(Movable, Sized, Writable):
     var _generation: Int
     var _raw: CXDiagnosticSet
     var _owns: Bool
-    var _index: c_uint
     var _count: Int
 
     def __init__(
@@ -302,7 +324,6 @@ struct DiagnosticSet(Movable, Sized, Writable):
         self._generation = self._tu[].generation
         self._raw = raw
         self._owns = owns
-        self._index = c_uint(0)
 
         if raw:
             self._count = Int(clang_getNumDiagnosticsInSet(raw))
@@ -319,7 +340,6 @@ struct DiagnosticSet(Movable, Sized, Writable):
         self._generation = tu[].generation
         self._raw = raw
         self._owns = owns
-        self._index = c_uint(0)
 
         if raw:
             self._count = Int(clang_getNumDiagnosticsInSet(raw))
@@ -362,20 +382,8 @@ struct DiagnosticSet(Movable, Sized, Writable):
             owns=True,
         )
 
-    def __next__(mut self) raises -> Diagnostic:
-        self._check_valid()
-
-        if self._index >= clang_getNumDiagnosticsInSet(self._raw):
-            raise StopIteration()
-
-        var result = Diagnostic(
-            tu=self._tu,
-            raw=clang_getDiagnosticInSet(self._raw, self._index),
-            owns=True,
-        )
-
-        self._index += 1
-        return result^
+    def __iter__(ref self) -> DiagnosticSetIterator[mut=False, origin=origin_of(self)]:
+        return DiagnosticSetIterator[mut=False, origin=origin_of(self)](self)
 
     def __del__(deinit self):
         if self._owns:

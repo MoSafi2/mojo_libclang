@@ -214,7 +214,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         var result = SaveError(c_uint(result_raw))
         if result != SaveError.NONE:
             raise Error(
-                "TranslationUnitSaveError: " + String(Int(result.as_c_uint())),
+                t"TranslationUnitSaveError: {Int(result.as_c_uint())}",
             )
 
     def reparse(
@@ -237,9 +237,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
         if result != 0:
             raise Error(
-                "TranslationUnitReparseError: clang_reparseTranslationUnit "
-                "returned "
-                + String(Int(result)),
+                t"TranslationUnitReparseError: clang_reparseTranslationUnit returned {Int(result)}",
             )
 
         self._state[].bump_generation()

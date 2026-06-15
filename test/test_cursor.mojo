@@ -46,7 +46,7 @@ def _parse() raises -> TranslationUnit:
 def _find(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
     var root = tu.cursor()
     var children = root.get_children()
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == kind:
             return c^
@@ -56,11 +56,11 @@ def _find(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
 def _find_by_spelling(mut tu: TranslationUnit, name: String) raises -> Cursor:
     var root = tu.cursor()
     var walk = walk_preorder(root)
-    for i in range(Int(walk.__len__())):
+    for i in range(walk.__len__()):
         var c = walk[i].copy()
         if c.spelling() == name:
             return c^
-    raise Error("child not found by spelling: " + name)
+    raise Error(t"child not found by spelling: {name}")
 
 
 def _parse_cxx() raises -> TranslationUnit:
@@ -71,7 +71,7 @@ def _parse_cxx() raises -> TranslationUnit:
 def _find_cxx(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
     var root = tu.cursor()
     var children = root.get_children()
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == kind:
             return c^
@@ -217,8 +217,8 @@ def test_kind_predicates_false() raises:
 #     var func = _find(tu, CXCursor_FunctionDecl)
 #     assert_equal(Int(func.num_arguments()), 2)
 #     var args = func.get_arguments()
-#     assert_equal(Int(args.__len__()), 2)
-#     for i in range(Int(args.__len__())):
+#     assert_equal(args.__len__(), 2)
+#     for i in range(args.__len__()):
 #         var arg = args[i].copy()
 #         assert_equal(Int(arg.kind()), Int(CXCursor_ParmDecl))
 
@@ -251,14 +251,14 @@ def test_children_and_walk() raises:
     var c = tu.cursor()
     var children = c.get_children()
     var walk = c.walk_preorder()
-    _check(Int(children.__len__()) > 0)
-    _check(Int(walk.__len__()) >= Int(children.__len__()))
+    _check(children.__len__() > 0)
+    _check(walk.__len__() >= children.__len__())
 #
 def test_collect_children_nonempty() raises:
     var tu = _parse()
     var root = tu.cursor()
     var children = collect_children(root)
-    _check(Int(children.__len__()) > 0, "root should have children")
+    _check(children.__len__() > 0, "root should have children")
 # #
 def test_collect_children_first_typedef() raises:
     var tu = _parse()
@@ -274,7 +274,7 @@ def test_collect_children_includes_struct() raises:
     var root = tu.cursor()
     var children = collect_children(root)
     var found = False
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == CXCursor_StructDecl:
             found = True
@@ -286,7 +286,7 @@ def test_collect_children_includes_function() raises:
     var root = tu.cursor()
     var children = collect_children(root)
     var found = False
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == CXCursor_FunctionDecl:
             found = True
@@ -308,7 +308,7 @@ def test_walk_preorder_deeper_than_children() raises:
     var children = collect_children(root)
     var walk = walk_preorder(root)
     _check(
-        Int(walk.__len__()) >= Int(children.__len__()),
+        walk.__len__() >= children.__len__(),
         "preorder walk should be at least as deep as direct children",
     )
 
@@ -316,7 +316,7 @@ def test_collect_children_child_spelling() raises:
     var tu = _parse()
     var root = tu.cursor()
     var children = collect_children(root)
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var c = children[i].copy()
         var s = c.spelling()
         _check(s.byte_length() > 0, "each child should have non-empty spelling")
@@ -326,7 +326,7 @@ def test_walk_preorder_spelling_nonempty() raises:
     var root = tu.cursor()
     var walk = walk_preorder(root)
     var nonempty_count = 0
-    for i in range(Int(walk.__len__())):
+    for i in range(walk.__len__()):
         var c = walk[i].copy()
         var s = c.spelling()
         if s.byte_length() > 0:
@@ -367,7 +367,7 @@ def test_cxx_is_defaulted() raises:
     var c = _find_by_spelling(tu, "Derived")
     var children = c.get_children()
     var found_defaulted = False
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var child = children[i].copy()
         if child.is_defaulted():
             found_defaulted = True
@@ -380,7 +380,7 @@ def test_cxx_is_deleted() raises:
     var c = _find_by_spelling(tu, "Derived")
     # No deleted functions in this fixture, but check that none are incorrectly detected as deleted
     var children = c.get_children()
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var child = children[i].copy()
         if child.spelling() == "Derived":
             # constructors are defaulted not deleted
@@ -407,7 +407,7 @@ def test_cxx_is_explicit() raises:
     var c = _find_by_spelling(tu, "Derived")
     var children = c.get_children()
     var found_explicit = False
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var child = children[i].copy()
         if child.is_explicit():
             found_explicit = True
@@ -440,7 +440,7 @@ def test_cxx_get_bases() raises:
     var c = _find_by_spelling(tu, "Derived")
     var t = c.type()
     var bases = t.get_bases()
-    _check(Int(bases.__len__()) > 0, "Derived should have a base class")
+    _check(bases.__len__() > 0, "Derived should have a base class")
 
 
 def test_cxx_get_methods() raises:
@@ -448,7 +448,7 @@ def test_cxx_get_methods() raises:
     var c = _find_by_spelling(tu, "Derived")
     var t = c.type()
     var methods = t.get_methods()
-    _check(Int(methods.__len__()) > 0, "Derived should have methods")
+    _check(methods.__len__() > 0, "Derived should have methods")
 
 
 def test_cxx_overridden_cursors() raises:
@@ -457,14 +457,14 @@ def test_cxx_overridden_cursors() raises:
     var overridden = c.overridden_cursors()
     # May be 0 if the overridden chain isn't fully resolved in a single-TU parse;
     # the important thing is the call doesn't crash and returns sane results.
-    _check(Int(overridden.__len__()) >= 0, "overridden cursors call should not crash")
+    _check(overridden.__len__() >= 0, "overridden cursors call should not crash")
 
 
 def test_cxx_is_virtual_base() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
     var children = c.get_children()
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var child = children[i].copy()
         if child.kind() == CXCursor_CXXBaseSpecifier:
             assert_false(child.is_virtual_base(), "Base is not virtual")
@@ -547,7 +547,7 @@ def test_cxx_get_offset_of_field() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
     var children = c.get_children()
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var child = children[i].copy()
         if child.kind() == CXCursor_CXXBaseSpecifier:
             _ = child.get_offset_of_field()
@@ -657,8 +657,8 @@ def test_get_arguments() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "add")
     var args = c.get_arguments()
-    assert_equal(Int(args.__len__()), 2, "add() should have 2 args")
-    for i in range(Int(args.__len__())):
+    assert_equal(args.__len__(), 2, "add() should have 2 args")
+    for i in range(args.__len__()):
         var arg = args[i].copy()
         assert_equal(Int(arg.kind().as_c_uint()), Int(CXCursor_ParmDecl))
 
@@ -693,7 +693,7 @@ def test_get_fields_empty() raises:
     var c = _find(tu, CXCursor_TypedefDecl)
     var t = c.type()
     var fields = t.get_fields()
-    assert_equal(Int(fields.__len__()), 0, "typedef has no fields")
+    assert_equal(fields.__len__(), 0, "typedef has no fields")
 
 
 # def test_enum_type_and_get_field_offsetof() raises:

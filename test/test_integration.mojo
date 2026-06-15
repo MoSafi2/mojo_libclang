@@ -54,7 +54,7 @@ def _find_children(
     var root = tu.cursor()
     var out = List[Cursor]()
     var children = root.get_children()
-    for i in range(Int(children.__len__())):
+    for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == kind:
             out.append(c^)
@@ -63,11 +63,11 @@ def _find_children(
 
 def _find_function(mut tu: TranslationUnit, name: String) raises -> Cursor:
     var funcs = _find_children(tu, CXCursor_FunctionDecl)
-    for i in range(Int(funcs.__len__())):
+    for i in range(funcs.__len__()):
         var f = funcs[i].copy()
         if f.spelling() == name:
             return f^
-    raise Error("function not found: " + name)
+    raise Error(t"function not found: {name}")
 
 
 # -- Parse lifecycle -------------------------------------------------------
@@ -105,10 +105,10 @@ def test_tu_cursor_children() raises:
     var tu = _parse_fixture()
     var c = tu.cursor()
     var children = c.get_children()
-    _check(Int(children.__len__()) >= 5, "expected at least 5 top-level decls")
+    _check(children.__len__() >= 5, "expected at least 5 top-level decls")
     var walk = c.walk_preorder()
     _check(
-        Int(walk.__len__()) > Int(children.__len__()),
+        walk.__len__() > children.__len__(),
         "preorder walk should be deeper than direct children",
     )
 
@@ -127,7 +127,7 @@ def test_tu_cursor_children() raises:
 #     assert_equal(Int(result.kind()), Int(CXType_Int))
 
 #     var args = add.get_arguments()
-#     assert_equal(Int(args.__len__()), 2)
+#     assert_equal(args.__len__(), 2)
 #     arg0 = args[0].copy()
 #     arg1 = args[1].copy()
 #     assert_equal(arg0.spelling(), "a")
@@ -185,7 +185,7 @@ def test_tu_cursor_children() raises:
 # def test_global_variable_cursor() raises:
 #     var tu = _parse_fixture()
 #     var vars = _find_children(tu, CXCursor_VarDecl)
-#     _check(Int(vars.__len__()) >= 2, "expected at least 2 var decls")
+#     _check(vars.__len__() >= 2, "expected at least 2 var decls")
 
 #     var counter = vars[0].copy()
 #     _check(counter.spelling().byte_length() > 0, "var should have spelling")
@@ -203,12 +203,12 @@ def test_tu_cursor_children() raises:
 def test_struct_cursor() raises:
     var tu = _parse_fixture()
     var structs = _find_children(tu, CXCursor_StructDecl)
-    _check(Int(structs.__len__()) >= 1, "expected at least 1 struct decl")
+    _check(structs.__len__() >= 1, "expected at least 1 struct decl")
     var point = structs[0].copy()
     assert_equal(point.spelling(), "Point")
 
     var children = point.get_children()
-    _check(Int(children.__len__()) >= 2,
+    _check(children.__len__() >= 2,
            "struct Point should have at least 2 fields")
 
     var first = children[0].copy()
@@ -226,7 +226,7 @@ def test_tokenize_line1() raises:
         SourceExtentInput.from_line_columns(1, 1, 1, 100),
     )
     var tokens = tu.get_tokens(extent)
-    _check(Int(tokens.__len__()) > 0, "expected at least one token")
+    _check(tokens.__len__() > 0, "expected at least one token")
     var first = tokens[0]
     assert_equal(Int(first.kind().as_c_uint()), Int(CXToken_Keyword))
     assert_equal(first.spelling(), "int")
@@ -246,7 +246,7 @@ def test_tokenize_whole_file() raises:
         SourceExtentInput.from_line_columns(1, 1, 6, 80),
     )
     var tokens = tu.get_tokens(extent)
-    _check(Int(tokens.__len__()) > 0, "whole file should produce tokens")
+    _check(tokens.__len__() > 0, "whole file should produce tokens")
     var first = tokens[0]
     _ = first.kind()
     _ = first.spelling()
@@ -414,7 +414,7 @@ def test_cursor_equality() raises:
 #            "invalid source should produce diagnostics")
 
 #     var diags = tu.diagnostics()
-#     assert_equal(Int(diags.__len__()), Int(tu.num_diagnostics()),
+#     assert_equal(diags.__len__(), Int(tu.num_diagnostics()),
 #                  "set size should match")
 #     var first = diags[c_uint(0)]
 #     _check(first.spelling().byte_length() > 0,
@@ -438,7 +438,7 @@ def test_cursor_equality() raises:
 #     )
 #     var tu = index.parse(String("test/bad_iter.c"), unsaved_files=unsaved)
 #     var diags = tu.diagnostics()
-#     var n = Int(diags.__len__())
+#     var n = diags.__len__()
 #     var count = 0
 #     for i in range(n):
 #         var d = diags[c_uint(i)]
@@ -471,7 +471,7 @@ def test_token_group_drop_after_read() raises:
     )
     for i in range(3):
         var tokens = tu.get_tokens(extent)
-        _ = Int(tokens.__len__())
+        _ = tokens.__len__()
         _ = i
 
 

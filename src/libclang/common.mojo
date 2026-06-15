@@ -52,13 +52,22 @@ from std.memory import ArcPointer, UnsafePointer
 
 
 @fieldwise_init
-struct UnsavedFile(Copyable, Movable):
+struct UnsavedFile(Copyable, Movable, Writable):
     var filename: String
     var contents: String
 
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write(
+            "UnsavedFile(filename=",
+            self.filename,
+            ", contents=",
+            self.contents,
+            ")",
+        )
+
 
 @fieldwise_init
-struct SourcePosition(Copyable, Movable):
+struct SourcePosition(Copyable, Movable, Writable):
     """Either `(line, column)` or `offset` addressing.
 
     Use one of:
@@ -73,6 +82,14 @@ struct SourcePosition(Copyable, Movable):
     var line: Optional[c_uint]
     var column: Optional[c_uint]
     var offset: Optional[c_uint]
+
+    def write_to(self, mut writer: Some[Writer]):
+        if self.is_line_column():
+            writer.write("SourcePosition(line=", self.line, ", column=", self.column, ")")
+        elif self.is_offset_only():
+            writer.write("SourcePosition(offset=", self.offset, ")")
+        else:
+            writer.write("SourcePosition(<unset>)")
 
     @staticmethod
     def from_line_column(line: c_uint, column: c_uint) -> Self:
@@ -116,11 +133,14 @@ struct SourcePosition(Copyable, Movable):
 
 
 @fieldwise_init
-struct SourceExtentInput(Copyable, Movable):
+struct SourceExtentInput(Copyable, Movable, Writable):
     """Two `SourcePosition` values that delimit a `SourceRange`."""
 
     var start: SourcePosition
     var end: SourcePosition
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("SourceExtentInput(start=", self.start, ", end=", self.end, ")")
 
     @staticmethod
     def from_positions(start: SourcePosition, end: SourcePosition) -> Self:

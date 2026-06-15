@@ -321,7 +321,7 @@ struct Type(Copyable, Movable, Writable):
 
             offset_bytes += size
 
-        raise Error("Type.get_offset: field not found: " + fieldname)
+        raise Error(t"Type.get_offset: field not found: {fieldname}")
 
     def get_align(mut self) raises -> c_long_long:
         self._check_valid()

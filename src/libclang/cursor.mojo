@@ -903,8 +903,7 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
         collector_box.free()
         buffer.free()
         raise Error(
-            "collect_children: child count exceeded MAX_CHILDREN="
-            + String(MAX_CHILDREN),
+            t"collect_children: child count exceeded MAX_CHILDREN={MAX_CHILDREN}",
         )
 
     var out = List[Cursor]()

@@ -134,8 +134,7 @@ struct Index(Copyable, Movable, Writable):
         var err = ErrorCode(raw_err)
         if err != ErrorCode.SUCCESS:
             raise Error(
-                "TranslationUnit parse failed: error code="
-                + String(Int(err.as_c_uint())),
+                t"TranslationUnit parse failed: error code={Int(err.as_c_uint())}",
             )
 
         return TranslationUnit(self.state(), out_tu)
@@ -163,8 +162,7 @@ struct Index(Copyable, Movable, Writable):
 
         if err != ErrorCode.SUCCESS:
             raise Error(
-                "TranslationUnit read failed: error code="
-                + String(Int(err.as_c_uint())),
+                t"TranslationUnit read failed: error code={Int(err.as_c_uint())}",
             )
 
         return TranslationUnit(self.state(), out_tu)
