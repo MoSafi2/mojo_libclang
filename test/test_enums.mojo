@@ -1,5 +1,6 @@
 """Smoke test for `src/libclang/enums.mojo`."""
 from std.ffi import c_uint
+from std.testing import TestSuite
 from src.libclang.enums import (
     CursorKind,
     TypeKind,
@@ -192,21 +193,4 @@ def test_diagnostic_severity_constants() raises:
 
 
 def main() raises:
-    test_cursor_kind_constants()
-    test_cursor_kind_groups()
-    test_implicit_conversion_from_c_uint()
-    test_compare_c_uint_with_struct()
-    test_type_kind_constants()
-    test_token_kind_constants()
-    test_linkage_kind_constants()
-    test_availability_kind_constants()
-    test_access_specifier_constants()
-    test_storage_class_constants()
-    test_tls_kind_constants()
-    test_language_kind_constants()
-    test_ref_qualifier_constants()
-    test_template_argument_kind_constants()
-    test_calling_conv_constants()
-    test_child_visit_result_constants()
-    test_diagnostic_severity_constants()
-    print("enums.mojo: all tests passed")
+    TestSuite.discover_tests[__functions_in_module()]().run()

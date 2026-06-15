@@ -50,11 +50,11 @@ def test_name_nonempty() raises:
     _check(f.value().name().byte_length() > 0, "file name should not be empty")
 
 
-# def test_real_path_nonempty() raises:
-#     var tu = _parse_fixture()
-#     var f = tu.get_file(FIXTURE_PATH)
-#     var path = f.value().real_path()
-#     _check(path.byte_length() > 0, "real_path should not be empty")
+def test_real_path_nonempty() raises:
+    var tu = _parse_fixture()
+    var f = tu.get_file(FIXTURE_PATH)
+    var path = f.value().real_path()
+    _check(path.byte_length() > 0, "real_path should not be empty")
 
 
 def test_time_succeeds() raises:
@@ -85,13 +85,13 @@ def test_equality_same_file() raises:
     _check(f1.value() == f2.value(), "same file should be equal")
 
 
-# def test_equality_null_vs_nonnull() raises:
-#     var tu = _parse_fixture()
-#     var f = tu.get_file(FIXTURE_PATH)
-#     var null_f = File.null(tu.state())
-#     _check(
-#         not (f.value() == null_f), "non-null file should not equal null file"
-#     )
+def test_equality_null_vs_nonnull() raises:
+    var tu = _parse_fixture()
+    var f = tu.get_file(FIXTURE_PATH)
+    var null_f = File.null(tu.state())
+    _check(
+        not (f.value() == null_f), "non-null file should not equal null file"
+    )
 
 
 def test_equality_two_null() raises:
