@@ -1,5 +1,5 @@
 """Unit tests for `src/libclang/common.mojo`."""
-from src.libclang.common import _c_string, _take_cxstring, _CXStringStorage
+from src.libclang.common import _c_string, _take_cxstring, _CXStringStorage, _alloc_c_string
 from src._ffi import CXString
 from std.ffi import c_uint
 from std.memory import UnsafePointer
@@ -16,13 +16,17 @@ def _check(cond: Bool, msg: String) raises:
 
 def test_c_string_non_empty() raises:
     var text = String("hello")
-    var ptr = _c_string(text)
+    var buf = _alloc_c_string(text)
+    var ptr = _c_string(buf)
+    buf.free()
     _check(True, "_c_string on non-empty text should succeed")
 
 
 def test_c_string_empty() raises:
     var text = String("")
-    var ptr = _c_string(text)
+    var buf = _alloc_c_string(text)
+    var ptr = _c_string(buf)
+    buf.free()
     _check(True, "_c_string on empty text should succeed")
 
 

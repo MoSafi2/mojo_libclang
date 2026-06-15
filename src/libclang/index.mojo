@@ -140,29 +140,34 @@ struct Index(Copyable, Movable, Writable):
 
         return TranslationUnit(self.state(), out_tu)
 
-    # def read(mut self, path: String) raises -> TranslationUnit:
-    #     """Read a serialized AST file into a `TranslationUnit`."""
-    #     var path_owner = path.copy()
+    def read(mut self, path: String) raises -> TranslationUnit:
+        """Read a serialized AST file into a `TranslationUnit`."""
+        var path_c = _alloc_c_string(path)
 
-    #     var out_tu: CXTranslationUnit = CXTranslationUnit()
-    #     var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
-    #         to=out_tu,
-    #     )
+        var out_tu: CXTranslationUnit = CXTranslationUnit()
+        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
+            to=out_tu,
+        )
 
-    #     var err = clang_createTranslationUnit2(
-    #         self.raw(),
-    #         _c_string(path_owner),
-    #         rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
-    #             out_ptr,
-    #         ),
-    #     )
+        var err = ErrorCode(
+            clang_createTranslationUnit2(
+                self.raw(),
+                _c_string(path_c),
+                rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
+                    out_ptr,
+                ),
+            )
+        )
 
-    #     if err != CXError_Success:
-    #         raise Error(
-    #             "TranslationUnit read failed: error code=" + String(Int(err)),
-    #         )
+        path_c.free()
 
-    #     return TranslationUnit(self.state(), out_tu)
+        if err != ErrorCode.SUCCESS:
+            raise Error(
+                "TranslationUnit read failed: error code="
+                + String(Int(err.as_c_uint())),
+            )
+
+        return TranslationUnit(self.state(), out_tu)
 
 
 def _check_index_alive(state: ArcPointer[IndexState]) raises:
