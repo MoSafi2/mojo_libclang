@@ -286,7 +286,8 @@ struct Cursor(Copyable, Movable, Writable):
         var handle = clang_getIncludedFile(self._ptr())
         if not handle:
             return None
-        return Optional[File](RealFile(_tu=self._tu, _raw=handle))
+        f = RealFile(_tu=self._tu, _raw=handle, _name="")
+        return Optional[File]()
 
     def enum_type(mut self) raises -> Type:
         from src.libclang.type_ import Type as RealType

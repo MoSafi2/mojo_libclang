@@ -119,20 +119,16 @@ struct SourceLocation(Copyable, Movable, Writable):
         return (file_out[0], line_out[0], col_out[0], off_out[0])
 
     def file(mut self) raises -> CXFile:
-        # TODO: return cached _file instead of re-calling FFI
-        return self._spelling_parts()[0]
+        return self._file
 
     def line(mut self) raises -> c_uint:
-        # TODO: return cached _line instead of re-calling FFI
-        return self._spelling_parts()[1]
+        return self._line
 
     def column(mut self) raises -> c_uint:
-        # TODO: return cached _column instead of re-calling FFI
-        return self._spelling_parts()[2]
+        return self._column
 
     def offset(mut self) raises -> c_uint:
-        # TODO: return cached _offset instead of re-calling FFI
-        return self._spelling_parts()[3]
+        return self._offset
 
     def is_in_system_header(mut self) raises -> Bool:
         return Bool(clang_Location_isInSystemHeader(self._ptr()))

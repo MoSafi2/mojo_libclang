@@ -41,51 +41,51 @@ def test_null_location_properties() raises:
     )
 
 
-# def test_location_from_line_column() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(1, 1),
-#     )
-#     assert_equal(Int(loc.line()), 1)
-#     assert_equal(Int(loc.column()), 1)
+def test_location_from_line_column() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    assert_equal(Int(loc.line()), 1)
+    assert_equal(Int(loc.column()), 1)
 
 
-# def test_location_from_offset() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location_for_offset(FIXTURE_PATH, c_uint(0))
-#     assert_equal(Int(loc.line()), 1)
-#     assert_equal(Int(loc.column()), 1)
+def test_location_from_offset() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location_for_offset(FIXTURE_PATH, c_uint(0))
+    assert_equal(Int(loc.line()), 1)
+    assert_equal(Int(loc.column()), 1)
 
 
-# def test_location_line_column_mid_file() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(10, 1),
-#     )
-#     assert_equal(Int(loc.line()), 10)
-#     assert_equal(Int(loc.column()), 1)
+def test_location_line_column_mid_file() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(10, 1),
+    )
+    assert_equal(Int(loc.line()), 10)
+    assert_equal(Int(loc.column()), 1)
 
 
-# def test_location_offset_zero() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(1, 1),
-#     )
-#     _check(Int(loc.offset()) == 0,
-#            "offset at line 1 col 1 should be 0")
+def test_location_offset_zero() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    _check(Int(loc.offset()) == 0,
+           "offset at line 1 col 1 should be 0")
 
 
-# def test_location_file_not_null() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(1, 1),
-#     )
-#     var f = loc.file()
-#     _check(f is not None, "file should not be None")
+def test_location_file_not_null() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    var f = loc.file()
+    _check(f is not None, "file should not be None")
 
 
 def test_location_is_in_system_header() raises:
@@ -151,14 +151,14 @@ def test_location_line_column_vs_offset_consistency() raises:
     _check(loc1 == loc2, "line 1 col 1 should equal offset 0")
 
 
-# def test_location_line_column_non_zero_offset() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(1, 8),
-#     )
-#     _check(Int(loc.offset()) >= 7,
-#            "offset at line 1 col 8 should be >= 7")
+def test_location_line_column_non_zero_offset() raises:
+    var tu = _parse_fixture()
+    var loc = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 8),
+    )
+    _check(Int(loc.offset()) >= 7,
+           "offset at line 1 col 8 should be >= 7")
 
 
 def main() raises:

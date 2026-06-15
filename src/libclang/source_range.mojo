@@ -40,7 +40,6 @@ struct SourceRange(Copyable, Movable, Writable):
         )
         self._display = String()
         clang_getNullRange(self._ptr())
-        self._cache_display()
 
     def _ptr(mut self) -> UnsafePointer[CXSourceRange, MutExternalOrigin]:
         return rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
@@ -48,6 +47,7 @@ struct SourceRange(Copyable, Movable, Writable):
         )
 
     def _cache_display(mut self) raises:
+        print("SourceRange._cache_display enter")
         # Get start spelling parts
         var s_loc = InlineArray[CXSourceLocation, 1](
             fill=CXSourceLocation(
@@ -57,24 +57,44 @@ struct SourceRange(Copyable, Movable, Writable):
                 int_data=c_uint(0),
             ),
         )
+        print("SourceRange._cache_display before range start")
         clang_getRangeStart(
             rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
                 s_loc.unsafe_ptr(),
             ),
             self._ptr(),
         )
+        print(
+            "SourceRange._cache_display after range start int_data="
+            + String(Int(s_loc[0].int_data))
+        )
         var s_file = InlineArray[CXFile, 1](fill=CXFile(None))
         var s_line = InlineArray[c_uint, 1](fill=c_uint(0))
         var s_col = InlineArray[c_uint, 1](fill=c_uint(0))
         var s_off = InlineArray[c_uint, 1](fill=c_uint(0))
+        print("SourceRange._cache_display before start spelling")
         clang_getSpellingLocation(
             rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
                 s_loc.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[CXFile, MutExternalOrigin]](s_file.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](s_line.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](s_col.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](s_off.unsafe_ptr()),
+            rebind[UnsafePointer[CXFile, MutExternalOrigin]](
+                s_file.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                s_line.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                s_col.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                s_off.unsafe_ptr()
+            ),
+        )
+        print(
+            "SourceRange._cache_display after start spelling line="
+            + String(Int(s_line[0]))
+            + " col="
+            + String(Int(s_col[0]))
         )
         # Get end spelling parts
         var e_loc = InlineArray[CXSourceLocation, 1](
@@ -85,24 +105,44 @@ struct SourceRange(Copyable, Movable, Writable):
                 int_data=c_uint(0),
             ),
         )
+        print("SourceRange._cache_display before range end")
         clang_getRangeEnd(
             rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
                 e_loc.unsafe_ptr(),
             ),
             self._ptr(),
         )
+        print(
+            "SourceRange._cache_display after range end int_data="
+            + String(Int(e_loc[0].int_data))
+        )
         var e_file = InlineArray[CXFile, 1](fill=CXFile(None))
         var e_line = InlineArray[c_uint, 1](fill=c_uint(0))
         var e_col = InlineArray[c_uint, 1](fill=c_uint(0))
         var e_off = InlineArray[c_uint, 1](fill=c_uint(0))
+        print("SourceRange._cache_display before end spelling")
         clang_getSpellingLocation(
             rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
                 e_loc.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[CXFile, MutExternalOrigin]](e_file.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](e_line.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](e_col.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](e_off.unsafe_ptr()),
+            rebind[UnsafePointer[CXFile, MutExternalOrigin]](
+                e_file.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                e_line.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                e_col.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                e_off.unsafe_ptr()
+            ),
+        )
+        print(
+            "SourceRange._cache_display after end spelling line="
+            + String(Int(e_line[0]))
+            + " col="
+            + String(Int(e_col[0]))
         )
         # Get file names
         var s_name = String()
@@ -134,20 +174,24 @@ struct SourceRange(Copyable, Movable, Writable):
         writer.write("SourceRange(", self._display, ")")
 
     @staticmethod
-    def null(tu: CXTranslationUnit) raises-> Self:
+    def null(tu: CXTranslationUnit) raises -> Self:
         return Self(tu=tu)
 
     @staticmethod
-    def from_locations(start: SourceLocation, end: SourceLocation) raises -> Self:
+    def from_locations(
+        start: SourceLocation, end: SourceLocation
+    ) raises -> Self:
+        var start_copy = start.copy()
+        var end_copy = end.copy()
         var out = Self(tu=start._tu)
         clang_getRange(
             out._ptr(),
-            rebind[UnsafePointer[
-                CXSourceLocation, MutExternalOrigin
-            ]](start._raw.unsafe_ptr()),
-            rebind[UnsafePointer[
-                CXSourceLocation, MutExternalOrigin
-            ]](end._raw.unsafe_ptr()),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+                start_copy._raw.unsafe_ptr()
+            ),
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+                end_copy._raw.unsafe_ptr()
+            ),
         )
         out._cache_display()
         return out^
