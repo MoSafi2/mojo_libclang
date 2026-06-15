@@ -1,11 +1,30 @@
-"""`Diagnostic`, `DiagnosticSet`, and `FixIt` wrappers."""
+"""`Diagnostic`, `DiagnosticSet`, and `FixIt` wrappers.
+
+Diagnostics are libclang-owned/returned handles that may refer back to source
+locations, source ranges, and files in a translation unit.
+
+This module follows the new lifetime model:
+
+* `Diagnostic` keeps `ArcPointer[TranslationUnitState]`.
+* `DiagnosticSet` keeps `ArcPointer[TranslationUnitState]`.
+* Source locations/ranges produced from diagnostics use the same TU state.
+* Objects become stale after `TranslationUnit.reparse()` if the generation changes.
+
+Ownership notes:
+
+* Diagnostics returned directly from `clang_getDiagnostic()` are owned by
+  `Diagnostic` and disposed in `__del__`.
+* Diagnostics returned by `clang_getDiagnosticInSet()` are wrapped as owned
+  diagnostics here.
+* Diagnostic sets returned from `clang_getDiagnosticSetFromTU()` are owned.
+* Diagnostic sets returned from `clang_getChildDiagnostics()` are borrowed and
+  should not be disposed.
+  """
+
 from src._ffi import (
     CXDiagnostic,
     CXDiagnosticSet,
     CXDiagnosticSeverity,
-    CXString,
-    CXSourceRange,
-    CXTranslationUnit,
     c_uint,
     clang_getDiagnosticSeverity,
     clang_getDiagnosticSpelling,
@@ -23,12 +42,16 @@ from src._ffi import (
     clang_formatDiagnostic,
     clang_defaultDiagnosticDisplayOptions,
     clang_disposeDiagnostic,
-    clang_disposeString,
 )
+
 from src.libclang.common import _CXStringStorage
+from src.libclang.state import TranslationUnitState
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
-from std.memory import UnsafePointer
+from src._ffi import clang_disposeDiagnosticSet
+
+
+from std.memory import ArcPointer
 
 
 @fieldwise_init
@@ -46,107 +69,239 @@ struct FixIt(Copyable, Movable, Writable):
 
 @fieldwise_init
 struct Diagnostic(Movable, Writable):
-    """Owning wrapper around `CXDiagnostic`."""
+    """Owning wrapper around `CXDiagnostic`.
 
+    ```
+    The diagnostic keeps its originating translation unit alive so that
+    locations, ranges, and fix-its can safely create TU-borrowed wrappers.
+    """
+
+    var _tu: ArcPointer[TranslationUnitState]
+    var _generation: Int
     var _raw: CXDiagnostic
+    var _owns: Bool
     var _formatted: String
 
+    def __init__(
+        out self,
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXDiagnostic,
+        owns: Bool = True,
+    ) raises:
+        self._tu = tu
+        self._generation = tu[].generation
+        self._raw = raw
+        self._owns = owns
+        self._formatted = String()
+
+        if raw:
+            self._cache_format()
+
+    def _check_valid(self) raises:
+        if not self._tu[].alive:
+            raise Error("Diagnostic used after TranslationUnit disposal")
+
+        if self._generation != self._tu[].generation:
+            raise Error("Diagnostic used after TranslationUnit.reparse()")
+
+        if not self._raw:
+            raise Error("Diagnostic contains null CXDiagnostic")
+
     def _cache_format(mut self) raises:
+        self._check_valid()
+
         var options = clang_defaultDiagnosticDisplayOptions()
         var cs = _CXStringStorage()
-        clang_formatDiagnostic(cs.ptr(), self._raw, options)
+        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options)
         self._formatted = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("Diagnostic(", self._formatted, ")")
 
     def severity(mut self) raises -> CXDiagnosticSeverity:
+        self._check_valid()
         return clang_getDiagnosticSeverity(self._raw)
 
     def spelling(mut self) raises -> String:
+        self._check_valid()
+
         var cs = _CXStringStorage()
         clang_getDiagnosticSpelling(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def location(mut self) raises -> SourceLocation:
-        var out = SourceLocation(tu=CXTranslationUnit())
+        self._check_valid()
+
+        var out = SourceLocation(tu=self._tu)
         clang_getDiagnosticLocation(out._ptr(), self._raw)
         out._cache_from_ffi()
         return out^
 
-    def category_number(mut self) -> c_uint:
+    def category_number(mut self) raises -> c_uint:
+        self._check_valid()
         return clang_getDiagnosticCategory(self._raw)
 
     def category_name(mut self) raises -> String:
+        self._check_valid()
+
         var cs = _CXStringStorage()
         clang_getDiagnosticCategoryText(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def option(mut self) raises -> String:
-        var cs = _CXStringStorage()
+        self._check_valid()
+
+        var option = _CXStringStorage()
         var disable = _CXStringStorage()
-        clang_getDiagnosticOption(cs.ptr_for_out(), self._raw, disable.ptr_for_out())
-        clang_disposeString(disable.ptr())
-        return cs.take()
+
+        clang_getDiagnosticOption(
+            option.ptr_for_out(),
+            self._raw,
+            disable.ptr_for_out(),
+        )
+
+        # Dispose the disable-option string by converting it to owned Mojo
+        # string and letting it go out of scope.
+        _ = disable.take()
+
+        return option.take()
 
     def disable_option(mut self) raises -> String:
-        var cs = _CXStringStorage()
-        var disable = _CXStringStorage()
-        clang_getDiagnosticOption(cs.ptr_for_out(), self._raw, disable.ptr_for_out())
-        var value = disable.take()
-        return value
+        self._check_valid()
 
-    def num_ranges(mut self) -> c_uint:
+        var option = _CXStringStorage()
+        var disable = _CXStringStorage()
+
+        clang_getDiagnosticOption(
+            option.ptr_for_out(),
+            self._raw,
+            disable.ptr_for_out(),
+        )
+
+        # Dispose the option string by converting it to owned Mojo string and
+        # letting it go out of scope.
+        _ = option.take()
+
+        return disable.take()
+
+    def num_ranges(mut self) raises -> c_uint:
+        self._check_valid()
         return clang_getDiagnosticNumRanges(self._raw)
 
     def range(mut self, i: c_uint) raises -> SourceRange:
-        var out = SourceRange(tu=CXTranslationUnit())
+        self._check_valid()
+
+        if i >= self.num_ranges():
+            raise Error("Diagnostic.range: index out of range")
+
+        var out = SourceRange(tu=self._tu)
         clang_getDiagnosticRange(out._ptr(), self._raw, i)
-        out._cache_display()
         return out^
 
-    def num_fixits(mut self) -> c_uint:
+    def num_fixits(mut self) raises -> c_uint:
+        self._check_valid()
         return clang_getDiagnosticNumFixIts(self._raw)
 
     def fixit(mut self, i: c_uint) raises -> FixIt:
-        var range_out = SourceRange(tu=CXTranslationUnit())
+        self._check_valid()
+
+        if i >= self.num_fixits():
+            raise Error("Diagnostic.fixit: index out of range")
+
+        var range_out = SourceRange(tu=self._tu)
         var cs = _CXStringStorage()
-        clang_getDiagnosticFixIt(cs.ptr(), self._raw, i, range_out._ptr())
-        range_out._cache_display()
+
+        clang_getDiagnosticFixIt(
+            cs.ptr_for_out(),
+            self._raw,
+            i,
+            range_out._ptr(),
+        )
+
         return FixIt(range=range_out^, value=cs.take())
 
     def children(mut self) raises -> DiagnosticSet:
-        return DiagnosticSet(raw=clang_getChildDiagnostics(self._raw))
+        self._check_valid()
+
+        # The child diagnostic set is borrowed from this diagnostic according
+        # to libclang's ownership model, so DiagnosticSet must not dispose it.
+        return DiagnosticSet._from_handle(
+            self._tu,
+            clang_getChildDiagnostics(self._raw),
+            owns=False,
+        )
 
     def format(mut self) raises -> String:
-        # TODO: return cached _formatted instead of re-calling FFI
+        self._check_valid()
+
         var options = clang_defaultDiagnosticDisplayOptions()
         var cs = _CXStringStorage()
-        clang_formatDiagnostic(cs.ptr(), self._raw, options)
+        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options)
         return cs.take()
 
+    def formatted(mut self) raises -> String:
+        self._check_valid()
+
+        if not self._formatted:
+            self._cache_format()
+
+        return self._formatted
+
     def __del__(deinit self):
-        try:
-            clang_disposeDiagnostic(self._raw)
-        except:
-            pass
+        if self._owns:
+            if self._raw:
+                clang_disposeDiagnostic(self._raw)
 
 
-struct DiagnosticSet(Movable, Writable, Sized):
-    """Owning wrapper around `CXDiagnosticSet`."""
+struct DiagnosticSet(Movable, Sized, Writable):
+    """Wrapper around `CXDiagnosticSet`.
 
+    ```
+    A `DiagnosticSet` may either own the raw diagnostic set or borrow it,
+    depending on where the set came from.
+    """
+
+    var _tu: ArcPointer[TranslationUnitState]
+    var _generation: Int
     var _raw: CXDiagnosticSet
+    var _owns: Bool
     var _index: c_uint
     var _count: Int
 
-    def __init__(out self, raw: CXDiagnosticSet) raises:
+    def __init__(
+        out self,
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXDiagnosticSet,
+        owns: Bool = True,
+    ) raises:
+        self._tu = tu
+        self._generation = tu[].generation
         self._raw = raw
+        self._owns = owns
         self._index = c_uint(0)
-        self._count = Int(clang_getNumDiagnosticsInSet(raw))
+
+        if raw:
+            self._count = Int(clang_getNumDiagnosticsInSet(raw))
+        else:
+            self._count = 0
 
     @staticmethod
-    def _from_handle(raw: CXDiagnosticSet) raises -> Self:
-        return Self(raw)
+    def _from_handle(
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXDiagnosticSet,
+        owns: Bool = True,
+    ) raises -> Self:
+        return Self(tu=tu, raw=raw, owns=owns)
+
+    def _check_valid(self) raises:
+        if not self._tu[].alive:
+            raise Error("DiagnosticSet used after TranslationUnit disposal")
+
+        if self._generation != self._tu[].generation:
+            raise Error("DiagnosticSet used after TranslationUnit.reparse()")
+
+        if not self._raw:
+            raise Error("DiagnosticSet contains null CXDiagnosticSet")
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("DiagnosticSet(count=", self._count, ")")
@@ -154,34 +309,34 @@ struct DiagnosticSet(Movable, Writable, Sized):
     def __len__(self) -> Int:
         return self._count
 
-    def __getitem__(self, i: c_uint) raises -> Diagnostic:
+    def __getitem__(mut self, i: c_uint) raises -> Diagnostic:
+        self._check_valid()
+
         if i >= clang_getNumDiagnosticsInSet(self._raw):
             raise Error("DiagnosticSet index out of range")
-        var d = Diagnostic(
-            _raw=clang_getDiagnosticInSet(self._raw, i),
-            _formatted=String(),
-        )
-        d._cache_format()
-        return d^
 
+        return Diagnostic(
+            tu=self._tu,
+            raw=clang_getDiagnosticInSet(self._raw, i),
+            owns=True,
+        )
 
     def __next__(mut self) raises -> Diagnostic:
+        self._check_valid()
+
         if self._index >= clang_getNumDiagnosticsInSet(self._raw):
             raise StopIteration()
-        var n = clang_getNumDiagnosticsInSet(self._raw)
+
         var result = Diagnostic(
-            _raw=clang_getDiagnosticInSet(self._raw, self._index),
-            _formatted=String(),
+            tu=self._tu,
+            raw=clang_getDiagnosticInSet(self._raw, self._index),
+            owns=True,
         )
-        result._cache_format()
+
         self._index += 1
-        _ = n
         return result^
 
     def __del__(deinit self):
-        from src._ffi import clang_disposeDiagnosticSet
-
-        try:
-            clang_disposeDiagnosticSet(self._raw)
-        except:
-            pass
+        if self._owns:
+            if self._raw:
+                clang_disposeDiagnosticSet(self._raw)

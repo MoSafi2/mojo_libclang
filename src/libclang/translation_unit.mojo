@@ -95,19 +95,19 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def num_diagnostics(mut self) raises -> c_uint:
         return clang_getNumDiagnostics(self.raw())
 
-    # def diagnostic(mut self, index: c_uint) raises -> Diagnostic:
-    #     var d = Diagnostic(
-    #         tu=self.state(),
-    #         raw=clang_getDiagnostic(self.raw(), index),
-    #     )
-    #     d._cache_format()
-    #     return d^
+    def diagnostic(mut self, index: c_uint) raises -> Diagnostic:
+        var d = Diagnostic(
+            tu=self.state(),
+            raw=clang_getDiagnostic(self.raw(), index),
+        )
+        d._cache_format()
+        return d^
 
-    # def diagnostics(mut self) raises -> DiagnosticSet:
-    #     return DiagnosticSet._from_handle(
-    #         self.state(),
-    #         clang_getDiagnosticSetFromTU(self.raw()),
-    #     )
+    def diagnostics(mut self) raises -> DiagnosticSet:
+        return DiagnosticSet._from_handle(
+            self.state(),
+            clang_getDiagnosticSetFromTU(self.raw()),
+        )
 
     def get_file(mut self, filename: String) raises -> Optional[File]:
         return File.from_name(self.state(), filename)
