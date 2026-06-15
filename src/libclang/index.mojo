@@ -17,14 +17,33 @@ from src._ffi import (
 from src.libclang.support import UnsavedFile
 from src.libclang.common import _c_string
 from src.libclang.translation_unit import TranslationUnit
-from std.memory import UnsafePointer
+from std.memory import UnsafePointer, ArcPointer
 from std.ffi import c_char
 
 
-struct Index(Writable):
-    """Owns a `CXIndex` and produces `TranslationUnit` values."""
-
+struct IndexState(Movable):
     var _raw: CXIndex
+    var alive: Bool
+
+    def __init__(out self, raw: CXIndex):
+        self._raw = raw
+        self.alive = True
+
+    def raw(self) raises -> CXIndex:
+        if not self.alive:
+            raise Error("IndexState used after dispose")
+        return self._raw
+
+    def __del__(deinit self):
+        if self.alive:
+            if self._raw:
+                clang_disposeIndex(self._raw)
+
+
+struct Index(Copyable, Movable, Writable):
+    """Shared owner handle for a `CXIndex`."""
+
+    var _state: ArcPointer[IndexState]
     var _exclude_decls: Bool
     var _display_diagnostics: Bool
 
@@ -33,12 +52,21 @@ struct Index(Writable):
         exclude_decls: Bool = False,
         display_diagnostics: Bool = False,
     ) raises:
-        self._raw = clang_createIndex(
+        var raw = clang_createIndex(
             c_int(1 if exclude_decls else 0),
             c_int(1 if display_diagnostics else 0),
         )
+        if not raw:
+            raise Error("clang_createIndex returned null")
+
+        self._state = ArcPointer(IndexState(raw))
         self._exclude_decls = exclude_decls
         self._display_diagnostics = display_diagnostics
+
+    def __init__(out self, *, copy: Self):
+        self._state = copy._state
+        self._exclude_decls = copy._exclude_decls
+        self._display_diagnostics = copy._display_diagnostics
 
     @staticmethod
     def create(
@@ -47,17 +75,17 @@ struct Index(Writable):
     ) raises -> Self:
         return Self(exclude_decls, display_diagnostics)
 
+    def raw(self) raises -> CXIndex:
+        return self._state[].raw()
+
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
-            "Index(exclude_decls=", self._exclude_decls,
-            ", display_diagnostics=", self._display_diagnostics, ")",
+            "Index(exclude_decls=",
+            self._exclude_decls,
+            ", display_diagnostics=",
+            self._display_diagnostics,
+            ")",
         )
-
-    def __del__(deinit self):
-        try:
-            clang_disposeIndex(self._raw)
-        except:
-            pass
 
     def parse(
         mut self,
@@ -71,19 +99,20 @@ struct Index(Writable):
         var out_tu: CXTranslationUnit = CXTranslationUnit()
         var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](to=out_tu)
         var err = clang_parseTranslationUnit2(
-            self._raw,
+            self.raw(),
             _c_string(path),
             arg_ptrs[0],
             arg_ptrs[1],
             unsaved[0],
             unsaved[1],
             options,
-            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](out_ptr),
+            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
+                out_ptr
+            ),
         )
         if err != CXError_Success:
             raise Error(
-                "TranslationUnit parse failed: error code="
-                + String(Int(err)),
+                "TranslationUnit parse failed: error code=" + String(Int(err)),
             )
         return TranslationUnit(out_tu)
 
@@ -91,14 +120,15 @@ struct Index(Writable):
         var out_tu: CXTranslationUnit = CXTranslationUnit()
         var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](to=out_tu)
         var err = clang_createTranslationUnit2(
-            self._raw,
+            self.raw(),
             _c_string(path),
-            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](out_ptr),
+            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
+                out_ptr
+            ),
         )
         if err != CXError_Success:
             raise Error(
-                "TranslationUnit read failed: error code="
-                + String(Int(err)),
+                "TranslationUnit read failed: error code=" + String(Int(err)),
             )
         return TranslationUnit(out_tu)
 
@@ -154,3 +184,13 @@ def _build_unsaved_files(
             Length=c_ulong(f.contents.byte_length()),
         )
     return (slot, c_uint(len(files)))
+
+
+def _check_index_alive(state: ArcPointer[IndexState]) raises:
+    if not state[].alive:
+        raise Error("Index used after disposal")
+
+
+def _index_raw(state: ArcPointer[IndexState]) raises -> CXIndex:
+    _check_index_alive(state)
+    return state[].raw()
