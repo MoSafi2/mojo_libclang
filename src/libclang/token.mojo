@@ -88,7 +88,7 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr(mut self) -> UnsafePointer[CXToken, MutExternalOrigin]:
+    def _ptr(ref self) -> UnsafePointer[CXToken, MutExternalOrigin]:
         return rebind[UnsafePointer[CXToken, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
@@ -115,15 +115,15 @@ struct Token(Copyable, Movable, Writable):
             ")",
         )
 
-    def kind(mut self) raises -> TokenKind:
+    def kind(ref self) raises -> TokenKind:
         self._check_valid()
         return self._kind
 
-    def spelling(mut self) raises -> String:
+    def spelling(ref self) raises -> String:
         self._check_valid()
         return self._spelling
 
-    def location(mut self) raises -> SourceLocation:
+    def location(ref self) raises -> SourceLocation:
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
@@ -135,7 +135,7 @@ struct Token(Copyable, Movable, Writable):
         out.refresh()
         return out^
 
-    def extent(mut self) raises -> SourceRange:
+    def extent(ref self) raises -> SourceRange:
         self._check_valid()
 
         var out = SourceRange(tu=self._tu)
@@ -146,7 +146,7 @@ struct Token(Copyable, Movable, Writable):
         )
         return out^
 
-    def cursor(mut self) raises -> Cursor:
+    def cursor(ref self) raises -> Cursor:
         self._check_valid()
 
         var out = Cursor(tu=self._tu)
@@ -161,9 +161,7 @@ struct Token(Copyable, Movable, Writable):
         return out^
 
 
-struct TokenGroupIterator[
-    mut: Bool, //, origin: Origin[mut=mut]
-](Movable):
+struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](Movable):
     """Iterator over tokens in a `TokenGroup`."""
 
     var _tu: ArcPointer[TranslationUnitState]
@@ -217,12 +215,18 @@ struct TokenGroup(Movable, Sized, Writable):
 
         if e._generation != self._generation:
             raise Error(
-                "TokenGroup: SourceRange has different TranslationUnit generation",
+                (
+                    "TokenGroup: SourceRange has different TranslationUnit"
+                    " generation"
+                ),
             )
 
         if e._tu[].raw() != self._tu[].raw():
             raise Error(
-                "TokenGroup: SourceRange belongs to a different TranslationUnit",
+                (
+                    "TokenGroup: SourceRange belongs to a different"
+                    " TranslationUnit"
+                ),
             )
 
         var token_storage = InlineArray[
@@ -272,12 +276,18 @@ struct TokenGroup(Movable, Sized, Writable):
 
         if e._generation != self._generation:
             raise Error(
-                "TokenGroup: SourceRange has different TranslationUnit generation",
+                (
+                    "TokenGroup: SourceRange has different TranslationUnit"
+                    " generation"
+                ),
             )
 
         if e._tu[].raw() != self._tu[].raw():
             raise Error(
-                "TokenGroup: SourceRange belongs to a different TranslationUnit",
+                (
+                    "TokenGroup: SourceRange belongs to a different"
+                    " TranslationUnit"
+                ),
             )
 
         var token_storage = InlineArray[
@@ -350,5 +360,7 @@ struct TokenGroup(Movable, Sized, Writable):
         var raw = (self._tokens.value() + i)[].copy()
         return Token(tu=self._tu, raw=raw)
 
-    def __iter__(ref self) -> TokenGroupIterator[mut=False, origin=origin_of(self)]:
+    def __iter__(
+        ref self,
+    ) -> TokenGroupIterator[mut=False, origin=origin_of(self)]:
         return TokenGroupIterator[mut=False, origin=origin_of(self)](self)

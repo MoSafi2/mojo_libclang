@@ -234,23 +234,15 @@ def print_token_stream(mut tu: TranslationUnit) raises:
     print("Tokens (lines 1-25):")
     print("  count: ", tokens.__len__(), sep="")
 
-    var limit = tokens.__len__()
+    var limit = len(tokens)
     if limit > 25:
         limit = 25
 
-    for i in range(limit):
-        var tok = tokens[i]
+    i = 1
+    for var tok in tokens:
         indent(2)
-        print(
-            "[",
-            i,
-            "] kind=",
-            tok.kind().as_c_uint(),
-            " '",
-            tok.spelling(),
-            "'",
-            sep="",
-        )
+        print(t"[{i}] kind = {tok.kind()} {tok.spelling()}")
+        i += 1
 
 
 # -- Main --------------------------------------------------------------------
@@ -268,11 +260,7 @@ def main() raises:
         UnsavedFile(filename=String(HEADER_PATH), contents=String(HEADER_TEXT))
     )
 
-    var args = List[String]()
-    args.append("-xc")
-    args.append("-std=c11")
-    args.append("-Wall")
-
+    var args: List[String] = ["-xc", "-std=c11", "-Wall"]
     var tu = index.parse(String(HEADER_PATH), args=args, unsaved_files=unsaved)
     print("Parsed '", tu, "'", sep="")
 
@@ -292,12 +280,9 @@ def main() raises:
     print("=== Type Details =================================================")
 
     var all_cursors = root.walk_preorder()
-    for i in range(Int(all_cursors.__len__())):
-        var c = all_cursors[i].copy()
-
+    for c in all_cursors:
         if c.kind() == CursorKind.TYPEDEF_DECL:
             print_type_canon(c)
-
         if c.kind() == CursorKind.STRUCT_DECL:
             print_type_fields(c)
 

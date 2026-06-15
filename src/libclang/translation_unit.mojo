@@ -79,26 +79,26 @@ struct TranslationUnit(Copyable, Movable, Writable):
         """Expose raw handle for internal FFI calls."""
         return self.raw()
 
-    def write_to(self, mut writer: Some[Writer]):
+    def write_to(ref self, mut writer: Some[Writer]):
         writer.write("TranslationUnit(", self._spelling, ")")
 
     def __len__(self) raises -> Int:
         return Int(clang_getNumDiagnostics(self.raw()))
 
-    def spelling(mut self) raises -> String:
+    def spelling(ref self) raises -> String:
         var cs = _CXStringStorage()
         clang_getTranslationUnitSpelling(cs.ptr_for_out(), self.raw())
         return cs.take()
 
-    def cursor(mut self) raises -> Cursor:
+    def cursor(ref self) raises -> Cursor:
         var out = Cursor(tu=self.state())
         clang_getTranslationUnitCursor(out._ptr(), self.raw())
         return out^
 
-    def num_diagnostics(mut self) raises -> c_uint:
+    def num_diagnostics(ref self) raises -> c_uint:
         return clang_getNumDiagnostics(self.raw())
 
-    def diagnostic(mut self, index: c_uint) raises -> Diagnostic:
+    def diagnostic(ref self, index: c_uint) raises -> Diagnostic:
         var d = Diagnostic(
             tu=self.state(),
             raw=clang_getDiagnostic(self.raw(), index),
@@ -106,17 +106,17 @@ struct TranslationUnit(Copyable, Movable, Writable):
         d._cache_format()
         return d^
 
-    def diagnostics(mut self) raises -> DiagnosticSet:
+    def diagnostics(ref self) raises -> DiagnosticSet:
         return DiagnosticSet._from_handle(
             self.state(),
             clang_getDiagnosticSetFromTU(self.raw()),
         )
 
-    def get_file(mut self, filename: String) raises -> Optional[File]:
+    def get_file(ref self, filename: String) raises -> Optional[File]:
         return File.from_name(self.state(), filename)
 
     def get_location(
-        mut self,
+        ref self,
         filename: String,
         position: SourcePosition,
     ) raises -> SourceLocation:
@@ -149,7 +149,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
     def get_location_for_offset(
-        mut self,
+        ref self,
         filename: String,
         offset: c_uint,
     ) raises -> SourceLocation:
