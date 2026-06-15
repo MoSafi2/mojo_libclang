@@ -50,8 +50,6 @@ from std.memory import ArcPointer, UnsafePointer
 
 @fieldwise_init
 struct UnsavedFile(Copyable, Movable):
-    """A single in-memory source file passed to `Index.parse` or `reparse`."""
-
     var filename: String
     var contents: String
 
@@ -305,17 +303,11 @@ struct _CXStringStorage:
 # ---------------------------------------------------------------------------
 # Temporary arenas for synchronous libclang calls
 # ---------------------------------------------------------------------------
+struct CStringArray(Movable):
+    """Owns C strings and a `const char*[]` slot array."""
 
-
-struct CStringArray:
-    """Owns copied command-line strings and a `const char **` array.
-
-    Use for `clang_parseTranslationUnit2` command-line args. The arena must
-    stay alive until the C call returns.
-    """
-
-    var _args: List[String]
-    var _slot: Optional[
+    var _strings: List[UnsafePointer[c_char, MutAnyOrigin]]
+    var _slots: Optional[
         UnsafePointer[
             Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
             MutAnyOrigin,
@@ -324,33 +316,25 @@ struct CStringArray:
     var _count: c_int
 
     def __init__(out self, args: List[String]):
-        self._args = List[String]()
+        self._strings = List[UnsafePointer[c_char, MutAnyOrigin]]()
+        self._slots = None
         self._count = c_int(len(args))
 
         if len(args) == 0:
-            self._slot = None
             return
 
-        for i in range(len(args)):
-            self._args.append(args[i].copy())
+        var slots = alloc[
+            Optional[UnsafePointer[c_char, ImmutExternalOrigin]]
+        ](len(args))
 
-        var slot = alloc[Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](
-            len(args)
-        )
+        self._slots = slots
 
         for i in range(len(args)):
-            slot[i] = Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
-                rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
-                    self._args[i].unsafe_ptr(),
-                )
+            var s = _alloc_c_string(args[i])
+            self._strings.append(s)
+            slots[i] = Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                _c_string(s),
             )
-
-        self._slot = Optional[
-            UnsafePointer[
-                Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
-                MutAnyOrigin,
-            ]
-        ](slot)
 
     def ptr(
         self,
@@ -360,7 +344,7 @@ struct CStringArray:
             ImmutExternalOrigin,
         ]
     ]:
-        if not self._slot:
+        if not self._slots:
             return None
 
         return Optional[
@@ -374,68 +358,69 @@ struct CStringArray:
                     Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
                     ImmutExternalOrigin,
                 ]
-            ](self._slot.value())
+            ](self._slots.value())
         )
 
     def count(self) -> c_int:
         return self._count
 
     def __del__(deinit self):
-        if self._slot:
-            self._slot.value().free()
+        for i in range(len(self._strings)):
+            self._strings[i].free()
 
+        if self._slots:
+            self._slots.value().free()
 
-struct UnsavedFileArena:
-    """Owns copied `UnsavedFile` values and a `CXUnsavedFile *` array.
+struct UnsavedFileArena(Movable):
+    """Owns C strings and a `CXUnsavedFile[]` array."""
 
-    This avoids dangling pointers from temporary strings. Keep this arena alive
-    until `clang_parseTranslationUnit2` or `clang_reparseTranslationUnit`
-    returns.
-    """
-
-    var _files: List[UnsavedFile]
-    var _slot: Optional[UnsafePointer[CXUnsavedFile, MutAnyOrigin]]
+    var _filenames: List[UnsafePointer[c_char, MutAnyOrigin]]
+    var _contents: List[UnsafePointer[c_char, MutAnyOrigin]]
+    var _slots: Optional[UnsafePointer[CXUnsavedFile, MutAnyOrigin]]
     var _count: c_uint
 
     def __init__(out self, files: List[UnsavedFile]):
-        self._files = List[UnsavedFile]()
+        self._filenames = List[UnsafePointer[c_char, MutAnyOrigin]]()
+        self._contents = List[UnsafePointer[c_char, MutAnyOrigin]]()
+        self._slots = None
         self._count = c_uint(len(files))
 
         if len(files) == 0:
-            self._slot = None
             return
 
-        for i in range(len(files)):
-            self._files.append(files[i].copy())
-
-        var slot = alloc[CXUnsavedFile](len(files))
+        var slots = alloc[CXUnsavedFile](len(files))
+        self._slots = slots
 
         for i in range(len(files)):
-            slot[i] = CXUnsavedFile(
-                Filename=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
-                    rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
-                        self._files[i].filename.unsafe_ptr(),
-                    )
+            var filename = _alloc_c_string(files[i].filename)
+            var contents = _alloc_c_string(files[i].contents)
+
+            self._filenames.append(filename)
+            self._contents.append(contents)
+
+            slots[i] = CXUnsavedFile(
+                Filename=Optional[
+                    UnsafePointer[c_char, ImmutExternalOrigin]
+                ](
+                    _c_string(filename),
                 ),
-                Contents=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
-                    rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
-                        self._files[i].contents.unsafe_ptr(),
-                    )
+                Contents=Optional[
+                    UnsafePointer[c_char, ImmutExternalOrigin]
+                ](
+                    _c_string(contents),
                 ),
-                Length=c_ulong(self._files[i].contents.byte_length()),
+                Length=c_ulong(files[i].contents.byte_length()),
             )
 
-        self._slot = Optional[UnsafePointer[CXUnsavedFile, MutAnyOrigin]](
-            slot,
-        )
-
-    def ptr(self) -> Optional[UnsafePointer[CXUnsavedFile, MutExternalOrigin]]:
-        if not self._slot:
+    def ptr(
+        self,
+    ) -> Optional[UnsafePointer[CXUnsavedFile, MutExternalOrigin]]:
+        if not self._slots:
             return None
 
         return Optional[UnsafePointer[CXUnsavedFile, MutExternalOrigin]](
             rebind[UnsafePointer[CXUnsavedFile, MutExternalOrigin]](
-                self._slot.value(),
+                self._slots.value(),
             )
         )
 
@@ -443,25 +428,37 @@ struct UnsavedFileArena:
         return self._count
 
     def __del__(deinit self):
-        if self._slot:
-            self._slot.value().free()
+        for i in range(len(self._filenames)):
+            self._filenames[i].free()
 
+        for i in range(len(self._contents)):
+            self._contents[i].free()
+
+        if self._slots:
+            self._slots.value().free()
 
 # ---------------------------------------------------------------------------
 # Shared validation helpers
 # ---------------------------------------------------------------------------
 
 
-def _c_string(text: String) -> UnsafePointer[c_char, ImmutExternalOrigin]:
-    """Copy a Mojo `String` into a null-terminated C string pointer.
+def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutAnyOrigin]:
+    """Allocate a null-terminated C string.
 
-    The caller is responsible for freeing the returned pointer with `free()`.
-    Prefer `CStringArray` or `UnsavedFileArena` for arrays or persisted C
-    structs.
+    Caller owns the returned pointer and must free it.
     """
     var bytes = text.as_bytes()
-    var c_string = alloc[c_char](len(bytes) + 1)
+    var ptr = alloc[c_char](len(bytes) + 1)
+
     for i in range(len(bytes)):
-        c_string[i] = Int8(bytes[i])
-    c_string[len(bytes)] = c_char(0)
-    return c_string
+        ptr[i] = c_char(bytes[i])
+
+    ptr[len(bytes)] = c_char(0)
+    return ptr
+
+
+def _c_string(
+    ptr: UnsafePointer[c_char, MutAnyOrigin],
+) -> UnsafePointer[c_char, ImmutExternalOrigin]:
+    """View an owned mutable C string pointer as const char* for C APIs."""
+    return rebind[UnsafePointer[c_char, ImmutExternalOrigin]](ptr)

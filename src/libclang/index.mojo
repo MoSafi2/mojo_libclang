@@ -17,6 +17,7 @@ from src.libclang.common import (
     CStringArray,
     UnsavedFileArena,
     _c_string,
+    _alloc_c_string,
 )
 
 from src.libclang.state import IndexState
@@ -105,7 +106,6 @@ struct Index(Copyable, Movable, Writable):
         `CStringArray` and `UnsavedFileArena` keep command-line argument
         strings and unsaved-file strings alive until the libclang call returns.
         """
-        var path_owner = path.copy()
         var arg_arena = CStringArray(args)
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
@@ -113,10 +113,11 @@ struct Index(Copyable, Movable, Writable):
         var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
             to=out_tu,
         )
+        var path_c = _alloc_c_string(path)
 
         var err = clang_parseTranslationUnit2(
             self.raw(),
-            _c_string(path_owner),
+            _c_string(path_c),
             arg_arena.ptr(),
             arg_arena.count(),
             unsaved_arena.ptr(),
@@ -127,6 +128,8 @@ struct Index(Copyable, Movable, Writable):
             ),
         )
 
+        path_c.free()
+
         if err != CXError_Success:
             raise Error(
                 "TranslationUnit parse failed: error code=" + String(Int(err)),
@@ -134,29 +137,29 @@ struct Index(Copyable, Movable, Writable):
 
         return TranslationUnit(self.state(), out_tu)
 
-    def read(mut self, path: String) raises -> TranslationUnit:
-        """Read a serialized AST file into a `TranslationUnit`."""
-        var path_owner = path.copy()
+    # def read(mut self, path: String) raises -> TranslationUnit:
+    #     """Read a serialized AST file into a `TranslationUnit`."""
+    #     var path_owner = path.copy()
 
-        var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
-            to=out_tu,
-        )
+    #     var out_tu: CXTranslationUnit = CXTranslationUnit()
+    #     var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
+    #         to=out_tu,
+    #     )
 
-        var err = clang_createTranslationUnit2(
-            self.raw(),
-            _c_string(path_owner),
-            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
-                out_ptr,
-            ),
-        )
+    #     var err = clang_createTranslationUnit2(
+    #         self.raw(),
+    #         _c_string(path_owner),
+    #         rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
+    #             out_ptr,
+    #         ),
+    #     )
 
-        if err != CXError_Success:
-            raise Error(
-                "TranslationUnit read failed: error code=" + String(Int(err)),
-            )
+    #     if err != CXError_Success:
+    #         raise Error(
+    #             "TranslationUnit read failed: error code=" + String(Int(err)),
+    #         )
 
-        return TranslationUnit(self.state(), out_tu)
+    #     return TranslationUnit(self.state(), out_tu)
 
 
 def _check_index_alive(state: ArcPointer[IndexState]) raises:

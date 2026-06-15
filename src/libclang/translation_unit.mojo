@@ -23,6 +23,7 @@ from src.libclang.common import (
     _c_string,
     _CXStringStorage,
     UnsavedFileArena,
+    _alloc_c_string,
 )
 
 from src.libclang.state import IndexState, TranslationUnitState
@@ -121,12 +122,13 @@ struct TranslationUnit(Copyable, Movable, Writable):
         pos.validate()
 
         # Keep filename alive during the C call.
-        var filename_owner = filename.copy()
+        var filename_c = _alloc_c_string(filename)
+
         var file_handle = clang_getFile(
             self.raw(),
-            _c_string(filename_owner),
+            _c_string(filename_c),
         )
-
+        filename_c.free()
         if not file_handle:
             raise Error("TranslationUnit.get_location: unknown filename")
 
@@ -149,12 +151,13 @@ struct TranslationUnit(Copyable, Movable, Writable):
         filename: String,
         offset: c_uint,
     ) raises -> SourceLocation:
-        var filename_owner = filename.copy()
+        var filename_c = _alloc_c_string(filename)
+
         var file_handle = clang_getFile(
             self.raw(),
-            _c_string(filename_owner),
+            _c_string(filename_c),
         )
-
+        filename_c.free()
         if not file_handle:
             raise Error(
                 "TranslationUnit.get_location_for_offset: unknown filename",
