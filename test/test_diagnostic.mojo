@@ -5,7 +5,6 @@ Exercises `Diagnostic`, `DiagnosticSet`, and `FixIt` wrappers.
 from src.libclang import (
     Index,
     TranslationUnit,
-    UnsavedFile,
     Diagnostic,
     DiagnosticSet,
     FixIt,
@@ -15,7 +14,7 @@ from std.ffi import c_uint
 from std.testing import assert_equal, assert_true, TestSuite
 
 
-comptime INVALID_PATH: String = "test/fixtures/test_fixture_invalid.c"
+comptime INVALID_PATH: String = "test/fixtures/raw_ffi_probe_invalid.c"
 
 
 def _check(cond: Bool, msg: String) raises:
@@ -25,10 +24,7 @@ def _check(cond: Bool, msg: String) raises:
 
 def _parse_invalid() raises -> TranslationUnit:
     var index = Index.create()
-    var source = String("int x = ;\n")
-    var unsaved = List[UnsavedFile]()
-    unsaved.append(UnsavedFile(filename=String(INVALID_PATH), contents=source))
-    return index.parse(String(INVALID_PATH), unsaved_files=unsaved)
+    return index.parse(String(INVALID_PATH))
 
 
 # -- Diagnostic count and set ---------------------------------------------
