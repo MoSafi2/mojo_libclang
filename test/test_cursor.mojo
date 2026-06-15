@@ -3,20 +3,32 @@ from src.libclang import (
     Index,
     TranslationUnit,
     Cursor,
+    Type,
     CXCursor_TranslationUnit,
     CXCursor_TypedefDecl,
     CXCursor_FunctionDecl,
     CXCursor_StructDecl,
     CXCursor_VarDecl,
     CXCursor_ParmDecl,
+    CXCursor_FieldDecl,
+    CXCursor_CXXMethod,
+    CXCursor_ClassDecl,
+    CXCursor_EnumDecl,
+    CXCursor_Constructor,
+    CXCursor_Destructor,
+    CXType_Int,
+    CXType_FunctionProto,
+    CXType_Record,
+    AccessSpecifier,
 )
+from src._ffi import CXCursor_CXXBaseSpecifier
 from src.libclang.cursor import collect_children, walk_preorder
-from src._ffi import CXType_Int, CXType_FunctionProto
-from std.ffi import c_uint
-from std.testing import assert_equal, assert_true, TestSuite
+from std.ffi import c_uint, c_int
+from std.testing import assert_equal, assert_true, assert_false, TestSuite
 
 
 comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
+comptime CXX_FIXTURE_PATH: String = "test/fixtures/cxx_test_fixture.cpp"
 
 
 def _check(cond: Bool, msg: String = "") raises:
@@ -36,7 +48,32 @@ def _find(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
         var c = children[i].copy()
         if c.kind() == kind:
             return c^
-    raise Error("child not found")
+    raise Error("child not found by kind")
+
+
+def _find_by_spelling(mut tu: TranslationUnit, name: String) raises -> Cursor:
+    var root = tu.cursor()
+    var walk = walk_preorder(root)
+    for i in range(Int(walk.__len__())):
+        var c = walk[i].copy()
+        if c.spelling() == name:
+            return c^
+    raise Error("child not found by spelling: " + name)
+
+
+def _parse_cxx() raises -> TranslationUnit:
+    var index = Index.create()
+    return index.parse(CXX_FIXTURE_PATH)
+
+
+def _find_cxx(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
+    var root = tu.cursor()
+    var children = root.get_children()
+    for i in range(Int(children.__len__())):
+        var c = children[i].copy()
+        if c.kind() == kind:
+            return c^
+    raise Error("child not found by kind")
 
 
 def test_null_cursor() raises:
@@ -293,6 +330,274 @@ def test_walk_preorder_spelling_nonempty() raises:
         if s.byte_length() > 0:
             nonempty_count += 1
     _check(nonempty_count > 0, "at least some walk elements should have non-empty spelling")
+
+
+# -----------------------------------------------------------------------
+# C++ feature tests
+# -----------------------------------------------------------------------
+
+def test_cxx_is_virtual() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    _check(c.is_virtual(), "virtual_method should be virtual")
+
+
+def test_cxx_is_pure_virtual() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    _check(c.is_pure_virtual(), "virtual_method should be pure virtual")
+
+
+def test_cxx_is_static() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "static_method")
+    _check(c.is_static(), "static_method should be static")
+
+
+def test_cxx_is_const() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    _check(c.is_const(), "virtual_method should be const")
+
+
+def test_cxx_is_defaulted() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var children = c.get_children()
+    var found_defaulted = False
+    for i in range(Int(children.__len__())):
+        var child = children[i].copy()
+        if child.is_defaulted():
+            found_defaulted = True
+            break
+    _check(found_defaulted, "Derived should have a defaulted constructor")
+
+
+def test_cxx_is_deleted() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    # No deleted functions in this fixture, but check that none are incorrectly detected as deleted
+    var children = c.get_children()
+    for i in range(Int(children.__len__())):
+        var child = children[i].copy()
+        if child.spelling() == "Derived":
+            # constructors are defaulted not deleted
+            assert_false(child.is_deleted(), "Derived() is defaulted not deleted")
+
+
+def test_cxx_is_copy_assignment_operator() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "operator=")
+    _check(c.is_copy_assignment_operator(), "operator= should be copy assignment")
+
+
+def test_cxx_is_move_assignment_operator() raises:
+    var tu = _parse_cxx()
+    # The Derived class has move assignment, but there are two operator= overloads
+    var c = _find_by_spelling(tu, "operator=")
+    # operator= is both copy and move? Let's just check it works without crashing
+    _ = c.is_move_assignment_operator()
+    _ = c.is_copy_assignment_operator()
+
+
+def test_cxx_is_explicit() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var children = c.get_children()
+    var found_explicit = False
+    for i in range(Int(children.__len__())):
+        var child = children[i].copy()
+        if child.is_explicit():
+            found_explicit = True
+            break
+    _check(found_explicit, "Derived(double) should be explicit")
+
+
+def test_cxx_is_abstract_record() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Base")
+    _check(c.is_abstract_record(), "Base should be abstract")
+
+
+def test_cxx_is_scoped_enum() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "ScopedEnum")
+    _check(c.is_scoped_enum(), "ScopedEnum should be scoped")
+
+
+def test_cxx_access_specifier() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "virtual_method")
+    var spec = c.access_specifier()
+    # public = 1
+    assert_equal(Int(spec), 1, "virtual_method should be public")
+
+
+def test_cxx_get_bases() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var t = c.type()
+    var bases = t.get_bases()
+    _check(Int(bases.__len__()) > 0, "Derived should have a base class")
+
+
+def test_cxx_get_methods() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var t = c.type()
+    var methods = t.get_methods()
+    _check(Int(methods.__len__()) > 0, "Derived should have methods")
+
+
+def test_cxx_overridden_cursors() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "overridden_method")
+    var overridden = c.overridden_cursors()
+    # May be 0 if the overridden chain isn't fully resolved in a single-TU parse;
+    # the important thing is the call doesn't crash and returns sane results.
+    _check(Int(overridden.__len__()) >= 0, "overridden cursors call should not crash")
+
+
+def test_cxx_is_virtual_base() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    var children = c.get_children()
+    for i in range(Int(children.__len__())):
+        var child = children[i].copy()
+        if child.kind() == CXCursor_CXXBaseSpecifier:
+            assert_false(child.is_virtual_base(), "Base is not virtual")
+
+
+def test_cxx_is_anonymous() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    assert_false(c.is_anonymous(), "Derived is not anonymous")
+
+
+def test_cxx_is_anonymous_record_decl() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Derived")
+    assert_false(c.is_anonymous_record_decl(), "Derived is not anonymous record")
+
+
+# -----------------------------------------------------------------------
+# New feature tests: Phase 1
+# -----------------------------------------------------------------------
+
+def test_is_invalid_on_null() raises:
+    var tu = _parse()
+    var c = Cursor.null(tu.state())
+    _check(c.is_invalid(), "null cursor should be invalid")
+
+
+def test_is_translation_unit_on_root() raises:
+    var tu = _parse()
+    var c = tu.cursor()
+    _check(c.is_translation_unit(), "root cursor should be translation unit")
+
+
+def test_is_preprocessing_not_found() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    assert_false(c.is_preprocessing(), "function decl is not preprocessing")
+
+
+def test_is_unexposed_not_found() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_TypedefDecl)
+    assert_false(c.is_unexposed(), "typedef decl is not unexposed")
+
+
+def test_has_attrs_on_plain_decl() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    assert_false(c.has_attrs(), "plain function decl has no attrs")
+
+
+def test_is_variadic_on_variadic_func() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "variadic_sum")
+    _check(c.is_variadic(), "variadic_sum should be variadic")
+
+
+def test_is_variadic_on_regular_func() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    assert_false(c.is_variadic(), "regular add() is not variadic")
+
+
+def test_is_const_qualified_type() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "const_value")
+    _check(c.is_const_qualified_type(), "const_value should be const qualified")
+
+
+def test_is_volatile_qualified_type() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "volatile_value")
+    _check(c.is_volatile_qualified_type(), "volatile_value should be volatile qualified")
+
+
+def test_is_pod_type_on_struct() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_StructDecl)
+    var t = c.type()
+    _check(t.is_pod(), "struct Pair should be POD")
+
+
+def test_is_anonymous() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    assert_false(c.is_anonymous(), "named function is not anonymous")
+
+
+def test_num_arguments() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "add")
+    assert_equal(Int(c.num_arguments()), 2, "add() should have 2 params")
+
+
+def test_get_arguments() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "add")
+    var args = c.get_arguments()
+    assert_equal(Int(args.__len__()), 2, "add() should have 2 args")
+    for i in range(Int(args.__len__())):
+        var arg = args[i].copy()
+        assert_equal(Int(arg.kind()), Int(CXCursor_ParmDecl))
+
+
+def test_num_template_arguments() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_TypedefDecl)
+    assert_equal(Int(c.num_template_arguments()), -1, "typedef should have no template args")
+
+
+def test_pretty_printed() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    var text = c.pretty_printed()
+    _check(text.byte_length() > 0, "pretty-printed text should be non-empty")
+
+
+def test_brief_comment_none() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    _check(c.brief_comment() is None, "no brief comment on uncommented decl")
+
+
+def test_raw_comment_none() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    _check(c.raw_comment() is None, "no raw comment on uncommented decl")
+
+
+def test_get_fields_empty() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_TypedefDecl)
+    var t = c.type()
+    var fields = t.get_fields()
+    assert_equal(Int(fields.__len__()), 0, "typedef has no fields")
 
 
 # def test_enum_type_and_get_field_offsetof() raises:

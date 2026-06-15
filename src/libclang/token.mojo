@@ -15,9 +15,13 @@ Token location/extent queries remain disabled until their wrappers are stable.
 from src._ffi import (
     CXToken,
     CXTokenKind,
+    CXSourceLocation,
+    CXSourceRange,
     c_uint,
     clang_getTokenKind,
     clang_getTokenSpelling,
+    clang_getTokenLocation,
+    clang_getTokenExtent,
     clang_annotateTokens,
     clang_tokenize,
     clang_disposeTokens,
@@ -107,14 +111,27 @@ struct Token(Copyable, Movable, Writable):
         return self._spelling
 
     def location(mut self) raises -> SourceLocation:
-        raise Error(
-            "Token.location is currently unstable; keep using raw FFI probes",
+        self._check_valid()
+
+        var out = SourceLocation(tu=self._tu)
+        clang_getTokenLocation(
+            out._ptr(),
+            self._tu_raw(),
+            self._ptr(),
         )
+        out.refresh()
+        return out^
 
     def extent(mut self) raises -> SourceRange:
-        raise Error(
-            "Token.extent is currently unstable; keep using raw FFI probes",
+        self._check_valid()
+
+        var out = SourceRange(tu=self._tu)
+        clang_getTokenExtent(
+            out._ptr(),
+            self._tu_raw(),
+            self._ptr(),
         )
+        return out^
 
     def cursor(mut self) raises -> Cursor:
         self._check_valid()

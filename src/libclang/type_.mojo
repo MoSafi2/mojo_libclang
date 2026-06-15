@@ -15,6 +15,8 @@ from src._ffi import (
     CXType,
     CXTypeKind,
     CXCursor_FieldDecl,
+    CXCursor_CXXBaseSpecifier,
+    CXCursor_CXXMethod,
     c_uint,
     c_int,
     c_long_long,
@@ -348,6 +350,51 @@ struct Type(Copyable, Movable, Writable):
     def is_pod(mut self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isPODType(self._ptr()))
+
+    def get_fields(mut self) raises -> List[Cursor]:
+        from src.libclang.cursor import Cursor
+
+        self._check_valid()
+        var decl = self.get_declaration()
+        if not decl:
+            return List[Cursor]()
+        var children = decl.value().get_children()
+        var fields = List[Cursor]()
+        for i in range(Int(children.__len__())):
+            var child = children[i].copy()
+            if child.kind() == CXCursor_FieldDecl:
+                fields.append(child^)
+        return fields^
+
+    def get_bases(mut self) raises -> List[Cursor]:
+        from src.libclang.cursor import Cursor
+
+        self._check_valid()
+        var decl = self.get_declaration()
+        if not decl:
+            return List[Cursor]()
+        var children = decl.value().get_children()
+        var bases = List[Cursor]()
+        for i in range(Int(children.__len__())):
+            var child = children[i].copy()
+            if child.kind() == CXCursor_CXXBaseSpecifier:
+                bases.append(child^)
+        return bases^
+
+    def get_methods(mut self) raises -> List[Cursor]:
+        from src.libclang.cursor import Cursor
+
+        self._check_valid()
+        var decl = self.get_declaration()
+        if not decl:
+            return List[Cursor]()
+        var children = decl.value().get_children()
+        var methods = List[Cursor]()
+        for i in range(Int(children.__len__())):
+            var child = children[i].copy()
+            if child.kind() == CXCursor_CXXMethod:
+                methods.append(child^)
+        return methods^
 
     def __eq__(mut self, mut other: Self) raises -> Bool:
         self._check_valid()

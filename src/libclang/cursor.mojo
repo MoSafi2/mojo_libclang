@@ -18,6 +18,9 @@ from src._ffi import (
     CXSourceLocation,
     CXSourceRange,
     CXFile,
+    CXPrintingPolicy,
+    CX_CXXAccessSpecifier,
+    CXTemplateArgumentKind,
     clang_getNullCursor,
     clang_equalCursors,
     clang_Cursor_isNull,
@@ -42,8 +45,54 @@ from src._ffi import (
     clang_isExpression,
     clang_isStatement,
     clang_isAttribute,
+    clang_CXXMethod_isPureVirtual,
+    clang_CXXMethod_isStatic,
+    clang_CXXMethod_isVirtual,
+    clang_isVirtualBase,
+    clang_CXXMethod_isConst,
+    clang_CXXMethod_isDefaulted,
+    clang_CXXMethod_isDeleted,
+    clang_CXXMethod_isMoveAssignmentOperator,
+    clang_CXXMethod_isCopyAssignmentOperator,
+    clang_CXXMethod_isExplicit,
+    clang_getCXXAccessSpecifier,
+    clang_CXXRecord_isAbstract,
+    clang_EnumDecl_isScoped,
+    clang_Cursor_isVariadic,
+    clang_Cursor_isExternalSymbol,
+    clang_Cursor_isAnonymous,
+    clang_Cursor_isAnonymousRecordDecl,
+    clang_Cursor_getNumArguments,
+    clang_Cursor_getArgument,
+    clang_getOverriddenCursors,
+    clang_disposeOverriddenCursors,
+    clang_getNumOverloadedDecls,
+    clang_getOverloadedDecl,
+    clang_Cursor_getNumTemplateArguments,
+    clang_Cursor_getTemplateArgumentKind,
+    clang_Cursor_getTemplateArgumentType,
+    clang_Cursor_getTemplateArgumentValue,
+    clang_Cursor_getTemplateArgumentUnsignedValue,
+    clang_getSpecializedCursorTemplate,
+    clang_getTemplateCursorKind,
+    clang_getCursorPrettyPrinted,
+    clang_getCursorPrintingPolicy,
+    clang_PrintingPolicy_dispose,
+    clang_Cursor_getBriefCommentText,
+    clang_Cursor_getRawCommentText,
+    clang_isInvalid,
+    clang_isTranslationUnit,
+    clang_isPreprocessing,
+    clang_isUnexposed,
+    clang_Cursor_hasAttrs,
+    clang_isConstQualifiedType,
+    clang_isVolatileQualifiedType,
+    clang_isRestrictQualifiedType,
+    clang_isPODType,
     c_uint,
     c_int,
+    c_long_long,
+    c_ulong_long,
     CXClientData,
     clang_visitChildren,
 )
@@ -54,8 +103,8 @@ from src.libclang.translation_unit import (
     TranslationUnitState,
 )
 
-from std.collections import InlineArray
-from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
+from std.collections import InlineArray, List
+from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer, MutOpaquePointer
 
 
 struct Cursor(Copyable, Movable, Writable):
@@ -226,6 +275,139 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         return Bool(clang_isAttribute(self._raw[0].kind))
 
+    def is_invalid(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_isInvalid(self._raw[0].kind))
+
+    def is_translation_unit(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_isTranslationUnit(self._raw[0].kind))
+
+    def is_preprocessing(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_isPreprocessing(self._raw[0].kind))
+
+    def is_unexposed(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_isUnexposed(self._raw[0].kind))
+
+    def has_attrs(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_hasAttrs(self._ptr()))
+
+    # -----------------------------------------------------------------------
+    # C++ method predicates
+    # -----------------------------------------------------------------------
+
+    def is_pure_virtual(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isPureVirtual(self._ptr()))
+
+    def is_static(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isStatic(self._ptr()))
+
+    def is_virtual(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isVirtual(self._ptr()))
+
+    def is_virtual_base(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_isVirtualBase(self._ptr()))
+
+    def is_const(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isConst(self._ptr()))
+
+    def is_defaulted(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isDefaulted(self._ptr()))
+
+    def is_deleted(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isDeleted(self._ptr()))
+
+    def is_move_assignment_operator(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isMoveAssignmentOperator(self._ptr()))
+
+    def is_copy_assignment_operator(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isCopyAssignmentOperator(self._ptr()))
+
+    def is_explicit(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXMethod_isExplicit(self._ptr()))
+
+    def is_abstract_record(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_CXXRecord_isAbstract(self._ptr()))
+
+    def is_scoped_enum(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_EnumDecl_isScoped(self._ptr()))
+
+    def is_variadic(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isVariadic(self._ptr()))
+
+    def is_external_symbol(mut self) raises -> Bool:
+        self._check_valid()
+        var language_cs = _CXStringStorage()
+        var defined_in_cs = _CXStringStorage()
+        var is_generated: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](fill=c_uint(0))
+        var result = Bool(clang_Cursor_isExternalSymbol(
+            self._ptr(),
+            language_cs.ptr_for_out(),
+            defined_in_cs.ptr_for_out(),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+                is_generated.unsafe_ptr(),
+            ),
+        ))
+        _ = language_cs.take()
+        _ = defined_in_cs.take()
+        return result
+
+    def is_anonymous(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isAnonymous(self._ptr()))
+
+    def is_anonymous_record_decl(mut self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isAnonymousRecordDecl(self._ptr()))
+
+    def is_const_qualified_type(mut self) raises -> Bool:
+        from src.libclang.type_ import Type
+        self._check_valid()
+        var t = Type(tu=self._tu)
+        clang_getCursorType(t._ptr(), self._ptr())
+        return Bool(clang_isConstQualifiedType(t._ptr()))
+
+    def is_volatile_qualified_type(mut self) raises -> Bool:
+        from src.libclang.type_ import Type
+        self._check_valid()
+        var t = Type(tu=self._tu)
+        clang_getCursorType(t._ptr(), self._ptr())
+        return Bool(clang_isVolatileQualifiedType(t._ptr()))
+
+    def is_restrict_qualified_type(mut self) raises -> Bool:
+        from src.libclang.type_ import Type
+        self._check_valid()
+        var t = Type(tu=self._tu)
+        clang_getCursorType(t._ptr(), self._ptr())
+        return Bool(clang_isRestrictQualifiedType(t._ptr()))
+
+    def is_pod_type(mut self) raises -> Bool:
+        from src.libclang.type_ import Type
+        self._check_valid()
+        var t = Type(tu=self._tu)
+        clang_getCursorType(t._ptr(), self._ptr())
+        return Bool(clang_isPODType(t._ptr()))
+
+    def access_specifier(mut self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_getCXXAccessSpecifier(self._ptr()))
+
     # -----------------------------------------------------------------------
     # Cursor relations
     # -----------------------------------------------------------------------
@@ -290,6 +472,148 @@ struct Cursor(Copyable, Movable, Writable):
             return False
 
         return Bool(clang_equalCursors(self._ptr(), other._ptr()))
+
+    # -----------------------------------------------------------------------
+    # Cursor info (pretty-printed, overridden, overloaded, template)
+    # -----------------------------------------------------------------------
+
+    def pretty_printed(mut self) raises -> String:
+        self._check_valid()
+        var policy = clang_getCursorPrintingPolicy(self._ptr())
+        var cs = _CXStringStorage()
+        clang_getCursorPrettyPrinted(cs.ptr_for_out(), self._ptr(), policy)
+        clang_PrintingPolicy_dispose(policy)
+        return cs.take()
+
+    def overridden_cursors(mut self) raises -> List[Cursor]:
+        self._check_valid()
+        var overridden_slot: InlineArray[
+            Optional[UnsafePointer[CXCursor, MutExternalOrigin]], 1
+        ] = InlineArray[
+            Optional[UnsafePointer[CXCursor, MutExternalOrigin]], 1
+        ](fill=None)
+        var num_slot: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](fill=c_uint(0))
+
+        clang_getOverriddenCursors(
+            self._ptr(),
+            rebind[
+                UnsafePointer[
+                    Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+                    MutExternalOrigin,
+                ]
+            ](overridden_slot.unsafe_ptr()),
+            rebind[UnsafePointer[c_uint, MutExternalOrigin]](num_slot.unsafe_ptr()),
+        )
+
+        var raw_ptr = overridden_slot[0]
+        var count = Int(num_slot[0])
+
+        var out = List[Cursor]()
+        if raw_ptr:
+            for i in range(count):
+                var raw = (raw_ptr.value() + i)[].copy()
+                out.append(Cursor(tu=self._tu, raw=raw))
+            clang_disposeOverriddenCursors(raw_ptr.value())
+        return out^
+
+    def num_overloaded_decls(mut self) raises -> c_uint:
+        self._check_valid()
+        return clang_getNumOverloadedDecls(self._ptr())
+
+    def get_overloaded_decl(mut self, index: c_uint) raises -> Self:
+        self._check_valid()
+        var out = Self(self._tu)
+        clang_getOverloadedDecl(out._ptr(), self._ptr(), index)
+        return out^
+
+    def num_template_arguments(mut self) raises -> c_int:
+        self._check_valid()
+        return clang_Cursor_getNumTemplateArguments(self._ptr())
+
+    def template_argument_kind(mut self, i: c_uint) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i))
+
+    def template_argument_type(mut self, i: c_uint) raises -> Type:
+        from src.libclang.type_ import Type
+
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_Cursor_getTemplateArgumentType(out._ptr(), self._ptr(), i)
+        out._cache_spelling()
+        return out^
+
+    def template_argument_value(mut self, i: c_uint) raises -> c_long_long:
+        self._check_valid()
+        return clang_Cursor_getTemplateArgumentValue(self._ptr(), i)
+
+    def template_argument_unsigned_value(mut self, i: c_uint) raises -> c_ulong_long:
+        self._check_valid()
+        return clang_Cursor_getTemplateArgumentUnsignedValue(self._ptr(), i)
+
+    def specialized_cursor_template(mut self) raises -> Optional[Self]:
+        self._check_valid()
+        var out = Self(self._tu)
+        clang_getSpecializedCursorTemplate(out._ptr(), self._ptr())
+        if out.is_null():
+            return None
+        return Optional[Self](out^)
+
+    def template_kind(mut self) raises -> CXCursorKind:
+        self._check_valid()
+        return clang_getTemplateCursorKind(self._ptr())
+
+    # -----------------------------------------------------------------------
+    # Arguments and tokens
+    # -----------------------------------------------------------------------
+
+    def num_arguments(mut self) raises -> c_int:
+        self._check_valid()
+        return clang_Cursor_getNumArguments(self._ptr())
+
+    def get_argument(mut self, i: c_uint) raises -> Self:
+        self._check_valid()
+        var out = Self(self._tu)
+        clang_Cursor_getArgument(out._ptr(), self._ptr(), i)
+        return out^
+
+    def get_arguments(mut self) raises -> List[Cursor]:
+        self._check_valid()
+        var n = self.num_arguments()
+        var out = List[Cursor]()
+        for i in range(Int(n)):
+            out.append(self.get_argument(c_uint(i)))
+        return out^
+
+    def get_tokens(mut self) raises -> TokenGroup:
+        from src.libclang.token import TokenGroup
+
+        self._check_valid()
+        var ext = self.extent()
+        var tg = TokenGroup(tu=self._tu, extent=ext.copy())
+        return tg^
+
+    # -----------------------------------------------------------------------
+    # Comments
+    # -----------------------------------------------------------------------
+
+    def brief_comment(mut self) raises -> Optional[String]:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getBriefCommentText(cs.ptr_for_out(), self._ptr())
+        var value = cs.take()
+        if not value:
+            return None
+        return Optional[String](value)
+
+    def raw_comment(mut self) raises -> Optional[String]:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getRawCommentText(cs.ptr_for_out(), self._ptr())
+        var value = cs.take()
+        if not value:
+            return None
+        return Optional[String](value)
 
     # -----------------------------------------------------------------------
     # Types and source locations
