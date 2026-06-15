@@ -22,7 +22,7 @@ def _parse_fixture() raises -> TranslationUnit:
 
 def test_null_file_creation() raises:
     var tu = _parse_fixture()
-    var f = File.null(tu.state())
+    var f = File.null(tu)
     _check(True, "null file creation should succeed")
 
 
@@ -88,7 +88,7 @@ def test_equality_same_file() raises:
 def test_equality_null_vs_nonnull() raises:
     var tu = _parse_fixture()
     var f = tu.get_file(FIXTURE_PATH)
-    var null_f = File.null(tu.state())
+    var null_f = File.null(tu)
     _check(
         not (f.value() == null_f), "non-null file should not equal null file"
     )
@@ -96,8 +96,8 @@ def test_equality_null_vs_nonnull() raises:
 
 def test_equality_two_null() raises:
     var tu = _parse_fixture()
-    var null1 = File.null(tu.state())
-    var null2 = File.null(tu.state())
+    var null1 = File.null(tu)
+    var null2 = File.null(tu)
     _check(null1 == null2, "two null files should be equal")
 
 

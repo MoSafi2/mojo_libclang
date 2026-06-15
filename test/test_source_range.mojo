@@ -26,13 +26,13 @@ def _parse_fixture() raises -> TranslationUnit:
 
 def test_null_range() raises:
     var tu = _parse_fixture()
-    var rng = SourceRange.null(tu.state())
+    var rng = SourceRange.null(tu)
     _check(rng.is_null(), "null range should report is_null")
 
 
 def test_null_range_start_not_from_main_file() raises:
     var tu = _parse_fixture()
-    var rng = SourceRange.null(tu.state())
+    var rng = SourceRange.null(tu)
     var start = rng.start()
     _check(
         not start.is_from_main_file(),
@@ -42,7 +42,7 @@ def test_null_range_start_not_from_main_file() raises:
 
 def test_null_range_end_not_from_main_file() raises:
     var tu = _parse_fixture()
-    var rng = SourceRange.null(tu.state())
+    var rng = SourceRange.null(tu)
     var end = rng.end()
     _check(
         not end.is_from_main_file(),
@@ -148,14 +148,14 @@ def test_range_equality_different() raises:
         SourcePosition.from_line_column(1, 8),
     )
     var rng = SourceRange.from_locations(start, end)
-    var null_rng = SourceRange.null(tu.state())
+    var null_rng = SourceRange.null(tu)
     _check(not (rng == null_rng), "non-null range should not equal null range")
 
 
 def test_range_null_equality() raises:
     var tu = _parse_fixture()
-    var null1 = SourceRange.null(tu.state())
-    var null2 = SourceRange.null(tu.state())
+    var null1 = SourceRange.null(tu)
+    var null2 = SourceRange.null(tu)
     _check(null1 == null2, "two null ranges should be equal")
 
 

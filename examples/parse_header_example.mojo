@@ -95,7 +95,7 @@ def print_cursor_line(mut cursor: Cursor, indent: Int) raises:
         print("  ", end="")
 
     print(
-        kind_label(cursor.kind()),
+        cursor.kind().as_c_uint(),
         ": ",
         cursor.spelling(),
         " [",
@@ -171,19 +171,21 @@ def print_tokens(mut tu: TranslationUnit) raises:
 
     for i in range(limit):
         var token = tokens[i]
-        print("  [", i, "] ", token.kind(), ": ", token.spelling(), sep="")
+        print(
+            "  [",
+            i,
+            "] ",
+            token.kind().as_c_uint(),
+            ": ",
+            token.spelling(),
+            sep="",
+        )
 
 
 def main() raises:
     index = Index.create()
 
-    var args = List[String]()
-
-    # Use "-xc" initially instead of "-x", "c" while debugging CStringArray.
-    # If CStringArray is correct, both forms should work.
-    args.append("-xc")
-    args.append("-std=c11")
-    args.append("-Wall")
+    args: List[String] = ["-xc", "-std=c11", "-Wall"]
 
     var unsaved_files = List[UnsavedFile]()
     unsaved_files.append(

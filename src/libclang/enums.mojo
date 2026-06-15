@@ -204,7 +204,7 @@ def _is_cursor_kind_extra_decl(value: c_uint) -> Bool:
     return value >= c_uint(600) and value <= c_uint(604)
 
 
-struct CursorKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct CursorKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXCursorKind``.
 
     The wrapped ``c_uint`` matches the C ABI so the value can be passed
@@ -464,7 +464,7 @@ struct CursorKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct TypeKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct TypeKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTypeKind``."""
 
     var _value: c_uint
@@ -550,7 +550,7 @@ struct TypeKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct TokenKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct TokenKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTokenKind``."""
 
     var _value: c_uint
@@ -577,7 +577,7 @@ struct TokenKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct LinkageKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct LinkageKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXLinkageKind``."""
 
     var _value: c_uint
@@ -604,7 +604,7 @@ struct LinkageKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct AvailabilityKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct AvailabilityKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXAvailabilityKind``."""
 
     var _value: c_uint
@@ -630,7 +630,7 @@ struct AvailabilityKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct AccessSpecifier(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct AccessSpecifier(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CX_CXXAccessSpecifier``."""
 
     var _value: c_uint
@@ -656,7 +656,7 @@ struct AccessSpecifier(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct StorageClass(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct StorageClass(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CX_StorageClass``."""
 
     var _value: c_uint
@@ -686,7 +686,7 @@ struct StorageClass(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct TLSKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct TLSKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTLSKind``."""
 
     var _value: c_uint
@@ -711,7 +711,7 @@ struct TLSKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct LanguageKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct LanguageKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXLanguageKind``."""
 
     var _value: c_uint
@@ -737,7 +737,7 @@ struct LanguageKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct RefQualifierKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct RefQualifierKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXRefQualifierKind``."""
 
     var _value: c_uint
@@ -762,7 +762,7 @@ struct RefQualifierKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct TemplateArgumentKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct TemplateArgumentKind(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTemplateArgumentKind``."""
 
     var _value: c_uint
@@ -794,7 +794,7 @@ struct TemplateArgumentKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct CallingConv(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct CallingConv(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXCallingConv``."""
 
     var _value: c_uint
@@ -839,7 +839,7 @@ struct CallingConv(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct ChildVisitResult(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct ChildVisitResult(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXChildVisitResult``."""
 
     var _value: c_uint
@@ -864,7 +864,7 @@ struct ChildVisitResult(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct DiagnosticSeverity(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct DiagnosticSeverity(Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXDiagnosticSeverity``."""
 
     var _value: c_uint
@@ -891,7 +891,7 @@ struct DiagnosticSeverity(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct ErrorCode(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct ErrorCode(Equatable, ImplicitlyCopyable, Writable):
     """Return code from ``clang_parseTranslationUnit2`` etc."""
 
     var _value: c_uint
@@ -918,7 +918,7 @@ struct ErrorCode(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct SaveError(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct SaveError(Equatable, ImplicitlyCopyable, Writable):
     """Return code from ``clang_saveTranslationUnit``."""
 
     var _value: c_uint
@@ -944,7 +944,7 @@ struct SaveError(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct TranslationUnitFlags(Copyable, ImplicitlyCopyable, Movable):
+struct TranslationUnitFlags(Equatable, ImplicitlyCopyable, Writable):
     """Bit flags for ``TranslationUnit`` creation / reparse options.
 
     Supports ``contains()`` and ``|`` for composing options.
@@ -974,7 +974,9 @@ struct TranslationUnitFlags(Copyable, ImplicitlyCopyable, Movable):
     )
     comptime INCOMPLETE = Self(CXTranslationUnit_Incomplete)
     comptime PRECOMPILED_PREAMBLE = Self(CXTranslationUnit_PrecompiledPreamble)
-    comptime CACHE_COMPLETION_RESULTS = Self(CXTranslationUnit_CacheCompletionResults)
+    comptime CACHE_COMPLETION_RESULTS = Self(
+        CXTranslationUnit_CacheCompletionResults
+    )
     comptime FOR_SERIALIZATION = Self(CXTranslationUnit_ForSerialization)
     comptime CXX_CHAINED_PCH = Self(CXTranslationUnit_CXXChainedPCH)
     comptime SKIP_FUNCTION_BODIES = Self(CXTranslationUnit_SkipFunctionBodies)
@@ -989,8 +991,12 @@ struct TranslationUnitFlags(Copyable, ImplicitlyCopyable, Movable):
     comptime LIMIT_SKIP_FUNCTION_BODIES_TO_PREAMBLE = Self(
         CXTranslationUnit_LimitSkipFunctionBodiesToPreamble,
     )
-    comptime INCLUDE_ATTRIBUTED_TYPES = Self(CXTranslationUnit_IncludeAttributedTypes)
-    comptime VISIT_IMPLICIT_ATTRIBUTES = Self(CXTranslationUnit_VisitImplicitAttributes)
+    comptime INCLUDE_ATTRIBUTED_TYPES = Self(
+        CXTranslationUnit_IncludeAttributedTypes
+    )
+    comptime VISIT_IMPLICIT_ATTRIBUTES = Self(
+        CXTranslationUnit_VisitImplicitAttributes
+    )
     comptime IGNORE_NON_ERRORS_FROM_INCLUDED_FILES = Self(
         CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles,
     )
@@ -1004,7 +1010,7 @@ struct TranslationUnitFlags(Copyable, ImplicitlyCopyable, Movable):
 # ---------------------------------------------------------------------------
 
 
-struct DiagnosticDisplayOptions(Copyable, ImplicitlyCopyable, Movable):
+struct DiagnosticDisplayOptions(Equatable, ImplicitlyCopyable, Writable):
     """Bit flags for ``clang_formatDiagnostic`` options."""
 
     var _value: c_uint
@@ -1039,7 +1045,7 @@ struct DiagnosticDisplayOptions(Copyable, ImplicitlyCopyable, Movable):
 # ---------------------------------------------------------------------------
 
 
-struct TypeLayoutError(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct TypeLayoutError(Equatable, ImplicitlyCopyable, Writable):
     """Signed error code from ``clang_Type_getSizeOf`` etc."""
 
     var _value: Int
@@ -1067,7 +1073,7 @@ struct TypeLayoutError(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct VisibilityKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct VisibilityKind(Equatable, ImplicitlyCopyable, Writable):
     """Visibility of a cursor/declaration."""
 
     var _value: c_uint
@@ -1093,7 +1099,7 @@ struct VisibilityKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
 # ---------------------------------------------------------------------------
 
 
-struct ExceptionSpecificationKind(Copyable, ImplicitlyCopyable, Movable, Equatable):
+struct ExceptionSpecificationKind(Equatable, ImplicitlyCopyable, Writable):
     """Exception specification kind on a function type."""
 
     var _value: c_uint
@@ -1109,15 +1115,21 @@ struct ExceptionSpecificationKind(Copyable, ImplicitlyCopyable, Movable, Equatab
         return self._value == other._value
 
     comptime NONE = Self(CXCursor_ExceptionSpecificationKind_None)
-    comptime DYNAMIC_NONE = Self(CXCursor_ExceptionSpecificationKind_DynamicNone)
+    comptime DYNAMIC_NONE = Self(
+        CXCursor_ExceptionSpecificationKind_DynamicNone
+    )
     comptime DYNAMIC = Self(CXCursor_ExceptionSpecificationKind_Dynamic)
     comptime MS_ANY = Self(CXCursor_ExceptionSpecificationKind_MSAny)
-    comptime BASIC_NOEXCEPT = Self(CXCursor_ExceptionSpecificationKind_BasicNoexcept)
+    comptime BASIC_NOEXCEPT = Self(
+        CXCursor_ExceptionSpecificationKind_BasicNoexcept
+    )
     comptime COMPUTED_NOEXCEPT = Self(
         CXCursor_ExceptionSpecificationKind_ComputedNoexcept,
     )
     comptime UNEVALUATED = Self(CXCursor_ExceptionSpecificationKind_Unevaluated)
-    comptime UNINSTANTIATED = Self(CXCursor_ExceptionSpecificationKind_Uninstantiated)
+    comptime UNINSTANTIATED = Self(
+        CXCursor_ExceptionSpecificationKind_Uninstantiated
+    )
     comptime UNPARSED = Self(CXCursor_ExceptionSpecificationKind_Unparsed)
     comptime NO_THROW = Self(CXCursor_ExceptionSpecificationKind_NoThrow)
 
@@ -1127,7 +1139,7 @@ struct ExceptionSpecificationKind(Copyable, ImplicitlyCopyable, Movable, Equatab
 # ---------------------------------------------------------------------------
 
 
-struct CodeCompleteFlags(Copyable, ImplicitlyCopyable, Movable):
+struct CodeCompleteFlags(Equatable, ImplicitlyCopyable, Writable):
     """Bit flags for code-completion options."""
 
     var _value: c_uint

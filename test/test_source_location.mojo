@@ -24,13 +24,13 @@ def _parse_fixture() raises -> TranslationUnit:
 
 def test_null_location() raises:
     var tu = _parse_fixture()
-    var loc = SourceLocation.null(tu.state())
+    var loc = SourceLocation.null(tu)
     _check(loc == loc, "null location should equal itself")
 
 
 def test_null_location_properties() raises:
     var tu = _parse_fixture()
-    var loc = SourceLocation.null(tu.state())
+    var loc = SourceLocation.null(tu)
     _check(
         not loc.is_from_main_file(),
         "null location should not be from main file",
@@ -136,8 +136,8 @@ def test_location_equality_different() raises:
 
 def test_location_equality_null() raises:
     var tu = _parse_fixture()
-    var null1 = SourceLocation.null(tu.state())
-    var null2 = SourceLocation.null(tu.state())
+    var null1 = SourceLocation.null(tu)
+    var null2 = SourceLocation.null(tu)
     _check(null1 == null2, "two null locations should be equal")
 
 

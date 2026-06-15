@@ -358,7 +358,7 @@ def test_source_range_from_locations() raises:
 
 def test_source_range_null() raises:
     var tu = _parse_fixture()
-    var null_rng = SourceRange.null(tu.state())
+    var null_rng = SourceRange.null(tu)
     _check(null_rng.is_null(), "null range should be null")
 
 
@@ -393,7 +393,7 @@ def test_cursor_equality() raises:
     var add1 = _find_function(tu, "add")
     var add2 = _find_function(tu, "add")
     _check(add1 == add2, "same function should be equal")
-    var null_c = Cursor.null(tu.state())
+    var null_c = Cursor.null(tu)
     _check(not (add1 == null_c), "function != null cursor")
     _ = add1.hash()
     _ = add2.hash()

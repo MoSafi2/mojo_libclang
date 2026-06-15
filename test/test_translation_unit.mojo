@@ -156,7 +156,7 @@ def test_get_cursor_at_function() raises:
 
 def test_get_cursor_null_location() raises:
     var tu = _parse_fixture()
-    var null_loc = SourceLocation.null(tu.state())
+    var null_loc = SourceLocation.null(tu)
     var c = tu.get_cursor(null_loc)
     _check(c.is_null(), "cursor at null location should be null")
 
@@ -176,7 +176,7 @@ def test_get_tokens_nonempty() raises:
 
 def test_get_tokens_empty_extent() raises:
     var tu = _parse_fixture()
-    var tokens = tu.get_tokens(SourceRange.null(tu.state()))
+    var tokens = tu.get_tokens(SourceRange.null(tu))
     assert_equal(
         Int(tokens.__len__()), 0, "null range should produce no tokens"
     )

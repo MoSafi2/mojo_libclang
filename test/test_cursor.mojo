@@ -80,7 +80,7 @@ def _find_cxx(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
 
 def test_null_cursor() raises:
     var tu = _parse()
-    var c = Cursor.null(tu.state())
+    var c = Cursor.null(tu)
     _check(c.is_null(), "null cursor should report is_null")
 
 
@@ -241,8 +241,8 @@ def test_equality() raises:
 
 def test_equality_null() raises:
     var tu = _parse()
-    var null1 = Cursor.null(tu.state())
-    var null2 = Cursor.null(tu.state())
+    var null1 = Cursor.null(tu)
+    var null2 = Cursor.null(tu)
     _check(null1 == null2)
 
 
@@ -582,7 +582,7 @@ def test_cxx_enum_type() raises:
 
 def test_is_invalid_on_null() raises:
     var tu = _parse()
-    var c = Cursor.null(tu.state())
+    var c = Cursor.null(tu)
     _check(c.is_invalid(), "null cursor should be invalid")
 
 

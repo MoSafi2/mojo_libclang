@@ -74,7 +74,7 @@ def _struct_type(mut tu: TranslationUnit, name: String) raises -> Type:
 
 def test_type_default_kind_is_invalid() raises:
     var tu = _parse_fixture()
-    var t = Type(tu=tu.state())
+    var t = Type(tu)
     assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Invalid))
 
 
