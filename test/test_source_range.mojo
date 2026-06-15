@@ -177,5 +177,31 @@ def test_range_extent_consistency() raises:
     _check(rng1 == rng2, "from_locations and get_extent should match")
 
 
+def test_range_contains() raises:
+    var tu = _parse_fixture()
+    var start = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(10, 1),
+    )
+    var end = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(10, 11),
+    )
+    var extent = SourceRange.from_locations(start, end)
+    var mid = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(10, 5),
+    )
+    _check(mid in extent, "mid location should be inside range")
+    _check(start in extent, "start location should be inside range")
+    _check(end in extent, "end location should be inside range")
+
+    var before = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(9, 1),
+    )
+    _check(before not in extent, "before location should not be inside range")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

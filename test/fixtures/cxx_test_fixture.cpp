@@ -22,3 +22,17 @@ public:
 
 enum class ScopedEnum { A, B, C };
 enum OldEnum { X, Y, Z };
+
+inline int inlined_func() { return 42; }
+
+class Copyable {
+public:
+    Copyable() = default;
+    Copyable(const Copyable&) = default;
+    Copyable(Copyable&&) = default;
+};
+
+class Addable {
+public:
+    int operator+(const Addable&) const { return 0; }
+};

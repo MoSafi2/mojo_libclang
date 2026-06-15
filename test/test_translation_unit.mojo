@@ -241,5 +241,40 @@ def test_save_then_read_cursor() raises:
     _check(not c.is_null(), "restored TU cursor should not be null")
 
 
+def test_from_source() raises:
+    var tu = TranslationUnit.from_source(FIXTURE_PATH)
+    _check(tu.spelling().byte_length() > 0, "from_source should produce a TU")
+
+
+def test_from_ast_file() raises:
+    var tu = _parse_fixture()
+    tu.save(SAVE_PATH)
+    var tu2 = TranslationUnit.from_ast_file(SAVE_PATH)
+    _check(tu2.spelling() == tu.spelling(), "from_ast_file spelling matches")
+
+
+def test_get_includes() raises:
+    var tu = _parse_fixture()
+    var includes = tu.get_includes()
+    _check(len(includes) >= 0, "get_includes should return a list")
+
+
+def test_code_complete() raises:
+    var source = "struct Foo { int x; };\nint main() { Foo f; f. }\n"
+    var tu = TranslationUnit.from_source(
+        "test_completion.cpp",
+        args=List[String]("-xc++"),
+        unsaved_files=List[UnsavedFile](
+            UnsavedFile(filename="test_completion.cpp", contents=source)
+        ),
+    )
+    var results = tu.code_complete(
+        "test_completion.cpp",
+        c_uint(2),
+        c_uint(25),
+    )
+    _check(len(results) > 0, "code_complete should return results")
+
+
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()

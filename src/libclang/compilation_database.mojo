@@ -31,7 +31,7 @@ from src.libclang.enums import CompilationDatabaseErrorCode
 from src.libclang.errors import CompilationDatabaseError
 
 from std.iter import Iterable, Iterator, StopIteration
-from std.memory import UnsafePointer, alloc, rebind
+from std.memory import UnsafePointer, alloc
 
 
 @fieldwise_init

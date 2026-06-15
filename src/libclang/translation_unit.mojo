@@ -76,6 +76,15 @@ struct TranslationUnit(Copyable, Movable, Writable):
         self._state = ArcPointer(TranslationUnitState(index, raw))
         self._spelling = String()
 
+    def __init__(out self, state: ArcPointer[TranslationUnitState]):
+        """Return a TranslationUnit that shares an existing state object.
+
+        This does not take ownership of the raw ``CXTranslationUnit``; the
+        returned wrapper keeps the shared state alive.
+        """
+        self._state = state
+        self._spelling = String()
+
     def __init__(out self, *, copy: Self):
         self._state = copy._state
         self._spelling = copy._spelling

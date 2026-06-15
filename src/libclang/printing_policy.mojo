@@ -16,7 +16,7 @@ from src._ffi import (
 
 from src.libclang.enums import PrintingPolicyProperty
 
-from std.memory import UnsafePointer, rebind
+from std.memory import UnsafePointer
 
 
 struct PrintingPolicy(Movable, Writable):
@@ -36,10 +36,7 @@ struct PrintingPolicy(Movable, Writable):
 
     def __del__(deinit self):
         if self._raw:
-            try:
-                clang_PrintingPolicy_dispose(self._raw)
-            except:
-                pass
+            clang_PrintingPolicy_dispose(self._raw)
 
     def get_property(ref self, property: PrintingPolicyProperty) -> c_uint:
         return clang_PrintingPolicy_getProperty(self._raw, property.as_c_uint())

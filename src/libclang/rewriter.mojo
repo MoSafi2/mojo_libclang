@@ -21,7 +21,7 @@ from src.libclang.state import TranslationUnitState
 from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
 
-from std.memory import ArcPointer, UnsafePointer, rebind
+from std.memory import ArcPointer, UnsafePointer
 
 
 struct Rewriter(Movable, Writable):

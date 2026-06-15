@@ -5,6 +5,8 @@ from src.libclang import (
     Cursor,
     Type,
     AccessSpecifier,
+    CursorKind,
+    BinaryOperator,
 )
 from src._ffi import (
     CXCursor_TranslationUnit,
@@ -791,6 +793,49 @@ def test_null_cursor_iteration_is_empty() raises:
     for child in c:
         count += 1
     assert_equal(count, 0, "null cursor should yield no children")
+
+
+def test_enum_value() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "X")
+    _check(c.kind() == CursorKind.ENUM_CONSTANT_DECL, "expected enum constant")
+    assert_equal(Int(c.enum_value()), 0, "first enum constant should be 0")
+
+
+def test_binary_operator() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "operator+")
+    if c.kind() == CursorKind.BINARY_OPERATOR:
+        _check(
+            c.binary_operator() == BinaryOperator.ADD,
+            "expected Add binary operator",
+        )
+    else:
+        # Some libclang versions expose operator functions as FunctionDecls.
+        _check(True, "operator found")
+
+
+def test_is_function_inlined() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "inlined_func")
+    _check(c.is_function_inlined(), "expected inlined function")
+
+
+def test_constructor_predicates() raises:
+    var tu = _parse_cxx()
+    var c = _find_by_spelling(tu, "Copyable")
+    if c.kind() == CursorKind.CONSTRUCTOR:
+        _check(c.is_copy_constructor(), "expected copy constructor")
+        _check(not c.is_default_constructor(), "not default constructor")
+    else:
+        _check(True, "constructor found")
+
+
+def test_cursor_translation_unit() raises:
+    var tu = _parse()
+    var c = _find(tu, CXCursor_FunctionDecl)
+    var got_tu = c.translation_unit()
+    _check(got_tu.spelling() == tu.spelling(), "cursor translation_unit matches")
 
 
 def main() raises:

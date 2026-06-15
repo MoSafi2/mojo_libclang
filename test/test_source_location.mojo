@@ -155,11 +155,29 @@ def test_location_line_column_non_zero_offset() raises:
     var tu = _parse_fixture()
     var loc = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        SourcePosition.from_offset(7),
     )
-    _check(Int(loc.offset()) >= 7,
-           "offset at line 1 col 8 should be >= 7")
+    _check(Int(loc.line()) == 1, "offset 7 should map to line 1")
+    _check(Int(loc.column()) == 8, "offset 7 should map to column 8")
+
+
+def test_location_ordering() raises:
+    var tu = _parse_fixture()
+    var a = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(1, 1),
+    )
+    var b = tu.get_location(
+        FIXTURE_PATH,
+        SourcePosition.from_line_column(2, 1),
+    )
+    _check(a < b, "earlier location should be less than later location")
+    _check(a <= b, "earlier location should be less than or equal")
+    _check(b > a, "later location should be greater")
+    _check(b >= a, "later location should be greater or equal")
+    _check(a != b, "different locations should not be equal")
 
 
 def main() raises:
     TestSuite.discover_tests[__functions_in_module()]().run()
+

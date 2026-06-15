@@ -279,7 +279,7 @@ struct Cursor(Copyable, Movable, Writable, Iterable):
         from src.libclang.translation_unit import TranslationUnit
 
         self._check_valid()
-        return TranslationUnit(self._tu[]._index, self._tu[].raw())
+        return TranslationUnit(self._tu)
 
     def raw_translation_unit(self) raises -> CXTranslationUnit:
         """Return the borrowed raw TU handle after validity checks."""

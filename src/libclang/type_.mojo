@@ -336,7 +336,7 @@ struct Type(Copyable, Movable, Writable):
         from src.libclang.translation_unit import TranslationUnit
 
         self._check_valid()
-        return TranslationUnit(self._tu[]._index, self._tu[].raw())
+        return TranslationUnit(self._tu)
 
     def get_ref_qualifier(ref self) raises -> RefQualifierKind:
         self._check_valid()
