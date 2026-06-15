@@ -172,7 +172,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
     def get_extent(
-        mut self,
+        ref self,
         filename: String,
         locations: SourceExtentInput,
     ) raises -> SourceRange:
@@ -189,16 +189,16 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
         return SourceRange.from_locations(start, end)
 
-    def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
+    def get_tokens(ref self, extent: SourceRange) raises -> TokenGroup:
         return TokenGroup(tu=self.state(), extent=extent)
 
-    def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
+    def get_cursor(ref self, ref loc: SourceLocation) raises -> Cursor:
         var out = Cursor(tu=self.state())
         clang_getCursor(out._ptr(), self.raw(), loc._ptr())
         return out^
 
     def save(
-        mut self,
+        ref self,
         filename: String,
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
@@ -218,7 +218,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
             )
 
     def reparse(
-        mut self,
+        ref self,
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:

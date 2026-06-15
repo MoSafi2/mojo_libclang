@@ -135,18 +135,18 @@ struct Diagnostic(Movable, Writable):
     def write_to(self, mut writer: Some[Writer]):
         writer.write("Diagnostic(", self._formatted, ")")
 
-    def severity(mut self) raises -> DiagnosticSeverity:
+    def severity(ref self) raises -> DiagnosticSeverity:
         self._check_valid()
         return DiagnosticSeverity(clang_getDiagnosticSeverity(self._raw))
 
-    def spelling(mut self) raises -> String:
+    def spelling(ref self) raises -> String:
         self._check_valid()
 
         var cs = _CXStringStorage()
         clang_getDiagnosticSpelling(cs.ptr_for_out(), self._raw)
         return cs.take()
 
-    def location(mut self) raises -> SourceLocation:
+    def location(ref self) raises -> SourceLocation:
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
@@ -154,18 +154,18 @@ struct Diagnostic(Movable, Writable):
         out._cache_from_ffi()
         return out^
 
-    def category_number(mut self) raises -> c_uint:
+    def category_number(ref self) raises -> c_uint:
         self._check_valid()
         return clang_getDiagnosticCategory(self._raw)
 
-    def category_name(mut self) raises -> String:
+    def category_name(ref self) raises -> String:
         self._check_valid()
 
         var cs = _CXStringStorage()
         clang_getDiagnosticCategoryText(cs.ptr_for_out(), self._raw)
         return cs.take()
 
-    def option(mut self) raises -> String:
+    def option(ref self) raises -> String:
         self._check_valid()
 
         var option = _CXStringStorage()
@@ -183,7 +183,7 @@ struct Diagnostic(Movable, Writable):
 
         return option.take()
 
-    def disable_option(mut self) raises -> String:
+    def disable_option(ref self) raises -> String:
         self._check_valid()
 
         var option = _CXStringStorage()
@@ -201,11 +201,11 @@ struct Diagnostic(Movable, Writable):
 
         return disable.take()
 
-    def num_ranges(mut self) raises -> c_uint:
+    def num_ranges(ref self) raises -> c_uint:
         self._check_valid()
         return clang_getDiagnosticNumRanges(self._raw)
 
-    def range(mut self, i: c_uint) raises -> SourceRange:
+    def range(ref self, i: c_uint) raises -> SourceRange:
         self._check_valid()
 
         if i >= self.num_ranges():
@@ -215,11 +215,11 @@ struct Diagnostic(Movable, Writable):
         clang_getDiagnosticRange(out._ptr(), self._raw, i)
         return out^
 
-    def num_fixits(mut self) raises -> c_uint:
+    def num_fixits(ref self) raises -> c_uint:
         self._check_valid()
         return clang_getDiagnosticNumFixIts(self._raw)
 
-    def fixit(mut self, i: c_uint) raises -> FixIt:
+    def fixit(ref self, i: c_uint) raises -> FixIt:
         self._check_valid()
 
         if i >= self.num_fixits():
@@ -237,7 +237,7 @@ struct Diagnostic(Movable, Writable):
 
         return FixIt(range=range_out^, value=cs.take())
 
-    def children(mut self) raises -> DiagnosticSet:
+    def children(ref self) raises -> DiagnosticSet:
         self._check_valid()
 
         # The child diagnostic set is borrowed from this diagnostic according
@@ -249,7 +249,7 @@ struct Diagnostic(Movable, Writable):
         )
 
     def format(
-        mut self,
+        ref self,
         options: DiagnosticDisplayOptions = DiagnosticDisplayOptions.DEFAULT,
     ) raises -> String:
         self._check_valid()
@@ -263,7 +263,7 @@ struct Diagnostic(Movable, Writable):
         clang_formatDiagnostic(cs.ptr_for_out(), self._raw, opts.as_c_uint())
         return cs.take()
 
-    def formatted(mut self) raises -> String:
+    def formatted(ref self) raises -> String:
         self._check_valid()
 
         if not self._formatted:
@@ -291,7 +291,7 @@ struct DiagnosticSetIterator[
         self._raw = set._raw
         self._index = c_uint(0)
 
-    def __next__(mut self) raises -> Diagnostic:
+    def __next__(ref self) raises -> Diagnostic:
         if self._index >= clang_getNumDiagnosticsInSet(self._raw):
             raise StopIteration()
 
@@ -370,7 +370,7 @@ struct DiagnosticSet(Movable, Sized, Writable):
     def __len__(self) -> Int:
         return self._count
 
-    def __getitem__(mut self, i: c_uint) raises -> Diagnostic:
+    def __getitem__(ref self, i: c_uint) raises -> Diagnostic:
         self._check_valid()
 
         if i >= clang_getNumDiagnosticsInSet(self._raw):

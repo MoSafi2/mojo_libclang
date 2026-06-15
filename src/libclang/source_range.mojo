@@ -147,7 +147,7 @@ struct SourceRange(Copyable, Movable, Writable):
         self._check_valid()
         return Bool(clang_Range_isNull(self._ptr()))
 
-    def __eq__(mut self, mut other: SourceRange) raises -> Bool:
+    def __eq__(ref self, ref other: SourceRange) raises -> Bool:
         self._check_valid()
         other._check_valid()
 

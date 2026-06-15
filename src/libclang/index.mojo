@@ -96,7 +96,7 @@ struct Index(Copyable, Movable, Writable):
         return clang_defaultEditingTranslationUnitOptions()
 
     def parse(
-        mut self,
+        ref self,
         path: String,
         args: List[String] = List[String](),
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
@@ -139,7 +139,7 @@ struct Index(Copyable, Movable, Writable):
 
         return TranslationUnit(self.state(), out_tu)
 
-    def read(mut self, path: String) raises -> TranslationUnit:
+    def read(ref self, path: String) raises -> TranslationUnit:
         """Read a serialized AST file into a `TranslationUnit`."""
         var path_c = _alloc_c_string(path)
 

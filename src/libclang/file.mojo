@@ -182,18 +182,18 @@ struct File(Copyable, Movable, Writable):
 
         return self._name
 
-    def time(mut self) raises -> time_t:
+    def time(ref self) raises -> time_t:
         self._check_valid()
         return clang_getFileTime(self._raw)
 
-    def real_path(mut self) raises -> String:
+    def real_path(ref self) raises -> String:
         self._check_valid()
 
         var cs = _CXStringStorage()
         clang_File_tryGetRealPathName(cs.ptr_for_out(), self._raw)
         return cs.take()
 
-    def is_multiple_include_guarded(mut self) raises -> Bool:
+    def is_multiple_include_guarded(ref self) raises -> Bool:
         self._check_valid()
         return Bool(
             clang_isFileMultipleIncludeGuarded(
@@ -202,7 +202,7 @@ struct File(Copyable, Movable, Writable):
             )
         )
 
-    def __eq__(mut self, mut other: Self) raises -> Bool:
+    def __eq__(ref self, ref other: Self) raises -> Bool:
         self._check_valid()
         other._check_valid()
 
