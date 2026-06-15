@@ -5,18 +5,16 @@ Wraps `clang_visitChildren` via the C-shim trampoline
 to `CXCursor` and `CXCursor`, so the by-value ABI corruption noted in
 `raw_bindings.md` is avoided.
 """
-from src.libclang_raw import (
+from src._ffi import (
     CXCursor,
     CXClientData,
     CXChildVisitResult,
-    CXChildVisit_Break,
     CXChildVisit_Continue,
-    clang_visitChildren_trampoline,
-    MojoCursorVisitorFn,
+    clang_visitChildren,
     c_uint,
 )
 from src.libclang.cursor import Cursor
-from std.memory import UnsafePointer, memcpy
+from std.memory import UnsafePointer, MutOpaquePointer, memcpy
 
 
 comptime MAX_CHILDREN = 1024
@@ -29,25 +27,25 @@ struct _Collector(Copyable, Movable):
 
 
 def _visit_trampoline(
-    cursor: UnsafePointer[CXCursor, MutExternalOrigin],
-    parent: UnsafePointer[CXCursor, MutExternalOrigin],
-    user_data: UnsafePointer[UInt8, MutExternalOrigin],
-) abi("C") -> c_uint:
+    cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    parent: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    client_data: CXClientData,
+) abi("C") -> CXChildVisitResult:
+    var opaque = client_data.value()
+    var user_bytes = rebind[UnsafePointer[UInt8, MutExternalOrigin]](opaque)
     var collector = rebind[UnsafePointer[_Collector, MutAnyOrigin]](
-        rebind[UnsafePointer[UInt8, MutAnyOrigin]](user_data),
+        rebind[UnsafePointer[UInt8, MutAnyOrigin]](user_bytes),
     )
     if collector[].count < MAX_CHILDREN:
-        # The pointer-based trampoline hands us a real, uncorrupted CXCursor.
-        # We must byte-copy it because `CXCursor` is 32 bytes and the
-        # by-value RegisterPassable spill corrupts fields beyond the first
-        # scalar. Memcpy preserves the data verbatim.
-        var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](cursor)
+        var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](
+            cursor.value()
+        )
         var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](
             collector[].buffer + collector[].count,
         )
-        memcpy(dest=dst, src=src, count=32)  # sizeof(CXCursor) on Linux x86_64
+        memcpy(dest=dst, src=src, count=32)
         collector[].count += 1
-    return 1  # CXChildVisit_Continue = 1
+    return CXChildVisit_Continue
 
 
 def collect_children(parent: Cursor) raises -> List[Cursor]:
@@ -55,20 +53,42 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
     var collector_box = alloc[_Collector](1)
     collector_box[] = _Collector(buffer=buffer, count=0)
     var box_ptr = UnsafePointer[_Collector, MutAnyOrigin](to=collector_box[])
-    var visitor_data = rebind[UnsafePointer[UInt8, MutExternalOrigin]](
-        rebind[UnsafePointer[UInt8, MutAnyOrigin]](box_ptr),
+    var client_data = CXClientData(
+        rebind[MutOpaquePointer[MutExternalOrigin]](
+            rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+                rebind[UnsafePointer[UInt8, MutAnyOrigin]](box_ptr),
+            ),
+        ),
     )
-    var parent_ptr = rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
-        parent._raw.unsafe_ptr(),
+    # Use raw InlineArray like the working probe tests
+    var raw_storage = InlineArray[CXCursor, 1](
+        fill=CXCursor(
+            kind=0,
+            xdata=0,
+            data=InlineArray[
+                Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3
+            ](fill=None),
+        )
     )
-    _ = clang_visitChildren_trampoline(parent_ptr, _visit_trampoline, visitor_data)
+    var raw_ptr = rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
+        raw_storage.unsafe_ptr()
+    )
+    var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](
+        parent._raw.unsafe_ptr()
+    )
+    var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](raw_ptr)
+    memcpy(dest=dst, src=src, count=32)
+    _ = clang_visitChildren(raw_ptr, _visit_trampoline, client_data)
     var out = List[Cursor]()
     for i in range(collector_box[].count):
         var c = Cursor(tu=parent._tu)
-        # Same byte-copy pattern to avoid the by-value ABI corruption.
-        var src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](buffer + i)
-        var dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](c._raw.unsafe_ptr())
-        memcpy(dest=dst, src=src, count=32)
+        var c_src = rebind[UnsafePointer[UInt8, ImmutExternalOrigin]](
+            buffer + i
+        )
+        var c_dst = rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+            c._raw.unsafe_ptr()
+        )
+        memcpy(dest=c_dst, src=c_src, count=32)
         out.append(c^)
     collector_box.free()
     buffer.free()

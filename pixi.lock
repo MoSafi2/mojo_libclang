@@ -59,11 +59,11 @@ environments:
       - conda: https://conda.modular.com/max/linux-64/mojo-compiler-1.0.0b1-release.conda
       - conda: https://conda.modular.com/max/noarch/mblack-26.3.0-release.conda
       - conda: https://conda.modular.com/max/noarch/mojo-python-1.0.0b1-release.conda
+      - pypi: git+https://github.com/MoSafi2/mojo_bindgen#6a2d5e2de6eac90e54822fc4313edf599660f453
       - pypi: https://files.pythonhosted.org/packages/1d/fc/716c1e62e512ef1c160e7984a73a5fc7df45166f2ff3f254e71c58076f7c/libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1e/d3/26bf1008eb3d2daa8ef4cacc7f3bfdc11818d111f7e2d0201bc6e3b49d45/annotated_doc-0.0.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/24/25/2201973529af2c954de0bb725323c3aaed6d7f0ceee8f550dec9185df013/typer-0.26.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/82/3b/64d4899d73f91ba49a8c18a8ff3f0ea8f1c1d75481760df8c68ef5235bf5/rich-15.0.0-py3-none-any.whl
-      - pypi: https://files.pythonhosted.org/packages/b0/ad/b44f5100131227d83c3bc627ff3e1d5bf1fc92063217c858417c7d7857c8/mojo_bindgen-0.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/81/4da04ced5a082363ecfa159c010d200ecbd959ae410c10c0264a38cac0f5/markdown_it_py-4.2.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/e0/f9/0595336914c5619e5f28a1fb793285925a8cd4b432c9da0a987836c7f822/shellingham-1.5.4-py2.py3-none-any.whl
@@ -681,6 +681,18 @@ packages:
   run_exports: {}
   size: 23114
   timestamp: 1777594699418
+- pypi: git+https://github.com/MoSafi2/mojo_bindgen#6a2d5e2de6eac90e54822fc4313edf599660f453
+  name: mojo-bindgen
+  version: 0.3.1
+  requires_dist:
+  - libclang>=18.1.1,<19
+  - rich
+  - typer
+  - build>=1.4 ; extra == 'dev'
+  - pyright>=1.1.400 ; extra == 'dev'
+  - pytest>=9 ; extra == 'dev'
+  - ruff>=0.8 ; extra == 'dev'
+  requires_python: '>=3.14'
 - pypi: https://files.pythonhosted.org/packages/1d/fc/716c1e62e512ef1c160e7984a73a5fc7df45166f2ff3f254e71c58076f7c/libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl
   name: libclang
   version: 18.1.1
@@ -709,19 +721,6 @@ packages:
   - markdown-it-py>=2.2.0
   - pygments>=2.13.0,<3.0.0
   requires_python: '>=3.9.0'
-- pypi: https://files.pythonhosted.org/packages/b0/ad/b44f5100131227d83c3bc627ff3e1d5bf1fc92063217c858417c7d7857c8/mojo_bindgen-0.3.1-py3-none-any.whl
-  name: mojo-bindgen
-  version: 0.3.1
-  sha256: 5601b0683ac9fc3e3df20cd98441f1d0d513abcd37f704017986e195a23c7133
-  requires_dist:
-  - libclang>=18.1.1,<19
-  - rich
-  - typer
-  - build>=1.4 ; extra == 'dev'
-  - pyright>=1.1.400 ; extra == 'dev'
-  - pytest>=9 ; extra == 'dev'
-  - ruff>=0.8 ; extra == 'dev'
-  requires_python: '>=3.14'
 - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
   name: mdurl
   version: 0.1.2

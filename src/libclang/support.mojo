@@ -17,7 +17,7 @@ struct UnsavedFile(Copyable, Movable):
 
 
 @fieldwise_init
-struct SourcePosition(Copyable, Movable):
+struct SourcePosition(Copyable, Movable, RegisterPassable):
     """Either `(line, column)` or `offset` addressing for `get_location`.
 
     Exactly one mode must be set. Callers should pass the result of
@@ -59,7 +59,7 @@ struct SourcePosition(Copyable, Movable):
 
 
 @fieldwise_init
-struct SourceExtentInput(Copyable, Movable):
+struct SourceExtentInput(Copyable, Movable, RegisterPassable):
     """Two `SourcePosition` values that delimit a `SourceRange`."""
 
     var start: SourcePosition
@@ -67,7 +67,7 @@ struct SourceExtentInput(Copyable, Movable):
 
     @staticmethod
     def from_positions(start: SourcePosition, end: SourcePosition) -> Self:
-        return Self(start=start, end=end)
+        return Self(start=start.copy(), end=end.copy())
 
     @staticmethod
     def from_offsets(start: c_uint, end: c_uint) -> Self:

@@ -1,5 +1,5 @@
 """`Index` — owns a `CXIndex` and parses translation units."""
-from src.libclang_raw import (
+from src._ffi import (
     CXIndex,
     CXTranslationUnit,
     CXUnsavedFile,
@@ -21,11 +21,12 @@ from std.memory import UnsafePointer
 from std.ffi import c_char
 
 
-@fieldwise_init
-struct Index(Movable):
+struct Index(Writable):
     """Owns a `CXIndex` and produces `TranslationUnit` values."""
 
     var _raw: CXIndex
+    var _exclude_decls: Bool
+    var _display_diagnostics: Bool
 
     def __init__(
         out self,
@@ -36,6 +37,8 @@ struct Index(Movable):
             c_int(1 if exclude_decls else 0),
             c_int(1 if display_diagnostics else 0),
         )
+        self._exclude_decls = exclude_decls
+        self._display_diagnostics = display_diagnostics
 
     @staticmethod
     def create(
@@ -43,6 +46,12 @@ struct Index(Movable):
         display_diagnostics: Bool = False,
     ) raises -> Self:
         return Self(exclude_decls, display_diagnostics)
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write(
+            "Index(exclude_decls=", self._exclude_decls,
+            ", display_diagnostics=", self._display_diagnostics, ")",
+        )
 
     def __del__(deinit self):
         try:
@@ -96,10 +105,20 @@ struct Index(Movable):
 
 def _build_arg_ptrs(
     args: List[String],
-) -> Tuple[Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutExternalOrigin]], ImmutExternalOrigin]], c_int]:
+) -> Tuple[
+    Optional[
+        UnsafePointer[
+            Optional[UnsafePointer[c_char, ImmutExternalOrigin]],
+            ImmutExternalOrigin,
+        ]
+    ],
+    c_int,
+]:
     if len(args) == 0:
         return (None, c_int(0))
-    var slot = alloc[Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](len(args))
+    var slot = alloc[Optional[UnsafePointer[c_char, ImmutExternalOrigin]]](
+        len(args),
+    )
     for i in range(len(args)):
         slot[i] = Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
             _c_string(args[i]),
@@ -124,9 +143,13 @@ def _build_unsaved_files(
     for i in range(len(files)):
         var f = files[i].copy()
         slot[i] = CXUnsavedFile(
-            Filename=_c_string(f.filename),
-            Contents=rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
-                _c_string(f.contents),
+            Filename=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                _c_string(f.filename),
+            ),
+            Contents=Optional[UnsafePointer[c_char, ImmutExternalOrigin]](
+                rebind[UnsafePointer[c_char, ImmutExternalOrigin]](
+                    _c_string(f.contents),
+                ),
             ),
             Length=c_ulong(f.contents.byte_length()),
         )

@@ -1,5 +1,5 @@
 """`File` — borrowed `CXFile` handle from a `TranslationUnit`."""
-from src.libclang_raw import (
+from src._ffi import (
     CXFile,
     CXTranslationUnit,
     clang_getFile,
@@ -10,35 +10,48 @@ from src.libclang_raw import (
     clang_isFileMultipleIncludeGuarded,
     time_t,
 )
-from src.libclang.common import take_cxstring, _c_string
+from src.libclang.common import _c_string, _CXStringStorage
 
 
 @fieldwise_init
-struct File(Copyable, Movable):
+struct File(Copyable, Movable, Writable):
     """A `CXFile` borrowed from a `TranslationUnit`."""
 
     var _tu: CXTranslationUnit
     var _raw: CXFile
+    var _name: String
 
     @staticmethod
     def null(tu: CXTranslationUnit) -> Self:
-        return Self(_tu=tu, _raw=None)
+        return Self(_tu=tu, _raw=None, _name=String())
 
     @staticmethod
     def from_name(tu: CXTranslationUnit, filename: String) raises -> Optional[Self]:
         var handle = clang_getFile(tu, _c_string(filename))
         if not handle:
             return None
-        return Optional[Self](Self(_tu=tu, _raw=handle))
+        var result = Self(_tu=tu, _raw=handle, _name=String())
+        var cs = _CXStringStorage()
+        clang_getFileName(cs.ptr(), result._raw)
+        result._name = cs.take()
+        return Optional[Self](result^)
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("File(", self._name, ")")
 
     def name(self) raises -> String:
-        return take_cxstring(clang_getFileName(self._raw))
+        # TODO: return cached _name instead of re-calling FFI
+        var cs = _CXStringStorage()
+        clang_getFileName(cs.ptr(), self._raw)
+        return cs.take()
 
     def time(self) raises -> time_t:
         return clang_getFileTime(self._raw)
 
     def real_path(self) raises -> String:
-        return take_cxstring(clang_File_tryGetRealPathName(self._raw))
+        var cs = _CXStringStorage()
+        clang_File_tryGetRealPathName(cs.ptr(), self._raw)
+        return cs.take()
 
     def is_multiple_include_guarded(self) raises -> Bool:
         return Bool(clang_isFileMultipleIncludeGuarded(self._tu, self._raw))

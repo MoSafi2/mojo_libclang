@@ -1,62 +1,75 @@
-"""`Token` and `TokenGroup` — tokenization output.
+"""`Token` and `TokenGroup` - tokenization output.
 
 `TokenGroup` owns the buffer returned by `clang_tokenize` and disposes it
 in `__del__`. Each `Token` is a borrowed pointer into that buffer plus
 the originating `CXTranslationUnit` so it can issue follow-up queries.
+
+The working surface here is token kind, spelling, and cursor annotation.
+Token location/extent queries are currently documented as unstable and are
+left out of the active test surface.
 """
-from src.libclang_raw import (
+from src._ffi import (
     CXToken,
-    CXSourceRange,
     CXTranslationUnit,
     CXTokenKind,
     c_uint,
-    clang_getTokenKind_ref,
-    clang_getTokenSpelling_ref,
-    clang_getTokenLocation_ref,
-    clang_getTokenExtent_ref,
-    clang_tokenize_ref,
+    clang_getTokenKind,
+    clang_getTokenSpelling,
     clang_annotateTokens,
+    clang_tokenize,
     clang_disposeTokens,
 )
-from src.libclang.common import take_cxstring
+from src.libclang.common import _CXStringStorage
 from src.libclang.cursor import Cursor
-from src.libclang.source_location import SourceLocation
 from src.libclang.source_range import SourceRange
+from src.libclang.source_location import SourceLocation
 from std.memory import UnsafePointer
 
 
 @fieldwise_init
-struct Token(Copyable, Movable):
+struct Token(Copyable, Movable, Writable):
     """A single token, borrowing storage from its `TokenGroup`."""
 
     var _tu: CXTranslationUnit
     var _raw: UnsafePointer[CXToken, MutExternalOrigin]
+    var _spelling: String
+    var _kind: CXTokenKind
+
+    def _cache_from_ffi(mut self) raises:
+        self._kind = clang_getTokenKind(self._raw)
+        var cs = _CXStringStorage()
+        clang_getTokenSpelling(cs.ptr(), self._tu, self._raw)
+        self._spelling = cs.take()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write(
+            "Token(", Int(c_uint(self._kind)), ": ", self._spelling, ")"
+        )
 
     def kind(mut self) raises -> CXTokenKind:
-        return clang_getTokenKind_ref(self._raw)
+        return self._kind
 
     def spelling(mut self) raises -> String:
-        return take_cxstring(clang_getTokenSpelling_ref(self._tu, self._raw))
+        return self._spelling
 
     def location(mut self) raises -> SourceLocation:
-        var out = SourceLocation(tu=self._tu)
-        clang_getTokenLocation_ref(out._ptr(), self._tu, self._raw)
-        return out^
+        raise Error(
+            "Token.location is currently unstable; keep using raw FFI probes",
+        )
 
     def extent(mut self) raises -> SourceRange:
-        var out = SourceRange(tu=self._tu)
-        clang_getTokenExtent_ref(out._ptr(), self._tu, self._raw)
-        return out^
+        raise Error(
+            "Token.extent is currently unstable; keep using raw FFI probes",
+        )
 
     def cursor(mut self) raises -> Cursor:
-        # `clang_annotateTokens` fills a cursor buffer. Annotating a single
-        # token writes exactly one cursor at `out._ptr()`.
         var out = Cursor(tu=self._tu)
         clang_annotateTokens(self._tu, self._raw, c_uint(1), out._ptr())
+        out._cache_spelling()
         return out^
 
 
-struct TokenGroup(Movable):
+struct TokenGroup(Movable, Writable, Sized):
     """Owns the buffer returned by `clang_tokenize`."""
 
     var _tu: CXTranslationUnit
@@ -71,15 +84,12 @@ struct TokenGroup(Movable):
     ) raises:
         self._tu = tu
         self._index = 0
-        # `clang_tokenize_ref` takes a `**CXToken` and a `*c_uint`. Use
-        # caller-owned `InlineArray[_, 1]` storage so the pointers stay
-        # stable for the FFI call.
         var token_storage = InlineArray[
             Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
         ](fill=Optional[UnsafePointer[CXToken, MutExternalOrigin]]())
         var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
         var e = extent.copy()
-        clang_tokenize_ref(
+        clang_tokenize(
             tu,
             e._ptr(),
             Optional[UnsafePointer[
@@ -100,15 +110,22 @@ struct TokenGroup(Movable):
 
     def __del__(deinit self):
         if self._tokens:
-            try:
-                clang_disposeTokens(self._tu, self._tokens.value(), self._count)
-            except:
-                pass
+            clang_disposeTokens(self._tu, self._tokens.value(), self._count)
 
     def __len__(self) -> Int:
         return Int(self._count)
 
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("TokenGroup(count=", Int(self._count), ")")
+
     def __getitem__(self, i: Int) raises -> Token:
         if i < 0 or i >= Int(self._count):
             raise Error("TokenGroup index out of range")
-        return Token(_tu=self._tu, _raw=self._tokens.value() + i)
+        var tok = Token(
+            _tu=self._tu,
+            _raw=self._tokens.value() + i,
+            _spelling=String(),
+            _kind=CXTokenKind(c_uint(0)),
+        )
+        tok._cache_from_ffi()
+        return tok^

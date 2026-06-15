@@ -20,7 +20,7 @@ re-exported from this module for backward compatibility with code that
 prefers the raw naming.
 """
 
-from src.libclang_raw import (
+from src._ffi import (
     # Underlying C types
     c_uint,
     # Raw enum type aliases (comptime = c_uint)
