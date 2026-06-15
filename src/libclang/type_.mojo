@@ -45,6 +45,7 @@ from src._ffi import (
     clang_Type_getSizeOf,
     clang_Type_getAlignOf,
     clang_Type_getOffsetOf,
+    clang_Type_getValueType,
     clang_getArraySize,
     clang_getNumElements,
     clang_Type_getCXXRefQualifier,
@@ -284,6 +285,23 @@ struct Type(Copyable, Movable, Writable):
         clang_Type_getClassType(out._ptr(), self._ptr())
         out._cache_spelling()
         return out^
+
+    def get_value_type(ref self) raises -> Optional[Type]:
+        """Return the modified value type for wrappers like ``_Atomic(T)``.
+
+        Wraps ``clang_Type_getValueType``. Returns ``None`` when the type has
+        no value type (the result is ``CXType_Invalid``).
+        """
+        self._check_valid()
+
+        var out = Type(tu=self._tu)
+        clang_Type_getValueType(out._ptr(), self._ptr())
+
+        if out.kind() == TypeKind.INVALID:
+            return None
+
+        out._cache_spelling()
+        return Optional[Type](out^)
 
     def get_offset(ref self, fieldname: String) raises -> c_long_long:
         """Return field offset in bits.

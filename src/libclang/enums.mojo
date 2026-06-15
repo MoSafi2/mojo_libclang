@@ -911,6 +911,54 @@ struct CallingConv(Equatable, ImplicitlyCopyable, Writable):
     def as_c_uint(self) -> c_uint:
         return self._value
 
+    def name(self) -> String:
+        """Return the Python-libclang-compatible name of this convention."""
+        if self._value == c_uint(0):
+            return "DEFAULT"
+        if self._value == c_uint(1):
+            return "C"
+        if self._value == c_uint(2):
+            return "X86_STDCALL"
+        if self._value == c_uint(3):
+            return "X86_FASTCALL"
+        if self._value == c_uint(4):
+            return "X86_THISCALL"
+        if self._value == c_uint(5):
+            return "X86_PASCAL"
+        if self._value == c_uint(6):
+            return "AAPCS"
+        if self._value == c_uint(7):
+            return "AAPCS_VFP"
+        if self._value == c_uint(8):
+            return "X86_REG_CALL"
+        if self._value == c_uint(9):
+            return "INTEL_OCL_BICC"
+        if self._value == c_uint(10):
+            return "WIN64"
+        if self._value == c_uint(11):
+            return "X86_64_SYS_V"
+        if self._value == c_uint(12):
+            return "X86_VECTOR_CALL"
+        if self._value == c_uint(13):
+            return "SWIFT"
+        if self._value == c_uint(14):
+            return "PRESERVE_MOST"
+        if self._value == c_uint(15):
+            return "PRESERVE_ALL"
+        if self._value == c_uint(16):
+            return "AARCH64_VECTOR_CALL"
+        if self._value == c_uint(17):
+            return "SWIFT_ASYNC"
+        if self._value == c_uint(18):
+            return "AARCH64_SVE_PCS"
+        if self._value == c_uint(19):
+            return "M68K_RTD"
+        if self._value == c_uint(100):
+            return "INVALID"
+        if self._value == c_uint(200):
+            return "UNEXPOSED"
+        return String(t"UNKNOWN({Int(self._value)})")
+
     def __eq__(self, other: Self) -> Bool:
         return self._value == other._value
 

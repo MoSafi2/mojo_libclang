@@ -4,6 +4,8 @@ from src.libclang import (
     TranslationUnit,
     Cursor,
     Type,
+    CallingConv,
+    TypeKind,
 )
 from src._ffi import (
     CXCursorKind,
@@ -22,6 +24,8 @@ from src._ffi import (
     CXType_Pointer,
     CXType_Record,
     CXType_Typedef,
+    CXType_Atomic,
+    CXType_Vector,
 )
 from std.ffi import c_uint
 from std.testing import assert_equal, assert_false, assert_true, TestSuite
@@ -226,6 +230,35 @@ def test_type_get_calling_conv() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
     assert_equal(Int(t.get_calling_conv().as_c_uint()), Int(CXCallingConv_C))
+
+
+def test_type_get_calling_conv_name() raises:
+    var tu = _parse_fixture()
+    var t = _function_type(tu, String("add"))
+    assert_equal(t.get_calling_conv().name(), String("C"))
+    assert_equal(CallingConv.INVALID.name(), String("INVALID"))
+    assert_equal(CallingConv.UNEXPOSED.name(), String("UNEXPOSED"))
+
+
+def test_type_get_value_type() raises:
+    var tu = _parse_fixture()
+    var t = _var_type(tu, String("atomic_value"))
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Atomic))
+
+    var value_type = t.get_value_type()
+    assert_true(value_type is not None)
+    assert_equal(Int(value_type.value().kind().as_c_uint()), Int(CXType_Int))
+    assert_equal(value_type.value().spelling(), String("int"))
+
+
+def test_type_vector_element_type_and_count() raises:
+    var tu = _parse_fixture()
+    var t = _var_type(tu, String("vector_value")).get_canonical()
+    assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Vector))
+
+    var element = t.element_type()
+    assert_equal(Int(element.kind().as_c_uint()), Int(CXType_Int))
+    assert_equal(Int(t.element_count()), 4)
 
 
 def test_type_qualifiers() raises:

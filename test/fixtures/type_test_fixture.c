@@ -32,3 +32,8 @@ PairAlias alias_value;
 MyInt my_int_value;
 
 void restrict_func(int *restrict p) { (void)p; }
+
+_Atomic int atomic_value;
+
+typedef int v4si __attribute__((__vector_size__(16)));
+v4si vector_value;
