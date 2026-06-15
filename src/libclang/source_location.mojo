@@ -91,7 +91,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr(mut self) -> UnsafePointer[CXSourceLocation, MutExternalOrigin]:
+    def _ptr(ref self) -> UnsafePointer[CXSourceLocation, MutExternalOrigin]:
         return rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
@@ -204,7 +204,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         return out^
 
     def _spelling_parts(
-        mut self,
+        ref self,
     ) raises -> Tuple[CXFile, c_uint, c_uint, c_uint]:
         self._check_valid()
 
@@ -231,28 +231,28 @@ struct SourceLocation(Copyable, Movable, Writable):
 
         return (file_out[0], line_out[0], col_out[0], off_out[0])
 
-    def file(mut self) raises -> CXFile:
+    def file(ref self) raises -> CXFile:
         self._check_valid()
         return self._file
 
-    def file_name(mut self) raises -> String:
+    def file_name(ref self) raises -> String:
         self._check_valid()
         return self._file_name
 
-    def line(mut self) raises -> c_uint:
+    def line(ref self) raises -> c_uint:
         self._check_valid()
         return self._line
 
-    def column(mut self) raises -> c_uint:
+    def column(ref self) raises -> c_uint:
         self._check_valid()
         return self._column
 
-    def offset(mut self) raises -> c_uint:
+    def offset(ref self) raises -> c_uint:
         self._check_valid()
         return self._offset
 
     def spelling_tuple(
-        mut self,
+        ref self,
     ) raises -> Tuple[CXFile, c_uint, c_uint, c_uint]:
         """Return fresh spelling-location parts from libclang."""
         return self._spelling_parts()
@@ -261,11 +261,11 @@ struct SourceLocation(Copyable, Movable, Writable):
         """Refresh cached file, line, column, offset, and file name."""
         self._cache_from_ffi()
 
-    def is_in_system_header(mut self) raises -> Bool:
+    def is_in_system_header(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Location_isInSystemHeader(self._ptr()))
 
-    def is_from_main_file(mut self) raises -> Bool:
+    def is_from_main_file(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Location_isFromMainFile(self._ptr()))
 

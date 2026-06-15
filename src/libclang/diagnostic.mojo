@@ -291,7 +291,7 @@ struct DiagnosticSetIterator[
         self._raw = set._raw
         self._index = c_uint(0)
 
-    def __next__(mut self) raises StopIteration -> Diagnostic:
+    def __next__(mut self) raises -> Diagnostic:
         if self._index >= clang_getNumDiagnosticsInSet(self._raw):
             raise StopIteration()
 

@@ -74,7 +74,7 @@ struct SourceRange(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("SourceRange used after TranslationUnit.reparse()")
 
-    def _ptr(mut self) -> UnsafePointer[CXSourceRange, MutExternalOrigin]:
+    def _ptr(ref self) -> UnsafePointer[CXSourceRange, MutExternalOrigin]:
         return rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
@@ -135,15 +135,15 @@ struct SourceRange(Copyable, Movable, Writable):
         out._end = end_copy.copy()
         return out^
 
-    def start(mut self) raises -> SourceLocation:
+    def start(ref self) raises -> SourceLocation:
         self._check_valid()
         return self._start.copy()
 
-    def end(mut self) raises -> SourceLocation:
+    def end(ref self) raises -> SourceLocation:
         self._check_valid()
         return self._end.copy()
 
-    def is_null(mut self) raises -> Bool:
+    def is_null(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Range_isNull(self._ptr()))
 

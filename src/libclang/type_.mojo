@@ -123,7 +123,7 @@ struct Type(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("Type used after TranslationUnit.reparse()")
 
-    def _ptr(mut self) -> UnsafePointer[CXType, MutExternalOrigin]:
+    def _ptr(ref self) -> UnsafePointer[CXType, MutExternalOrigin]:
         return rebind[UnsafePointer[CXType, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
@@ -142,18 +142,18 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return self._raw[0].copy()
 
-    def kind(mut self) raises -> TypeKind:
+    def kind(ref self) raises -> TypeKind:
         self._check_valid()
         return TypeKind(self._raw[0].kind)
 
-    def spelling(mut self) raises -> String:
+    def spelling(ref self) raises -> String:
         self._check_valid()
 
         var cs = _CXStringStorage()
         clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def get_canonical(mut self) raises -> Type:
+    def get_canonical(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -161,7 +161,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_pointee(mut self) raises -> Type:
+    def get_pointee(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -169,7 +169,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_unqualified(mut self) raises -> Type:
+    def get_unqualified(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -177,7 +177,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_non_reference(mut self) raises -> Type:
+    def get_non_reference(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -185,7 +185,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_result(mut self) raises -> Type:
+    def get_result(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -193,7 +193,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def element_type(mut self) raises -> Type:
+    def element_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -201,7 +201,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_array_element_type(mut self) raises -> Type:
+    def get_array_element_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -209,19 +209,19 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_array_size(mut self) raises -> c_long_long:
+    def get_array_size(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_getArraySize(self._ptr())
 
-    def element_count(mut self) raises -> c_long_long:
+    def element_count(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_getNumElements(self._ptr())
 
-    def num_arg_types(mut self) raises -> c_int:
+    def num_arg_types(ref self) raises -> c_int:
         self._check_valid()
         return clang_getNumArgTypes(self._ptr())
 
-    def get_arg_type(mut self, i: c_uint) raises -> Type:
+    def get_arg_type(ref self, i: c_uint) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -229,7 +229,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def argument_types(mut self) raises -> List[Type]:
+    def argument_types(ref self) raises -> List[Type]:
         self._check_valid()
 
         var n = self.num_arg_types()
@@ -242,11 +242,11 @@ struct Type(Copyable, Movable, Writable):
 
         return out^
 
-    def num_template_args(mut self) raises -> c_int:
+    def num_template_args(ref self) raises -> c_int:
         self._check_valid()
         return clang_Type_getNumTemplateArguments(self._ptr())
 
-    def get_template_argument_type(mut self, i: c_uint) raises -> Type:
+    def get_template_argument_type(ref self, i: c_uint) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -254,7 +254,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_declaration(mut self) raises -> Optional[Cursor]:
+    def get_declaration(ref self) raises -> Optional[Cursor]:
         from src.libclang.cursor import Cursor
 
         self._check_valid()
@@ -267,7 +267,7 @@ struct Type(Copyable, Movable, Writable):
 
         return Optional[Cursor](out^)
 
-    def get_named_type(mut self) raises -> Type:
+    def get_named_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -275,7 +275,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_class_type(mut self) raises -> Type:
+    def get_class_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -283,7 +283,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_offset(mut self, fieldname: String) raises -> c_long_long:
+    def get_offset(ref self, fieldname: String) raises -> c_long_long:
         """Return field offset in bits.
 
         This is a high-level fallback implementation that walks field
@@ -323,62 +323,62 @@ struct Type(Copyable, Movable, Writable):
 
         raise Error(t"Type.get_offset: field not found: {fieldname}")
 
-    def get_align(mut self) raises -> c_long_long:
+    def get_align(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_Type_getAlignOf(self._ptr())
 
-    def get_size(mut self) raises -> c_long_long:
+    def get_size(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_Type_getSizeOf(self._ptr())
 
-    def get_ref_qualifier(mut self) raises -> RefQualifierKind:
+    def get_ref_qualifier(ref self) raises -> RefQualifierKind:
         self._check_valid()
         return RefQualifierKind(clang_Type_getCXXRefQualifier(self._ptr()))
 
     def get_exception_specification_kind(
-        mut self,
+        ref self,
     ) raises -> ExceptionSpecificationKind:
         self._check_valid()
         return ExceptionSpecificationKind(
             c_uint(clang_getExceptionSpecificationType(self._ptr())),
         )
 
-    def get_calling_conv(mut self) raises -> CallingConv:
+    def get_calling_conv(ref self) raises -> CallingConv:
         self._check_valid()
         return CallingConv(clang_getFunctionTypeCallingConv(self._ptr()))
 
-    def address_space(mut self) raises -> c_uint:
+    def address_space(ref self) raises -> c_uint:
         self._check_valid()
         return clang_getAddressSpace(self._ptr())
 
-    def typedef_name(mut self) raises -> String:
+    def typedef_name(ref self) raises -> String:
         self._check_valid()
 
         var cs = _CXStringStorage()
         clang_getTypedefName(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def is_const_qualified(mut self) raises -> Bool:
+    def is_const_qualified(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isConstQualifiedType(self._ptr()))
 
-    def is_volatile_qualified(mut self) raises -> Bool:
+    def is_volatile_qualified(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isVolatileQualifiedType(self._ptr()))
 
-    def is_restrict_qualified(mut self) raises -> Bool:
+    def is_restrict_qualified(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isRestrictQualifiedType(self._ptr()))
 
-    def is_function_variadic(mut self) raises -> Bool:
+    def is_function_variadic(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isFunctionTypeVariadic(self._ptr()))
 
-    def is_pod(mut self) raises -> Bool:
+    def is_pod(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isPODType(self._ptr()))
 
-    def get_fields(mut self) raises -> List[Cursor]:
+    def get_fields(ref self) raises -> List[Cursor]:
         from src.libclang.cursor import Cursor
 
         self._check_valid()
@@ -393,7 +393,7 @@ struct Type(Copyable, Movable, Writable):
                 fields.append(child^)
         return fields^
 
-    def get_bases(mut self) raises -> List[Cursor]:
+    def get_bases(ref self) raises -> List[Cursor]:
         from src.libclang.cursor import Cursor
 
         self._check_valid()
@@ -408,7 +408,7 @@ struct Type(Copyable, Movable, Writable):
                 bases.append(child^)
         return bases^
 
-    def get_methods(mut self) raises -> List[Cursor]:
+    def get_methods(ref self) raises -> List[Cursor]:
         from src.libclang.cursor import Cursor
 
         self._check_valid()
@@ -423,7 +423,7 @@ struct Type(Copyable, Movable, Writable):
                 methods.append(child^)
         return methods^
 
-    def __eq__(mut self, mut other: Self) raises -> Bool:
+    def __eq__(ref self, ref other: Self) raises -> Bool:
         self._check_valid()
         other._check_valid()
 

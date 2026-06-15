@@ -90,7 +90,7 @@ def is_public_api_kind(kind: CursorKind) -> Bool:
     )
 
 
-def print_cursor_line(mut cursor: Cursor, indent: Int) raises:
+def print_cursor_line(cursor: Cursor, indent: Int) raises:
     for _ in range(indent):
         print("  ", end="")
 
@@ -106,7 +106,7 @@ def print_cursor_line(mut cursor: Cursor, indent: Int) raises:
 
 
 def print_cursor_tree(
-    mut cursor: Cursor,
+    cursor: Cursor,
     indent: Int,
     max_depth: Int,
 ) raises:
@@ -119,10 +119,7 @@ def print_cursor_tree(
     if max_depth == 0:
         return
 
-    var children = cursor.get_children()
-
-    for i in range(Int(children.__len__())):
-        var child = children[i].copy()
+    for child in cursor:
         print_cursor_tree(child, indent + 1, max_depth - 1)
 
 
@@ -132,10 +129,8 @@ def print_public_declarations(mut tu: TranslationUnit) raises:
     print("Public API declarations:")
 
     var root = tu.cursor()
-    var children = root.get_children()
 
-    for i in range(Int(children.__len__())):
-        var cursor = children[i].copy()
+    for cursor in root:
         var kind = cursor.kind()
 
         if not is_public_api_kind(kind):

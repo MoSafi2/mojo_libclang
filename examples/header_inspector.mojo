@@ -106,7 +106,7 @@ def indent(level: Int):
         print("  ", end="")
 
 
-def cursor_summary(mut c: Cursor) raises -> String:
+def cursor_summary(c: Cursor) raises -> String:
     """Build a one-line summary of a cursor."""
     var kind = c.kind()
     var spell = c.spelling()
@@ -130,7 +130,7 @@ def cursor_summary(mut c: Cursor) raises -> String:
     return result
 
 
-def print_children_detail(mut cursor: Cursor, level: Int) raises:
+def print_children_detail(cursor: Cursor, level: Int) raises:
     """Print a cursor and its children recursively with details."""
     indent(level)
     print("- ", cursor_summary(cursor), sep="")
@@ -143,14 +143,12 @@ def print_children_detail(mut cursor: Cursor, level: Int) raises:
             indent(level + 1)
             print("  (canonical: ", canon.spelling(), ")", sep="")
 
-    # Print children
-    var kids = cursor.get_children()
-    for i in range(Int(kids.__len__())):
-        var child = kids[i].copy()
+    # Iterate over children using the new for-in protocol
+    for child in cursor:
         print_children_detail(child, level + 1)
 
 
-def print_type_fields(mut c: Cursor) raises:
+def print_type_fields(c: Cursor) raises:
     """If cursor has a record type, list its fields."""
     var t = c.type()
     if t.kind() != TypeKind.RECORD:
@@ -181,7 +179,7 @@ def print_type_fields(mut c: Cursor) raises:
         )
 
 
-def print_type_canon(mut c: Cursor) raises:
+def print_type_canon(c: Cursor) raises:
     """Show canonical type resolution for typedef cursors."""
     if c.kind() != CursorKind.TYPEDEF_DECL:
         return

@@ -177,7 +177,7 @@ struct TokenGroupIterator[
         self._count = group._count
         self._index = 0
 
-    def __next__(mut self) raises StopIteration -> Token:
+    def __next__(mut self) raises -> Token:
         if self._index >= Int(self._count):
             raise StopIteration()
 

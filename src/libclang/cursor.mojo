@@ -202,7 +202,7 @@ struct Cursor(Copyable, Movable, Writable):
     def null(tu: ArcPointer[TranslationUnitState]) raises -> Self:
         return Self(tu=tu)
 
-    def __eq__(mut self, mut other: Self) raises -> Bool:
+    def __eq__(ref self, ref other: Self) raises -> Bool:
         if self._generation != other._generation:
             return False
         return Bool(clang_equalCursors(self._ptr(), other._ptr()))
@@ -212,8 +212,8 @@ struct Cursor(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("Cursor is stale due to TranslationUnit reparse")
 
-    def _ptr(mut self) -> UnsafePointer[CXCursor, MutExternalOrigin]:
-        """Mutable pointer to raw cursor storage for shim calls."""
+    def _ptr(ref self) -> UnsafePointer[CXCursor, MutExternalOrigin]:
+        """Pointer to raw cursor storage for shim calls."""
         return rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
             self._raw.unsafe_ptr(),
         )
@@ -229,17 +229,17 @@ struct Cursor(Copyable, Movable, Writable):
             self._raw.unsafe_ptr(),
         )
 
-    def children(mut self) raises -> List[Cursor]:
+    def children(ref self) raises -> List[Cursor]:
         """Return immediate child cursors."""
 
         self._check_valid()
         return collect_children(self.copy())
 
-    def get_children(mut self) raises -> List[Cursor]:
+    def get_children(ref self) raises -> List[Cursor]:
         """Alias for `children()`."""
         return self.children()
 
-    def walk_preorder(mut self) raises -> List[Cursor]:
+    def walk_preorder(ref self) raises -> List[Cursor]:
         """Return this cursor and all descendants in preorder."""
 
         self._check_valid()
@@ -259,7 +259,7 @@ struct Cursor(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def write_to(mut self, mut writer: Some[Writer]):
+    def write_to(ref self, mut writer: Some[Writer]):
         try:
             writer.write(
                 "Cursor(kind=",
@@ -275,31 +275,31 @@ struct Cursor(Copyable, Movable, Writable):
     # Basic cursor properties
     # -----------------------------------------------------------------------
 
-    def is_null(mut self) raises -> Bool:
+    def is_null(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isNull(self._ptr()))
 
-    def kind(mut self) raises -> CursorKind:
+    def kind(ref self) raises -> CursorKind:
         self._check_valid()
         return CursorKind(clang_getCursorKind(self._ptr()))
 
-    def hash(mut self) raises -> c_uint:
+    def hash(ref self) raises -> c_uint:
         self._check_valid()
         return clang_hashCursor(self._ptr())
 
-    def spelling(mut self) raises -> String:
+    def spelling(ref self) raises -> String:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_getCursorSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def display_name(mut self) raises -> String:
+    def display_name(ref self) raises -> String:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_getCursorDisplayName(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def usr(mut self) raises -> Optional[String]:
+    def usr(ref self) raises -> Optional[String]:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_getCursorUSR(cs.ptr_for_out(), self._ptr())
@@ -309,47 +309,47 @@ struct Cursor(Copyable, Movable, Writable):
     # Classification
     # -----------------------------------------------------------------------
 
-    def is_definition(mut self) raises -> Bool:
+    def is_definition(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isCursorDefinition(self._ptr()))
 
-    def is_declaration(mut self) raises -> Bool:
+    def is_declaration(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isDeclaration(self._raw[0].kind))
 
-    def is_reference(mut self) raises -> Bool:
+    def is_reference(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isReference(self._raw[0].kind))
 
-    def is_expression(mut self) raises -> Bool:
+    def is_expression(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isExpression(self._raw[0].kind))
 
-    def is_statement(mut self) raises -> Bool:
+    def is_statement(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isStatement(self._raw[0].kind))
 
-    def is_attribute(mut self) raises -> Bool:
+    def is_attribute(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isAttribute(self._raw[0].kind))
 
-    def is_invalid(mut self) raises -> Bool:
+    def is_invalid(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isInvalid(self._raw[0].kind))
 
-    def is_translation_unit(mut self) raises -> Bool:
+    def is_translation_unit(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isTranslationUnit(self._raw[0].kind))
 
-    def is_preprocessing(mut self) raises -> Bool:
+    def is_preprocessing(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isPreprocessing(self._raw[0].kind))
 
-    def is_unexposed(mut self) raises -> Bool:
+    def is_unexposed(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isUnexposed(self._raw[0].kind))
 
-    def has_attrs(mut self) raises -> Bool:
+    def has_attrs(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_hasAttrs(self._ptr()))
 
@@ -357,59 +357,59 @@ struct Cursor(Copyable, Movable, Writable):
     # C++ method predicates
     # -----------------------------------------------------------------------
 
-    def is_pure_virtual(mut self) raises -> Bool:
+    def is_pure_virtual(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isPureVirtual(self._ptr()))
 
-    def is_static(mut self) raises -> Bool:
+    def is_static(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isStatic(self._ptr()))
 
-    def is_virtual(mut self) raises -> Bool:
+    def is_virtual(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isVirtual(self._ptr()))
 
-    def is_virtual_base(mut self) raises -> Bool:
+    def is_virtual_base(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isVirtualBase(self._ptr()))
 
-    def is_const(mut self) raises -> Bool:
+    def is_const(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isConst(self._ptr()))
 
-    def is_defaulted(mut self) raises -> Bool:
+    def is_defaulted(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isDefaulted(self._ptr()))
 
-    def is_deleted(mut self) raises -> Bool:
+    def is_deleted(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isDeleted(self._ptr()))
 
-    def is_move_assignment_operator(mut self) raises -> Bool:
+    def is_move_assignment_operator(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isMoveAssignmentOperator(self._ptr()))
 
-    def is_copy_assignment_operator(mut self) raises -> Bool:
+    def is_copy_assignment_operator(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isCopyAssignmentOperator(self._ptr()))
 
-    def is_explicit(mut self) raises -> Bool:
+    def is_explicit(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXMethod_isExplicit(self._ptr()))
 
-    def is_abstract_record(mut self) raises -> Bool:
+    def is_abstract_record(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_CXXRecord_isAbstract(self._ptr()))
 
-    def is_scoped_enum(mut self) raises -> Bool:
+    def is_scoped_enum(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_EnumDecl_isScoped(self._ptr()))
 
-    def is_variadic(mut self) raises -> Bool:
+    def is_variadic(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isVariadic(self._ptr()))
 
-    def is_external_symbol(mut self) raises -> Bool:
+    def is_external_symbol(ref self) raises -> Bool:
         self._check_valid()
         var language_cs = _CXStringStorage()
         var defined_in_cs = _CXStringStorage()
@@ -430,15 +430,15 @@ struct Cursor(Copyable, Movable, Writable):
         _ = defined_in_cs.take()
         return result
 
-    def is_anonymous(mut self) raises -> Bool:
+    def is_anonymous(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isAnonymous(self._ptr()))
 
-    def is_anonymous_record_decl(mut self) raises -> Bool:
+    def is_anonymous_record_decl(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isAnonymousRecordDecl(self._ptr()))
 
-    def is_const_qualified_type(mut self) raises -> Bool:
+    def is_const_qualified_type(ref self) raises -> Bool:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -446,7 +446,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorType(t._ptr(), self._ptr())
         return Bool(clang_isConstQualifiedType(t._ptr()))
 
-    def is_volatile_qualified_type(mut self) raises -> Bool:
+    def is_volatile_qualified_type(ref self) raises -> Bool:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -454,7 +454,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorType(t._ptr(), self._ptr())
         return Bool(clang_isVolatileQualifiedType(t._ptr()))
 
-    def is_restrict_qualified_type(mut self) raises -> Bool:
+    def is_restrict_qualified_type(ref self) raises -> Bool:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -462,7 +462,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorType(t._ptr(), self._ptr())
         return Bool(clang_isRestrictQualifiedType(t._ptr()))
 
-    def is_pod_type(mut self) raises -> Bool:
+    def is_pod_type(ref self) raises -> Bool:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -470,7 +470,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorType(t._ptr(), self._ptr())
         return Bool(clang_isPODType(t._ptr()))
 
-    def access_specifier(mut self) raises -> AccessSpecifier:
+    def access_specifier(ref self) raises -> AccessSpecifier:
         self._check_valid()
         return AccessSpecifier(c_uint(clang_getCXXAccessSpecifier(self._ptr())))
 
@@ -478,7 +478,7 @@ struct Cursor(Copyable, Movable, Writable):
     # Cursor relations
     # -----------------------------------------------------------------------
 
-    def semantic_parent(mut self) raises -> Optional[Self]:
+    def semantic_parent(ref self) raises -> Optional[Self]:
         self._check_valid()
 
         var out = Self(self._tu)
@@ -489,7 +489,7 @@ struct Cursor(Copyable, Movable, Writable):
 
         return Optional[Self](out^)
 
-    def lexical_parent(mut self) raises -> Optional[Self]:
+    def lexical_parent(ref self) raises -> Optional[Self]:
         self._check_valid()
 
         var out = Self(self._tu)
@@ -500,7 +500,7 @@ struct Cursor(Copyable, Movable, Writable):
 
         return Optional[Self](out^)
 
-    def referenced(mut self) raises -> Optional[Self]:
+    def referenced(ref self) raises -> Optional[Self]:
         self._check_valid()
 
         var out = Self(self._tu)
@@ -511,7 +511,7 @@ struct Cursor(Copyable, Movable, Writable):
 
         return Optional[Self](out^)
 
-    def definition(mut self) raises -> Optional[Self]:
+    def definition(ref self) raises -> Optional[Self]:
         self._check_valid()
 
         var out = Self(self._tu)
@@ -522,14 +522,14 @@ struct Cursor(Copyable, Movable, Writable):
 
         return Optional[Self](out^)
 
-    def canonical(mut self) raises -> Self:
+    def canonical(ref self) raises -> Self:
         self._check_valid()
 
         var out = Self(self._tu)
         clang_getCanonicalCursor(out._ptr(), self._ptr())
         return out^
 
-    def equals(mut self, mut other: Self) raises -> Bool:
+    def equals(ref self, ref other: Self) raises -> Bool:
         self._check_valid()
         other._check_valid()
 
@@ -543,7 +543,7 @@ struct Cursor(Copyable, Movable, Writable):
     # Cursor info (pretty-printed, overridden, overloaded, template)
     # -----------------------------------------------------------------------
 
-    def pretty_printed(mut self) raises -> String:
+    def pretty_printed(ref self) raises -> String:
         self._check_valid()
         var policy = clang_getCursorPrintingPolicy(self._ptr())
         var cs = _CXStringStorage()
@@ -551,7 +551,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_PrintingPolicy_dispose(policy)
         return cs.take()
 
-    def overridden_cursors(mut self) raises -> List[Cursor]:
+    def overridden_cursors(ref self) raises -> List[Cursor]:
         self._check_valid()
         var overridden_slot: InlineArray[
             Optional[UnsafePointer[CXCursor, MutExternalOrigin]], 1
@@ -588,29 +588,29 @@ struct Cursor(Copyable, Movable, Writable):
             clang_disposeOverriddenCursors(raw_ptr.value())
         return out^
 
-    def num_overloaded_decls(mut self) raises -> c_uint:
+    def num_overloaded_decls(ref self) raises -> c_uint:
         self._check_valid()
         return clang_getNumOverloadedDecls(self._ptr())
 
-    def get_overloaded_decl(mut self, index: c_uint) raises -> Self:
+    def get_overloaded_decl(ref self, index: c_uint) raises -> Self:
         self._check_valid()
         var out = Self(self._tu)
         clang_getOverloadedDecl(out._ptr(), self._ptr(), index)
         return out^
 
-    def num_template_arguments(mut self) raises -> c_int:
+    def num_template_arguments(ref self) raises -> c_int:
         self._check_valid()
         return clang_Cursor_getNumTemplateArguments(self._ptr())
 
     def template_argument_kind(
-        mut self, i: c_uint
+        ref self, i: c_uint
     ) raises -> TemplateArgumentKind:
         self._check_valid()
         return TemplateArgumentKind(
             c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i))
         )
 
-    def template_argument_type(mut self, i: c_uint) raises -> Type:
+    def template_argument_type(ref self, i: c_uint) raises -> Type:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -619,17 +619,17 @@ struct Cursor(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def template_argument_value(mut self, i: c_uint) raises -> c_long_long:
+    def template_argument_value(ref self, i: c_uint) raises -> c_long_long:
         self._check_valid()
         return clang_Cursor_getTemplateArgumentValue(self._ptr(), i)
 
     def template_argument_unsigned_value(
-        mut self, i: c_uint
+        ref self, i: c_uint
     ) raises -> c_ulong_long:
         self._check_valid()
         return clang_Cursor_getTemplateArgumentUnsignedValue(self._ptr(), i)
 
-    def specialized_cursor_template(mut self) raises -> Optional[Self]:
+    def specialized_cursor_template(ref self) raises -> Optional[Self]:
         self._check_valid()
         var out = Self(self._tu)
         clang_getSpecializedCursorTemplate(out._ptr(), self._ptr())
@@ -637,7 +637,7 @@ struct Cursor(Copyable, Movable, Writable):
             return None
         return Optional[Self](out^)
 
-    def template_kind(mut self) raises -> CursorKind:
+    def template_kind(ref self) raises -> CursorKind:
         self._check_valid()
         return CursorKind(clang_getTemplateCursorKind(self._ptr()))
 
@@ -645,17 +645,17 @@ struct Cursor(Copyable, Movable, Writable):
     # Arguments and tokens
     # -----------------------------------------------------------------------
 
-    def num_arguments(mut self) raises -> c_int:
+    def num_arguments(ref self) raises -> c_int:
         self._check_valid()
         return clang_Cursor_getNumArguments(self._ptr())
 
-    def get_argument(mut self, i: c_uint) raises -> Self:
+    def get_argument(ref self, i: c_uint) raises -> Self:
         self._check_valid()
         var out = Self(self._tu)
         clang_Cursor_getArgument(out._ptr(), self._ptr(), i)
         return out^
 
-    def get_arguments(mut self) raises -> List[Cursor]:
+    def get_arguments(ref self) raises -> List[Cursor]:
         self._check_valid()
         var n = self.num_arguments()
         var out = List[Cursor]()
@@ -663,7 +663,7 @@ struct Cursor(Copyable, Movable, Writable):
             out.append(self.get_argument(c_uint(i)))
         return out^
 
-    def get_tokens(mut self) raises -> TokenGroup:
+    def get_tokens(ref self) raises -> TokenGroup:
         from src.libclang.token import TokenGroup
 
         self._check_valid()
@@ -675,13 +675,13 @@ struct Cursor(Copyable, Movable, Writable):
     # Comments
     # -----------------------------------------------------------------------
 
-    def brief_comment(mut self) raises -> Optional[String]:
+    def brief_comment(ref self) raises -> Optional[String]:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Cursor_getBriefCommentText(cs.ptr_for_out(), self._ptr())
         return cs.take_optional()
 
-    def raw_comment(mut self) raises -> Optional[String]:
+    def raw_comment(ref self) raises -> Optional[String]:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Cursor_getRawCommentText(cs.ptr_for_out(), self._ptr())
@@ -691,45 +691,45 @@ struct Cursor(Copyable, Movable, Writable):
     # Miscellaneous cursor properties
     # -----------------------------------------------------------------------
 
-    def linkage(mut self) raises -> LinkageKind:
+    def linkage(ref self) raises -> LinkageKind:
         self._check_valid()
         return LinkageKind(c_uint(clang_getCursorLinkage(self._ptr())))
 
-    def visibility(mut self) raises -> VisibilityKind:
+    def visibility(ref self) raises -> VisibilityKind:
         self._check_valid()
         return VisibilityKind(c_uint(clang_getCursorVisibility(self._ptr())))
 
-    def availability(mut self) raises -> AvailabilityKind:
+    def availability(ref self) raises -> AvailabilityKind:
         self._check_valid()
         return AvailabilityKind(
             c_uint(clang_getCursorAvailability(self._ptr()))
         )
 
-    def language(mut self) raises -> LanguageKind:
+    def language(ref self) raises -> LanguageKind:
         self._check_valid()
         return LanguageKind(c_uint(clang_getCursorLanguage(self._ptr())))
 
-    def tls_kind(mut self) raises -> TLSKind:
+    def tls_kind(ref self) raises -> TLSKind:
         self._check_valid()
         return TLSKind(c_uint(clang_getCursorTLSKind(self._ptr())))
 
-    def storage_class(mut self) raises -> StorageClass:
+    def storage_class(ref self) raises -> StorageClass:
         self._check_valid()
         return StorageClass(c_uint(clang_Cursor_getStorageClass(self._ptr())))
 
-    def is_bitfield(mut self) raises -> Bool:
+    def is_bitfield(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isBitField(self._ptr()))
 
-    def get_bitfield_width(mut self) raises -> c_int:
+    def get_bitfield_width(ref self) raises -> c_int:
         self._check_valid()
         return clang_getFieldDeclBitWidth(self._ptr())
 
-    def get_offset_of_field(mut self) raises -> c_long_long:
+    def get_offset_of_field(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_Cursor_getOffsetOfField(self._ptr())
 
-    def underlying_typedef_type(mut self) raises -> Type:
+    def underlying_typedef_type(ref self) raises -> Type:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -738,7 +738,7 @@ struct Cursor(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def enum_type(mut self) raises -> Type:
+    def enum_type(ref self) raises -> Type:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -747,13 +747,13 @@ struct Cursor(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def mangled_name(mut self) raises -> String:
+    def mangled_name(ref self) raises -> String:
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Cursor_getMangling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def get_included_file(mut self) raises -> Optional[File]:
+    def get_included_file(ref self) raises -> Optional[File]:
         from src.libclang.file import File
 
         self._check_valid()
@@ -767,7 +767,7 @@ struct Cursor(Copyable, Movable, Writable):
     # Types and source locations
     # -----------------------------------------------------------------------
 
-    def type(mut self) raises -> Type:
+    def type(ref self) raises -> Type:
         """Return the semantic type of this cursor.
 
         Local import avoids a module cycle:
@@ -781,7 +781,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorType(out._ptr(), self._ptr())
         return out^
 
-    def result_type(mut self) raises -> Type:
+    def result_type(ref self) raises -> Type:
         from src.libclang.type_ import Type
 
         self._check_valid()
@@ -790,7 +790,7 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorResultType(out._ptr(), self._ptr())
         return out^
 
-    def location(mut self) raises -> SourceLocation:
+    def location(ref self) raises -> SourceLocation:
         from src.libclang.source_location import SourceLocation
 
         self._check_valid()
@@ -800,7 +800,7 @@ struct Cursor(Copyable, Movable, Writable):
         out.refresh()
         return out^
 
-    def extent(mut self) raises -> SourceRange:
+    def extent(ref self) raises -> SourceRange:
         from src.libclang.source_range import SourceRange
 
         self._check_valid()
@@ -808,6 +808,33 @@ struct Cursor(Copyable, Movable, Writable):
         var out = SourceRange(self._tu)
         clang_getCursorExtent(out._ptr(), self._ptr())
         return out^
+
+    def __iter__(ref self) raises -> CursorChildrenIterator:
+        """Yield immediate child cursors.
+
+        Usage:
+            for c in root:
+                print(c.spelling())
+        """
+        return CursorChildrenIterator(self)
+
+
+struct CursorChildrenIterator(Movable):
+    """Iterator over immediate children of a `Cursor`."""
+
+    var _children: List[Cursor]
+    var _index: Int
+
+    def __init__(out self, ref cursor: Cursor) raises:
+        self._children = cursor.get_children()
+        self._index = 0
+
+    def __next__(mut self) raises StopIteration -> Cursor:
+        if self._index >= self._children.__len__():
+            raise StopIteration()
+        var result = self._children[self._index].copy()
+        self._index += 1
+        return result^
 
 
 def _zero_cursor() -> CXCursor:
