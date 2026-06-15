@@ -27,6 +27,55 @@ from src.libclang.translation_unit import TranslationUnit
 
 comptime HEADER_PATH: String = "/virtual/acme_image.h"
 
+comptime HEADER_TEXT: String = """
+#ifndef ACME_IMAGE_H
+#define ACME_IMAGE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum AcmeStatus {
+ACME_OK = 0,
+ACME_ERROR_INVALID_ARGUMENT = 1,
+ACME_ERROR_IO = 2,
+ACME_ERROR_UNSUPPORTED_FORMAT = 3,
+} AcmeStatus;
+
+typedef struct AcmeImage {
+int width;
+int height;
+int channels;
+unsigned char* pixels;
+} AcmeImage;
+
+typedef struct AcmeResizeOptions {
+int target_width;
+int target_height;
+int preserve_aspect_ratio;
+} AcmeResizeOptions;
+
+AcmeImage* acme_image_open(const char* path);
+
+void acme_image_free(AcmeImage* image);
+
+AcmeStatus acme_image_resize(
+AcmeImage* image,
+const AcmeResizeOptions* options
+);
+
+AcmeStatus acme_image_write_png(
+const AcmeImage* image,
+const char* path
+);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+"""
+
 
 def kind_label(kind: CXCursorKind) -> String:
     if kind == CXCursor_FunctionDecl:
@@ -134,17 +183,30 @@ def print_tokens(mut tu: TranslationUnit) raises:
 
 
 def main() raises:
-    var index = Index.create()
+    index = Index.create()
 
     var args = List[String]()
-    args.append("-x")
-    args.append("c")
+
+    # Use "-xc" initially instead of "-x", "c" while debugging CStringArray.
+    # If CStringArray is correct, both forms should work.
+    args.append("-xc")
     args.append("-std=c11")
     args.append("-Wall")
-    args.append("-Iexamples")
 
     var unsaved_files = List[UnsavedFile]()
-    var tu = index.parse(HEADER_PATH, args=args)
+    unsaved_files.append(
+        UnsavedFile(
+            filename=String(HEADER_PATH),
+            contents=String(HEADER_TEXT),
+        )
+    )
+
+    var tu = index.parse(
+        String(HEADER_PATH),
+        args=args,
+        unsaved_files=unsaved_files,
+    )
+
     print("Parsed translation unit:")
     print("  ", tu, sep="")
 
