@@ -64,7 +64,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._offset = off
         if file:
             var cs = _CXStringStorage()
-            clang_getFileName(cs.ptr(), file)
+            clang_getFileName(cs.ptr_for_out(), file)
             self._file_name = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):

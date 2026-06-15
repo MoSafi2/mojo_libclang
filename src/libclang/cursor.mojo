@@ -127,7 +127,7 @@ struct Cursor(Copyable, Movable, Writable):
 
     def _cache_spelling(mut self) raises:
         var cs = _CXStringStorage()
-        clang_getCursorSpelling(cs.ptr(), self._ptr())
+        clang_getCursorSpelling(cs.ptr_for_out(), self._ptr())
         self._spelling = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
@@ -142,17 +142,17 @@ struct Cursor(Copyable, Movable, Writable):
 
     def spelling(mut self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getCursorSpelling(cs.ptr(), self._ptr())
+        clang_getCursorSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
     def display_name(mut self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getCursorDisplayName(cs.ptr(), self._ptr())
+        clang_getCursorDisplayName(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
     def usr(mut self) raises -> Optional[String]:
         var cs = _CXStringStorage()
-        clang_getCursorUSR(cs.ptr(), self._ptr())
+        clang_getCursorUSR(cs.ptr_for_out(), self._ptr())
         var raw = cs.take()
         if not raw:
             return None

@@ -38,7 +38,7 @@ struct Token(Copyable, Movable, Writable):
     def _cache_from_ffi(mut self) raises:
         self._kind = clang_getTokenKind(self._raw)
         var cs = _CXStringStorage()
-        clang_getTokenSpelling(cs.ptr(), self._tu, self._raw)
+        clang_getTokenSpelling(cs.ptr_for_out(), self._tu, self._raw)
         self._spelling = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):

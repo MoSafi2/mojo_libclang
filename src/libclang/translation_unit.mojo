@@ -96,7 +96,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def spelling(mut self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getTranslationUnitSpelling(cs.ptr(), self.raw())
+        clang_getTranslationUnitSpelling(cs.ptr_for_out(), self.raw())
         return cs.take()
 
     def cursor(mut self) raises -> Cursor:

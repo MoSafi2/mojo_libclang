@@ -65,7 +65,7 @@ struct Diagnostic(Movable, Writable):
 
     def spelling(mut self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getDiagnosticSpelling(cs.ptr(), self._raw)
+        clang_getDiagnosticSpelling(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def location(mut self) raises -> SourceLocation:
@@ -79,20 +79,20 @@ struct Diagnostic(Movable, Writable):
 
     def category_name(mut self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getDiagnosticCategoryText(cs.ptr(), self._raw)
+        clang_getDiagnosticCategoryText(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def option(mut self) raises -> String:
         var cs = _CXStringStorage()
         var disable = _CXStringStorage()
-        clang_getDiagnosticOption(cs.ptr(), self._raw, disable.ptr())
+        clang_getDiagnosticOption(cs.ptr_for_out(), self._raw, disable.ptr_for_out())
         clang_disposeString(disable.ptr())
         return cs.take()
 
     def disable_option(mut self) raises -> String:
         var cs = _CXStringStorage()
         var disable = _CXStringStorage()
-        clang_getDiagnosticOption(cs.ptr(), self._raw, disable.ptr())
+        clang_getDiagnosticOption(cs.ptr_for_out(), self._raw, disable.ptr_for_out())
         var value = disable.take()
         return value
 

@@ -32,7 +32,7 @@ struct File(Copyable, Movable, Writable):
             return None
         var result = Self(_tu=tu, _raw=handle, _name=String())
         var cs = _CXStringStorage()
-        clang_getFileName(cs.ptr(), result._raw)
+        clang_getFileName(cs.ptr_for_out(), result._raw)
         result._name = cs.take()
         return Optional[Self](result^)
 
@@ -42,7 +42,7 @@ struct File(Copyable, Movable, Writable):
     def name(self) raises -> String:
         # TODO: return cached _name instead of re-calling FFI
         var cs = _CXStringStorage()
-        clang_getFileName(cs.ptr(), self._raw)
+        clang_getFileName(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def time(self) raises -> time_t:
@@ -50,7 +50,7 @@ struct File(Copyable, Movable, Writable):
 
     def real_path(self) raises -> String:
         var cs = _CXStringStorage()
-        clang_File_tryGetRealPathName(cs.ptr(), self._raw)
+        clang_File_tryGetRealPathName(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def is_multiple_include_guarded(self) raises -> Bool:

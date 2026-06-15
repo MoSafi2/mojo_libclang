@@ -75,7 +75,7 @@ struct Type(Copyable, Movable, Writable):
 
     def _cache_spelling(mut self) raises:
         var cs = _CXStringStorage()
-        clang_getTypeSpelling(cs.ptr(), self._ptr())
+        clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
         self._spelling = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
@@ -86,7 +86,7 @@ struct Type(Copyable, Movable, Writable):
 
     def spelling(mut self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getTypeSpelling(cs.ptr(), self._ptr())
+        clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
     def get_canonical(mut self) raises -> Type:
