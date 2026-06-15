@@ -184,8 +184,8 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
         return SourceRange.from_locations(start, end)
 
-    # def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
-    #     return TokenGroup(tu=self.state(), extent=extent)
+    def get_tokens(mut self, extent: SourceRange) raises -> TokenGroup:
+        return TokenGroup(tu=self.state(), extent=extent)
 
     def get_cursor(mut self, mut loc: SourceLocation) raises -> Cursor:
         var out = Cursor(tu=self.state())

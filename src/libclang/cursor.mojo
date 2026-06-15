@@ -268,28 +268,28 @@ struct Cursor(Copyable, Movable, Writable):
     # Types and source locations
     # -----------------------------------------------------------------------
 
-    # def type(mut self) raises -> Type:
-    #     """Return the semantic type of this cursor.
+    def type(mut self) raises -> Type:
+        """Return the semantic type of this cursor.
 
-    #     Local import avoids a module cycle:
-    #         cursor.mojo -> type_.mojo -> cursor.mojo
-    #     """
-    #     from src.libclang.type_ import Type
+        Local import avoids a module cycle:
+            cursor.mojo -> type_.mojo -> cursor.mojo
+        """
+        from src.libclang.type_ import Type
 
-    #     self._check_valid()
+        self._check_valid()
 
-    #     var out = Type(self._tu)
-    #     clang_getCursorType(out._ptr(), self._ptr())
-    #     return out^
+        var out = Type(self._tu)
+        clang_getCursorType(out._ptr(), self._ptr())
+        return out^
 
-    # def result_type(mut self) raises -> Type:
-    #     from src.libclang.type_ import Type
+    def result_type(mut self) raises -> Type:
+        from src.libclang.type_ import Type
 
-    #     self._check_valid()
+        self._check_valid()
 
-    #     var out = Type(self._tu)
-    #     clang_getCursorResultType(out._ptr(), self._ptr())
-    #     return out^
+        var out = Type(self._tu)
+        clang_getCursorResultType(out._ptr(), self._ptr())
+        return out^
 
     def location(mut self) raises -> SourceLocation:
         from src.libclang.source_location import SourceLocation
@@ -300,14 +300,14 @@ struct Cursor(Copyable, Movable, Writable):
         clang_getCursorLocation(out._ptr(), self._ptr())
         return out^
 
-    # def extent(mut self) raises -> SourceRange:
-    #     from src.libclang.source_range import SourceRange
+    def extent(mut self) raises -> SourceRange:
+        from src.libclang.source_range import SourceRange
 
-    #     self._check_valid()
+        self._check_valid()
 
-    #     var out = SourceRange(self._tu)
-    #     clang_getCursorExtent(out._ptr(), self._ptr())
-    #     return out^
+        var out = SourceRange(self._tu)
+        clang_getCursorExtent(out._ptr(), self._ptr())
+        return out^
 
 
 def _zero_cursor() -> CXCursor:
