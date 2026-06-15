@@ -47,10 +47,9 @@ from src._ffi import (
 )
 
 from src.libclang.common import _CXStringStorage
+
 from src.libclang.translation_unit import (
     TranslationUnitState,
-    _check_translation_unit_generation,
-    _translation_unit_raw,
 )
 
 from std.collections import InlineArray
@@ -93,7 +92,8 @@ struct Cursor(Copyable, Movable, Writable):
 
     def _check_valid(self) raises:
         """Reject use after TU disposal or in-place reparse."""
-        _check_translation_unit_generation(self._tu, self._generation)
+        if self._generation != self._tu[].generation:
+            raise Error("Cursor is stale due to TranslationUnit reparse")
 
     def _ptr(mut self) -> UnsafePointer[CXCursor, MutExternalOrigin]:
         """Mutable pointer to raw cursor storage for shim calls."""
@@ -124,7 +124,7 @@ struct Cursor(Copyable, Movable, Writable):
     def translation_unit(self) raises -> CXTranslationUnit:
         """Return the borrowed raw TU handle after validity checks."""
         self._check_valid()
-        return _translation_unit_raw(self._tu)
+        return self._tu[].raw()
 
     def write_to(mut self, mut writer: Some[Writer]):
         try:
@@ -291,14 +291,14 @@ struct Cursor(Copyable, Movable, Writable):
     #     clang_getCursorResultType(out._ptr(), self._ptr())
     #     return out^
 
-    # def location(mut self) raises -> SourceLocation:
-    #     from src.libclang.source_location import SourceLocation
+    def location(mut self) raises -> SourceLocation:
+        from src.libclang.source_location import SourceLocation
 
-    #     self._check_valid()
+        self._check_valid()
 
-    #     var out = SourceLocation(self._tu)
-    #     clang_getCursorLocation(out._ptr(), self._ptr())
-    #     return out^
+        var out = SourceLocation(self._tu)
+        clang_getCursorLocation(out._ptr(), self._ptr())
+        return out^
 
     # def extent(mut self) raises -> SourceRange:
     #     from src.libclang.source_range import SourceRange
@@ -309,9 +309,6 @@ struct Cursor(Copyable, Movable, Writable):
     #     clang_getCursorExtent(out._ptr(), self._ptr())
     #     return out^
 
-
-def main():
-    print("cursor.mojo module OK")
 
 def _zero_cursor() -> CXCursor:
     """Return a zero-initialized `CXCursor` value.

@@ -112,59 +112,59 @@ struct TranslationUnit(Copyable, Movable, Writable):
     # def get_file(mut self, filename: String) raises -> Optional[File]:
     #     return File.from_name(self.state(), filename)
 
-    # def get_location(
-    #     mut self,
-    #     filename: String,
-    #     position: SourcePosition,
-    # ) raises -> SourceLocation:
-    #     var pos = position.copy()
-    #     pos.validate()
+    def get_location(
+        mut self,
+        filename: String,
+        position: SourcePosition,
+    ) raises -> SourceLocation:
+        var pos = position.copy()
+        pos.validate()
 
-    #     # Keep filename alive during the C call.
-    #     var filename_owner = filename.copy()
-    #     var file_handle = clang_getFile(
-    #         self.raw(),
-    #         _c_string(filename_owner),
-    #     )
+        # Keep filename alive during the C call.
+        var filename_owner = filename.copy()
+        var file_handle = clang_getFile(
+            self.raw(),
+            _c_string(filename_owner),
+        )
 
-    #     if not file_handle:
-    #         raise Error("TranslationUnit.get_location: unknown filename")
+        if not file_handle:
+            raise Error("TranslationUnit.get_location: unknown filename")
 
-    #     if pos.is_offset_only():
-    #         return SourceLocation.from_offset(
-    #             self.state(),
-    #             file_handle,
-    #             pos.offset.value(),
-    #         )
+        if pos.is_offset_only():
+            return SourceLocation.from_offset(
+                self.state(),
+                file_handle,
+                pos.offset.value(),
+            )
 
-    #     return SourceLocation.from_position(
-    #         self.state(),
-    #         file_handle,
-    #         pos.line.value(),
-    #         pos.column.value(),
-    #     )
+        return SourceLocation.from_position(
+            self.state(),
+            file_handle,
+            pos.line.value(),
+            pos.column.value(),
+        )
 
-    # def get_location_for_offset(
-    #     mut self,
-    #     filename: String,
-    #     offset: c_uint,
-    # ) raises -> SourceLocation:
-    #     var filename_owner = filename.copy()
-    #     var file_handle = clang_getFile(
-    #         self.raw(),
-    #         _c_string(filename_owner),
-    #     )
+    def get_location_for_offset(
+        mut self,
+        filename: String,
+        offset: c_uint,
+    ) raises -> SourceLocation:
+        var filename_owner = filename.copy()
+        var file_handle = clang_getFile(
+            self.raw(),
+            _c_string(filename_owner),
+        )
 
-    #     if not file_handle:
-    #         raise Error(
-    #             "TranslationUnit.get_location_for_offset: unknown filename",
-    #         )
+        if not file_handle:
+            raise Error(
+                "TranslationUnit.get_location_for_offset: unknown filename",
+            )
 
-    #     return SourceLocation.from_offset(
-    #         self.state(),
-    #         file_handle,
-    #         offset,
-    #     )
+        return SourceLocation.from_offset(
+            self.state(),
+            file_handle,
+            offset,
+        )
 
     # def get_extent(
     #     mut self,
