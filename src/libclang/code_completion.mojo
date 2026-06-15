@@ -89,13 +89,15 @@ struct CompletionChunk(Copyable, Movable, Writable):
 
     def write_to(self, mut writer: Some[Writer]):
         try:
-            writer.write("CompletionChunk(", self.kind(), ": ", self.spelling(), ")")
+            writer.write(
+                "CompletionChunk(", self.kind(), ": ", self.spelling(), ")"
+            )
         except:
             writer.write("CompletionChunk(<invalid>)")
 
 
 struct CompletionStringIterator[mut: Bool, //, origin: Origin[mut=mut]](
-    Movable, Iterator
+    Iterator, Movable
 ):
     """Iterator over chunks in a ``CompletionString``."""
 
@@ -119,12 +121,14 @@ struct CompletionStringIterator[mut: Bool, //, origin: Origin[mut=mut]](
 
 
 @fieldwise_init
-struct CompletionString(Copyable, Movable, Writable, Iterable):
+struct CompletionString(Copyable, Iterable, Movable, Writable):
     """A libclang code-completion string."""
 
     comptime IteratorType[
         iterable_mut: Bool, //, iterable_origin: Origin[mut=iterable_mut]
-    ]: Iterator = CompletionStringIterator[mut=iterable_mut, origin=iterable_origin]
+    ]: Iterator = CompletionStringIterator[
+        mut=iterable_mut, origin=iterable_origin
+    ]
 
     var _raw: CXCompletionString
 
@@ -167,7 +171,9 @@ struct CompletionString(Copyable, Movable, Writable, Iterable):
 
     def write_to(self, mut writer: Some[Writer]):
         try:
-            writer.write("CompletionString(priority=", Int(self.priority()), ")")
+            writer.write(
+                "CompletionString(priority=", Int(self.priority()), ")"
+            )
         except:
             writer.write("CompletionString(<invalid>)")
 
@@ -207,9 +213,9 @@ struct CodeCompletionResult(Copyable, Movable, Writable):
         )
 
 
-struct CodeCompletionResultsIterator[
-    mut: Bool, //, origin: Origin[mut=mut]
-](Movable, Iterator):
+struct CodeCompletionResultsIterator[mut: Bool, //, origin: Origin[mut=mut]](
+    Iterator, Movable
+):
     """Iterator over results in a ``CodeCompletionResults`` set."""
 
     comptime Element = CodeCompletionResult
@@ -242,12 +248,14 @@ struct CodeCompletionResultsIterator[
         return CodeCompletionResult(self._tu, raw)
 
 
-struct CodeCompletionResults(Movable, Sized, Writable, Iterable):
+struct CodeCompletionResults(Iterable, Movable, Sized, Writable):
     """Owns the result set returned by ``clang_codeCompleteAt``."""
 
     comptime IteratorType[
         iterable_mut: Bool, //, iterable_origin: Origin[mut=iterable_mut]
-    ]: Iterator = CodeCompletionResultsIterator[mut=iterable_mut, origin=iterable_origin]
+    ]: Iterator = CodeCompletionResultsIterator[
+        mut=iterable_mut, origin=iterable_origin
+    ]
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
@@ -266,7 +274,9 @@ struct CodeCompletionResults(Movable, Sized, Writable, Iterable):
 
     def _check_valid(self) raises:
         if not self._tu[].alive:
-            raise Error("CodeCompletionResults used after TranslationUnit disposal")
+            raise Error(
+                "CodeCompletionResults used after TranslationUnit disposal"
+            )
 
         if self._generation != self._tu[].generation:
             raise Error(
@@ -279,10 +289,14 @@ struct CodeCompletionResults(Movable, Sized, Writable, Iterable):
                 try:
                     clang_disposeCodeCompleteResults(
                         Optional[
-                            UnsafePointer[CXCodeCompleteResults, MutExternalOrigin]
+                            UnsafePointer[
+                                CXCodeCompleteResults, MutExternalOrigin
+                            ]
                         ](
                             rebind[
-                                UnsafePointer[CXCodeCompleteResults, MutExternalOrigin]
+                                UnsafePointer[
+                                    CXCodeCompleteResults, MutExternalOrigin
+                                ]
                             ](self._raw.unsafe_ptr())
                         )
                     )
@@ -412,4 +426,6 @@ struct CodeCompletionResults(Movable, Sized, Writable, Iterable):
         return cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
-        writer.write("CodeCompletionResults(count=", Int(self._raw.NumResults), ")")
+        writer.write(
+            "CodeCompletionResults(count=", Int(self._raw.NumResults), ")"
+        )

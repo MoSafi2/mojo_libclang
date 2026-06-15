@@ -31,7 +31,33 @@ from src.libclang.enums import CompilationDatabaseErrorCode
 from src.libclang.errors import CompilationDatabaseError
 
 from std.iter import Iterable, Iterator, StopIteration
-from std.memory import UnsafePointer, alloc
+from std.memory import ArcPointer, UnsafePointer, alloc
+
+
+# ---------------------------------------------------------------------------
+# Internal state
+# ---------------------------------------------------------------------------
+
+
+struct _CompilationDatabaseState(Movable):
+    """Owns a ``CXCompilationDatabase`` handle."""
+
+    var _raw: CXCompilationDatabase
+
+    def __init__(out self, raw: CXCompilationDatabase):
+        self._raw = raw
+
+    def raw(self) -> CXCompilationDatabase:
+        return self._raw
+
+    def __del__(deinit self):
+        if self._raw:
+            clang_CompilationDatabase_dispose(self._raw)
+
+
+# ---------------------------------------------------------------------------
+# CompileCommand
+# ---------------------------------------------------------------------------
 
 
 @fieldwise_init
@@ -88,13 +114,20 @@ struct CompileCommand(Copyable, Movable, Writable):
 
     def write_to(self, mut writer: Some[Writer]):
         try:
-            writer.write("CompileCommand(", self.directory(), ": ", self.filename(), ")")
+            writer.write(
+                "CompileCommand(", self.directory(), ": ", self.filename(), ")"
+            )
         except:
             writer.write("CompileCommand(<invalid>)")
 
 
+# ---------------------------------------------------------------------------
+# CompileCommands
+# ---------------------------------------------------------------------------
+
+
 struct CompileCommandsIterator[mut: Bool, //, origin: Origin[mut=mut]](
-    Movable, Iterator
+    Iterator, Movable
 ):
     """Iterator over commands in a ``CompileCommands`` collection."""
 
@@ -119,17 +152,29 @@ struct CompileCommandsIterator[mut: Bool, //, origin: Origin[mut=mut]](
         return cmd^
 
 
-struct CompileCommands(Movable, Sized, Writable, Iterable):
-    """A collection of ``CompileCommand`` values."""
+struct CompileCommands(Iterable, Movable, Sized, Writable):
+    """A collection of ``CompileCommand`` values.
+
+    Keeps the originating ``CompilationDatabase`` alive so the raw
+    ``CXCompileCommands`` handle remains valid.
+    """
 
     comptime IteratorType[
         iterable_mut: Bool, //, iterable_origin: Origin[mut=iterable_mut]
-    ]: Iterator = CompileCommandsIterator[mut=iterable_mut, origin=iterable_origin]
+    ]: Iterator = CompileCommandsIterator[
+        mut=iterable_mut, origin=iterable_origin
+    ]
 
+    var _db: ArcPointer[_CompilationDatabaseState]
     var _raw: CXCompileCommands
     var _count: c_uint
 
-    def __init__(out self, raw: CXCompileCommands):
+    def __init__(
+        out self,
+        db: ArcPointer[_CompilationDatabaseState],
+        raw: CXCompileCommands,
+    ):
+        self._db = db
         self._raw = raw
         if raw:
             self._count = clang_CompileCommands_getSize(raw)
@@ -138,10 +183,7 @@ struct CompileCommands(Movable, Sized, Writable, Iterable):
 
     def __del__(deinit self):
         if self._raw:
-            try:
-                clang_CompileCommands_dispose(self._raw)
-            except:
-                pass
+            clang_CompileCommands_dispose(self._raw)
 
     def __len__(self) -> Int:
         return Int(self._count)
@@ -158,10 +200,15 @@ struct CompileCommands(Movable, Sized, Writable, Iterable):
         writer.write("CompileCommands(count=", Int(self._count), ")")
 
 
+# ---------------------------------------------------------------------------
+# CompilationDatabase
+# ---------------------------------------------------------------------------
+
+
 struct CompilationDatabase(Movable, Writable):
     """Wrapper around a ``compile_commands.json`` database."""
 
-    var _raw: CXCompilationDatabase
+    var _state: ArcPointer[_CompilationDatabaseState]
 
     def __init__(out self, build_dir: String) raises:
         var dir_c = _alloc_c_string(build_dir)
@@ -171,9 +218,9 @@ struct CompilationDatabase(Movable, Writable):
 
         var raw = clang_CompilationDatabase_fromDirectory(
             _c_string(dir_c),
-            rebind[UnsafePointer[CXCompilationDatabase_Error, MutExternalOrigin]](
-                err.unsafe_ptr()
-            ),
+            rebind[
+                UnsafePointer[CXCompilationDatabase_Error, MutExternalOrigin]
+            ](err.unsafe_ptr()),
         )
 
         dir_c.free()
@@ -184,23 +231,21 @@ struct CompilationDatabase(Movable, Writable):
                 "could not load compilation database from " + build_dir,
             )
 
-        self._raw = raw
+        self._state = ArcPointer(_CompilationDatabaseState(raw))
 
     @staticmethod
     def from_directory(build_dir: String) raises -> Self:
         return Self(build_dir)
 
-    def __del__(deinit self):
-        if self._raw:
-            try:
-                clang_CompilationDatabase_dispose(self._raw)
-            except:
-                pass
+    def state(self) -> ArcPointer[_CompilationDatabaseState]:
+        return self._state
 
-    def get_compile_commands(ref self, filename: String) raises -> CompileCommands:
+    def get_compile_commands(
+        ref self, filename: String
+    ) raises -> CompileCommands:
         var filename_c = _alloc_c_string(filename)
         var raw = clang_CompilationDatabase_getCompileCommands(
-            self._raw,
+            self._state[].raw(),
             _c_string(filename_c),
         )
         filename_c.free()
@@ -210,13 +255,15 @@ struct CompilationDatabase(Movable, Writable):
                 "CompilationDatabase: no compile commands for " + filename
             )
 
-        return CompileCommands(raw)
+        return CompileCommands(self._state, raw)
 
     def get_all_compile_commands(ref self) raises -> CompileCommands:
-        var raw = clang_CompilationDatabase_getAllCompileCommands(self._raw)
+        var raw = clang_CompilationDatabase_getAllCompileCommands(
+            self._state[].raw()
+        )
         if not raw:
-            return CompileCommands(CXCompileCommands())
-        return CompileCommands(raw)
+            return CompileCommands(self._state, CXCompileCommands())
+        return CompileCommands(self._state, raw)
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("CompilationDatabase()")
