@@ -124,7 +124,7 @@ from src._ffi import (
     clang_Cursor_isBitField,
     clang_getFieldDeclBitWidth,
     clang_Cursor_getOffsetOfField,
-    clang_getOffsetOfBase,
+    # clang_getOffsetOfBase,
     clang_Cursor_getStorageClass,
     clang_Cursor_getMangling,
     clang_Cursor_getCXXManglings,
@@ -937,11 +937,11 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Alias for ``get_offset_of_field()`` matching the Python name."""
         return self.get_offset_of_field()
 
-    def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
-        """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``."""
-        self._check_valid()
-        parent._check_valid()
-        return clang_getOffsetOfBase(parent._ptr(), self._ptr())
+    # def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
+    #     """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``."""
+    #     self._check_valid()
+    #     parent._check_valid()
+    #     return clang_getOffsetOfBase(parent._ptr(), self._ptr())
 
     def is_function_inlined(ref self) raises -> Bool:
         self._check_valid()
@@ -1139,7 +1139,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def gcc_assembly_input_expr(ref self, index: c_uint) raises -> Optional[Self]:
         self._check_valid()
-        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr.copy()
 
     def gcc_assembly_output_constraint(ref self, index: c_uint) raises -> String:
         self._check_valid()
@@ -1147,7 +1147,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def gcc_assembly_output_expr(ref self, index: c_uint) raises -> Optional[Self]:
         self._check_valid()
-        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr.copy()
 
     def gcc_assembly_clobber(ref self, index: c_uint) raises -> String:
         self._check_valid()
@@ -1326,7 +1326,7 @@ def _string_list_from_cxstringset(
     var count = Int(raw.value()[].Count)
     if strings:
         for i in range(count):
-            out.append(_take_cxstring_value((strings.value() + i)[].copy()))
+            out.append(_take_cxstring_value((strings.value() + i)[]))
     clang_disposeStringSet(raw)
     return out^
 
@@ -1359,7 +1359,7 @@ def _gcc_assembly_operand(
         maybe_expr = Optional[Cursor](expr^)
     return _GCCAssemblyOperandInfo(
         constraint=constraint.take(),
-        expr=maybe_expr,
+        expr=maybe_expr.copy(),
     )
 
 

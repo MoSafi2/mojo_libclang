@@ -43,8 +43,8 @@ from src._ffi import (
     clang_getFunctionTypeCallingConv,
     clang_getExceptionSpecificationType,
     clang_getNumArgTypes,
-    clang_getTypePrettyPrinted,
-    clang_getFullyQualifiedName,
+    # clang_getTypePrettyPrinted,
+    # clang_getFullyQualifiedName,
     clang_Type_getNumTemplateArguments,
     clang_Type_getSizeOf,
     clang_Type_getAlignOf,
@@ -66,7 +66,7 @@ from src._ffi import (
     CXClientData,
     CXVisit_Continue,
     clang_Type_visitFields,
-    clang_visitCXXBaseClasses,
+    # clang_visitCXXBaseClasses,
     clang_visitCXXMethods,
     clang_equalTypes,
 )
@@ -177,31 +177,31 @@ struct Type(Copyable, Movable, Writable):
         clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def pretty_printed(
-        ref self,
-        policy: PrintingPolicy,
-    ) raises -> String:
-        self._check_valid()
+    # def pretty_printed(
+    #     ref self,
+    #     policy: PrintingPolicy,
+    # ) raises -> String:
+    #     self._check_valid()
 
-        var cs = _CXStringStorage()
-        clang_getTypePrettyPrinted(cs.ptr_for_out(), self._ptr(), policy._raw)
-        return cs.take()
+    #     var cs = _CXStringStorage()
+    #     clang_getTypePrettyPrinted(cs.ptr_for_out(), self._ptr(), policy._raw)
+    #     return cs.take()
 
-    def get_fully_qualified_name(
-        ref self,
-        policy: PrintingPolicy,
-        with_global_ns_prefix: Bool = False,
-    ) raises -> String:
-        self._check_valid()
+    # def get_fully_qualified_name(
+    #     ref self,
+    #     policy: PrintingPolicy,
+    #     with_global_ns_prefix: Bool = False,
+    # ) raises -> String:
+    #     self._check_valid()
 
-        var cs = _CXStringStorage()
-        clang_getFullyQualifiedName(
-            cs.ptr_for_out(),
-            self._ptr(),
-            policy._raw,
-            c_uint(1) if with_global_ns_prefix else c_uint(0),
-        )
-        return cs.take()
+    #     var cs = _CXStringStorage()
+    #     clang_getFullyQualifiedName(
+    #         cs.ptr_for_out(),
+    #         self._ptr(),
+    #         policy._raw,
+    #         c_uint(1) if with_global_ns_prefix else c_uint(0),
+    #     )
+    #     return cs.take()
 
     def get_canonical(ref self) raises -> Type:
         self._check_valid()
@@ -482,63 +482,63 @@ struct Type(Copyable, Movable, Writable):
         collector_box.free()
         return out^
 
-    def get_bases(ref self) raises -> List[Cursor]:
-        from src.libclang.cursor import Cursor
+    # def get_bases(ref self) raises -> List[Cursor]:
+    #     from src.libclang.cursor import Cursor
 
-        self._check_valid()
-        var collector_box = alloc[_TypeFieldCollector](1)
-        collector_box.init_pointee_move(
-            _TypeFieldCollector(
-                tu=self._tu,
-                out=List[Cursor](),
-            )
-        )
-        var client_data = CXClientData(
-            rebind[MutOpaquePointer[MutExternalOrigin]](
-                rebind[UnsafePointer[UInt8, MutExternalOrigin]](
-                    rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
-                )
-            )
-        )
-        _ = clang_visitCXXBaseClasses(
-            self._ptr(),
-            _field_visitor_trampoline,
-            client_data,
-        )
-        var out = List[Cursor]()
-        for i in range(len(collector_box[].out)):
-            out.append(collector_box[].out[i].copy())
-        collector_box.free()
-        return out^
+    #     self._check_valid()
+    #     var collector_box = alloc[_TypeFieldCollector](1)
+    #     collector_box.init_pointee_move(
+    #         _TypeFieldCollector(
+    #             tu=self._tu,
+    #             out=List[Cursor](),
+    #         )
+    #     )
+    #     var client_data = CXClientData(
+    #         rebind[MutOpaquePointer[MutExternalOrigin]](
+    #             rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+    #                 rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
+    #             )
+    #         )
+    #     )
+    #     _ = clang_visitCXXBaseClasses(
+    #         self._ptr(),
+    #         _field_visitor_trampoline,
+    #         client_data,
+    #     )
+    #     var out = List[Cursor]()
+    #     for i in range(len(collector_box[].out)):
+    #         out.append(collector_box[].out[i].copy())
+    #     collector_box.free()
+    #     return out^
 
-    def get_methods(ref self) raises -> List[Cursor]:
-        from src.libclang.cursor import Cursor
+    # def get_methods(ref self) raises -> List[Cursor]:
+    #     from src.libclang.cursor import Cursor
 
-        self._check_valid()
-        var collector_box = alloc[_TypeFieldCollector](1)
-        collector_box.init_pointee_move(
-            _TypeFieldCollector(
-                tu=self._tu,
-                out=List[Cursor](),
-            )
-        )
-        var client_data = CXClientData(
-            rebind[MutOpaquePointer[MutExternalOrigin]](
-                rebind[UnsafePointer[UInt8, MutExternalOrigin]](
-                    rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
-                )
-            )
-        )
-        _ = clang_visitCXXMethods(
-            self._ptr(),
-            _field_visitor_trampoline,
-            client_data,
-        )
-        var out = List[Cursor]()
-        for i in range(len(collector_box[].out)):
-            out.append(collector_box[].out[i].copy())
-        collector_box.free()
-        return out^
+    #     self._check_valid()
+    #     var collector_box = alloc[_TypeFieldCollector](1)
+    #     collector_box.init_pointee_move(
+    #         _TypeFieldCollector(
+    #             tu=self._tu,
+    #             out=List[Cursor](),
+    #         )
+    #     )
+    #     var client_data = CXClientData(
+    #         rebind[MutOpaquePointer[MutExternalOrigin]](
+    #             rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+    #                 rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
+    #             )
+    #         )
+    #     )
+    #     _ = clang_visitCXXMethods(
+    #         self._ptr(),
+    #         _field_visitor_trampoline,
+    #         client_data,
+    #     )
+    #     var out = List[Cursor]()
+    #     for i in range(len(collector_box[].out)):
+    #         out.append(collector_box[].out[i].copy())
+    #     collector_box.free()
+    #     return out^
 
     def objc_object_base_type(ref self) raises -> Optional[Type]:
         self._check_valid()
