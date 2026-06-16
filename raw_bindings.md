@@ -60,12 +60,29 @@ That is the boundary the higher-level API can rely on.
 The generated FFI layout tests are part of the generator, not a separate
 hand-maintained fixture.
 
-By default the generator now parses the vendored header snapshot at
-`vendor/llvm-project-main-2026-06-16/clang-c` rather than whichever
-`clang-c/Index.h` happens to be installed on the host. That keeps raw binding
-coverage deterministic across machines and ensures newly added upstream APIs
-enter CIR before the ABI rewrite step. Set `LIBCLANG_HEADERS_DIR` only when you
-intentionally want to override the vendored snapshot.
+By default the generator now parses the `clang-c` headers installed in the
+active Pixi environment, falling back to `.pixi/envs/default/include/clang-c`
+when `CONDA_PREFIX` is not set. That keeps generation tied to the repo's pinned
+`clangdev` package instead of whichever LLVM headers happen to be installed on
+the host. Set `LIBCLANG_HEADERS_DIR` only when you intentionally want to
+override the Pixi-provided headers.
+
+## Header/Runtime Version Matching
+
+The Pixi environment pins both `clangdev` and `libclang` to the 18.x line so
+the parsed headers and linked runtime come from the same LLVM release family.
+
+Refresh the local Pixi environment with:
+
+```bash
+rtk pixi install
+```
+
+The default generate path uses the installed Pixi headers and library directly:
+
+```bash
+rtk pixi run generate
+```
 
 ## Generated Surface
 

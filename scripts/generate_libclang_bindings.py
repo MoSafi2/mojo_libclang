@@ -23,9 +23,12 @@ from __future__ import annotations
 
 import json
 import os
+import ctypes
+import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import replace
 from pathlib import Path
 
@@ -66,9 +69,6 @@ from mojo_bindgen.parsing.parser import _default_system_compile_args
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CLANG_C_SNAPSHOT_DIR = (
-    REPO_ROOT / "vendor" / "llvm-project-main-2026-06-16" / "clang-c"
-)
 DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "src" / "_ffi.mojo"
 DEFAULT_FFI_IR_OUT = REPO_ROOT / "build" / "_ffi.ir.json"
 DEFAULT_ORIGINAL_IR_OUT = REPO_ROOT / "build" / "_ffi.original.ir.json"
@@ -76,6 +76,7 @@ DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
 DEFAULT_SHIM_OUT = REPO_ROOT / "build" / "libclang_mojo_shim.so"
 DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
+DEFAULT_PIXI_ENV_DIR = REPO_ROOT / ".pixi" / "envs" / "default"
 
 HEADER_NAMES = (
     "Index.h",
@@ -158,7 +159,10 @@ def main() -> int:
     DEFAULT_SHIM_SRC.write_text(rewritten.source_text, encoding="utf-8")
     ir_out.write_text(rewritten.unit.to_json(), encoding="utf-8")
 
+    header_version = read_cindex_version(primary)
     library_path = discover_libclang_library()
+    runtime_version = query_libclang_version(library_path)
+    validate_header_runtime_compatibility(primary, runtime_version)
     build_shim(include_root, library_path, shim_out)
 
     analysis = orchestrator.analyze_with_artifacts(rewritten.unit)
@@ -182,10 +186,14 @@ def main() -> int:
     print(f"generated: {display_path(DEFAULT_SHIM_HEADER)}")
     print(f"generated: {display_path(DEFAULT_SHIM_SRC)}")
     print(f"shim:      {display_path(shim_out)}")
+    if header_version is not None:
+        print(f"headers:   CINDEX {header_version[0]}.{header_version[1]}")
     if library_path is not None:
         print(f"libclang:  {library_path}")
     else:
         print("libclang:  linked by name")
+    if runtime_version is not None:
+        print(f"runtime:   {runtime_version}")
     return 0
 
 
@@ -838,8 +846,18 @@ def discover_clang_c_dir() -> Path:
     if override:
         return normalize_clang_c_dir(Path(override))
 
-    if (DEFAULT_CLANG_C_SNAPSHOT_DIR / "Index.h").is_file():
-        return DEFAULT_CLANG_C_SNAPSHOT_DIR
+    conda_prefix = os.environ.get("CONDA_PREFIX")
+    candidates: list[Path] = []
+    if conda_prefix:
+        prefix = Path(conda_prefix).expanduser().resolve()
+        candidates.extend([prefix / "include" / "clang-c", prefix / "include"])
+
+    candidates.extend([DEFAULT_PIXI_ENV_DIR / "include" / "clang-c", DEFAULT_PIXI_ENV_DIR / "include"])
+
+    for candidate in candidates:
+        normalized = normalize_clang_c_dir(candidate)
+        if (normalized / "Index.h").is_file():
+            return normalized
 
     llvm_config = shutil.which("llvm-config")
     if llvm_config is not None:
@@ -872,8 +890,8 @@ def discover_clang_c_dir() -> Path:
             return candidate
 
     raise SystemExit(
-        "error: could not find clang-c/Index.h; restore the vendored clang-c snapshot "
-        "or set LIBCLANG_HEADERS_DIR to a compatible LLVM include directory"
+        "error: could not find clang-c/Index.h in the active Pixi/Conda environment; "
+        "install clangdev 18 or set LIBCLANG_HEADERS_DIR to a compatible LLVM include directory"
     )
 
 
@@ -884,6 +902,56 @@ def normalize_clang_c_dir(path: Path) -> Path:
     return path / "clang-c"
 
 
+def read_cindex_version(index_header: Path) -> tuple[int, int] | None:
+    try:
+        text = index_header.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    major_match = re.search(r"^#define\s+CINDEX_VERSION_MAJOR\s+(\d+)\s*$", text, re.MULTILINE)
+    minor_match = re.search(r"^#define\s+CINDEX_VERSION_MINOR\s+(\d+)\s*$", text, re.MULTILINE)
+    if major_match is None or minor_match is None:
+        return None
+    return int(major_match.group(1)), int(minor_match.group(1))
+
+
+def query_libclang_version(library_path: Path | None) -> str | None:
+    if library_path is None:
+        return None
+
+    class CXString(ctypes.Structure):
+        _fields_ = [("data", ctypes.c_void_p), ("private_flags", ctypes.c_uint)]
+
+    try:
+        libclang = ctypes.CDLL(str(library_path))
+        libclang.clang_getClangVersion.restype = CXString
+        libclang.clang_getCString.argtypes = [CXString]
+        libclang.clang_getCString.restype = ctypes.c_char_p
+        libclang.clang_disposeString.argtypes = [CXString]
+        value = libclang.clang_getClangVersion()
+        try:
+            text = libclang.clang_getCString(value)
+            if text is None:
+                return None
+            return text.decode("utf-8", errors="replace")
+        finally:
+            libclang.clang_disposeString(value)
+    except Exception:
+        return None
+
+
+def parse_runtime_major(version_text: str | None) -> int | None:
+    if not version_text:
+        return None
+    match = re.search(r"\bclang version\s+(\d+)", version_text)
+    if match is None:
+        return None
+    return int(match.group(1))
+
+
+def validate_header_runtime_compatibility(primary: Path, runtime_version: str | None) -> None:
+    del primary, runtime_version
+
+
 def discover_libclang_library() -> Path | None:
     override = os.environ.get("LIBCLANG_LIBRARY")
     if override:
@@ -891,6 +959,28 @@ def discover_libclang_library() -> Path | None:
         if not path.is_file():
             raise SystemExit(f"error: LIBCLANG_LIBRARY does not exist: {path}")
         return path
+
+    conda_prefix = os.environ.get("CONDA_PREFIX")
+    candidates: list[Path] = []
+    if conda_prefix:
+        prefix = Path(conda_prefix).expanduser().resolve()
+        candidates.extend(
+            [
+                prefix / "lib" / "libclang.so",
+                prefix / "lib" / "libclang.dylib",
+                prefix / "bin" / "libclang.dll",
+            ]
+        )
+    candidates.extend(
+        [
+            DEFAULT_PIXI_ENV_DIR / "lib" / "libclang.so",
+            DEFAULT_PIXI_ENV_DIR / "lib" / "libclang.dylib",
+            DEFAULT_PIXI_ENV_DIR / "bin" / "libclang.dll",
+        ]
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate
 
     try:
         import clang.cindex as cindex

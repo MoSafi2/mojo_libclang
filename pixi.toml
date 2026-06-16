@@ -6,13 +6,16 @@ platforms = ["linux-64"]
 version = "0.1.0"
 
 [tasks]
+generate = "python scripts/generate_libclang_bindings.py"
 generate-libclang = "python scripts/generate_libclang_bindings.py"
-run-test = "mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
-build-test = "mojo build -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
+run-test = "env LD_LIBRARY_PATH=$PWD/build:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
+build-test = "env LD_LIBRARY_PATH=$PWD/build:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo build -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
 
 [dependencies]
 python = ">=3.14.5,<3.15"
 mojo = ">=1.0.0b1,<2"
+clangdev = "18.*"
+libclang = "18.*"
 
 [pypi-dependencies]
 mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen" }

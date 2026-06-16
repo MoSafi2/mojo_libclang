@@ -124,7 +124,7 @@ from src._ffi import (
     clang_Cursor_isBitField,
     clang_getFieldDeclBitWidth,
     clang_Cursor_getOffsetOfField,
-    # clang_getOffsetOfBase,
+    clang_getOffsetOfBase,
     clang_Cursor_getStorageClass,
     clang_Cursor_getMangling,
     clang_Cursor_getCXXManglings,
@@ -680,31 +680,6 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     # Cursor info (pretty-printed, overridden, overloaded, template)
     # -----------------------------------------------------------------------
 
-    def pretty_printed(
-        ref self,
-        policy: Optional[PrintingPolicy] = None,
-    ) raises -> String:
-        """Pretty-print the declaration referenced by this cursor.
-
-        If no ``PrintingPolicy`` is provided, a default policy is created and
-        disposed automatically.
-        """
-        from src.libclang.printing_policy import PrintingPolicy
-
-        self._check_valid()
-
-        var cs = _CXStringStorage()
-        if policy:
-            clang_getCursorPrettyPrinted(
-                cs.ptr_for_out(), self._ptr(), policy.value()._raw
-            )
-        else:
-            var default_policy = PrintingPolicy(self._ptr())
-            clang_getCursorPrettyPrinted(
-                cs.ptr_for_out(), self._ptr(), default_policy._raw
-            )
-        return cs.take()
-
     def overridden_cursors(ref self) raises -> List[Cursor]:
         self._check_valid()
         var overridden_slot: InlineArray[
@@ -937,11 +912,11 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Alias for ``get_offset_of_field()`` matching the Python name."""
         return self.get_offset_of_field()
 
-    # def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
-    #     """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``."""
-    #     self._check_valid()
-    #     parent._check_valid()
-    #     return clang_getOffsetOfBase(parent._ptr(), self._ptr())
+    def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
+        """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``."""
+        self._check_valid()
+        parent._check_valid()
+        return clang_getOffsetOfBase(parent._ptr(), self._ptr())
 
     def is_function_inlined(ref self) raises -> Bool:
         self._check_valid()

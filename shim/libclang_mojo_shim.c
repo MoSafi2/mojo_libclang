@@ -241,28 +241,6 @@ static mojo_fn_clang_ModuleMapDescriptor_dispose mojo_load_clang_ModuleMapDescri
     return fn;
 }
 
-typedef void (*mojo_fn_clang_ModuleCache_prune)(const char * Path, time_t PruneInterval, time_t PruneAfter);
-static mojo_fn_clang_ModuleCache_prune mojo_load_clang_ModuleCache_prune(void) {
-    static mojo_fn_clang_ModuleCache_prune fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_ModuleCache_prune)mojo_require_libclang_symbol("clang_ModuleCache_prune");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef void (*mojo_fn_clang_ModuleCache_pruneWithCallback)(const char * Path, time_t PruneInterval, time_t PruneAfter, void (*Callback)(const char * arg0, void * arg1), void * UserData);
-static mojo_fn_clang_ModuleCache_pruneWithCallback mojo_load_clang_ModuleCache_pruneWithCallback(void) {
-    static mojo_fn_clang_ModuleCache_pruneWithCallback fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_ModuleCache_pruneWithCallback)mojo_require_libclang_symbol("clang_ModuleCache_pruneWithCallback");
-        initialized = 1;
-    }
-    return fn;
-}
-
 typedef CXString (*mojo_fn_clang_getFileName)(CXFile SFile);
 static mojo_fn_clang_getFileName mojo_load_clang_getFileName(void) {
     static mojo_fn_clang_getFileName fn = NULL;
@@ -335,17 +313,6 @@ static mojo_fn_clang_equalLocations mojo_load_clang_equalLocations(void) {
     static int initialized = 0;
     if (!initialized) {
         fn = (mojo_fn_clang_equalLocations)mojo_require_libclang_symbol("clang_equalLocations");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_isBeforeInTranslationUnit)(CXSourceLocation loc1, CXSourceLocation loc2);
-static mojo_fn_clang_isBeforeInTranslationUnit mojo_load_clang_isBeforeInTranslationUnit(void) {
-    static mojo_fn_clang_isBeforeInTranslationUnit fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_isBeforeInTranslationUnit)mojo_require_libclang_symbol("clang_isBeforeInTranslationUnit");
         initialized = 1;
     }
     return fn;
@@ -2298,45 +2265,12 @@ static mojo_fn_clang_isVirtualBase mojo_load_clang_isVirtualBase(void) {
     return fn;
 }
 
-typedef long long (*mojo_fn_clang_getOffsetOfBase)(CXCursor Parent, CXCursor Base);
-static mojo_fn_clang_getOffsetOfBase mojo_load_clang_getOffsetOfBase(void) {
-    static mojo_fn_clang_getOffsetOfBase fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_getOffsetOfBase)mojo_require_libclang_symbol("clang_getOffsetOfBase");
-        initialized = 1;
-    }
-    return fn;
-}
-
 typedef enum CX_CXXAccessSpecifier (*mojo_fn_clang_getCXXAccessSpecifier)(CXCursor arg0);
 static mojo_fn_clang_getCXXAccessSpecifier mojo_load_clang_getCXXAccessSpecifier(void) {
     static mojo_fn_clang_getCXXAccessSpecifier fn = NULL;
     static int initialized = 0;
     if (!initialized) {
         fn = (mojo_fn_clang_getCXXAccessSpecifier)mojo_require_libclang_symbol("clang_getCXXAccessSpecifier");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef enum CX_BinaryOperatorKind (*mojo_fn_clang_Cursor_getBinaryOpcode)(CXCursor C);
-static mojo_fn_clang_Cursor_getBinaryOpcode mojo_load_clang_Cursor_getBinaryOpcode(void) {
-    static mojo_fn_clang_Cursor_getBinaryOpcode fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getBinaryOpcode)mojo_require_libclang_symbol("clang_Cursor_getBinaryOpcode");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXString (*mojo_fn_clang_Cursor_getBinaryOpcodeStr)(enum CX_BinaryOperatorKind Op);
-static mojo_fn_clang_Cursor_getBinaryOpcodeStr mojo_load_clang_Cursor_getBinaryOpcodeStr(void) {
-    static mojo_fn_clang_Cursor_getBinaryOpcodeStr fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getBinaryOpcodeStr)mojo_require_libclang_symbol("clang_Cursor_getBinaryOpcodeStr");
         initialized = 1;
     }
     return fn;
@@ -2557,28 +2491,6 @@ static mojo_fn_clang_getCursorPrettyPrinted mojo_load_clang_getCursorPrettyPrint
     static int initialized = 0;
     if (!initialized) {
         fn = (mojo_fn_clang_getCursorPrettyPrinted)mojo_require_libclang_symbol("clang_getCursorPrettyPrinted");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXString (*mojo_fn_clang_getTypePrettyPrinted)(CXType CT, CXPrintingPolicy cxPolicy);
-static mojo_fn_clang_getTypePrettyPrinted mojo_load_clang_getTypePrettyPrinted(void) {
-    static mojo_fn_clang_getTypePrettyPrinted fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_getTypePrettyPrinted)mojo_require_libclang_symbol("clang_getTypePrettyPrinted");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXString (*mojo_fn_clang_getFullyQualifiedName)(CXType CT, CXPrintingPolicy Policy, unsigned int WithGlobalNsPrefix);
-static mojo_fn_clang_getFullyQualifiedName mojo_load_clang_getFullyQualifiedName(void) {
-    static mojo_fn_clang_getFullyQualifiedName fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_getFullyQualifiedName)mojo_require_libclang_symbol("clang_getFullyQualifiedName");
         initialized = 1;
     }
     return fn;
@@ -2810,105 +2722,6 @@ static mojo_fn_clang_Cursor_getObjCManglings mojo_load_clang_Cursor_getObjCMangl
     static int initialized = 0;
     if (!initialized) {
         fn = (mojo_fn_clang_Cursor_getObjCManglings)mojo_require_libclang_symbol("clang_Cursor_getObjCManglings");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXString (*mojo_fn_clang_Cursor_getGCCAssemblyTemplate)(CXCursor arg0);
-static mojo_fn_clang_Cursor_getGCCAssemblyTemplate mojo_load_clang_Cursor_getGCCAssemblyTemplate(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyTemplate fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyTemplate)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyTemplate");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_isGCCAssemblyHasGoto)(CXCursor arg0);
-static mojo_fn_clang_Cursor_isGCCAssemblyHasGoto mojo_load_clang_Cursor_isGCCAssemblyHasGoto(void) {
-    static mojo_fn_clang_Cursor_isGCCAssemblyHasGoto fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_isGCCAssemblyHasGoto)mojo_require_libclang_symbol("clang_Cursor_isGCCAssemblyHasGoto");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_getGCCAssemblyNumOutputs)(CXCursor arg0);
-static mojo_fn_clang_Cursor_getGCCAssemblyNumOutputs mojo_load_clang_Cursor_getGCCAssemblyNumOutputs(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyNumOutputs fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyNumOutputs)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyNumOutputs");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_getGCCAssemblyNumInputs)(CXCursor arg0);
-static mojo_fn_clang_Cursor_getGCCAssemblyNumInputs mojo_load_clang_Cursor_getGCCAssemblyNumInputs(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyNumInputs fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyNumInputs)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyNumInputs");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_getGCCAssemblyInput)(CXCursor Cursor, unsigned int Index, CXString * Constraint, CXCursor * Expr);
-static mojo_fn_clang_Cursor_getGCCAssemblyInput mojo_load_clang_Cursor_getGCCAssemblyInput(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyInput fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyInput)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyInput");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_getGCCAssemblyOutput)(CXCursor Cursor, unsigned int Index, CXString * Constraint, CXCursor * Expr);
-static mojo_fn_clang_Cursor_getGCCAssemblyOutput mojo_load_clang_Cursor_getGCCAssemblyOutput(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyOutput fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyOutput)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyOutput");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_getGCCAssemblyNumClobbers)(CXCursor Cursor);
-static mojo_fn_clang_Cursor_getGCCAssemblyNumClobbers mojo_load_clang_Cursor_getGCCAssemblyNumClobbers(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyNumClobbers fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyNumClobbers)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyNumClobbers");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXString (*mojo_fn_clang_Cursor_getGCCAssemblyClobber)(CXCursor Cursor, unsigned int Index);
-static mojo_fn_clang_Cursor_getGCCAssemblyClobber mojo_load_clang_Cursor_getGCCAssemblyClobber(void) {
-    static mojo_fn_clang_Cursor_getGCCAssemblyClobber fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_getGCCAssemblyClobber)mojo_require_libclang_symbol("clang_Cursor_getGCCAssemblyClobber");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_Cursor_isGCCAssemblyVolatile)(CXCursor Cursor);
-static mojo_fn_clang_Cursor_isGCCAssemblyVolatile mojo_load_clang_Cursor_isGCCAssemblyVolatile(void) {
-    static mojo_fn_clang_Cursor_isGCCAssemblyVolatile fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_Cursor_isGCCAssemblyVolatile)mojo_require_libclang_symbol("clang_Cursor_isGCCAssemblyVolatile");
         initialized = 1;
     }
     return fn;
@@ -3739,6 +3552,61 @@ static mojo_fn_clang_EvalResult_dispose mojo_load_clang_EvalResult_dispose(void)
     return fn;
 }
 
+typedef CXRemapping (*mojo_fn_clang_getRemappings)(const char * path);
+static mojo_fn_clang_getRemappings mojo_load_clang_getRemappings(void) {
+    static mojo_fn_clang_getRemappings fn = NULL;
+    static int initialized = 0;
+    if (!initialized) {
+        fn = (mojo_fn_clang_getRemappings)mojo_require_libclang_symbol("clang_getRemappings");
+        initialized = 1;
+    }
+    return fn;
+}
+
+typedef CXRemapping (*mojo_fn_clang_getRemappingsFromFileList)(const char * * filePaths, unsigned int numFiles);
+static mojo_fn_clang_getRemappingsFromFileList mojo_load_clang_getRemappingsFromFileList(void) {
+    static mojo_fn_clang_getRemappingsFromFileList fn = NULL;
+    static int initialized = 0;
+    if (!initialized) {
+        fn = (mojo_fn_clang_getRemappingsFromFileList)mojo_require_libclang_symbol("clang_getRemappingsFromFileList");
+        initialized = 1;
+    }
+    return fn;
+}
+
+typedef unsigned int (*mojo_fn_clang_remap_getNumFiles)(CXRemapping arg0);
+static mojo_fn_clang_remap_getNumFiles mojo_load_clang_remap_getNumFiles(void) {
+    static mojo_fn_clang_remap_getNumFiles fn = NULL;
+    static int initialized = 0;
+    if (!initialized) {
+        fn = (mojo_fn_clang_remap_getNumFiles)mojo_require_libclang_symbol("clang_remap_getNumFiles");
+        initialized = 1;
+    }
+    return fn;
+}
+
+typedef void (*mojo_fn_clang_remap_getFilenames)(CXRemapping arg0, unsigned int index, CXString * original, CXString * transformed);
+static mojo_fn_clang_remap_getFilenames mojo_load_clang_remap_getFilenames(void) {
+    static mojo_fn_clang_remap_getFilenames fn = NULL;
+    static int initialized = 0;
+    if (!initialized) {
+        fn = (mojo_fn_clang_remap_getFilenames)mojo_require_libclang_symbol("clang_remap_getFilenames");
+        initialized = 1;
+    }
+    return fn;
+}
+
+typedef void (*mojo_fn_clang_remap_dispose)(CXRemapping arg0);
+static mojo_fn_clang_remap_dispose mojo_load_clang_remap_dispose(void) {
+    static mojo_fn_clang_remap_dispose fn = NULL;
+    static int initialized = 0;
+    if (!initialized) {
+        fn = (mojo_fn_clang_remap_dispose)mojo_require_libclang_symbol("clang_remap_dispose");
+        initialized = 1;
+    }
+    return fn;
+}
+
 typedef CXResult (*mojo_fn_clang_findReferencesInFile)(CXCursor cursor, CXFile file, CXCursorAndRangeVisitor visitor);
 static mojo_fn_clang_findReferencesInFile mojo_load_clang_findReferencesInFile(void) {
     static mojo_fn_clang_findReferencesInFile fn = NULL;
@@ -4003,28 +3871,6 @@ static mojo_fn_clang_Type_visitFields mojo_load_clang_Type_visitFields(void) {
     return fn;
 }
 
-typedef unsigned int (*mojo_fn_clang_visitCXXBaseClasses)(CXType T, enum CXVisitorResult (*visitor)(CXCursor arg0, void * arg1), CXClientData client_data);
-static mojo_fn_clang_visitCXXBaseClasses mojo_load_clang_visitCXXBaseClasses(void) {
-    static mojo_fn_clang_visitCXXBaseClasses fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_visitCXXBaseClasses)mojo_require_libclang_symbol("clang_visitCXXBaseClasses");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_visitCXXMethods)(CXType T, enum CXVisitorResult (*visitor)(CXCursor arg0, void * arg1), CXClientData client_data);
-static mojo_fn_clang_visitCXXMethods mojo_load_clang_visitCXXMethods(void) {
-    static mojo_fn_clang_visitCXXMethods fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_visitCXXMethods)mojo_require_libclang_symbol("clang_visitCXXMethods");
-        initialized = 1;
-    }
-    return fn;
-}
-
 typedef CXString (*mojo_fn_clang_getBinaryOperatorKindSpelling)(enum CXBinaryOperatorKind kind);
 static mojo_fn_clang_getBinaryOperatorKindSpelling mojo_load_clang_getBinaryOperatorKindSpelling(void) {
     static mojo_fn_clang_getBinaryOperatorKindSpelling fn = NULL;
@@ -4064,61 +3910,6 @@ static mojo_fn_clang_getCursorUnaryOperatorKind mojo_load_clang_getCursorUnaryOp
     static int initialized = 0;
     if (!initialized) {
         fn = (mojo_fn_clang_getCursorUnaryOperatorKind)mojo_require_libclang_symbol("clang_getCursorUnaryOperatorKind");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXRemapping (*mojo_fn_clang_getRemappings)(const char * arg0);
-static mojo_fn_clang_getRemappings mojo_load_clang_getRemappings(void) {
-    static mojo_fn_clang_getRemappings fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_getRemappings)mojo_require_libclang_symbol("clang_getRemappings");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef CXRemapping (*mojo_fn_clang_getRemappingsFromFileList)(const char * * arg0, unsigned int arg1);
-static mojo_fn_clang_getRemappingsFromFileList mojo_load_clang_getRemappingsFromFileList(void) {
-    static mojo_fn_clang_getRemappingsFromFileList fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_getRemappingsFromFileList)mojo_require_libclang_symbol("clang_getRemappingsFromFileList");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef unsigned int (*mojo_fn_clang_remap_getNumFiles)(CXRemapping arg0);
-static mojo_fn_clang_remap_getNumFiles mojo_load_clang_remap_getNumFiles(void) {
-    static mojo_fn_clang_remap_getNumFiles fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_remap_getNumFiles)mojo_require_libclang_symbol("clang_remap_getNumFiles");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef void (*mojo_fn_clang_remap_getFilenames)(CXRemapping arg0, unsigned int arg1, CXString * arg2, CXString * arg3);
-static mojo_fn_clang_remap_getFilenames mojo_load_clang_remap_getFilenames(void) {
-    static mojo_fn_clang_remap_getFilenames fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_remap_getFilenames)mojo_require_libclang_symbol("clang_remap_getFilenames");
-        initialized = 1;
-    }
-    return fn;
-}
-
-typedef void (*mojo_fn_clang_remap_dispose)(CXRemapping arg0);
-static mojo_fn_clang_remap_dispose mojo_load_clang_remap_dispose(void) {
-    static mojo_fn_clang_remap_dispose fn = NULL;
-    static int initialized = 0;
-    if (!initialized) {
-        fn = (mojo_fn_clang_remap_dispose)mojo_require_libclang_symbol("clang_remap_dispose");
         initialized = 1;
     }
     return fn;
@@ -4907,16 +4698,6 @@ MOJO_SHIM_EXPORT void mojo_clang_ModuleMapDescriptor_dispose(CXModuleMapDescript
     target(arg0);
 }
 
-MOJO_SHIM_EXPORT void mojo_clang_ModuleCache_prune(const char * Path, time_t PruneInterval, time_t PruneAfter) {
-    mojo_fn_clang_ModuleCache_prune target = mojo_load_clang_ModuleCache_prune();
-    target(Path, PruneInterval, PruneAfter);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_ModuleCache_pruneWithCallback(const char * Path, time_t PruneInterval, time_t PruneAfter, void (*Callback)(const char * arg0, void * arg1), void * UserData) {
-    mojo_fn_clang_ModuleCache_pruneWithCallback target = mojo_load_clang_ModuleCache_pruneWithCallback();
-    target(Path, PruneInterval, PruneAfter, Callback, UserData);
-}
-
 MOJO_SHIM_EXPORT void mojo_clang_getFileName(CXString * out, CXFile SFile) {
     mojo_fn_clang_getFileName target = mojo_load_clang_getFileName();
     *out = target(SFile);
@@ -4949,11 +4730,6 @@ MOJO_SHIM_EXPORT void mojo_clang_getNullLocation(CXSourceLocation * out) {
 
 MOJO_SHIM_EXPORT unsigned int mojo_clang_equalLocations(const CXSourceLocation * loc1, const CXSourceLocation * loc2) {
     mojo_fn_clang_equalLocations target = mojo_load_clang_equalLocations();
-    return target(*loc1, *loc2);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_isBeforeInTranslationUnit(const CXSourceLocation * loc1, const CXSourceLocation * loc2) {
-    mojo_fn_clang_isBeforeInTranslationUnit target = mojo_load_clang_isBeforeInTranslationUnit();
     return target(*loc1, *loc2);
 }
 
@@ -5842,24 +5618,9 @@ MOJO_SHIM_EXPORT unsigned int mojo_clang_isVirtualBase(const CXCursor * arg0) {
     return target(*arg0);
 }
 
-MOJO_SHIM_EXPORT long long mojo_clang_getOffsetOfBase(const CXCursor * Parent, const CXCursor * Base) {
-    mojo_fn_clang_getOffsetOfBase target = mojo_load_clang_getOffsetOfBase();
-    return target(*Parent, *Base);
-}
-
 MOJO_SHIM_EXPORT enum CX_CXXAccessSpecifier mojo_clang_getCXXAccessSpecifier(const CXCursor * arg0) {
     mojo_fn_clang_getCXXAccessSpecifier target = mojo_load_clang_getCXXAccessSpecifier();
     return target(*arg0);
-}
-
-MOJO_SHIM_EXPORT enum CX_BinaryOperatorKind mojo_clang_Cursor_getBinaryOpcode(const CXCursor * C) {
-    mojo_fn_clang_Cursor_getBinaryOpcode target = mojo_load_clang_Cursor_getBinaryOpcode();
-    return target(*C);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_Cursor_getBinaryOpcodeStr(CXString * out, enum CX_BinaryOperatorKind Op) {
-    mojo_fn_clang_Cursor_getBinaryOpcodeStr target = mojo_load_clang_Cursor_getBinaryOpcodeStr();
-    *out = target(Op);
 }
 
 MOJO_SHIM_EXPORT enum CX_StorageClass mojo_clang_Cursor_getStorageClass(const CXCursor * arg0) {
@@ -5961,16 +5722,6 @@ MOJO_SHIM_EXPORT void mojo_clang_PrintingPolicy_dispose(CXPrintingPolicy Policy)
 MOJO_SHIM_EXPORT void mojo_clang_getCursorPrettyPrinted(CXString * out, const CXCursor * Cursor, CXPrintingPolicy Policy) {
     mojo_fn_clang_getCursorPrettyPrinted target = mojo_load_clang_getCursorPrettyPrinted();
     *out = target(*Cursor, Policy);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_getTypePrettyPrinted(CXString * out, const CXType * CT, CXPrintingPolicy cxPolicy) {
-    mojo_fn_clang_getTypePrettyPrinted target = mojo_load_clang_getTypePrettyPrinted();
-    *out = target(*CT, cxPolicy);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_getFullyQualifiedName(CXString * out, const CXType * CT, CXPrintingPolicy Policy, unsigned int WithGlobalNsPrefix) {
-    mojo_fn_clang_getFullyQualifiedName target = mojo_load_clang_getFullyQualifiedName();
-    *out = target(*CT, Policy, WithGlobalNsPrefix);
 }
 
 MOJO_SHIM_EXPORT void mojo_clang_getCursorDisplayName(CXString * out, const CXCursor * arg1) {
@@ -6076,51 +5827,6 @@ MOJO_SHIM_EXPORT CXStringSet * mojo_clang_Cursor_getCXXManglings(const CXCursor 
 MOJO_SHIM_EXPORT CXStringSet * mojo_clang_Cursor_getObjCManglings(const CXCursor * arg0) {
     mojo_fn_clang_Cursor_getObjCManglings target = mojo_load_clang_Cursor_getObjCManglings();
     return target(*arg0);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_Cursor_getGCCAssemblyTemplate(CXString * out, const CXCursor * arg1) {
-    mojo_fn_clang_Cursor_getGCCAssemblyTemplate target = mojo_load_clang_Cursor_getGCCAssemblyTemplate();
-    *out = target(*arg1);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_isGCCAssemblyHasGoto(const CXCursor * arg0) {
-    mojo_fn_clang_Cursor_isGCCAssemblyHasGoto target = mojo_load_clang_Cursor_isGCCAssemblyHasGoto();
-    return target(*arg0);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_getGCCAssemblyNumOutputs(const CXCursor * arg0) {
-    mojo_fn_clang_Cursor_getGCCAssemblyNumOutputs target = mojo_load_clang_Cursor_getGCCAssemblyNumOutputs();
-    return target(*arg0);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_getGCCAssemblyNumInputs(const CXCursor * arg0) {
-    mojo_fn_clang_Cursor_getGCCAssemblyNumInputs target = mojo_load_clang_Cursor_getGCCAssemblyNumInputs();
-    return target(*arg0);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_getGCCAssemblyInput(const CXCursor * Cursor, unsigned int Index, CXString * Constraint, CXCursor * Expr) {
-    mojo_fn_clang_Cursor_getGCCAssemblyInput target = mojo_load_clang_Cursor_getGCCAssemblyInput();
-    return target(*Cursor, Index, Constraint, Expr);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_getGCCAssemblyOutput(const CXCursor * Cursor, unsigned int Index, CXString * Constraint, CXCursor * Expr) {
-    mojo_fn_clang_Cursor_getGCCAssemblyOutput target = mojo_load_clang_Cursor_getGCCAssemblyOutput();
-    return target(*Cursor, Index, Constraint, Expr);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_getGCCAssemblyNumClobbers(const CXCursor * Cursor) {
-    mojo_fn_clang_Cursor_getGCCAssemblyNumClobbers target = mojo_load_clang_Cursor_getGCCAssemblyNumClobbers();
-    return target(*Cursor);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_Cursor_getGCCAssemblyClobber(CXString * out, const CXCursor * Cursor, unsigned int Index) {
-    mojo_fn_clang_Cursor_getGCCAssemblyClobber target = mojo_load_clang_Cursor_getGCCAssemblyClobber();
-    *out = target(*Cursor, Index);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_Cursor_isGCCAssemblyVolatile(const CXCursor * Cursor) {
-    mojo_fn_clang_Cursor_isGCCAssemblyVolatile target = mojo_load_clang_Cursor_isGCCAssemblyVolatile();
-    return target(*Cursor);
 }
 
 MOJO_SHIM_EXPORT CXModule mojo_clang_Cursor_getModule(const CXCursor * C) {
@@ -6498,6 +6204,31 @@ MOJO_SHIM_EXPORT void mojo_clang_EvalResult_dispose(CXEvalResult E) {
     target(E);
 }
 
+MOJO_SHIM_EXPORT CXRemapping mojo_clang_getRemappings(const char * path) {
+    mojo_fn_clang_getRemappings target = mojo_load_clang_getRemappings();
+    return target(path);
+}
+
+MOJO_SHIM_EXPORT CXRemapping mojo_clang_getRemappingsFromFileList(const char * * filePaths, unsigned int numFiles) {
+    mojo_fn_clang_getRemappingsFromFileList target = mojo_load_clang_getRemappingsFromFileList();
+    return target(filePaths, numFiles);
+}
+
+MOJO_SHIM_EXPORT unsigned int mojo_clang_remap_getNumFiles(CXRemapping arg0) {
+    mojo_fn_clang_remap_getNumFiles target = mojo_load_clang_remap_getNumFiles();
+    return target(arg0);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_remap_getFilenames(CXRemapping arg0, unsigned int index, CXString * original, CXString * transformed) {
+    mojo_fn_clang_remap_getFilenames target = mojo_load_clang_remap_getFilenames();
+    target(arg0, index, original, transformed);
+}
+
+MOJO_SHIM_EXPORT void mojo_clang_remap_dispose(CXRemapping arg0) {
+    mojo_fn_clang_remap_dispose target = mojo_load_clang_remap_dispose();
+    target(arg0);
+}
+
 MOJO_SHIM_EXPORT CXResult mojo_clang_findReferencesInFile(const CXCursor * cursor, CXFile file, const CXCursorAndRangeVisitor * visitor) {
     mojo_fn_clang_findReferencesInFile target = mojo_load_clang_findReferencesInFile();
     MojoCXCursorAndRangeVisitorContext visitor_ctx = { .visitor = visitor };
@@ -6629,18 +6360,6 @@ MOJO_SHIM_EXPORT unsigned int mojo_clang_Type_visitFields(const CXType * T, enum
     return target(*T, mojo_CXFieldVisitor_trampoline, &ctx);
 }
 
-MOJO_SHIM_EXPORT unsigned int mojo_clang_visitCXXBaseClasses(const CXType * T, enum CXVisitorResult (*visitor)(const CXCursor * arg0, void * arg1), CXClientData client_data) {
-    mojo_fn_clang_visitCXXBaseClasses target = mojo_load_clang_visitCXXBaseClasses();
-    MojoCXFieldVisitorContext ctx = { .fn = visitor, .client_data = client_data };
-    return target(*T, mojo_CXFieldVisitor_trampoline, &ctx);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_visitCXXMethods(const CXType * T, enum CXVisitorResult (*visitor)(const CXCursor * arg0, void * arg1), CXClientData client_data) {
-    mojo_fn_clang_visitCXXMethods target = mojo_load_clang_visitCXXMethods();
-    MojoCXFieldVisitorContext ctx = { .fn = visitor, .client_data = client_data };
-    return target(*T, mojo_CXFieldVisitor_trampoline, &ctx);
-}
-
 MOJO_SHIM_EXPORT void mojo_clang_getBinaryOperatorKindSpelling(CXString * out, enum CXBinaryOperatorKind kind) {
     mojo_fn_clang_getBinaryOperatorKindSpelling target = mojo_load_clang_getBinaryOperatorKindSpelling();
     *out = target(kind);
@@ -6659,31 +6378,6 @@ MOJO_SHIM_EXPORT void mojo_clang_getUnaryOperatorKindSpelling(CXString * out, en
 MOJO_SHIM_EXPORT enum CXUnaryOperatorKind mojo_clang_getCursorUnaryOperatorKind(const CXCursor * cursor) {
     mojo_fn_clang_getCursorUnaryOperatorKind target = mojo_load_clang_getCursorUnaryOperatorKind();
     return target(*cursor);
-}
-
-MOJO_SHIM_EXPORT CXRemapping mojo_clang_getRemappings(const char * arg0) {
-    mojo_fn_clang_getRemappings target = mojo_load_clang_getRemappings();
-    return target(arg0);
-}
-
-MOJO_SHIM_EXPORT CXRemapping mojo_clang_getRemappingsFromFileList(const char * * arg0, unsigned int arg1) {
-    mojo_fn_clang_getRemappingsFromFileList target = mojo_load_clang_getRemappingsFromFileList();
-    return target(arg0, arg1);
-}
-
-MOJO_SHIM_EXPORT unsigned int mojo_clang_remap_getNumFiles(CXRemapping arg0) {
-    mojo_fn_clang_remap_getNumFiles target = mojo_load_clang_remap_getNumFiles();
-    return target(arg0);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_remap_getFilenames(CXRemapping arg0, unsigned int arg1, CXString * arg2, CXString * arg3) {
-    mojo_fn_clang_remap_getFilenames target = mojo_load_clang_remap_getFilenames();
-    target(arg0, arg1, arg2, arg3);
-}
-
-MOJO_SHIM_EXPORT void mojo_clang_remap_dispose(CXRemapping arg0) {
-    mojo_fn_clang_remap_dispose target = mojo_load_clang_remap_dispose();
-    target(arg0);
 }
 
 MOJO_SHIM_EXPORT void mojo_clang_Cursor_getParsedComment(CXComment * out, const CXCursor * C) {
