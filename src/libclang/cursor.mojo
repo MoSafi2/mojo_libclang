@@ -15,6 +15,8 @@ from src._ffi import (
     CXCursorKind,
     CXTranslationUnit,
     CXType,
+    CXString,
+    CXStringSet,
     CXSourceLocation,
     CXSourceRange,
     CXFile,
@@ -122,8 +124,11 @@ from src._ffi import (
     clang_Cursor_isBitField,
     clang_getFieldDeclBitWidth,
     clang_Cursor_getOffsetOfField,
+    clang_getOffsetOfBase,
     clang_Cursor_getStorageClass,
     clang_Cursor_getMangling,
+    clang_Cursor_getCXXManglings,
+    clang_Cursor_getObjCManglings,
     clang_getEnumConstantDeclValue,
     clang_getEnumConstantDeclUnsignedValue,
     clang_CXXConstructor_isConvertingConstructor,
@@ -132,9 +137,31 @@ from src._ffi import (
     clang_CXXConstructor_isMoveConstructor,
     clang_CXXField_isMutable,
     clang_getDeclObjCTypeEncoding,
+    clang_getIBOutletCollectionType,
+    clang_Cursor_getObjCSelectorIndex,
+    clang_Cursor_isDynamicCall,
+    clang_Cursor_getReceiverType,
+    clang_Cursor_getObjCPropertyAttributes,
+    clang_Cursor_getObjCPropertyGetterName,
+    clang_Cursor_getObjCPropertySetterName,
+    clang_Cursor_getObjCDeclQualifiers,
+    clang_Cursor_isObjCOptional,
+    clang_Cursor_getBinaryOpcode,
+    clang_Cursor_getBinaryOpcodeStr,
     clang_getCursorBinaryOperatorKind,
     clang_getCursorUnaryOperatorKind,
+    clang_Cursor_getGCCAssemblyTemplate,
+    clang_Cursor_isGCCAssemblyHasGoto,
+    clang_Cursor_getGCCAssemblyNumOutputs,
+    clang_Cursor_getGCCAssemblyNumInputs,
+    clang_Cursor_getGCCAssemblyInput,
+    clang_Cursor_getGCCAssemblyOutput,
+    clang_Cursor_getGCCAssemblyNumClobbers,
+    clang_Cursor_getGCCAssemblyClobber,
+    clang_Cursor_isGCCAssemblyVolatile,
     clang_Cursor_isFunctionInlined,
+    clang_disposeStringSet,
+    c_char,
     c_uint,
     c_int,
     c_long_long,
@@ -162,7 +189,7 @@ from src.libclang.enums import (
     UnaryOperator,
 )
 
-from src.libclang.common import _CXStringStorage
+from src.libclang.common import _CXStringStorage, _take_cxstring
 from src.libclang.advanced import (
     PlatformAvailability,
     EvalResult,
@@ -911,15 +938,10 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return self.get_offset_of_field()
 
     def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
-        """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``.
-
-        Note: This falls back to ``clang_Cursor_getOffsetOfField`` because the
-        upstream ``clang_getOffsetOfBase`` helper is not exposed by the
-        generated raw FFI for this libclang version.
-        """
+        """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``."""
         self._check_valid()
         parent._check_valid()
-        return clang_Cursor_getOffsetOfField(self._ptr())
+        return clang_getOffsetOfBase(parent._ptr(), self._ptr())
 
     def is_function_inlined(ref self) raises -> Bool:
         self._check_valid()
@@ -948,6 +970,18 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         var cs = _CXStringStorage()
         clang_Cursor_getMangling(cs.ptr_for_out(), self._ptr())
         return cs.take()
+
+    def cxx_manglings(ref self) raises -> List[String]:
+        self._check_valid()
+        return _string_list_from_cxstringset(
+            clang_Cursor_getCXXManglings(self._ptr())
+        )
+
+    def objc_manglings(ref self) raises -> List[String]:
+        self._check_valid()
+        return _string_list_from_cxstringset(
+            clang_Cursor_getObjCManglings(self._ptr())
+        )
 
     def enum_value(ref self) raises -> c_long_long:
         """Return the value of an enum constant declaration.
@@ -993,6 +1027,76 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_getDeclObjCTypeEncoding(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
+    def iboutlet_collection_type(ref self) raises -> Optional[Type]:
+        from src.libclang.type_ import Type
+
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_getIBOutletCollectionType(out._ptr(), self._ptr())
+        if out.kind() == TypeKind.INVALID:
+            return None
+        out._cache_spelling()
+        return Optional[Type](out^)
+
+    def objc_selector_index(ref self) raises -> c_int:
+        self._check_valid()
+        return clang_Cursor_getObjCSelectorIndex(self._ptr())
+
+    def is_dynamic_call(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isDynamicCall(self._ptr()))
+
+    def receiver_type(ref self) raises -> Optional[Type]:
+        from src.libclang.type_ import Type
+
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_Cursor_getReceiverType(out._ptr(), self._ptr())
+        if out.kind() == TypeKind.INVALID:
+            return None
+        out._cache_spelling()
+        return Optional[Type](out^)
+
+    def objc_property_attributes(
+        ref self,
+        reserved: c_uint = c_uint(0),
+    ) raises -> c_uint:
+        self._check_valid()
+        return clang_Cursor_getObjCPropertyAttributes(self._ptr(), reserved)
+
+    def objc_property_getter_name(ref self) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getObjCPropertyGetterName(cs.ptr_for_out(), self._ptr())
+        return cs.take()
+
+    def objc_property_setter_name(ref self) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getObjCPropertySetterName(cs.ptr_for_out(), self._ptr())
+        return cs.take()
+
+    def objc_decl_qualifiers(ref self) raises -> c_uint:
+        self._check_valid()
+        return clang_Cursor_getObjCDeclQualifiers(self._ptr())
+
+    def is_objc_optional(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isObjCOptional(self._ptr()))
+
+    def binary_opcode(ref self) raises -> BinaryOperator:
+        self._check_valid()
+        return BinaryOperator(c_uint(clang_Cursor_getBinaryOpcode(self._ptr())))
+
+    def binary_opcode_spelling(ref self) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getBinaryOpcodeStr(
+            cs.ptr_for_out(),
+            clang_Cursor_getBinaryOpcode(self._ptr()),
+        )
+        return cs.take()
+
     def binary_operator(ref self) raises -> BinaryOperator:
         """Return the binary operator kind for a binary operator cursor."""
         self._check_valid()
@@ -1002,6 +1106,54 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return the unary operator kind for a unary operator cursor."""
         self._check_valid()
         return UnaryOperator(clang_getCursorUnaryOperatorKind(self._ptr()))
+
+    def gcc_assembly_template(ref self) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getGCCAssemblyTemplate(cs.ptr_for_out(), self._ptr())
+        return cs.take()
+
+    def gcc_assembly_has_goto(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isGCCAssemblyHasGoto(self._ptr()))
+
+    def gcc_assembly_num_outputs(ref self) raises -> c_uint:
+        self._check_valid()
+        return clang_Cursor_getGCCAssemblyNumOutputs(self._ptr())
+
+    def gcc_assembly_num_inputs(ref self) raises -> c_uint:
+        self._check_valid()
+        return clang_Cursor_getGCCAssemblyNumInputs(self._ptr())
+
+    def gcc_assembly_num_clobbers(ref self) raises -> c_uint:
+        self._check_valid()
+        return clang_Cursor_getGCCAssemblyNumClobbers(self._ptr())
+
+    def gcc_assembly_is_volatile(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isGCCAssemblyVolatile(self._ptr()))
+
+    def gcc_assembly_input_constraint(ref self, index: c_uint) raises -> String:
+        self._check_valid()
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).constraint
+
+    def gcc_assembly_input_expr(ref self, index: c_uint) raises -> Optional[Self]:
+        self._check_valid()
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr
+
+    def gcc_assembly_output_constraint(ref self, index: c_uint) raises -> String:
+        self._check_valid()
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).constraint
+
+    def gcc_assembly_output_expr(ref self, index: c_uint) raises -> Optional[Self]:
+        self._check_valid()
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr
+
+    def gcc_assembly_clobber(ref self, index: c_uint) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Cursor_getGCCAssemblyClobber(cs.ptr_for_out(), self._ptr(), index)
+        return cs.take()
 
     def get_included_file(ref self) raises -> Optional[File]:
         from src.libclang.file import File
@@ -1146,6 +1298,69 @@ struct CursorChildrenIterator(Iterator, Movable):
         var result = self._children[self._index].copy()
         self._index += 1
         return result^
+
+
+@fieldwise_init
+struct _GCCAssemblyOperandInfo(Movable):
+    var constraint: String
+    var expr: Optional[Cursor]
+
+
+def _take_cxstring_value(raw: CXString) raises -> String:
+    var slot = alloc[CXString](1)
+    slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
+    var ptr = rebind[UnsafePointer[CXString, MutExternalOrigin]](slot)
+    var out = _take_cxstring(ptr)
+    slot.free()
+    return out
+
+
+def _string_list_from_cxstringset(
+    raw: Optional[UnsafePointer[CXStringSet, MutExternalOrigin]],
+) raises -> List[String]:
+    var out = List[String]()
+    if not raw:
+        return out^
+
+    var strings = raw.value()[].Strings
+    var count = Int(raw.value()[].Count)
+    if strings:
+        for i in range(count):
+            out.append(_take_cxstring_value((strings.value() + i)[].copy()))
+    clang_disposeStringSet(raw)
+    return out^
+
+
+def _gcc_assembly_operand(
+    tu: ArcPointer[TranslationUnitState],
+    cursor: UnsafePointer[CXCursor, MutExternalOrigin],
+    index: c_uint,
+    is_input: Bool,
+) raises -> _GCCAssemblyOperandInfo:
+    var constraint = _CXStringStorage()
+    var expr = Cursor(tu=tu)
+    if is_input:
+        _ = clang_Cursor_getGCCAssemblyInput(
+            cursor,
+            index,
+            constraint.ptr_for_out(),
+            expr._ptr(),
+        )
+    else:
+        _ = clang_Cursor_getGCCAssemblyOutput(
+            cursor,
+            index,
+            constraint.ptr_for_out(),
+            expr._ptr(),
+        )
+
+    var maybe_expr: Optional[Cursor] = None
+    if not expr.is_null():
+        maybe_expr = Optional[Cursor](expr^)
+    return _GCCAssemblyOperandInfo(
+        constraint=constraint.take(),
+        expr=maybe_expr,
+    )
 
 
 def _zero_cursor() -> CXCursor:

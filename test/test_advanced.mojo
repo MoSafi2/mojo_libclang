@@ -137,7 +137,7 @@ def test_type_modified_and_nullability() raises:
     var tu = _parse()
     var cursor = _find_by_spelling(tu, "atomic_value")
     var typ = cursor.type()
-    _check(Int(typ.nullability()) >= 0)
+    _check(Int(typ.nullability().as_c_uint()) >= 0)
 
 
 def test_type_fields_via_visitor() raises:

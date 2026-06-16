@@ -15,6 +15,7 @@ from src._ffi import (
 )
 
 from src.libclang.enums import PrintingPolicyProperty
+from src.libclang.cursor import Cursor
 
 from std.memory import UnsafePointer
 
@@ -23,6 +24,12 @@ struct PrintingPolicy(Movable, Writable):
     """Owning wrapper around ``CXPrintingPolicy``."""
 
     var _raw: CXPrintingPolicy
+
+    def __init__(out self, ref cursor: Cursor) raises:
+        cursor._check_valid()
+        self._raw = clang_getCursorPrintingPolicy(cursor._ptr())
+        if not self._raw:
+            raise Error("PrintingPolicy: clang_getCursorPrintingPolicy returned null")
 
     def __init__(out self, cursor_ptr: UnsafePointer[CXCursor, MutExternalOrigin]) raises:
         """Create a policy from a cursor.
@@ -33,6 +40,10 @@ struct PrintingPolicy(Movable, Writable):
         self._raw = clang_getCursorPrintingPolicy(cursor_ptr)
         if not self._raw:
             raise Error("PrintingPolicy: clang_getCursorPrintingPolicy returned null")
+
+    @staticmethod
+    def create(ref cursor: Cursor) raises -> Self:
+        return Self(cursor)
 
     def __del__(deinit self):
         if self._raw:

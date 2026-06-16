@@ -6,6 +6,8 @@ from src.libclang import (
     Type,
     CallingConv,
     TypeKind,
+    TypeNullabilityKind,
+    PrintingPolicy,
 )
 from src._ffi import (
     CXCursorKind,
@@ -240,6 +242,23 @@ def test_type_get_calling_conv_name() raises:
     assert_equal(CallingConv.UNEXPOSED.name(), String("UNEXPOSED"))
 
 
+def test_type_pretty_printed() raises:
+    var tu = _parse_fixture()
+    var cursor = _find_cursor(tu, String("add"), CXCursor_FunctionDecl)
+    var policy = PrintingPolicy.create(cursor)
+    var text = cursor.type().pretty_printed(policy)
+    _check(text.byte_length() > 0, "pretty_printed should be non-empty")
+
+
+def test_type_get_fully_qualified_name() raises:
+    var tu = _parse_cxx()
+    var cursor = _find_cursor(tu, String("int_wrapper"), CXCursor_VarDecl)
+    var policy = PrintingPolicy.create(cursor)
+    var text = cursor.type().get_fully_qualified_name(policy)
+    _check(text.byte_length() > 0, "fully qualified name should be non-empty")
+    _check("Wrapper" in text, "fully qualified name should mention Wrapper")
+
+
 def test_type_get_value_type() raises:
     var tu = _parse_fixture()
     var t = _var_type(tu, String("atomic_value"))
@@ -258,6 +277,20 @@ def test_type_vector_element_type_and_count() raises:
 
     var element = t.element_type()
     assert_equal(Int(element.kind().as_c_uint()), Int(CXType_Int))
+
+
+def test_type_nullability_kind() raises:
+    var tu = _parse_fixture()
+    var t = _var_type(tu, String("global_ptr"))
+    var nullability = t.nullability()
+    _check(
+        nullability == TypeNullabilityKind.INVALID
+        or nullability == TypeNullabilityKind.UNSPECIFIED
+        or nullability == TypeNullabilityKind.NON_NULL
+        or nullability == TypeNullabilityKind.NULLABLE
+        or nullability == TypeNullabilityKind.NULLABLE_RESULT,
+        "nullability should return a typed enum value",
+    )
     assert_equal(Int(t.element_count()), 4)
 
 

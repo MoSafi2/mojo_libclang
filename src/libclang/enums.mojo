@@ -16,11 +16,17 @@ resources and are safe to copy freely.
 """
 
 from std import reflection
+from src.libclang.common import _CXStringStorage
 from src._ffi import (
     c_int,
     c_uint,
     CXCursorKind,
     CXTypeKind,
+    CXTypeNullabilityKind,
+    CXChoice,
+    CXGlobalOptFlags,
+    CXVisitorResult,
+    CXResult,
     CXTokenKind,
     CXLinkageKind,
     CXAvailabilityKind,
@@ -52,6 +58,8 @@ from src._ffi import (
     CXCursor_Namespace,
     CXCursor_TypeAliasDecl,
     CXCursor_UnexposedDecl,
+    clang_getCursorKindSpelling,
+    clang_getTypeKindSpelling,
     CXType_Invalid,
     CXType_Void,
     CXType_Bool,
@@ -269,6 +277,23 @@ from src._ffi import (
     CXPrintingPolicy_SuppressImplicitBase,
     CXPrintingPolicy_FullyQualifiedName,
     CXPrintingPolicy_LastProperty,
+    CXTypeNullability_NonNull,
+    CXTypeNullability_Nullable,
+    CXTypeNullability_Unspecified,
+    CXTypeNullability_Invalid,
+    CXTypeNullability_NullableResult,
+    CXChoice_Default,
+    CXChoice_Enabled,
+    CXChoice_Disabled,
+    CXGlobalOpt_None,
+    CXGlobalOpt_ThreadBackgroundPriorityForIndexing,
+    CXGlobalOpt_ThreadBackgroundPriorityForEditing,
+    CXGlobalOpt_ThreadBackgroundPriorityForAll,
+    CXVisit_Break,
+    CXVisit_Continue,
+    CXResult_Success,
+    CXResult_Invalid,
+    CXResult_VisitBreak,
 )
 
 
@@ -324,6 +349,11 @@ struct CursorKind(Equatable, ImplicitlyCopyable, Writable):
 
     def as_c_uint(self) -> c_uint:
         return self._value
+
+    def spelling(self) raises -> String:
+        var cs = _CXStringStorage()
+        clang_getCursorKindSpelling(cs.ptr_for_out(), self._value)
+        return cs.take()
 
     def is_declaration(self) -> Bool:
         return _is_cursor_kind_decl(self._value)
@@ -581,6 +611,11 @@ struct TypeKind(Equatable, ImplicitlyCopyable, Writable):
     def as_c_uint(self) -> c_uint:
         return self._value
 
+    def spelling(self) raises -> String:
+        var cs = _CXStringStorage()
+        clang_getTypeKindSpelling(cs.ptr_for_out(), self._value)
+        return cs.take()
+
     def __eq__(self, other: Self) -> Bool:
         return self._value == other._value
 
@@ -617,6 +652,12 @@ struct TypeKind(Equatable, ImplicitlyCopyable, Writable):
     comptime FLOAT128 = Self(c_uint(30))
     comptime HALF = Self(c_uint(31))
     comptime FLOAT16 = Self(c_uint(32))
+    comptime SHORT_ACCUM = Self(c_uint(33))
+    comptime ACCUM = Self(c_uint(34))
+    comptime LONG_ACCUM = Self(c_uint(35))
+    comptime USHORT_ACCUM = Self(c_uint(36))
+    comptime UACCUM = Self(c_uint(37))
+    comptime ULONG_ACCUM = Self(c_uint(38))
     comptime BFLOAT16 = Self(c_uint(39))
     comptime IBM128 = Self(c_uint(40))
     comptime FIRST_BUILTIN = Self(c_uint(2))
@@ -642,12 +683,111 @@ struct TypeKind(Equatable, ImplicitlyCopyable, Writable):
     comptime AUTO = Self(c_uint(118))
     comptime ELABORATED = Self(c_uint(119))
     comptime PIPE = Self(c_uint(120))
+    comptime OCL_IMAGE1D_RO = Self(c_uint(121))
+    comptime OCL_IMAGE1D_ARRAY_RO = Self(c_uint(122))
+    comptime OCL_IMAGE1D_BUFFER_RO = Self(c_uint(123))
+    comptime OCL_IMAGE2D_RO = Self(c_uint(124))
+    comptime OCL_IMAGE2D_ARRAY_RO = Self(c_uint(125))
+    comptime OCL_IMAGE2D_DEPTH_RO = Self(c_uint(126))
+    comptime OCL_IMAGE2D_ARRAY_DEPTH_RO = Self(c_uint(127))
+    comptime OCL_IMAGE2D_MSAA_RO = Self(c_uint(128))
+    comptime OCL_IMAGE2D_ARRAY_MSAA_RO = Self(c_uint(129))
+    comptime OCL_IMAGE2D_MSAA_DEPTH_RO = Self(c_uint(130))
+    comptime OCL_IMAGE2D_ARRAY_MSAA_DEPTH_RO = Self(c_uint(131))
+    comptime OCL_IMAGE3D_RO = Self(c_uint(132))
+    comptime OCL_IMAGE1D_WO = Self(c_uint(133))
+    comptime OCL_IMAGE1D_ARRAY_WO = Self(c_uint(134))
+    comptime OCL_IMAGE1D_BUFFER_WO = Self(c_uint(135))
+    comptime OCL_IMAGE2D_WO = Self(c_uint(136))
+    comptime OCL_IMAGE2D_ARRAY_WO = Self(c_uint(137))
+    comptime OCL_IMAGE2D_DEPTH_WO = Self(c_uint(138))
+    comptime OCL_IMAGE2D_ARRAY_DEPTH_WO = Self(c_uint(139))
+    comptime OCL_IMAGE2D_MSAA_WO = Self(c_uint(140))
+    comptime OCL_IMAGE2D_ARRAY_MSAA_WO = Self(c_uint(141))
+    comptime OCL_IMAGE2D_MSAA_DEPTH_WO = Self(c_uint(142))
+    comptime OCL_IMAGE2D_ARRAY_MSAA_DEPTH_WO = Self(c_uint(143))
+    comptime OCL_IMAGE3D_WO = Self(c_uint(144))
+    comptime OCL_IMAGE1D_RW = Self(c_uint(145))
+    comptime OCL_IMAGE1D_ARRAY_RW = Self(c_uint(146))
+    comptime OCL_IMAGE1D_BUFFER_RW = Self(c_uint(147))
+    comptime OCL_IMAGE2D_RW = Self(c_uint(148))
+    comptime OCL_IMAGE2D_ARRAY_RW = Self(c_uint(149))
+    comptime OCL_IMAGE2D_DEPTH_RW = Self(c_uint(150))
+    comptime OCL_IMAGE2D_ARRAY_DEPTH_RW = Self(c_uint(151))
+    comptime OCL_IMAGE2D_MSAA_RW = Self(c_uint(152))
+    comptime OCL_IMAGE2D_ARRAY_MSAA_RW = Self(c_uint(153))
+    comptime OCL_IMAGE2D_MSAA_DEPTH_RW = Self(c_uint(154))
+    comptime OCL_IMAGE2D_ARRAY_MSAA_DEPTH_RW = Self(c_uint(155))
+    comptime OCL_IMAGE3D_RW = Self(c_uint(156))
+    comptime OCL_SAMPLER = Self(c_uint(157))
+    comptime OCL_EVENT = Self(c_uint(158))
+    comptime OCL_QUEUE = Self(c_uint(159))
+    comptime OCL_RESERVE_ID = Self(c_uint(160))
     comptime OBJC_OBJECT = Self(c_uint(161))
     comptime OBJC_TYPE_PARAM = Self(c_uint(162))
     comptime ATTRIBUTED = Self(c_uint(163))
+    comptime OCL_INTEL_SUBGROUP_AVC_MCE_PAYLOAD = Self(c_uint(164))
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_PAYLOAD = Self(c_uint(165))
+    comptime OCL_INTEL_SUBGROUP_AVC_REF_PAYLOAD = Self(c_uint(166))
+    comptime OCL_INTEL_SUBGROUP_AVC_SIC_PAYLOAD = Self(c_uint(167))
+    comptime OCL_INTEL_SUBGROUP_AVC_MCE_RESULT = Self(c_uint(168))
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_RESULT = Self(c_uint(169))
+    comptime OCL_INTEL_SUBGROUP_AVC_REF_RESULT = Self(c_uint(170))
+    comptime OCL_INTEL_SUBGROUP_AVC_SIC_RESULT = Self(c_uint(171))
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_RESULT_SINGLE_REFERENCE_STREAMOUT = Self(
+        c_uint(172)
+    )
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_RESULT_DUAL_REFERENCE_STREAMOUT = Self(
+        c_uint(173)
+    )
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_SINGLE_REFERENCE_STREAMIN = Self(
+        c_uint(174)
+    )
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_DUAL_REFERENCE_STREAMIN = Self(
+        c_uint(175)
+    )
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_RESULT_SINGLE_REF_STREAMOUT = Self(
+        c_uint(172)
+    )
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_RESULT_DUAL_REF_STREAMOUT = Self(
+        c_uint(173)
+    )
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_SINGLE_REF_STREAMIN = Self(c_uint(174))
+    comptime OCL_INTEL_SUBGROUP_AVC_IME_DUAL_REF_STREAMIN = Self(c_uint(175))
     comptime EXT_VECTOR = Self(c_uint(176))
     comptime ATOMIC = Self(c_uint(177))
     comptime BTF_TAG_ATTRIBUTED = Self(c_uint(178))
+    comptime HLSL_RESOURCE = Self(c_uint(179))
+    comptime HLSL_ATTRIBUTED_RESOURCE = Self(c_uint(180))
+    comptime HLSL_INLINE_SPIRV = Self(c_uint(181))
+    comptime PREDEFINED_SUGAR = Self(c_uint(182))
+
+
+# ---------------------------------------------------------------------------
+# TypeNullabilityKind
+# ---------------------------------------------------------------------------
+
+
+struct TypeNullabilityKind(Equatable, ImplicitlyCopyable, Writable):
+    """Nullability qualifier for Objective-C and related type spellings."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime NON_NULL = Self(CXTypeNullability_NonNull)
+    comptime NULLABLE = Self(CXTypeNullability_Nullable)
+    comptime UNSPECIFIED = Self(CXTypeNullability_Unspecified)
+    comptime INVALID = Self(CXTypeNullability_Invalid)
+    comptime NULLABLE_RESULT = Self(CXTypeNullability_NullableResult)
 
 
 # ---------------------------------------------------------------------------
@@ -988,6 +1128,69 @@ struct CallingConv(Equatable, ImplicitlyCopyable, Writable):
 
 
 # ---------------------------------------------------------------------------
+# Choice
+# ---------------------------------------------------------------------------
+
+
+struct Choice(Equatable, ImplicitlyCopyable, Writable):
+    """Tri-state option policy used by newer libclang index options."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime DEFAULT = Self(CXChoice_Default)
+    comptime ENABLED = Self(CXChoice_Enabled)
+    comptime DISABLED = Self(CXChoice_Disabled)
+
+
+# ---------------------------------------------------------------------------
+# GlobalOptFlags
+# ---------------------------------------------------------------------------
+
+
+struct GlobalOptFlags(Equatable, ImplicitlyCopyable, Writable):
+    """Bit flags used by deprecated index-global-options APIs."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def contains(self, flag: Self) -> Bool:
+        return (self._value & flag._value) != c_uint(0)
+
+    def __or__(self, other: Self) -> Self:
+        return Self(self._value | other._value)
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime NONE = Self(CXGlobalOpt_None)
+    comptime THREAD_BACKGROUND_PRIORITY_FOR_INDEXING = Self(
+        CXGlobalOpt_ThreadBackgroundPriorityForIndexing
+    )
+    comptime THREAD_BACKGROUND_PRIORITY_FOR_EDITING = Self(
+        CXGlobalOpt_ThreadBackgroundPriorityForEditing
+    )
+    comptime THREAD_BACKGROUND_PRIORITY_FOR_ALL = Self(
+        CXGlobalOpt_ThreadBackgroundPriorityForAll
+    )
+
+
+# ---------------------------------------------------------------------------
 # ChildVisitResult
 # ---------------------------------------------------------------------------
 
@@ -1010,6 +1213,30 @@ struct ChildVisitResult(Equatable, ImplicitlyCopyable, Writable):
     comptime BREAK = Self(CXChildVisit_Break)
     comptime CONTINUE = Self(CXChildVisit_Continue)
     comptime RECURSE = Self(CXChildVisit_Recurse)
+
+
+# ---------------------------------------------------------------------------
+# VisitorResult
+# ---------------------------------------------------------------------------
+
+
+struct VisitorResult(Equatable, ImplicitlyCopyable, Writable):
+    """Visitor continuation result used by field/base/method visitors."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime BREAK = Self(CXVisit_Break)
+    comptime CONTINUE = Self(CXVisit_Continue)
 
 
 # ---------------------------------------------------------------------------
@@ -1064,6 +1291,31 @@ struct ErrorCode(Equatable, ImplicitlyCopyable, Writable):
     comptime CRASHED = Self(CXError_Crashed)
     comptime INVALID_ARGUMENTS = Self(CXError_InvalidArguments)
     comptime AST_READ_ERROR = Self(CXError_ASTReadError)
+
+
+# ---------------------------------------------------------------------------
+# Result
+# ---------------------------------------------------------------------------
+
+
+struct Result(Equatable, ImplicitlyCopyable, Writable):
+    """Small status enum returned by reference/include visitor entry points."""
+
+    var _value: c_uint
+
+    @implicit
+    def __init__(out self, value: c_uint):
+        self._value = value
+
+    def as_c_uint(self) -> c_uint:
+        return self._value
+
+    def __eq__(self, other: Self) -> Bool:
+        return self._value == other._value
+
+    comptime SUCCESS = Self(CXResult_Success)
+    comptime INVALID = Self(CXResult_Invalid)
+    comptime VISIT_BREAK = Self(CXResult_VisitBreak)
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 {
   "kind": "Unit",
-  "source_header": "/usr/lib/llvm-18/include/clang-c/Index.h",
+  "source_header": "/home/mohamed/Documents/Projects/mojo_libclang/vendor/llvm-project-main-2026-06-16/clang-c/Index.h",
   "library": "libclang_mojo_shim",
   "link_name": "libclang_mojo_shim",
   "target_abi": {
@@ -206,7 +206,7 @@
       "is_noreturn": false,
       "doc": {
         "kind": "DocComment",
-        "text": "/**\n * Retrieve the character data associated with the given string.\n */",
+        "text": "/**\n * Retrieve the character data associated with the given string.\n *\n * The returned data is a reference and not owned by the user. This data\n * is only valid while the `CXString` is valid. This function is similar\n * to `std::string::c_str()`.\n */",
         "brief": "Retrieve the character data associated with the given string.",
         "source": "clang_raw"
       }
@@ -297,6 +297,30 @@
         "text": "/**\n * Free the given string set.\n */",
         "brief": "Free the given string set.",
         "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Typedef",
+      "decl_id": "c:@T@time_t",
+      "name": "time_t",
+      "aliased": {
+        "kind": "TypeRef",
+        "decl_id": "c:@T@__time_t",
+        "name": "__time_t",
+        "canonical": {
+          "kind": "IntType",
+          "int_kind": "LONG",
+          "size_bytes": 8,
+          "align_bytes": 8,
+          "ext_bits": null
+        }
+      },
+      "canonical": {
+        "kind": "IntType",
+        "int_kind": "LONG",
+        "size_bytes": 8,
+        "align_bytes": 8,
+        "ext_bits": null
       }
     },
     {
@@ -1096,27 +1120,307 @@
       }
     },
     {
-      "kind": "Typedef",
-      "decl_id": "c:@T@time_t",
-      "name": "time_t",
-      "aliased": {
-        "kind": "TypeRef",
-        "decl_id": "c:@T@__time_t",
-        "name": "__time_t",
-        "canonical": {
-          "kind": "IntType",
-          "int_kind": "LONG",
-          "size_bytes": 8,
-          "align_bytes": 8,
-          "ext_bits": null
+      "kind": "Function",
+      "decl_id": "c:@F@clang_ModuleCache_prune",
+      "name": "clang_ModuleCache_prune",
+      "link_name": "mojo_clang_ModuleCache_prune",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "Path",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "QualifiedType",
+              "unqualified": {
+                "kind": "IntType",
+                "int_kind": "CHAR_S",
+                "size_bytes": 1,
+                "align_bytes": 1,
+                "ext_bits": null
+              },
+              "qualifiers": {
+                "is_const": true,
+                "is_volatile": false,
+                "is_restrict": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        },
+        {
+          "name": "PruneInterval",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:@T@time_t",
+            "name": "time_t",
+            "canonical": {
+              "kind": "IntType",
+              "int_kind": "LONG",
+              "size_bytes": 8,
+              "align_bytes": 8,
+              "ext_bits": null
+            }
+          }
+        },
+        {
+          "name": "PruneAfter",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:@T@time_t",
+            "name": "time_t",
+            "canonical": {
+              "kind": "IntType",
+              "int_kind": "LONG",
+              "size_bytes": 8,
+              "align_bytes": 8,
+              "ext_bits": null
+            }
+          }
         }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Prune module files in the module cache directory that haven't been accessed\n * in a long time.\n *\n * \\param Path the path to the module cache directory.\n *\n * \\param PruneInterval the minimum time in seconds between two prune\n * operations. If the timestamp file is newer than this, pruning is skipped.\n *\n * \\param PruneAfter the time in seconds after which unused module files are\n * removed.\n *\n */",
+        "brief": "Prune module files in the module cache directory that haven't been accessed in a long time.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Typedef",
+      "decl_id": "c:BuildSystem.h@T@CXModuleCachePruneCallback",
+      "name": "CXModuleCachePruneCallback",
+      "aliased": {
+        "kind": "FunctionPtr",
+        "ret": {
+          "kind": "VoidType"
+        },
+        "params": [
+          {
+            "name": "",
+            "type": {
+              "kind": "Pointer",
+              "pointee": {
+                "kind": "QualifiedType",
+                "unqualified": {
+                  "kind": "IntType",
+                  "int_kind": "CHAR_S",
+                  "size_bytes": 1,
+                  "align_bytes": 1,
+                  "ext_bits": null
+                },
+                "qualifiers": {
+                  "is_const": true,
+                  "is_volatile": false,
+                  "is_restrict": false
+                }
+              },
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          },
+          {
+            "name": "",
+            "type": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        ],
+        "param_names": [
+          "Path",
+          "UserData"
+        ],
+        "size_bytes": 8,
+        "align_bytes": 8
       },
       "canonical": {
-        "kind": "IntType",
-        "int_kind": "LONG",
+        "kind": "FunctionPtr",
+        "ret": {
+          "kind": "VoidType"
+        },
+        "params": [
+          {
+            "name": "",
+            "type": {
+              "kind": "Pointer",
+              "pointee": {
+                "kind": "QualifiedType",
+                "unqualified": {
+                  "kind": "IntType",
+                  "int_kind": "CHAR_S",
+                  "size_bytes": 1,
+                  "align_bytes": 1,
+                  "ext_bits": null
+                },
+                "qualifiers": {
+                  "is_const": true,
+                  "is_volatile": false,
+                  "is_restrict": false
+                }
+              },
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          },
+          {
+            "name": "",
+            "type": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        ],
         "size_bytes": 8,
-        "align_bytes": 8,
-        "ext_bits": null
+        "align_bytes": 8
+      },
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Callback invoked by \\c clang_ModuleCache_pruneWithCallback() once for each\n * file or directory removed from the module cache.\n *\n * \\param Path the absolute path of the file or directory that was pruned.\n * The pointer is only valid for the duration of the callback.\n *\n * \\param UserData the opaque pointer passed to\n * \\c clang_ModuleCache_pruneWithCallback().\n */",
+        "brief": "Callback invoked by clang_ModuleCache_pruneWithCallback() once for each file or directory removed from the module cache.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_ModuleCache_pruneWithCallback",
+      "name": "clang_ModuleCache_pruneWithCallback",
+      "link_name": "mojo_clang_ModuleCache_pruneWithCallback",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "Path",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "QualifiedType",
+              "unqualified": {
+                "kind": "IntType",
+                "int_kind": "CHAR_S",
+                "size_bytes": 1,
+                "align_bytes": 1,
+                "ext_bits": null
+              },
+              "qualifiers": {
+                "is_const": true,
+                "is_volatile": false,
+                "is_restrict": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        },
+        {
+          "name": "PruneInterval",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:@T@time_t",
+            "name": "time_t",
+            "canonical": {
+              "kind": "IntType",
+              "int_kind": "LONG",
+              "size_bytes": 8,
+              "align_bytes": 8,
+              "ext_bits": null
+            }
+          }
+        },
+        {
+          "name": "PruneAfter",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:@T@time_t",
+            "name": "time_t",
+            "canonical": {
+              "kind": "IntType",
+              "int_kind": "LONG",
+              "size_bytes": 8,
+              "align_bytes": 8,
+              "ext_bits": null
+            }
+          }
+        },
+        {
+          "name": "Callback",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:BuildSystem.h@T@CXModuleCachePruneCallback",
+            "name": "CXModuleCachePruneCallback",
+            "canonical": {
+              "kind": "FunctionPtr",
+              "ret": {
+                "kind": "VoidType"
+              },
+              "params": [
+                {
+                  "name": "",
+                  "type": {
+                    "kind": "Pointer",
+                    "pointee": {
+                      "kind": "QualifiedType",
+                      "unqualified": {
+                        "kind": "IntType",
+                        "int_kind": "CHAR_S",
+                        "size_bytes": 1,
+                        "align_bytes": 1,
+                        "ext_bits": null
+                      },
+                      "qualifiers": {
+                        "is_const": true,
+                        "is_volatile": false,
+                        "is_restrict": false
+                      }
+                    },
+                    "size_bytes": 8,
+                    "align_bytes": 8
+                  }
+                },
+                {
+                  "name": "",
+                  "type": {
+                    "kind": "Pointer",
+                    "pointee": null,
+                    "size_bytes": 8,
+                    "align_bytes": 8
+                  }
+                }
+              ],
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        },
+        {
+          "name": "UserData",
+          "type": {
+            "kind": "Pointer",
+            "pointee": null,
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Variant of \\c clang_ModuleCache_prune() that invokes \\p Callback once for\n * each absolute path removed from the cache. This includes pruned \\c .pcm\n * files, their companion \\c .timestamp files, and any cache subdirectory that\n * becomes empty as a result of pruning.\n *\n * \\param Path the path to the module cache directory.\n *\n * \\param PruneInterval the minimum time in seconds between two prune\n * operations. If the timestamp file is newer than this, pruning is skipped.\n *\n * \\param PruneAfter the time in seconds after which unused module files are\n * removed.\n *\n * \\param Callback invoked for each pruned absolute path. May be NULL, in\n * which case this function behaves like \\c clang_ModuleCache_prune().\n *\n * \\param UserData opaque pointer passed through to \\p Callback.\n */",
+        "brief": "Variant of clang_ModuleCache_prune() that invokes Callback once for each absolute path removed from the cache. This includes pruned .pcm files, their companion .timestamp files, and any cache subdirectory that becomes empty as a result of pruning.",
+        "source": "clang_raw"
       }
     },
     {
@@ -1622,6 +1926,80 @@
         "kind": "DocComment",
         "text": "/**\n * Determine whether two source locations, which must refer into\n * the same translation unit, refer to exactly the same point in the source\n * code.\n *\n * \\returns non-zero if the source locations refer to the same location, zero\n * if they refer to different locations.\n */",
         "brief": "Determine whether two source locations, which must refer into the same translation unit, refer to exactly the same point in the source code.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_isBeforeInTranslationUnit",
+      "name": "clang_isBeforeInTranslationUnit",
+      "link_name": "mojo_clang_isBeforeInTranslationUnit",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "loc1",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXSourceLocation",
+              "name": "CXSourceLocation",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXSourceLocation",
+                "name": "CXSourceLocation",
+                "c_name": "CXSourceLocation",
+                "is_union": false,
+                "size_bytes": 24,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "loc2",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXSourceLocation",
+              "name": "CXSourceLocation",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXSourceLocation",
+                "name": "CXSourceLocation",
+                "c_name": "CXSourceLocation",
+                "is_union": false,
+                "size_bytes": 24,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Determine for two source locations if the first comes\n * strictly before the second one in the source code.\n *\n * \\returns non-zero if the first source location comes\n * strictly before the second one, zero otherwise.\n */",
+        "brief": "Determine for two source locations if the first comes strictly before the second one in the source code.",
         "source": "clang_raw"
       }
     },
@@ -9037,14 +9415,14 @@
           }
         },
         {
-          "name": "CXCursor_OMPArraySectionExpr",
-          "c_name": "CXCursor_OMPArraySectionExpr",
+          "name": "CXCursor_ArraySectionExpr",
+          "c_name": "CXCursor_ArraySectionExpr",
           "value": 147,
           "enum_decl_id": "c:@E@CXCursorKind",
           "doc": {
             "kind": "DocComment",
-            "text": "/** OpenMP 5.0 [2.1.5, Array Section].\n   */",
-            "brief": "OpenMP 5.0 [2.1.5, Array Section].",
+            "text": "/** OpenMP 5.0 [2.1.5, Array Section].\n   * OpenACC 3.3 [2.7.1, Data Specification for Data Clauses (Sub Arrays)]\n   */",
+            "brief": "OpenMP 5.0 [2.1.5, Array Section]. OpenACC 3.3 [2.7.1, Data Specification for Data Clauses (Sub Arrays)]",
             "source": "clang_raw"
           }
         },
@@ -9127,8 +9505,8 @@
           "enum_decl_id": "c:@E@CXCursorKind",
           "doc": {
             "kind": "DocComment",
-            "text": "/**\n   * Expression that references a C++20 concept.\n   */",
-            "brief": "Expression that references a C++20 concept.",
+            "text": "/**\n   * Expression that references a C++20 requires expression.\n   */",
+            "brief": "Expression that references a C++20 requires expression.",
             "source": "clang_raw"
           }
         },
@@ -9145,14 +9523,26 @@
           }
         },
         {
-          "name": "CXCursor_LastExpr",
-          "c_name": "CXCursor_LastExpr",
-          "value": 155,
+          "name": "CXCursor_PackIndexingExpr",
+          "c_name": "CXCursor_PackIndexingExpr",
+          "value": 156,
           "enum_decl_id": "c:@E@CXCursorKind",
           "doc": {
             "kind": "DocComment",
-            "text": "/**\n   * Expression that references a C++20 parenthesized list aggregate\n   * initializer.\n   */",
-            "brief": "Expression that references a C++20 parenthesized list aggregate initializer.",
+            "text": "/**\n   *  Represents a C++26 pack indexing expression.\n   */",
+            "brief": "Represents a C++26 pack indexing expression.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_LastExpr",
+          "c_name": "CXCursor_LastExpr",
+          "value": 156,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/**\n   *  Represents a C++26 pack indexing expression.\n   */",
+            "brief": "Represents a C++26 pack indexing expression.",
             "source": "clang_raw"
           }
         },
@@ -9163,8 +9553,8 @@
           "enum_decl_id": "c:@E@CXCursorKind",
           "doc": {
             "kind": "DocComment",
-            "text": "/**\n   * Expression that references a C++20 parenthesized list aggregate\n   * initializer.\n   */",
-            "brief": "Expression that references a C++20 parenthesized list aggregate initializer.",
+            "text": "/**\n   *  Represents a C++26 pack indexing expression.\n   */",
+            "brief": "Represents a C++26 pack indexing expression.",
             "source": "clang_raw"
           }
         },
@@ -10465,14 +10855,254 @@
           }
         },
         {
-          "name": "CXCursor_LastStmt",
-          "c_name": "CXCursor_LastStmt",
-          "value": 306,
+          "name": "CXCursor_OMPReverseDirective",
+          "c_name": "CXCursor_OMPReverseDirective",
+          "value": 307,
           "enum_decl_id": "c:@E@CXCursorKind",
           "doc": {
             "kind": "DocComment",
-            "text": "/** OpenMP scope directive.\n   */",
-            "brief": "OpenMP scope directive.",
+            "text": "/** OpenMP reverse directive.\n   */",
+            "brief": "OpenMP reverse directive.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OMPInterchangeDirective",
+          "c_name": "CXCursor_OMPInterchangeDirective",
+          "value": 308,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenMP interchange directive.\n   */",
+            "brief": "OpenMP interchange directive.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OMPAssumeDirective",
+          "c_name": "CXCursor_OMPAssumeDirective",
+          "value": 309,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenMP assume directive.\n   */",
+            "brief": "OpenMP assume directive.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OMPStripeDirective",
+          "c_name": "CXCursor_OMPStripeDirective",
+          "value": 310,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenMP assume directive.\n   */",
+            "brief": "OpenMP assume directive.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OMPFuseDirective",
+          "c_name": "CXCursor_OMPFuseDirective",
+          "value": 311,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenMP fuse directive\n   */",
+            "brief": "OpenMP fuse directive",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OMPSplitDirective",
+          "c_name": "CXCursor_OMPSplitDirective",
+          "value": 312,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenMP split directive.\n   */",
+            "brief": "OpenMP split directive.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCComputeConstruct",
+          "c_name": "CXCursor_OpenACCComputeConstruct",
+          "value": 320,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC Compute Construct.\n   */",
+            "brief": "OpenACC Compute Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCLoopConstruct",
+          "c_name": "CXCursor_OpenACCLoopConstruct",
+          "value": 321,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC Loop Construct.\n   */",
+            "brief": "OpenACC Loop Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCCombinedConstruct",
+          "c_name": "CXCursor_OpenACCCombinedConstruct",
+          "value": 322,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC Combined Constructs.\n   */",
+            "brief": "OpenACC Combined Constructs.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCDataConstruct",
+          "c_name": "CXCursor_OpenACCDataConstruct",
+          "value": 323,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC data Construct.\n   */",
+            "brief": "OpenACC data Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCEnterDataConstruct",
+          "c_name": "CXCursor_OpenACCEnterDataConstruct",
+          "value": 324,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC enter data Construct.\n   */",
+            "brief": "OpenACC enter data Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCExitDataConstruct",
+          "c_name": "CXCursor_OpenACCExitDataConstruct",
+          "value": 325,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC exit data Construct.\n   */",
+            "brief": "OpenACC exit data Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCHostDataConstruct",
+          "c_name": "CXCursor_OpenACCHostDataConstruct",
+          "value": 326,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC host_data Construct.\n   */",
+            "brief": "OpenACC host_data Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCWaitConstruct",
+          "c_name": "CXCursor_OpenACCWaitConstruct",
+          "value": 327,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC wait Construct.\n   */",
+            "brief": "OpenACC wait Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCInitConstruct",
+          "c_name": "CXCursor_OpenACCInitConstruct",
+          "value": 328,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC init Construct.\n   */",
+            "brief": "OpenACC init Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCShutdownConstruct",
+          "c_name": "CXCursor_OpenACCShutdownConstruct",
+          "value": 329,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC shutdown Construct.\n   */",
+            "brief": "OpenACC shutdown Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCSetConstruct",
+          "c_name": "CXCursor_OpenACCSetConstruct",
+          "value": 330,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC set Construct.\n   */",
+            "brief": "OpenACC set Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCUpdateConstruct",
+          "c_name": "CXCursor_OpenACCUpdateConstruct",
+          "value": 331,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC update Construct.\n   */",
+            "brief": "OpenACC update Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCAtomicConstruct",
+          "c_name": "CXCursor_OpenACCAtomicConstruct",
+          "value": 332,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC atomic Construct.\n   */",
+            "brief": "OpenACC atomic Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_OpenACCCacheConstruct",
+          "c_name": "CXCursor_OpenACCCacheConstruct",
+          "value": 333,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC cache Construct.\n   */",
+            "brief": "OpenACC cache Construct.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXCursor_LastStmt",
+          "c_name": "CXCursor_LastStmt",
+          "value": 333,
+          "enum_decl_id": "c:@E@CXCursorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** OpenACC cache Construct.\n   */",
+            "brief": "OpenACC cache Construct.",
             "source": "clang_raw"
           }
         },
@@ -11657,7 +12287,7 @@
       "is_noreturn": false,
       "doc": {
         "kind": "DocComment",
-        "text": "/**\n * Determine whether the given declaration is invalid.\n *\n * A declaration is invalid if it could not be parsed successfully.\n *\n * \\returns non-zero if the cursor represents a declaration and it is\n * invalid, otherwise NULL.\n */",
+        "text": "/**\n * Determine whether the given declaration is invalid.\n *\n * A declaration is invalid if it could not be parsed successfully.\n *\n * \\returns non-zero if the cursor represents a declaration and it is\n * invalid, otherwise zero.\n */",
         "brief": "Determine whether the given declaration is invalid.",
         "source": "clang_raw"
       }
@@ -15327,6 +15957,54 @@
             "brief": "Represents a type that was referred to using an elaborated type keyword.",
             "source": "clang_raw"
           }
+        },
+        {
+          "name": "CXType_HLSLResource",
+          "c_name": "CXType_HLSLResource",
+          "value": 179,
+          "enum_decl_id": "c:@E@CXTypeKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/**\n   * Represents a type that was referred to using an elaborated type keyword.\n   *\n   * E.g., struct S, or via a qualified name, e.g., N::M::type, or both.\n   */",
+            "brief": "Represents a type that was referred to using an elaborated type keyword.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXType_HLSLAttributedResource",
+          "c_name": "CXType_HLSLAttributedResource",
+          "value": 180,
+          "enum_decl_id": "c:@E@CXTypeKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/**\n   * Represents a type that was referred to using an elaborated type keyword.\n   *\n   * E.g., struct S, or via a qualified name, e.g., N::M::type, or both.\n   */",
+            "brief": "Represents a type that was referred to using an elaborated type keyword.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXType_HLSLInlineSpirv",
+          "c_name": "CXType_HLSLInlineSpirv",
+          "value": 181,
+          "enum_decl_id": "c:@E@CXTypeKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/**\n   * Represents a type that was referred to using an elaborated type keyword.\n   *\n   * E.g., struct S, or via a qualified name, e.g., N::M::type, or both.\n   */",
+            "brief": "Represents a type that was referred to using an elaborated type keyword.",
+            "source": "clang_raw"
+          }
+        },
+        {
+          "name": "CXType_PredefinedSugar",
+          "c_name": "CXType_PredefinedSugar",
+          "value": 182,
+          "enum_decl_id": "c:@E@CXTypeKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/**\n   * Represents a type that was referred to using an elaborated type keyword.\n   *\n   * E.g., struct S, or via a qualified name, e.g., N::M::type, or both.\n   */",
+            "brief": "Represents a type that was referred to using an elaborated type keyword.",
+            "source": "clang_raw"
+          }
         }
       ],
       "alias_names": [],
@@ -15475,6 +16153,90 @@
           "name": "CXCallingConv_M68kRTD",
           "c_name": "CXCallingConv_M68kRTD",
           "value": 19,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_PreserveNone",
+          "c_name": "CXCallingConv_PreserveNone",
+          "value": 20,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVectorCall",
+          "c_name": "CXCallingConv_RISCVVectorCall",
+          "value": 21,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_32",
+          "c_name": "CXCallingConv_RISCVVLSCall_32",
+          "value": 22,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_64",
+          "c_name": "CXCallingConv_RISCVVLSCall_64",
+          "value": 23,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_128",
+          "c_name": "CXCallingConv_RISCVVLSCall_128",
+          "value": 24,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_256",
+          "c_name": "CXCallingConv_RISCVVLSCall_256",
+          "value": 25,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_512",
+          "c_name": "CXCallingConv_RISCVVLSCall_512",
+          "value": 26,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_1024",
+          "c_name": "CXCallingConv_RISCVVLSCall_1024",
+          "value": 27,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_2048",
+          "c_name": "CXCallingConv_RISCVVLSCall_2048",
+          "value": 28,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_4096",
+          "c_name": "CXCallingConv_RISCVVLSCall_4096",
+          "value": 29,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_8192",
+          "c_name": "CXCallingConv_RISCVVLSCall_8192",
+          "value": 30,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_16384",
+          "c_name": "CXCallingConv_RISCVVLSCall_16384",
+          "value": 31,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_32768",
+          "c_name": "CXCallingConv_RISCVVLSCall_32768",
+          "value": 32,
+          "enum_decl_id": "c:@E@CXCallingConv"
+        },
+        {
+          "name": "CXCallingConv_RISCVVLSCall_65536",
+          "c_name": "CXCallingConv_RISCVVLSCall_65536",
+          "value": 33,
           "enum_decl_id": "c:@E@CXCallingConv"
         },
         {
@@ -18971,8 +19733,8 @@
       "is_anonymous": false,
       "doc": {
         "kind": "DocComment",
-        "text": "/**\n * List the possible error codes for \\c clang_Type_getSizeOf,\n *   \\c clang_Type_getAlignOf, \\c clang_Type_getOffsetOf and\n *   \\c clang_Cursor_getOffsetOf.\n *\n * A value of this enumeration type can be returned if the target type is not\n * a valid argument to sizeof, alignof or offsetof.\n */",
-        "brief": "List the possible error codes for clang_Type_getSizeOf, clang_Type_getAlignOf, clang_Type_getOffsetOf and clang_Cursor_getOffsetOf.",
+        "text": "/**\n * List the possible error codes for \\c clang_Type_getSizeOf,\n *   \\c clang_Type_getAlignOf, \\c clang_Type_getOffsetOf,\n *   \\c clang_Cursor_getOffsetOf, and \\c clang_getOffsetOfBase.\n *\n * A value of this enumeration type can be returned if the target type is not\n * a valid argument to sizeof, alignof or offsetof.\n */",
+        "brief": "List the possible error codes for clang_Type_getSizeOf, clang_Type_getAlignOf, clang_Type_getOffsetOf, clang_Cursor_getOffsetOf, and clang_getOffsetOfBase.",
         "source": "clang_raw"
       }
     },
@@ -19835,6 +20597,80 @@
       }
     },
     {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_getOffsetOfBase",
+      "name": "clang_getOffsetOfBase",
+      "link_name": "mojo_clang_getOffsetOfBase",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "LONGLONG",
+        "size_bytes": 8,
+        "align_bytes": 8,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "Parent",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "Base",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Returns the offset in bits of a CX_CXXBaseSpecifier relative to the parent\n * class.\n *\n * Returns a small negative number if the offset cannot be computed. See\n * CXTypeLayoutError for error codes.\n */",
+        "brief": "Returns the offset in bits of a CX_CXXBaseSpecifier relative to the parent class.",
+        "source": "clang_raw"
+      }
+    },
+    {
       "kind": "Enum",
       "decl_id": "c:@E@CX_CXXAccessSpecifier",
       "name": "CX_CXXAccessSpecifier",
@@ -20004,6 +20840,354 @@
         "kind": "DocComment",
         "text": "/**\n * Represents the storage classes as declared in the source. CX_SC_Invalid\n * was added for the case that the passed cursor in not a declaration.\n */",
         "brief": "Represents the storage classes as declared in the source. CX_SC_Invalid was added for the case that the passed cursor in not a declaration.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Enum",
+      "decl_id": "c:@E@CX_BinaryOperatorKind",
+      "name": "CX_BinaryOperatorKind",
+      "c_name": "CX_BinaryOperatorKind",
+      "underlying": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "enumerants": [
+        {
+          "name": "CX_BO_Invalid",
+          "c_name": "CX_BO_Invalid",
+          "value": 0,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_PtrMemD",
+          "c_name": "CX_BO_PtrMemD",
+          "value": 1,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_PtrMemI",
+          "c_name": "CX_BO_PtrMemI",
+          "value": 2,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Mul",
+          "c_name": "CX_BO_Mul",
+          "value": 3,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Div",
+          "c_name": "CX_BO_Div",
+          "value": 4,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Rem",
+          "c_name": "CX_BO_Rem",
+          "value": 5,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Add",
+          "c_name": "CX_BO_Add",
+          "value": 6,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Sub",
+          "c_name": "CX_BO_Sub",
+          "value": 7,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Shl",
+          "c_name": "CX_BO_Shl",
+          "value": 8,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Shr",
+          "c_name": "CX_BO_Shr",
+          "value": 9,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Cmp",
+          "c_name": "CX_BO_Cmp",
+          "value": 10,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_LT",
+          "c_name": "CX_BO_LT",
+          "value": 11,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_GT",
+          "c_name": "CX_BO_GT",
+          "value": 12,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_LE",
+          "c_name": "CX_BO_LE",
+          "value": 13,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_GE",
+          "c_name": "CX_BO_GE",
+          "value": 14,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_EQ",
+          "c_name": "CX_BO_EQ",
+          "value": 15,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_NE",
+          "c_name": "CX_BO_NE",
+          "value": 16,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_And",
+          "c_name": "CX_BO_And",
+          "value": 17,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Xor",
+          "c_name": "CX_BO_Xor",
+          "value": 18,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Or",
+          "c_name": "CX_BO_Or",
+          "value": 19,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_LAnd",
+          "c_name": "CX_BO_LAnd",
+          "value": 20,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_LOr",
+          "c_name": "CX_BO_LOr",
+          "value": 21,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Assign",
+          "c_name": "CX_BO_Assign",
+          "value": 22,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_MulAssign",
+          "c_name": "CX_BO_MulAssign",
+          "value": 23,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_DivAssign",
+          "c_name": "CX_BO_DivAssign",
+          "value": 24,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_RemAssign",
+          "c_name": "CX_BO_RemAssign",
+          "value": 25,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_AddAssign",
+          "c_name": "CX_BO_AddAssign",
+          "value": 26,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_SubAssign",
+          "c_name": "CX_BO_SubAssign",
+          "value": 27,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_ShlAssign",
+          "c_name": "CX_BO_ShlAssign",
+          "value": 28,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_ShrAssign",
+          "c_name": "CX_BO_ShrAssign",
+          "value": 29,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_AndAssign",
+          "c_name": "CX_BO_AndAssign",
+          "value": 30,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_XorAssign",
+          "c_name": "CX_BO_XorAssign",
+          "value": 31,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_OrAssign",
+          "c_name": "CX_BO_OrAssign",
+          "value": 32,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_Comma",
+          "c_name": "CX_BO_Comma",
+          "value": 33,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        },
+        {
+          "name": "CX_BO_LAST",
+          "c_name": "CX_BO_LAST",
+          "value": 33,
+          "enum_decl_id": "c:@E@CX_BinaryOperatorKind"
+        }
+      ],
+      "alias_names": [],
+      "is_anonymous": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Represents a specific kind of binary operator which can appear at a cursor.\n */",
+        "brief": "Represents a specific kind of binary operator which can appear at a cursor.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getBinaryOpcode",
+      "name": "clang_Cursor_getBinaryOpcode",
+      "link_name": "mojo_clang_Cursor_getBinaryOpcode",
+      "ret": {
+        "kind": "EnumRef",
+        "decl_id": "c:@E@CX_BinaryOperatorKind",
+        "name": "CX_BinaryOperatorKind",
+        "c_name": "CX_BinaryOperatorKind",
+        "underlying": {
+          "kind": "IntType",
+          "int_kind": "UINT",
+          "size_bytes": 4,
+          "align_bytes": 4,
+          "ext_bits": null
+        }
+      },
+      "params": [
+        {
+          "name": "C",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * \\brief Returns the operator code for the binary operator.\n *\n * @deprecated: use clang_getCursorBinaryOperatorKind instead.\n */",
+        "brief": "Returns the operator code for the binary operator.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getBinaryOpcodeStr",
+      "name": "clang_Cursor_getBinaryOpcodeStr",
+      "link_name": "mojo_clang_Cursor_getBinaryOpcodeStr",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "out",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "nullable": true
+          }
+        },
+        {
+          "name": "Op",
+          "type": {
+            "kind": "EnumRef",
+            "decl_id": "c:@E@CX_BinaryOperatorKind",
+            "name": "CX_BinaryOperatorKind",
+            "c_name": "CX_BinaryOperatorKind",
+            "underlying": {
+              "kind": "IntType",
+              "int_kind": "UINT",
+              "size_bytes": 4,
+              "align_bytes": 4,
+              "ext_bits": null
+            }
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * \\brief Returns a string containing the spelling of the binary operator.\n *\n * @deprecated: use clang_getBinaryOperatorKindSpelling instead\n */",
+        "brief": "Returns a string containing the spelling of the binary operator.",
         "source": "clang_raw"
       }
     },
@@ -21959,6 +23143,182 @@
     },
     {
       "kind": "Function",
+      "decl_id": "c:@F@clang_getTypePrettyPrinted",
+      "name": "clang_getTypePrettyPrinted",
+      "link_name": "mojo_clang_getTypePrettyPrinted",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "out",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "nullable": true
+          }
+        },
+        {
+          "name": "CT",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXType",
+              "name": "CXType",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXType",
+                "name": "CXType",
+                "c_name": "CXType",
+                "is_union": false,
+                "size_bytes": 24,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "cxPolicy",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXPrintingPolicy",
+            "name": "CXPrintingPolicy",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Pretty-print the underlying type using a custom printing policy.\n *\n * If the type is invalid, an empty string is returned.\n */",
+        "brief": "Pretty-print the underlying type using a custom printing policy.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_getFullyQualifiedName",
+      "name": "clang_getFullyQualifiedName",
+      "link_name": "mojo_clang_getFullyQualifiedName",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "out",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "nullable": true
+          }
+        },
+        {
+          "name": "CT",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXType",
+              "name": "CXType",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXType",
+                "name": "CXType",
+                "c_name": "CXType",
+                "is_union": false,
+                "size_bytes": 24,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "Policy",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXPrintingPolicy",
+            "name": "CXPrintingPolicy",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        },
+        {
+          "name": "WithGlobalNsPrefix",
+          "type": {
+            "kind": "IntType",
+            "int_kind": "UINT",
+            "size_bytes": 4,
+            "align_bytes": 4,
+            "ext_bits": null
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Get the fully qualified name for a type.\n *\n * This includes full qualification of all template parameters.\n *\n * Policy - Further refine the type formatting\n * WithGlobalNsPrefix - If non-zero, function will prepend a '::' to qualified\n * names\n */",
+        "brief": "Get the fully qualified name for a type.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
       "decl_id": "c:@F@clang_getCursorDisplayName",
       "name": "clang_getCursorDisplayName",
       "link_name": "mojo_clang_getCursorDisplayName",
@@ -23550,6 +24910,609 @@
       }
     },
     {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyTemplate",
+      "name": "clang_Cursor_getGCCAssemblyTemplate",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyTemplate",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "out",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "nullable": true
+          }
+        },
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, return the assembly template string.\n * As per LLVM IR Assembly Template language, template placeholders for\n * inputs and outputs are either of the form $N where N is a decimal number\n * as an index into the input-output specification,\n * or ${N:M} where N is a decimal number also as an index into the\n * input-output specification and M is the template argument modifier.\n * The index N in both cases points into the the total inputs and outputs,\n * or more specifically, into the list of outputs followed by the inputs,\n * starting from index 0 as the first available template argument.\n *\n * This function also returns a valid empty string if the cursor does not point\n * at a GCC inline assembly block.\n *\n * Users are responsible for releasing the allocation of returned string via\n * \\c clang_disposeString.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, return the assembly template string. As per LLVM IR Assembly Template language, template placeholders for inputs and outputs are either of the form $N where N is a decimal number as an index into the input-output specification, or ${N:M} where N is a decimal number also as an index into the input-output specification and M is the template argument modifier. The index N in both cases points into the the total inputs and outputs, or more specifically, into the list of outputs followed by the inputs, starting from index 0 as the first available template argument.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_isGCCAssemblyHasGoto",
+      "name": "clang_Cursor_isGCCAssemblyHasGoto",
+      "link_name": "mojo_clang_Cursor_isGCCAssemblyHasGoto",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, check if the assembly block has goto\n * labels.\n * This function also returns 0 if the cursor does not point at a GCC inline\n * assembly block.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, check if the assembly block has goto labels. This function also returns 0 if the cursor does not point at a GCC inline assembly block.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyNumOutputs",
+      "name": "clang_Cursor_getGCCAssemblyNumOutputs",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyNumOutputs",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, count the number of outputs.\n * This function also returns 0 if the cursor does not point at a GCC inline\n * assembly block.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, count the number of outputs. This function also returns 0 if the cursor does not point at a GCC inline assembly block.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyNumInputs",
+      "name": "clang_Cursor_getGCCAssemblyNumInputs",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyNumInputs",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, count the number of inputs.\n * This function also returns 0 if the cursor does not point at a GCC inline\n * assembly block.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, count the number of inputs. This function also returns 0 if the cursor does not point at a GCC inline assembly block.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyInput",
+      "name": "clang_Cursor_getGCCAssemblyInput",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyInput",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "Cursor",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "Index",
+          "type": {
+            "kind": "IntType",
+            "int_kind": "UINT",
+            "size_bytes": 4,
+            "align_bytes": 4,
+            "ext_bits": null
+          }
+        },
+        {
+          "name": "Constraint",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        },
+        {
+          "name": "Expr",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, get the constraint and expression cursor\n * to the Index-th input.\n * This function returns 1 when the cursor points at a GCC inline assembly\n * statement, `Index` is within bounds and both the `Constraint` and `Expr` are\n * not NULL.\n * Otherwise, this function returns 0 but leaves `Constraint` and `Expr`\n * intact.\n *\n * Users are responsible for releasing the allocation of `Constraint` via\n * \\c clang_disposeString.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, get the constraint and expression cursor to the Index-th input. This function returns 1 when the cursor points at a GCC inline assembly statement, `Index` is within bounds and both the `Constraint` and `Expr` are not NULL. Otherwise, this function returns 0 but leaves `Constraint` and `Expr` intact.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyOutput",
+      "name": "clang_Cursor_getGCCAssemblyOutput",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyOutput",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "Cursor",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "Index",
+          "type": {
+            "kind": "IntType",
+            "int_kind": "UINT",
+            "size_bytes": 4,
+            "align_bytes": 4,
+            "ext_bits": null
+          }
+        },
+        {
+          "name": "Constraint",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        },
+        {
+          "name": "Expr",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, get the constraint and expression cursor\n * to the Index-th output.\n * This function returns 1 when the cursor points at a GCC inline assembly\n * statement, `Index` is within bounds and both the `Constraint` and `Expr` are\n * not NULL.\n * Otherwise, this function returns 0 but leaves `Constraint` and `Expr`\n * intact.\n *\n * Users are responsible for releasing the allocation of `Constraint` via\n * \\c clang_disposeString.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, get the constraint and expression cursor to the Index-th output. This function returns 1 when the cursor points at a GCC inline assembly statement, `Index` is within bounds and both the `Constraint` and `Expr` are not NULL. Otherwise, this function returns 0 but leaves `Constraint` and `Expr` intact.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyNumClobbers",
+      "name": "clang_Cursor_getGCCAssemblyNumClobbers",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyNumClobbers",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "Cursor",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, count the clobbers in it.\n * This function also returns 0 if the cursor does not point at a GCC inline\n * assembly block.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, count the clobbers in it. This function also returns 0 if the cursor does not point at a GCC inline assembly block.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_getGCCAssemblyClobber",
+      "name": "clang_Cursor_getGCCAssemblyClobber",
+      "link_name": "mojo_clang_Cursor_getGCCAssemblyClobber",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "out",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "nullable": true
+          }
+        },
+        {
+          "name": "Cursor",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "Index",
+          "type": {
+            "kind": "IntType",
+            "int_kind": "UINT",
+            "size_bytes": 4,
+            "align_bytes": 4,
+            "ext_bits": null
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, get the Index-th clobber of it.\n * This function returns a valid empty string if the cursor does not point\n * at a GCC inline assembly block or `Index` is out of bounds.\n *\n * Users are responsible for releasing the allocation of returned string via\n * \\c clang_disposeString.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, get the Index-th clobber of it. This function returns a valid empty string if the cursor does not point at a GCC inline assembly block or `Index` is out of bounds.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_Cursor_isGCCAssemblyVolatile",
+      "name": "clang_Cursor_isGCCAssemblyVolatile",
+      "link_name": "mojo_clang_Cursor_isGCCAssemblyVolatile",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "Cursor",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXCursor",
+              "name": "CXCursor",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXCursor",
+                "name": "CXCursor",
+                "c_name": "CXCursor",
+                "is_union": false,
+                "size_bytes": 32,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Given a CXCursor_GCCAsmStmt cursor, check if the inline assembly is\n * `volatile`.\n * This function returns 0 if the cursor does not point at a GCC inline\n * assembly block.\n */",
+        "brief": "Given a CXCursor_GCCAsmStmt cursor, check if the inline assembly is `volatile`. This function returns 0 if the cursor does not point at a GCC inline assembly block.",
+        "source": "clang_raw"
+      }
+    },
+    {
       "kind": "Typedef",
       "decl_id": "c:Index.h@T@CXModule",
       "name": "CXModule",
@@ -23725,7 +25688,7 @@
       "is_noreturn": false,
       "doc": {
         "kind": "DocComment",
-        "text": "/**\n * \\param Module a module object.\n *\n * \\returns the module file where the provided module object came from.\n */",
+        "text": "/**\n * \\param Module a module object.\n *\n * \\returns the module file where the provided module object came from.\n *\n * @deprecated: module files are longer guaranteed to be loaded from a CXFile\n */",
         "brief": "Returns the module file where the provided module object came from.",
         "source": "clang_raw"
       }
@@ -29200,308 +31163,6 @@
       }
     },
     {
-      "kind": "Typedef",
-      "decl_id": "c:Index.h@T@CXRemapping",
-      "name": "CXRemapping",
-      "aliased": {
-        "kind": "Pointer",
-        "pointee": null,
-        "size_bytes": 8,
-        "align_bytes": 8
-      },
-      "canonical": {
-        "kind": "Pointer",
-        "pointee": null,
-        "size_bytes": 8,
-        "align_bytes": 8
-      },
-      "doc": {
-        "kind": "DocComment",
-        "text": "/**\n * A remapping of original source files and their translated files.\n */",
-        "brief": "A remapping of original source files and their translated files.",
-        "source": "clang_raw"
-      }
-    },
-    {
-      "kind": "Function",
-      "decl_id": "c:@F@clang_getRemappings",
-      "name": "clang_getRemappings",
-      "link_name": "mojo_clang_getRemappings",
-      "ret": {
-        "kind": "TypeRef",
-        "decl_id": "c:Index.h@T@CXRemapping",
-        "name": "CXRemapping",
-        "canonical": {
-          "kind": "Pointer",
-          "pointee": null,
-          "size_bytes": 8,
-          "align_bytes": 8
-        }
-      },
-      "params": [
-        {
-          "name": "path",
-          "type": {
-            "kind": "Pointer",
-            "pointee": {
-              "kind": "QualifiedType",
-              "unqualified": {
-                "kind": "IntType",
-                "int_kind": "CHAR_S",
-                "size_bytes": 1,
-                "align_bytes": 1,
-                "ext_bits": null
-              },
-              "qualifiers": {
-                "is_const": true,
-                "is_volatile": false,
-                "is_restrict": false
-              }
-            },
-            "size_bytes": 8,
-            "align_bytes": 8
-          }
-        }
-      ],
-      "is_variadic": false,
-      "calling_convention": null,
-      "is_noreturn": false,
-      "doc": {
-        "kind": "DocComment",
-        "text": "/**\n * Retrieve a remapping.\n *\n * \\param path the path that contains metadata about remappings.\n *\n * \\returns the requested remapping. This remapping must be freed\n * via a call to \\c clang_remap_dispose(). Can return NULL if an error occurred.\n */",
-        "brief": "Retrieve a remapping.",
-        "source": "clang_raw"
-      }
-    },
-    {
-      "kind": "Function",
-      "decl_id": "c:@F@clang_getRemappingsFromFileList",
-      "name": "clang_getRemappingsFromFileList",
-      "link_name": "mojo_clang_getRemappingsFromFileList",
-      "ret": {
-        "kind": "TypeRef",
-        "decl_id": "c:Index.h@T@CXRemapping",
-        "name": "CXRemapping",
-        "canonical": {
-          "kind": "Pointer",
-          "pointee": null,
-          "size_bytes": 8,
-          "align_bytes": 8
-        }
-      },
-      "params": [
-        {
-          "name": "filePaths",
-          "type": {
-            "kind": "Pointer",
-            "pointee": {
-              "kind": "Pointer",
-              "pointee": {
-                "kind": "QualifiedType",
-                "unqualified": {
-                  "kind": "IntType",
-                  "int_kind": "CHAR_S",
-                  "size_bytes": 1,
-                  "align_bytes": 1,
-                  "ext_bits": null
-                },
-                "qualifiers": {
-                  "is_const": true,
-                  "is_volatile": false,
-                  "is_restrict": false
-                }
-              },
-              "size_bytes": 8,
-              "align_bytes": 8
-            },
-            "size_bytes": 8,
-            "align_bytes": 8
-          }
-        },
-        {
-          "name": "numFiles",
-          "type": {
-            "kind": "IntType",
-            "int_kind": "UINT",
-            "size_bytes": 4,
-            "align_bytes": 4,
-            "ext_bits": null
-          }
-        }
-      ],
-      "is_variadic": false,
-      "calling_convention": null,
-      "is_noreturn": false,
-      "doc": {
-        "kind": "DocComment",
-        "text": "/**\n * Retrieve a remapping.\n *\n * \\param filePaths pointer to an array of file paths containing remapping info.\n *\n * \\param numFiles number of file paths.\n *\n * \\returns the requested remapping. This remapping must be freed\n * via a call to \\c clang_remap_dispose(). Can return NULL if an error occurred.\n */",
-        "brief": "Retrieve a remapping.",
-        "source": "clang_raw"
-      }
-    },
-    {
-      "kind": "Function",
-      "decl_id": "c:@F@clang_remap_getNumFiles",
-      "name": "clang_remap_getNumFiles",
-      "link_name": "mojo_clang_remap_getNumFiles",
-      "ret": {
-        "kind": "IntType",
-        "int_kind": "UINT",
-        "size_bytes": 4,
-        "align_bytes": 4,
-        "ext_bits": null
-      },
-      "params": [
-        {
-          "name": "",
-          "type": {
-            "kind": "TypeRef",
-            "decl_id": "c:Index.h@T@CXRemapping",
-            "name": "CXRemapping",
-            "canonical": {
-              "kind": "Pointer",
-              "pointee": null,
-              "size_bytes": 8,
-              "align_bytes": 8
-            }
-          }
-        }
-      ],
-      "is_variadic": false,
-      "calling_convention": null,
-      "is_noreturn": false,
-      "doc": {
-        "kind": "DocComment",
-        "text": "/**\n * Determine the number of remappings.\n */",
-        "brief": "Determine the number of remappings.",
-        "source": "clang_raw"
-      }
-    },
-    {
-      "kind": "Function",
-      "decl_id": "c:@F@clang_remap_getFilenames",
-      "name": "clang_remap_getFilenames",
-      "link_name": "mojo_clang_remap_getFilenames",
-      "ret": {
-        "kind": "VoidType"
-      },
-      "params": [
-        {
-          "name": "",
-          "type": {
-            "kind": "TypeRef",
-            "decl_id": "c:Index.h@T@CXRemapping",
-            "name": "CXRemapping",
-            "canonical": {
-              "kind": "Pointer",
-              "pointee": null,
-              "size_bytes": 8,
-              "align_bytes": 8
-            }
-          }
-        },
-        {
-          "name": "index",
-          "type": {
-            "kind": "IntType",
-            "int_kind": "UINT",
-            "size_bytes": 4,
-            "align_bytes": 4,
-            "ext_bits": null
-          }
-        },
-        {
-          "name": "original",
-          "type": {
-            "kind": "Pointer",
-            "pointee": {
-              "kind": "TypeRef",
-              "decl_id": "c:@T@CXString",
-              "name": "CXString",
-              "canonical": {
-                "kind": "StructRef",
-                "decl_id": "c:@SA@CXString",
-                "name": "CXString",
-                "c_name": "CXString",
-                "is_union": false,
-                "size_bytes": 16,
-                "align_bytes": 8,
-                "is_anonymous": false
-              }
-            },
-            "size_bytes": 8,
-            "align_bytes": 8
-          }
-        },
-        {
-          "name": "transformed",
-          "type": {
-            "kind": "Pointer",
-            "pointee": {
-              "kind": "TypeRef",
-              "decl_id": "c:@T@CXString",
-              "name": "CXString",
-              "canonical": {
-                "kind": "StructRef",
-                "decl_id": "c:@SA@CXString",
-                "name": "CXString",
-                "c_name": "CXString",
-                "is_union": false,
-                "size_bytes": 16,
-                "align_bytes": 8,
-                "is_anonymous": false
-              }
-            },
-            "size_bytes": 8,
-            "align_bytes": 8
-          }
-        }
-      ],
-      "is_variadic": false,
-      "calling_convention": null,
-      "is_noreturn": false,
-      "doc": {
-        "kind": "DocComment",
-        "text": "/**\n * Get the original and the associated filename from the remapping.\n *\n * \\param original If non-NULL, will be set to the original filename.\n *\n * \\param transformed If non-NULL, will be set to the filename that the original\n * is associated with.\n */",
-        "brief": "Get the original and the associated filename from the remapping.",
-        "source": "clang_raw"
-      }
-    },
-    {
-      "kind": "Function",
-      "decl_id": "c:@F@clang_remap_dispose",
-      "name": "clang_remap_dispose",
-      "link_name": "mojo_clang_remap_dispose",
-      "ret": {
-        "kind": "VoidType"
-      },
-      "params": [
-        {
-          "name": "",
-          "type": {
-            "kind": "TypeRef",
-            "decl_id": "c:Index.h@T@CXRemapping",
-            "name": "CXRemapping",
-            "canonical": {
-              "kind": "Pointer",
-              "pointee": null,
-              "size_bytes": 8,
-              "align_bytes": 8
-            }
-          }
-        }
-      ],
-      "is_variadic": false,
-      "calling_convention": null,
-      "is_noreturn": false,
-      "doc": {
-        "kind": "DocComment",
-        "text": "/**\n * Dispose the remapping.\n */",
-        "brief": "Dispose the remapping.",
-        "source": "clang_raw"
-      }
-    },
-    {
       "kind": "Enum",
       "decl_id": "c:@E@CXVisitorResult",
       "name": "CXVisitorResult",
@@ -33399,6 +35060,246 @@
       }
     },
     {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_visitCXXBaseClasses",
+      "name": "clang_visitCXXBaseClasses",
+      "link_name": "mojo_clang_visitCXXBaseClasses",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "T",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXType",
+              "name": "CXType",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXType",
+                "name": "CXType",
+                "c_name": "CXType",
+                "is_union": false,
+                "size_bytes": 24,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "visitor",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXFieldVisitor",
+            "name": "CXFieldVisitor",
+            "canonical": {
+              "kind": "FunctionPtr",
+              "ret": {
+                "kind": "EnumRef",
+                "decl_id": "c:@E@CXVisitorResult",
+                "name": "CXVisitorResult",
+                "c_name": "CXVisitorResult",
+                "underlying": {
+                  "kind": "IntType",
+                  "int_kind": "UINT",
+                  "size_bytes": 4,
+                  "align_bytes": 4,
+                  "ext_bits": null
+                }
+              },
+              "params": [
+                {
+                  "name": "",
+                  "type": {
+                    "kind": "Pointer",
+                    "pointee": {
+                      "kind": "StructRef",
+                      "decl_id": "c:@SA@CXCursor",
+                      "name": "CXCursor",
+                      "c_name": "CXCursor",
+                      "is_union": false,
+                      "size_bytes": 32,
+                      "align_bytes": 8,
+                      "is_anonymous": false
+                    },
+                    "size_bytes": 8,
+                    "align_bytes": 8,
+                    "mutability": "immut",
+                    "nullable": true
+                  }
+                },
+                {
+                  "name": "",
+                  "type": {
+                    "kind": "Pointer",
+                    "pointee": null,
+                    "size_bytes": 8,
+                    "align_bytes": 8
+                  }
+                }
+              ],
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        },
+        {
+          "name": "client_data",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXClientData",
+            "name": "CXClientData",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Visit the base classes of a type.\n *\n * This function visits all the direct base classes of a the given cursor,\n * invoking the given \\p visitor function with the cursors of each\n * visited base. The traversal may be ended prematurely, if\n * the visitor returns \\c CXFieldVisit_Break.\n *\n * \\param T the record type whose field may be visited.\n *\n * \\param visitor the visitor function that will be invoked for each\n * field of \\p T.\n *\n * \\param client_data pointer data supplied by the client, which will\n * be passed to the visitor each time it is invoked.\n *\n * \\returns a non-zero value if the traversal was terminated\n * prematurely by the visitor returning \\c CXFieldVisit_Break.\n */",
+        "brief": "Visit the base classes of a type.",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_visitCXXMethods",
+      "name": "clang_visitCXXMethods",
+      "link_name": "mojo_clang_visitCXXMethods",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "T",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXType",
+              "name": "CXType",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXType",
+                "name": "CXType",
+                "c_name": "CXType",
+                "is_union": false,
+                "size_bytes": 24,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8,
+            "mutability": "immut",
+            "nullable": true
+          }
+        },
+        {
+          "name": "visitor",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXFieldVisitor",
+            "name": "CXFieldVisitor",
+            "canonical": {
+              "kind": "FunctionPtr",
+              "ret": {
+                "kind": "EnumRef",
+                "decl_id": "c:@E@CXVisitorResult",
+                "name": "CXVisitorResult",
+                "c_name": "CXVisitorResult",
+                "underlying": {
+                  "kind": "IntType",
+                  "int_kind": "UINT",
+                  "size_bytes": 4,
+                  "align_bytes": 4,
+                  "ext_bits": null
+                }
+              },
+              "params": [
+                {
+                  "name": "",
+                  "type": {
+                    "kind": "Pointer",
+                    "pointee": {
+                      "kind": "StructRef",
+                      "decl_id": "c:@SA@CXCursor",
+                      "name": "CXCursor",
+                      "c_name": "CXCursor",
+                      "is_union": false,
+                      "size_bytes": 32,
+                      "align_bytes": 8,
+                      "is_anonymous": false
+                    },
+                    "size_bytes": 8,
+                    "align_bytes": 8,
+                    "mutability": "immut",
+                    "nullable": true
+                  }
+                },
+                {
+                  "name": "",
+                  "type": {
+                    "kind": "Pointer",
+                    "pointee": null,
+                    "size_bytes": 8,
+                    "align_bytes": 8
+                  }
+                }
+              ],
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        },
+        {
+          "name": "client_data",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXClientData",
+            "name": "CXClientData",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false,
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * Visit the class methods of a type.\n *\n * This function visits all the methods of the given cursor,\n * invoking the given \\p visitor function with the cursors of each\n * visited method. The traversal may be ended prematurely, if\n * the visitor returns \\c CXFieldVisit_Break.\n *\n * \\param T The record type whose field may be visited.\n *\n * \\param visitor The visitor function that will be invoked for each\n * field of \\p T.\n *\n * \\param client_data Pointer data supplied by the client, which will\n * be passed to the visitor each time it is invoked.\n *\n * \\returns A non-zero value if the traversal was terminated\n * prematurely by the visitor returning \\c CXFieldVisit_Break.\n */",
+        "brief": "Visit the class methods of a type.",
+        "source": "clang_raw"
+      }
+    },
+    {
       "kind": "Enum",
       "decl_id": "c:@E@CXBinaryOperatorKind",
       "name": "CXBinaryOperatorKind",
@@ -33818,6 +35719,18 @@
             "brief": "Comma operator.",
             "source": "clang_raw"
           }
+        },
+        {
+          "name": "CXBinaryOperator_Last",
+          "c_name": "CXBinaryOperator_Last",
+          "value": 33,
+          "enum_decl_id": "c:@E@CXBinaryOperatorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** Comma operator. */",
+            "brief": "Comma operator.",
+            "source": "clang_raw"
+          }
         }
       ],
       "alias_names": [],
@@ -34136,6 +36049,18 @@
             "brief": "C++ co_await operator.",
             "source": "clang_raw"
           }
+        },
+        {
+          "name": "CXUnaryOperator_Last",
+          "c_name": "CXUnaryOperator_Last",
+          "value": 14,
+          "enum_decl_id": "c:@E@CXUnaryOperatorKind",
+          "doc": {
+            "kind": "DocComment",
+            "text": "/** C++ co_await operator. */",
+            "brief": "C++ co_await operator.",
+            "source": "clang_raw"
+          }
         }
       ],
       "alias_names": [],
@@ -34261,6 +36186,278 @@
         "brief": "Retrieve the unary operator kind of this cursor.",
         "source": "clang_raw"
       }
+    },
+    {
+      "kind": "Typedef",
+      "decl_id": "c:Index.h@T@CXRemapping",
+      "name": "CXRemapping",
+      "aliased": {
+        "kind": "Pointer",
+        "pointee": null,
+        "size_bytes": 8,
+        "align_bytes": 8
+      },
+      "canonical": {
+        "kind": "Pointer",
+        "pointee": null,
+        "size_bytes": 8,
+        "align_bytes": 8
+      },
+      "doc": {
+        "kind": "DocComment",
+        "text": "/**\n * @}\n */",
+        "brief": "@}",
+        "source": "clang_raw"
+      }
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_getRemappings",
+      "name": "clang_getRemappings",
+      "link_name": "mojo_clang_getRemappings",
+      "ret": {
+        "kind": "TypeRef",
+        "decl_id": "c:Index.h@T@CXRemapping",
+        "name": "CXRemapping",
+        "canonical": {
+          "kind": "Pointer",
+          "pointee": null,
+          "size_bytes": 8,
+          "align_bytes": 8
+        }
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "QualifiedType",
+              "unqualified": {
+                "kind": "IntType",
+                "int_kind": "CHAR_S",
+                "size_bytes": 1,
+                "align_bytes": 1,
+                "ext_bits": null
+              },
+              "qualifiers": {
+                "is_const": true,
+                "is_volatile": false,
+                "is_restrict": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_getRemappingsFromFileList",
+      "name": "clang_getRemappingsFromFileList",
+      "link_name": "mojo_clang_getRemappingsFromFileList",
+      "ret": {
+        "kind": "TypeRef",
+        "decl_id": "c:Index.h@T@CXRemapping",
+        "name": "CXRemapping",
+        "canonical": {
+          "kind": "Pointer",
+          "pointee": null,
+          "size_bytes": 8,
+          "align_bytes": 8
+        }
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "Pointer",
+              "pointee": {
+                "kind": "QualifiedType",
+                "unqualified": {
+                  "kind": "IntType",
+                  "int_kind": "CHAR_S",
+                  "size_bytes": 1,
+                  "align_bytes": 1,
+                  "ext_bits": null
+                },
+                "qualifiers": {
+                  "is_const": true,
+                  "is_volatile": false,
+                  "is_restrict": false
+                }
+              },
+              "size_bytes": 8,
+              "align_bytes": 8
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        },
+        {
+          "name": "",
+          "type": {
+            "kind": "IntType",
+            "int_kind": "UINT",
+            "size_bytes": 4,
+            "align_bytes": 4,
+            "ext_bits": null
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_remap_getNumFiles",
+      "name": "clang_remap_getNumFiles",
+      "link_name": "mojo_clang_remap_getNumFiles",
+      "ret": {
+        "kind": "IntType",
+        "int_kind": "UINT",
+        "size_bytes": 4,
+        "align_bytes": 4,
+        "ext_bits": null
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXRemapping",
+            "name": "CXRemapping",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_remap_getFilenames",
+      "name": "clang_remap_getFilenames",
+      "link_name": "mojo_clang_remap_getFilenames",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXRemapping",
+            "name": "CXRemapping",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        },
+        {
+          "name": "",
+          "type": {
+            "kind": "IntType",
+            "int_kind": "UINT",
+            "size_bytes": 4,
+            "align_bytes": 4,
+            "ext_bits": null
+          }
+        },
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        },
+        {
+          "name": "",
+          "type": {
+            "kind": "Pointer",
+            "pointee": {
+              "kind": "TypeRef",
+              "decl_id": "c:@T@CXString",
+              "name": "CXString",
+              "canonical": {
+                "kind": "StructRef",
+                "decl_id": "c:@SA@CXString",
+                "name": "CXString",
+                "c_name": "CXString",
+                "is_union": false,
+                "size_bytes": 16,
+                "align_bytes": 8,
+                "is_anonymous": false
+              }
+            },
+            "size_bytes": 8,
+            "align_bytes": 8
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false
+    },
+    {
+      "kind": "Function",
+      "decl_id": "c:@F@clang_remap_dispose",
+      "name": "clang_remap_dispose",
+      "link_name": "mojo_clang_remap_dispose",
+      "ret": {
+        "kind": "VoidType"
+      },
+      "params": [
+        {
+          "name": "",
+          "type": {
+            "kind": "TypeRef",
+            "decl_id": "c:Index.h@T@CXRemapping",
+            "name": "CXRemapping",
+            "canonical": {
+              "kind": "Pointer",
+              "pointee": null,
+              "size_bytes": 8,
+              "align_bytes": 8
+            }
+          }
+        }
+      ],
+      "is_variadic": false,
+      "calling_convention": null,
+      "is_noreturn": false
     },
     {
       "kind": "Typedef",

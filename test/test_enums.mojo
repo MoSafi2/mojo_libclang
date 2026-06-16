@@ -4,6 +4,7 @@ from std.testing import TestSuite
 from src.libclang.enums import (
     CursorKind,
     TypeKind,
+    TypeNullabilityKind,
     TokenKind,
     LinkageKind,
     AvailabilityKind,
@@ -14,9 +15,13 @@ from src.libclang.enums import (
     RefQualifierKind,
     TemplateArgumentKind,
     CallingConv,
+    Choice,
+    GlobalOptFlags,
     ChildVisitResult,
+    VisitorResult,
     DiagnosticSeverity,
     ErrorCode,
+    Result,
     SaveError,
     TranslationUnitFlags,
     DiagnosticDisplayOptions,
@@ -108,6 +113,30 @@ def test_type_kind_constants() raises:
     _check(TypeKind.RECORD.as_c_uint() == c_uint(105), "TypeKind.RECORD")
     _check(TypeKind.AUTO.as_c_uint() == c_uint(118), "TypeKind.AUTO")
     _check(TypeKind.BFLOAT16.as_c_uint() == c_uint(39), "TypeKind.BFLOAT16")
+    _check(TypeKind.HLSL_RESOURCE.as_c_uint() == c_uint(179), "TypeKind.HLSL_RESOURCE")
+    _check(
+        TypeKind.PREDEFINED_SUGAR.as_c_uint() == c_uint(182),
+        "TypeKind.PREDEFINED_SUGAR",
+    )
+
+
+def test_kind_spellings() raises:
+    _check(
+        CursorKind.TRANSLATION_UNIT.spelling().byte_length() > 0,
+        "CursorKind spelling should be non-empty",
+    )
+    _check(TypeKind.VOID.spelling() == String("void"), "TypeKind.VOID spelling")
+
+
+def test_type_nullability_kind_constants() raises:
+    _check(
+        TypeNullabilityKind.NON_NULL.as_c_uint() == c_uint(0),
+        "TypeNullabilityKind.NON_NULL",
+    )
+    _check(
+        TypeNullabilityKind.NULLABLE_RESULT.as_c_uint() == c_uint(4),
+        "TypeNullabilityKind.NULLABLE_RESULT",
+    )
 
 
 def test_token_kind_constants() raises:
@@ -180,6 +209,27 @@ def test_calling_conv_constants() raises:
     _check(CallingConv.SWIFT.as_c_uint() == c_uint(13), "CallingConv.SWIFT")
 
 
+def test_choice_constants() raises:
+    _check(Choice.DEFAULT.as_c_uint() == c_uint(0), "Choice.DEFAULT")
+    _check(Choice.ENABLED.as_c_uint() == c_uint(1), "Choice.ENABLED")
+    _check(Choice.DISABLED.as_c_uint() == c_uint(2), "Choice.DISABLED")
+
+
+def test_global_opt_flags() raises:
+    var combined = (
+        GlobalOptFlags.THREAD_BACKGROUND_PRIORITY_FOR_INDEXING
+        | GlobalOptFlags.THREAD_BACKGROUND_PRIORITY_FOR_EDITING
+    )
+    _check(
+        combined.contains(GlobalOptFlags.THREAD_BACKGROUND_PRIORITY_FOR_INDEXING),
+        "combined contains indexing flag",
+    )
+    _check(
+        combined.contains(GlobalOptFlags.THREAD_BACKGROUND_PRIORITY_FOR_EDITING),
+        "combined contains editing flag",
+    )
+
+
 def test_child_visit_result_constants() raises:
     _check(ChildVisitResult.BREAK.as_c_uint() == c_uint(0), "ChildVisitResult.BREAK")
     _check(
@@ -187,6 +237,14 @@ def test_child_visit_result_constants() raises:
         "ChildVisitResult.CONTINUE",
     )
     _check(ChildVisitResult.RECURSE.as_c_uint() == c_uint(2), "ChildVisitResult.RECURSE")
+
+
+def test_visitor_result_constants() raises:
+    _check(VisitorResult.BREAK.as_c_uint() == c_uint(0), "VisitorResult.BREAK")
+    _check(
+        VisitorResult.CONTINUE.as_c_uint() == c_uint(1),
+        "VisitorResult.CONTINUE",
+    )
 
 
 def test_diagnostic_severity_constants() raises:
@@ -212,6 +270,12 @@ def test_error_code_constants() raises:
         ErrorCode.AST_READ_ERROR.as_c_uint() == c_uint(4),
         "ErrorCode.AST_READ_ERROR",
     )
+
+
+def test_result_constants() raises:
+    _check(Result.SUCCESS.as_c_uint() == c_uint(0), "Result.SUCCESS")
+    _check(Result.INVALID.as_c_uint() == c_uint(1), "Result.INVALID")
+    _check(Result.VISIT_BREAK.as_c_uint() == c_uint(2), "Result.VISIT_BREAK")
 
 
 def test_save_error_constants() raises:

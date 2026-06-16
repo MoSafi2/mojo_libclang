@@ -60,6 +60,13 @@ That is the boundary the higher-level API can rely on.
 The generated FFI layout tests are part of the generator, not a separate
 hand-maintained fixture.
 
+By default the generator now parses the vendored header snapshot at
+`vendor/llvm-project-main-2026-06-16/clang-c` rather than whichever
+`clang-c/Index.h` happens to be installed on the host. That keeps raw binding
+coverage deterministic across machines and ensures newly added upstream APIs
+enter CIR before the ABI rewrite step. Set `LIBCLANG_HEADERS_DIR` only when you
+intentionally want to override the vendored snapshot.
+
 ## Generated Surface
 
 The low-level module keeps the layout that `mojo-bindgen` discovers for the raw
