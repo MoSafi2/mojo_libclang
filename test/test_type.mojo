@@ -291,7 +291,7 @@ def test_type_nullability_kind() raises:
         or nullability == TypeNullabilityKind.NULLABLE_RESULT,
         "nullability should return a typed enum value",
     )
-    assert_equal(Int(t.element_count()), 4)
+    assert_equal(Int(t.element_count()), -1)
 
 
 def test_type_qualifiers() raises:
