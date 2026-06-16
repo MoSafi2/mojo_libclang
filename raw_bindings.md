@@ -50,15 +50,14 @@ That is the boundary the higher-level API can rely on.
 3. Rewrite the CIR so any aggregate-by-value signature is normalized into a
    pointer or out-parameter form.
 4. Emit the raw Mojo FFI to `src/_ffi.mojo`.
-5. Emit the rewritten CIR to `build/_ffi.ir.json` and the pristine normalized
-   CIR to `build/_ffi.original.ir.json`.
-6. Emit the C shim header and implementation to
+5. Emit the C shim header and implementation to
    `shim/libclang_mojo_shim.h` and `shim/libclang_mojo_shim.c`.
-7. Build the shim shared library.
-8. Build the generated layout test module at `test/_ffi_layout_tests.mojo`.
+6. Build the shim shared library at `shim/libclang_mojo_shim.so`.
+7. Build the generated layout test module at `test/_ffi_layout_tests.mojo`.
 
 The generated FFI layout tests are part of the generator, not a separate
-hand-maintained fixture.
+hand-maintained fixture. The verification binary is built in a temporary
+directory, not under the repo.
 
 By default the generator now parses the `clang-c` headers installed in the
 active Pixi environment, falling back to `.pixi/envs/default/include/clang-c`
@@ -78,7 +77,8 @@ Refresh the local Pixi environment with:
 rtk pixi install
 ```
 
-The default generate path uses the installed Pixi headers and library directly:
+The default generate path uses the installed Pixi headers and library directly,
+without saving intermediate IR files:
 
 ```bash
 rtk pixi run generate
@@ -296,10 +296,9 @@ The generated or probe-related files currently in use are:
 
 - `src/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
-- `build/_ffi.ir.json`
-- `build/_ffi.original.ir.json`
 - `shim/libclang_mojo_shim.h`
 - `shim/libclang_mojo_shim.c`
+- `shim/libclang_mojo_shim.so`
 - `test/raw_ffi_probe.mojo`
 
 These are all produced from the generator pipeline and should be updated by

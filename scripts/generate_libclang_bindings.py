@@ -14,8 +14,8 @@ Environment overrides:
   LIBCLANG_HEADERS_DIR     Directory containing clang-c/*.h or the clang-c dir.
   LIBCLANG_LIBRARY         Path to libclang.so/dylib/dll used to build the shim.
   LIBCLANG_FFI_OUT         Output Mojo file. Defaults to src/_ffi.mojo.
-  LIBCLANG_FFI_IR_OUT      Rewritten CIR JSON. Defaults to build/_ffi.ir.json.
-  LIBCLANG_ORIGINAL_IR_OUT Pre-rewrite normalized CIR JSON.
+  LIBCLANG_FFI_IR_OUT      Optional rewritten CIR JSON output path.
+  LIBCLANG_ORIGINAL_IR_OUT Optional pre-rewrite normalized CIR JSON output path.
   LIBCLANG_SHIM_OUT        Output shared library for the shim.
 """
 
@@ -70,10 +70,8 @@ from mojo_bindgen.parsing.parser import _default_system_compile_args
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "src" / "_ffi.mojo"
-DEFAULT_FFI_IR_OUT = REPO_ROOT / "build" / "_ffi.ir.json"
-DEFAULT_ORIGINAL_IR_OUT = REPO_ROOT / "build" / "_ffi.original.ir.json"
 DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
-DEFAULT_SHIM_OUT = REPO_ROOT / "build" / "libclang_mojo_shim.so"
+DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / "libclang_mojo_shim.so"
 DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
 DEFAULT_PIXI_ENV_DIR = REPO_ROOT / ".pixi" / "envs" / "default"
@@ -127,14 +125,18 @@ def main() -> int:
         )
 
     mojo_out = Path(os.environ.get("LIBCLANG_FFI_OUT", DEFAULT_FFI_MOJO_OUT)).resolve()
-    ir_out = Path(os.environ.get("LIBCLANG_FFI_IR_OUT", DEFAULT_FFI_IR_OUT)).resolve()
-    original_ir_out = Path(
-        os.environ.get("LIBCLANG_ORIGINAL_IR_OUT", DEFAULT_ORIGINAL_IR_OUT)
-    ).resolve()
+    ir_out = optional_output_path("LIBCLANG_FFI_IR_OUT")
+    original_ir_out = optional_output_path("LIBCLANG_ORIGINAL_IR_OUT")
     layout_out = Path(os.environ.get("LIBCLANG_LAYOUT_TEST_OUT", DEFAULT_LAYOUT_TEST_OUT)).resolve()
     shim_out = Path(os.environ.get("LIBCLANG_SHIM_OUT", DEFAULT_SHIM_OUT)).resolve()
 
-    for path in (mojo_out, ir_out, original_ir_out, layout_out, shim_out, DEFAULT_SHIM_HEADER, DEFAULT_SHIM_SRC):
+    output_paths = [mojo_out, layout_out, shim_out, DEFAULT_SHIM_HEADER, DEFAULT_SHIM_SRC]
+    if ir_out is not None:
+        output_paths.append(ir_out)
+    if original_ir_out is not None:
+        output_paths.append(original_ir_out)
+
+    for path in output_paths:
         path.parent.mkdir(parents=True, exist_ok=True)
 
     raw_unit = parse_unit(primary, headers, include_root)
@@ -152,12 +154,14 @@ def main() -> int:
         ).emit_options
     )
     normalized_unit = orchestrator.normalize_cir(raw_unit)
-    original_ir_out.write_text(normalized_unit.to_json(), encoding="utf-8")
+    if original_ir_out is not None:
+        original_ir_out.write_text(normalized_unit.to_json(), encoding="utf-8")
 
     rewritten = LibclangABIRewriter(normalized_unit).rewrite()
     DEFAULT_SHIM_HEADER.write_text(rewritten.header_text, encoding="utf-8")
     DEFAULT_SHIM_SRC.write_text(rewritten.source_text, encoding="utf-8")
-    ir_out.write_text(rewritten.unit.to_json(), encoding="utf-8")
+    if ir_out is not None:
+        ir_out.write_text(rewritten.unit.to_json(), encoding="utf-8")
 
     header_version = read_cindex_version(primary)
     library_path = discover_libclang_library()
@@ -181,11 +185,13 @@ def main() -> int:
 
     print(f"generated: {display_path(mojo_out)}")
     print(f"generated: {display_path(layout_out)}")
-    print(f"generated: {display_path(ir_out)}")
-    print(f"generated: {display_path(original_ir_out)}")
     print(f"generated: {display_path(DEFAULT_SHIM_HEADER)}")
     print(f"generated: {display_path(DEFAULT_SHIM_SRC)}")
     print(f"shim:      {display_path(shim_out)}")
+    if ir_out is not None:
+        print(f"generated: {display_path(ir_out)}")
+    if original_ir_out is not None:
+        print(f"generated: {display_path(original_ir_out)}")
     if header_version is not None:
         print(f"headers:   CINDEX {header_version[0]}.{header_version[1]}")
     if library_path is not None:
@@ -902,6 +908,13 @@ def normalize_clang_c_dir(path: Path) -> Path:
     return path / "clang-c"
 
 
+def optional_output_path(name: str) -> Path | None:
+    value = os.environ.get(name)
+    if not value:
+        return None
+    return Path(value).expanduser().resolve()
+
+
 def read_cindex_version(index_header: Path) -> tuple[int, int] | None:
     try:
         text = index_header.read_text(encoding="utf-8")
@@ -1022,9 +1035,6 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     cc = shutil.which("cc")
     if cc is None:
         raise SystemExit("error: C compiler not found; required to build libclang shim")
-    runtime_dir = shim_out.parent
-    if library_path is not None:
-        ensure_soname_link(library_path, runtime_dir)
     cmd = [
         cc,
         "-shared",
@@ -1050,7 +1060,6 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
                 str(library_path.parent),
                 f"-l:{library_path.name}",
                 "-Wl,-rpath," + str(library_path.parent),
-                "-Wl,-rpath," + str(runtime_dir),
             ]
         )
     else:
@@ -1058,46 +1067,13 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     run(cmd)
 
 
-def ensure_soname_link(library_path: Path, runtime_dir: Path) -> None:
-    soname = shared_library_soname(library_path)
-    if soname is None or soname == library_path.name:
-        return
-    runtime_dir.mkdir(parents=True, exist_ok=True)
-    link = runtime_dir / soname
-    target = library_path.resolve()
-    if link.exists() or link.is_symlink():
-        if link.is_symlink() and link.resolve() == target:
-            return
-        link.unlink()
-    link.symlink_to(target)
-
-
-def shared_library_soname(library_path: Path) -> str | None:
-    readelf = shutil.which("readelf")
-    if readelf is None:
-        return None
-    try:
-        output = subprocess.check_output(
-            [readelf, "-d", str(library_path)],
-            text=True,
-            stderr=subprocess.DEVNULL,
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return None
-    marker = "Library soname: ["
-    for line in output.splitlines():
-        if marker in line:
-            return line.split(marker, 1)[1].split("]", 1)[0]
-    return None
-
-
 def build_layout_tests(layout_out: Path) -> None:
     mojo = shutil.which("mojo")
     if mojo is None:
         raise SystemExit("error: mojo not found; required to verify generated layout tests")
-    binary_out = REPO_ROOT / "build" / layout_out.stem
-    binary_out.parent.mkdir(parents=True, exist_ok=True)
-    run([mojo, "build", "-I", ".", "-o", str(binary_out), str(layout_out)])
+    with tempfile.TemporaryDirectory(prefix="mojo-libclang-layout-") as temp_dir:
+        binary_out = Path(temp_dir) / layout_out.stem
+        run([mojo, "build", "-I", ".", "-o", str(binary_out), str(layout_out)])
 
 
 def run(cmd: list[str]) -> None:

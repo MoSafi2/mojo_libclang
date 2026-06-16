@@ -8,8 +8,8 @@ version = "0.1.0"
 [tasks]
 generate = "python scripts/generate_libclang_bindings.py"
 generate-libclang = "python scripts/generate_libclang_bindings.py"
-run-test = "env LD_LIBRARY_PATH=$PWD/build:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
-build-test = "env LD_LIBRARY_PATH=$PWD/build:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo build -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim"
+run-test = "env LD_LIBRARY_PATH=$PWD/shim:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo run -I . -Xlinker -L$PWD/shim -Xlinker -lclang_mojo_shim"
+build-test = "env LD_LIBRARY_PATH=$PWD/shim:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo build -I . -Xlinker -L$PWD/shim -Xlinker -lclang_mojo_shim"
 
 [dependencies]
 python = ">=3.14.5,<3.15"
