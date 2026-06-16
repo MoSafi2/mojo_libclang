@@ -1,5 +1,5 @@
-"""Unit tests for `src/libclang/file.mojo`."""
-from src.libclang import Index, TranslationUnit, File
+"""Unit tests for `clang/file.mojo`."""
+from clang.cindex import Index, TranslationUnit, File
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
 
 
@@ -116,7 +116,7 @@ def test_file_from_name_arc_pointer() raises:
 
 def test_file_from_handle_null_returns_none() raises:
     var tu = _parse_fixture()
-    from src._ffi import CXFile
+    from clang._ffi import CXFile
     var f_opt = File.from_handle(tu, CXFile(None))
     _check(f_opt is None, "from_handle with null CXFile should return None")
 

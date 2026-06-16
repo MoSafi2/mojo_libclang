@@ -1,5 +1,5 @@
-"""Unit tests for `src/libclang/common.mojo`."""
-from src.libclang.common import (
+"""Unit tests for `clang/common.mojo`."""
+from clang.common import (
     _alloc_c_string,
     _c_string,
     _take_cxstring,
@@ -13,7 +13,7 @@ from src.libclang.common import (
     CStringArray,
     UnsavedFileArena,
 )
-from src._ffi import CXString
+from clang._ffi import CXString
 from std.ffi import c_uint, c_int, c_ulong
 from std.memory import UnsafePointer
 from std.testing import assert_equal, assert_true, assert_false, TestSuite

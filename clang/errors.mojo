@@ -10,7 +10,7 @@ which expands to an `Error` whose message starts with the type name.
 
 from std.ffi import c_uint
 
-from src.libclang.enums import SaveError
+from clang.enums import SaveError
 
 
 def TranslationUnitLoadError(message: String = "") -> Error:

@@ -1,5 +1,5 @@
 """Tests for typed error helpers."""
-from src.libclang import (
+from clang.cindex import (
     Index,
     TranslationUnit,
     TranslationUnitLoadError,

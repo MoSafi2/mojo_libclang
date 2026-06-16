@@ -12,7 +12,7 @@ The working surface here is token kind, spelling, and cursor annotation.
 Token location/extent queries remain disabled until their wrappers are stable.
 """
 
-from src._ffi import (
+from clang._ffi import (
     CXToken,
     CXTokenKind,
     CXSourceLocation,
@@ -28,12 +28,12 @@ from src._ffi import (
     CXTranslationUnit,
 )
 
-from src.libclang.enums import TokenKind
-from src.libclang.common import _CXStringStorage
-from src.libclang.state import TranslationUnitState
-from src.libclang.cursor import Cursor
-from src.libclang.source_range import SourceRange
-from src.libclang.source_location import SourceLocation
+from clang.enums import TokenKind
+from clang.common import _CXStringStorage
+from clang.state import TranslationUnitState
+from clang.cursor import Cursor
+from clang.source_range import SourceRange
+from clang.source_location import SourceLocation
 
 from std.iter import Iterable, Iterator, StopIteration
 from std.memory import ArcPointer, UnsafePointer

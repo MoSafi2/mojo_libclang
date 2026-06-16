@@ -10,7 +10,7 @@ Important:
 * The file becomes stale after `TranslationUnit.reparse()` if the generation changes.
   """
 
-from src._ffi import (
+from clang._ffi import (
     CXFile,
     clang_getFile,
     clang_getFileName,
@@ -22,8 +22,8 @@ from src._ffi import (
     CXTranslationUnit,
 )
 
-from src.libclang.common import _c_string, _CXStringStorage, _alloc_c_string
-from src.libclang.state import TranslationUnitState
+from clang.common import _c_string, _CXStringStorage, _alloc_c_string
+from clang.state import TranslationUnitState
 
 from std.memory import ArcPointer
 

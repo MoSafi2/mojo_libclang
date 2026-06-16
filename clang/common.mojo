@@ -31,7 +31,7 @@ foundation those modules use:
     _check_translation_unit_generation()
 """
 
-from src._ffi import (
+from clang._ffi import (
     CXIndex,
     CXTranslationUnit,
     CXUnsavedFile,

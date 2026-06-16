@@ -3,7 +3,28 @@ authors = ["MoSafi2 <mohamed.mabrouk@rwth-aachen.de>"]
 channels = ["conda-forge", "https://conda.modular.com/max"]
 name = "mojo_libclang"
 platforms = ["linux-64"]
+preview = ["pixi-build"]
 version = "0.1.0"
+
+[package]
+name = "mojo_libclang"
+version = "0.1.0"
+
+[package.build]
+backend = { name = "pixi-build-mojo", version = "0.*" }
+
+[package.build.config.pkg]
+name = "mojo_libclang"
+path = "mojo_libclang"
+
+[package.host-dependencies]
+mojo-compiler = "=1.0.0b1"
+
+[package.build-dependencies]
+mojo-compiler = "=1.0.0b1"
+
+[package.run-dependencies]
+mojo-compiler = "=1.0.0b1"
 
 [tasks]
 generate = "python scripts/generate_libclang_bindings.py"
@@ -16,6 +37,7 @@ python = ">=3.14.5,<3.15"
 mojo = ">=1.0.0b1,<2"
 clangdev = "18.*"
 libclang = "18.*"
+mojo_libclang = { path = "." }
 
 [pypi-dependencies]
 mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen" }

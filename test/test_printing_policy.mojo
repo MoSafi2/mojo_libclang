@@ -1,12 +1,12 @@
 """Tests for the PrintingPolicy wrapper."""
-from src.libclang import (
+from clang.cindex import (
     Index,
     TranslationUnit,
     Cursor,
     PrintingPolicy,
     PrintingPolicyProperty,
 )
-from src._ffi import CXCursor, CXCursor_FunctionDecl
+from clang._ffi import CXCursor, CXCursor_FunctionDecl
 from std.memory import UnsafePointer
 from std.testing import assert_true, TestSuite
 

@@ -10,7 +10,7 @@ Important:
 - Every FFI call passes `CXCursor *` to the shim, never `CXCursor` by value.
 """
 
-from src._ffi import (
+from clang._ffi import (
     CXCursor,
     CXCursorKind,
     CXTranslationUnit,
@@ -174,7 +174,7 @@ from src._ffi import (
     clang_visitChildren,
 )
 
-from src.libclang.enums import (
+from clang.enums import (
     CursorKind,
     TypeKind,
     LinkageKind,
@@ -189,8 +189,8 @@ from src.libclang.enums import (
     UnaryOperator,
 )
 
-from src.libclang.common import _CXStringStorage, _take_cxstring
-from src.libclang.advanced import (
+from clang.common import _CXStringStorage, _take_cxstring
+from clang.advanced import (
     PlatformAvailability,
     EvalResult,
     Module,
@@ -198,7 +198,7 @@ from src.libclang.advanced import (
     wrap_module,
 )
 
-from src.libclang.translation_unit import (
+from clang.translation_unit import (
     TranslationUnitState,
 )
 
@@ -330,7 +330,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def translation_unit(self) raises -> TranslationUnit:
         """Return the TranslationUnit to which this cursor belongs."""
-        from src.libclang.translation_unit import TranslationUnit
+        from clang.translation_unit import TranslationUnit
 
         self._check_valid()
         return TranslationUnit(self._tu)
@@ -568,7 +568,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_Cursor_isInlineNamespace(self._ptr()))
 
     def is_const_qualified_type(ref self) raises -> Bool:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
@@ -576,7 +576,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_isConstQualifiedType(t._ptr()))
 
     def is_volatile_qualified_type(ref self) raises -> Bool:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
@@ -584,7 +584,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_isVolatileQualifiedType(t._ptr()))
 
     def is_restrict_qualified_type(ref self) raises -> Bool:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
@@ -592,7 +592,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_isRestrictQualifiedType(t._ptr()))
 
     def is_pod_type(ref self) raises -> Bool:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
@@ -740,7 +740,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         )
 
     def template_argument_type(ref self, i: c_uint) raises -> Type:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var out = Type(tu=self._tu)
@@ -793,7 +793,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return out^
 
     def get_tokens(ref self) raises -> TokenGroup:
-        from src.libclang.token import TokenGroup
+        from clang.token import TokenGroup
 
         self._check_valid()
         var ext = self.extent()
@@ -817,7 +817,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return cs.take_optional()
 
     def comment_range(ref self) raises -> SourceRange:
-        from src.libclang.source_range import SourceRange
+        from clang.source_range import SourceRange
 
         self._check_valid()
         var out = SourceRange(self._tu)
@@ -829,7 +829,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         piece_index: c_uint = c_uint(0),
         options: c_uint = c_uint(0),
     ) raises -> SourceRange:
-        from src.libclang.source_range import SourceRange
+        from clang.source_range import SourceRange
 
         self._check_valid()
         var out = SourceRange(self._tu)
@@ -846,7 +846,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         name_flags: c_uint = c_uint(0),
         piece_index: c_uint = c_uint(0),
     ) raises -> SourceRange:
-        from src.libclang.source_range import SourceRange
+        from clang.source_range import SourceRange
 
         self._check_valid()
         var out = SourceRange(self._tu)
@@ -923,7 +923,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_Cursor_isFunctionInlined(self._ptr()))
 
     def underlying_typedef_type(ref self) raises -> Type:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var out = Type(tu=self._tu)
@@ -932,7 +932,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return out^
 
     def enum_type(ref self) raises -> Type:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var out = Type(tu=self._tu)
@@ -1003,7 +1003,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return cs.take()
 
     def iboutlet_collection_type(ref self) raises -> Optional[Type]:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var out = Type(tu=self._tu)
@@ -1022,7 +1022,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_Cursor_isDynamicCall(self._ptr()))
 
     def receiver_type(ref self) raises -> Optional[Type]:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
         var out = Type(tu=self._tu)
@@ -1131,7 +1131,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return cs.take()
 
     def get_included_file(ref self) raises -> Optional[File]:
-        from src.libclang.file import File
+        from clang.file import File
 
         self._check_valid()
         var raw = clang_getIncludedFile(self._ptr())
@@ -1191,7 +1191,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         Local import avoids a module cycle:
             cursor.mojo -> type_.mojo -> cursor.mojo
         """
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
 
@@ -1200,7 +1200,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return out^
 
     def result_type(ref self) raises -> Type:
-        from src.libclang.type_ import Type
+        from clang.type_ import Type
 
         self._check_valid()
 
@@ -1209,7 +1209,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return out^
 
     def location(ref self) raises -> SourceLocation:
-        from src.libclang.source_location import SourceLocation
+        from clang.source_location import SourceLocation
 
         self._check_valid()
 
@@ -1219,7 +1219,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return out^
 
     def extent(ref self) raises -> SourceRange:
-        from src.libclang.source_range import SourceRange
+        from clang.source_range import SourceRange
 
         self._check_valid()
 

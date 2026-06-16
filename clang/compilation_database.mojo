@@ -4,7 +4,7 @@ Mirrors the Python ``CompilationDatabase``, ``CompileCommands``, and
 ``CompileCommand`` classes.
 """
 
-from src._ffi import (
+from clang._ffi import (
     CXCompilationDatabase,
     CXCompileCommands,
     CXCompileCommand,
@@ -26,9 +26,9 @@ from src._ffi import (
     clang_CompileCommand_getMappedSourceContent,
 )
 
-from src.libclang.common import _alloc_c_string, _c_string, _CXStringStorage
-from src.libclang.enums import CompilationDatabaseErrorCode
-from src.libclang.errors import CompilationDatabaseError
+from clang.common import _alloc_c_string, _c_string, _CXStringStorage
+from clang.enums import CompilationDatabaseErrorCode
+from clang.errors import CompilationDatabaseError
 
 from std.iter import Iterable, Iterator, StopIteration
 from std.memory import ArcPointer, UnsafePointer, alloc

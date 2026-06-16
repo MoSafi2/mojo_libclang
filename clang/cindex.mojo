@@ -1,23 +1,23 @@
 """Public high-level libclang Mojo API.
 
-Import via `from src.libclang import Index, TranslationUnit, ...`.
+Import via `from clang.cindex import Index, TranslationUnit, ...`.
 """
-from src.libclang.common import (
+from clang.common import (
     UnsavedFile,
     SourcePosition,
     SourceExtentInput,
 )
-from src.libclang.translation_unit import TranslationUnit
-from src.libclang.source_location import SourceLocation
-from src.libclang.source_range import SourceRange
-from src.libclang.file import File
-from src.libclang.file_inclusion import FileInclusion
-from src.libclang.cursor import Cursor
-from src.libclang.type_ import Type
-from src.libclang.token import Token, TokenGroup
-from src.libclang.diagnostic import Diagnostic, DiagnosticSet, FixIt
-from src.libclang.index import Index
-from src.libclang.advanced import (
+from clang.translation_unit import TranslationUnit
+from clang.source_location import SourceLocation
+from clang.source_range import SourceRange
+from clang.file import File
+from clang.file_inclusion import FileInclusion
+from clang.cursor import Cursor
+from clang.type_ import Type
+from clang.token import Token, TokenGroup
+from clang.diagnostic import Diagnostic, DiagnosticSet, FixIt
+from clang.index import Index
+from clang.advanced import (
     TargetInfo,
     TUResourceUsage,
     TUResourceUsageItem,
@@ -27,19 +27,19 @@ from src.libclang.advanced import (
     EvalResult,
     CursorSet,
 )
-from src.libclang.compilation_database import (
+from clang.compilation_database import (
     CompilationDatabase,
     CompileCommands,
     CompileCommand,
 )
-from src.libclang.rewriter import Rewriter
-from src.libclang.printing_policy import PrintingPolicy
-from src.libclang.errors import (
+from clang.rewriter import Rewriter
+from clang.printing_policy import PrintingPolicy
+from clang.errors import (
     TranslationUnitLoadError,
     TranslationUnitSaveError,
     CompilationDatabaseError,
 )
-from src.libclang.enums import (
+from clang.enums import (
     CursorKind,
     TypeKind,
     TypeNullabilityKind,

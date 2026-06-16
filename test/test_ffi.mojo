@@ -1,4 +1,4 @@
-from src._ffi import (
+from clang._ffi import (
     CXChildVisitResult,
     CXChildVisit_Continue,
     CXClientData,

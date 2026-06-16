@@ -3,7 +3,7 @@
 Mirrors the Python ``Rewriter`` class built on top of ``CXRewriter``.
 """
 
-from src._ffi import (
+from clang._ffi import (
     CXRewriter,
     CXSourceLocation,
     CXSourceRange,
@@ -16,10 +16,10 @@ from src._ffi import (
     clang_CXRewriter_writeMainFileToStdOut,
 )
 
-from src.libclang.common import _alloc_c_string, _c_string
-from src.libclang.state import TranslationUnitState
-from src.libclang.source_location import SourceLocation
-from src.libclang.source_range import SourceRange
+from clang.common import _alloc_c_string, _c_string
+from clang.state import TranslationUnitState
+from clang.source_location import SourceLocation
+from clang.source_range import SourceRange
 
 from std.memory import ArcPointer, UnsafePointer
 

@@ -3,7 +3,7 @@
 Exercises a real-world scenario: parse C source, navigate the AST, inspect
 types, tokenize, and handle diagnostics — all in one coherent flow.
 """
-from src.libclang import (
+from clang.cindex import (
     Index,
     TranslationUnit,
     SourcePosition,
@@ -17,7 +17,7 @@ from src.libclang import (
     TokenGroup,
     Diagnostic,
 )
-from src._ffi import (
+from clang._ffi import (
     CXCursor_FunctionDecl,
     CXCursor_StructDecl,
     CXCursor_VarDecl,

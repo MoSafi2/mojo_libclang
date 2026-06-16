@@ -1,6 +1,6 @@
 """Advanced high-level libclang wrappers built on top of the stable raw FFI."""
 
-from src._ffi import (
+from clang._ffi import (
     CXCursor,
     CXCursorSet,
     CXEvalResult,
@@ -52,11 +52,11 @@ from src._ffi import (
     c_ulong_long,
 )
 
-from src.libclang.common import _CXStringStorage
-from src.libclang.common import _take_cxstring, _take_cxstring_optional
-from src.libclang.file import File
-from src.libclang.source_location import SourceLocation
-from src.libclang.state import TranslationUnitState
+from clang.common import _CXStringStorage
+from clang.common import _take_cxstring, _take_cxstring_optional
+from clang.file import File
+from clang.source_location import SourceLocation
+from clang.state import TranslationUnitState
 
 from std.collections import InlineArray, List
 from std.memory import ArcPointer, UnsafePointer

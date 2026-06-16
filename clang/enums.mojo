@@ -16,8 +16,8 @@ resources and are safe to copy freely.
 """
 
 from std import reflection
-from src.libclang.common import _CXStringStorage
-from src._ffi import (
+from clang.common import _CXStringStorage
+from clang._ffi import (
     c_int,
     c_uint,
     CXCursorKind,

@@ -21,7 +21,7 @@ Ownership notes:
   should not be disposed.
   """
 
-from src._ffi import (
+from clang._ffi import (
     CXDiagnostic,
     CXDiagnosticSet,
     c_uint,
@@ -43,12 +43,12 @@ from src._ffi import (
     clang_disposeDiagnostic,
 )
 
-from src.libclang.enums import DiagnosticSeverity, DiagnosticDisplayOptions
-from src.libclang.common import _CXStringStorage
-from src.libclang.state import TranslationUnitState
-from src.libclang.source_location import SourceLocation
-from src.libclang.source_range import SourceRange
-from src._ffi import clang_disposeDiagnosticSet
+from clang.enums import DiagnosticSeverity, DiagnosticDisplayOptions
+from clang.common import _CXStringStorage
+from clang.state import TranslationUnitState
+from clang.source_location import SourceLocation
+from clang.source_range import SourceRange
+from clang._ffi import clang_disposeDiagnosticSet
 
 
 from std.iter import Iterable, Iterator, StopIteration

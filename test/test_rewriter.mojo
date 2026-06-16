@@ -1,6 +1,6 @@
 """Tests for the Rewriter wrapper."""
-from src.libclang import Index, TranslationUnit, Rewriter, SourcePosition
-from src.libclang.source_range import SourceRange
+from clang.cindex import Index, TranslationUnit, Rewriter, SourcePosition
+from clang.source_range import SourceRange
 from std.testing import assert_true, TestSuite
 
 

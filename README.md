@@ -23,7 +23,7 @@ by hand.
 ## Example Shape
 
 ```mojo
-from src.libclang import Index, UnsavedFile
+from clang.cindex import Index, UnsavedFile
 
 def main() raises:
     var index = Index.create()
@@ -60,6 +60,18 @@ rtk pixi install
 Pixi pins `clangdev` and `libclang` to LLVM 18.x. Headers and runtime library
 come from the Pixi environment, not from vendored headers.
 
+## Pixi Packaging
+
+This repo also builds as Mojo package `clang` so downstream Mojo code can use:
+
+```mojo
+from clang.cindex import Index, UnsavedFile
+```
+
+For local install and packaging, use Pixi's Mojo backend from `pixi.toml`.
+`rtk pixi install` sets up dev env, and `rtk pixi run generate` refreshes raw
+FFI + shim outputs.
+
 ## Run Examples Or Tests
 
 The Mojo code links through the local generated shim in `shim/` and the Pixi
@@ -79,8 +91,8 @@ rtk pixi run build-test test/test_ffi.mojo
 
 ## Repository Layout
 
-- `src/libclang/`: high-level Mojo API
-- `src/_ffi.mojo`: low-level generated boundary used by wrappers
+- `clang/`: high-level Mojo API
+- `clang/_ffi.mojo`: low-level generated boundary used by wrappers
 - `examples/`: practical header parsing and inspection examples
 - `test/`: wrapper tests and generated layout test source
 - `shim/`: generated C shim source/header and local shim shared library
@@ -98,7 +110,7 @@ rtk pixi run generate
 
 Generation updates only files needed to run the project:
 
-- `src/_ffi.mojo`
+- `clang/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
 - `shim/libclang_mojo_shim.h`
 - `shim/libclang_mojo_shim.c`
@@ -108,7 +120,7 @@ Generated IR is not saved by default. `build/` is not used.
 
 ## Development Notes
 
-- Prefer high-level wrappers in `src/libclang/` over direct `_ffi` usage.
+- Prefer high-level wrappers in `clang/` over direct `_ffi` usage.
 - Keep wrapper APIs close to practical `clang.cindex` workflows.
 - Do not vendor `clang-c` headers; use Pixi `clangdev` headers.
 - Do not edit generated low-level files without updating generator logic.

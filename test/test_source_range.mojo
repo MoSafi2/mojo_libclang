@@ -1,5 +1,5 @@
-"""Unit tests for `src/libclang/source_range.mojo`."""
-from src.libclang import (
+"""Unit tests for `clang/source_range.mojo`."""
+from clang.cindex import (
     Index,
     TranslationUnit,
     SourceLocation,

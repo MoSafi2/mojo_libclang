@@ -3,7 +3,7 @@
 Mirrors the Python ``PrintingPolicy`` class.
 """
 
-from src._ffi import (
+from clang._ffi import (
     CXCursor,
     CXPrintingPolicy,
     CXPrintingPolicyProperty,
@@ -14,8 +14,8 @@ from src._ffi import (
     c_uint,
 )
 
-from src.libclang.enums import PrintingPolicyProperty
-from src.libclang.cursor import Cursor
+from clang.enums import PrintingPolicyProperty
+from clang.cursor import Cursor
 
 from std.memory import UnsafePointer
 

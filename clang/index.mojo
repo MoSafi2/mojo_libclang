@@ -1,6 +1,6 @@
 """`Index` — shared owner handle for a `CXIndex` and parser of translation units."""
 
-from src._ffi import (
+from clang._ffi import (
     CXIndex,
     CXIndexOptions,
     CXTranslationUnit,
@@ -16,9 +16,9 @@ from src._ffi import (
     c_int,
 )
 
-from src.libclang.enums import ErrorCode, TranslationUnitFlags
+from clang.enums import ErrorCode, TranslationUnitFlags
 
-from src.libclang.common import (
+from clang.common import (
     UnsavedFile,
     CStringArray,
     UnsavedFileArena,
@@ -26,9 +26,9 @@ from src.libclang.common import (
     _alloc_c_string,
 )
 
-from src.libclang.errors import TranslationUnitLoadError
-from src.libclang.state import IndexState
-from src.libclang.translation_unit import TranslationUnit
+from clang.errors import TranslationUnitLoadError
+from clang.state import IndexState
+from clang.translation_unit import TranslationUnit
 
 from std.memory import UnsafePointer, ArcPointer
 

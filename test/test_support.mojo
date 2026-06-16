@@ -1,5 +1,5 @@
-"""Unit tests for `src/libclang/support.mojo`."""
-from src.libclang import UnsavedFile, SourcePosition, SourceExtentInput
+"""Unit tests for `clang/support.mojo`."""
+from clang.cindex import UnsavedFile, SourcePosition, SourceExtentInput
 from std.ffi import c_uint
 from std.testing import (
     assert_equal,

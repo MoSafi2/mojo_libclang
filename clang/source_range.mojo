@@ -11,7 +11,7 @@ Important:
 * Every FFI call passes `CXSourceRange *` to the shim, never `CXSourceRange` by value.
   """
 
-from src._ffi import (
+from clang._ffi import (
     CXSourceLocation,
     CXSourceRange,
     clang_getNullRange,
@@ -23,8 +23,8 @@ from src._ffi import (
     c_uint,
 )
 
-from src.libclang.source_location import SourceLocation, _zero_source_location
-from src.libclang.state import TranslationUnitState
+from clang.source_location import SourceLocation, _zero_source_location
+from clang.state import TranslationUnitState
 
 from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
 

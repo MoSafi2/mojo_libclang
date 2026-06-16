@@ -1,5 +1,5 @@
 from std.memory import ArcPointer
-from src._ffi import (
+from clang._ffi import (
     CXIndex,
     CXTranslationUnit,
     clang_disposeIndex,

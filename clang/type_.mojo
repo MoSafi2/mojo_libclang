@@ -11,7 +11,7 @@ Important:
 * Every FFI call passes `CXType *` to the shim, never `CXType` by value.
   """
 
-from src._ffi import (
+from clang._ffi import (
     CXCursor,
     CXType,
     CXTypeKind,
@@ -67,7 +67,7 @@ from src._ffi import (
     clang_equalTypes,
 )
 
-from src.libclang.enums import (
+from clang.enums import (
     TypeKind,
     TypeNullabilityKind,
     RefQualifierKind,
@@ -75,9 +75,9 @@ from src.libclang.enums import (
     ExceptionSpecificationKind,
     CursorKind,
 )
-from src.libclang.common import _CXStringStorage, _alloc_c_string, _c_string
-from src.libclang.printing_policy import PrintingPolicy
-from src.libclang.state import TranslationUnitState
+from clang.common import _CXStringStorage, _alloc_c_string, _c_string
+from clang.printing_policy import PrintingPolicy
+from clang.state import TranslationUnitState
 
 from std.memory import ArcPointer, UnsafePointer, MutOpaquePointer, alloc
 
@@ -277,7 +277,7 @@ struct Type(Copyable, Movable, Writable):
         return out^
 
     def get_declaration(ref self) raises -> Optional[Cursor]:
-        from src.libclang.cursor import Cursor
+        from clang.cursor import Cursor
 
         self._check_valid()
 
@@ -363,7 +363,7 @@ struct Type(Copyable, Movable, Writable):
 
     def translation_unit(ref self) raises -> TranslationUnit:
         """Return the TranslationUnit to which this type belongs."""
-        from src.libclang.translation_unit import TranslationUnit
+        from clang.translation_unit import TranslationUnit
 
         self._check_valid()
         return TranslationUnit(self._tu)
@@ -430,7 +430,7 @@ struct Type(Copyable, Movable, Writable):
         return Bool(clang_Type_isTransparentTagTypedef(self._ptr()))
 
     def get_fields(ref self) raises -> List[Cursor]:
-        from src.libclang.cursor import Cursor
+        from clang.cursor import Cursor
 
         self._check_valid()
         var collector_box = alloc[_TypeFieldCollector](1)
@@ -466,7 +466,7 @@ struct Type(Copyable, Movable, Writable):
         return Optional[Type](out^)
 
     def objc_protocol_decls(ref self) raises -> List[Cursor]:
-        from src.libclang.cursor import Cursor
+        from clang.cursor import Cursor
 
         self._check_valid()
         var out = List[Cursor]()

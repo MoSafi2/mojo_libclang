@@ -1,18 +1,18 @@
-"""Unit tests for `src/libclang/translation_unit.mojo`."""
-from src.libclang.index import Index
-from src.libclang.common import (
+"""Unit tests for `clang/translation_unit.mojo`."""
+from clang.index import Index
+from clang.common import (
     UnsavedFile,
     SourcePosition,
     SourceExtentInput,
 )
-from src.libclang.source_range import SourceRange
-from src.libclang.cursor import Cursor
-from src.libclang.translation_unit import TranslationUnit
+from clang.source_range import SourceRange
+from clang.cursor import Cursor
+from clang.translation_unit import TranslationUnit
 
-from src.libclang.source_location import SourceLocation
-from src.libclang.file_inclusion import FileInclusion
+from clang.source_location import SourceLocation
+from clang.file_inclusion import FileInclusion
 
-from src._ffi import (
+from clang._ffi import (
     CXCursor_TypedefDecl,
     CXCursor_TranslationUnit,
     CXCursor_VarDecl,

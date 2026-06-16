@@ -13,7 +13,7 @@ The generator uses ``mojo-bindgen`` as a library:
 Environment overrides:
   LIBCLANG_HEADERS_DIR     Directory containing clang-c/*.h or the clang-c dir.
   LIBCLANG_LIBRARY         Path to libclang.so/dylib/dll used to build the shim.
-  LIBCLANG_FFI_OUT         Output Mojo file. Defaults to src/_ffi.mojo.
+  LIBCLANG_FFI_OUT         Output Mojo file. Defaults to clang/_ffi.mojo.
   LIBCLANG_FFI_IR_OUT      Optional rewritten CIR JSON output path.
   LIBCLANG_ORIGINAL_IR_OUT Optional pre-rewrite normalized CIR JSON output path.
   LIBCLANG_SHIM_OUT        Output shared library for the shim.
@@ -69,7 +69,7 @@ from mojo_bindgen.parsing.parser import _default_system_compile_args
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "src" / "_ffi.mojo"
+DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "clang" / "_ffi.mojo"
 DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
 DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / "libclang_mojo_shim.so"
 DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
@@ -223,8 +223,8 @@ def parse_unit(primary: Path, headers: list[Path], include_root: Path) -> Unit:
 
 def layout_import_module(mojo_out: Path) -> str:
     stem = mojo_out.stem
-    if stem.startswith("_") and mojo_out.parent == (REPO_ROOT / "src").resolve():
-        return f"src.{stem}"
+    if stem.startswith("_") and mojo_out.parent == (REPO_ROOT / "clang").resolve():
+        return f"clang.{stem}"
     return stem
 
 

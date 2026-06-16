@@ -1,7 +1,7 @@
-"""Smoke test for `src/libclang/enums.mojo`."""
+"""Smoke test for `clang/enums.mojo`."""
 from std.ffi import c_uint
 from std.testing import TestSuite
-from src.libclang.enums import (
+from clang.enums import (
     CursorKind,
     TypeKind,
     TypeNullabilityKind,

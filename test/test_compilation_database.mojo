@@ -1,5 +1,5 @@
 """Tests for compilation database wrappers."""
-from src.libclang import CompilationDatabase, CompileCommands, CompileCommand
+from clang.cindex import CompilationDatabase, CompileCommands, CompileCommand
 from std.testing import assert_equal, assert_true, TestSuite
 
 

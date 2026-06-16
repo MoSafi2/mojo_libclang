@@ -1,7 +1,7 @@
 """File inclusion description returned by ``TranslationUnit.get_includes``."""
 
-from src.libclang.source_location import SourceLocation
-from src.libclang.file import File
+from clang.source_location import SourceLocation
+from clang.file import File
 
 
 @fieldwise_init

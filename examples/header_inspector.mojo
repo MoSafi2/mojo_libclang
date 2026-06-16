@@ -14,7 +14,7 @@ Usage:
     examples/header_inspector.mojo
 """
 
-from src.libclang import (
+from clang.cindex import (
     Index,
     TranslationUnit,
     UnsavedFile,
@@ -25,7 +25,7 @@ from src.libclang import (
     Type,
     SourceLocation,
 )
-from src.libclang.cursor import walk_preorder
+from clang.cursor import walk_preorder
 from std.ffi import c_uint
 
 

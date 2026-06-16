@@ -1,7 +1,7 @@
 # Raw libclang Mojo Bindings Notes
 
 This repository now generates the raw libclang FFI as a normalized low-level
-Mojo module, `src/_ffi.mojo`, plus a matching C ABI normalization shim. The
+Mojo module, `clang/_ffi.mojo`, plus a matching C ABI normalization shim. The
 generator is deterministic and is run through Pixi:
 
 ```bash
@@ -49,7 +49,7 @@ That is the boundary the higher-level API can rely on.
 2. Run the CIR normalization and analysis passes.
 3. Rewrite the CIR so any aggregate-by-value signature is normalized into a
    pointer or out-parameter form.
-4. Emit the raw Mojo FFI to `src/_ffi.mojo`.
+4. Emit the raw Mojo FFI to `clang/_ffi.mojo`.
 5. Emit the C shim header and implementation to
    `shim/libclang_mojo_shim.h` and `shim/libclang_mojo_shim.c`.
 6. Build the shim shared library at `shim/libclang_mojo_shim.so`.
@@ -122,7 +122,7 @@ That includes:
 
 ## How Higher-Level API Code Should Be Written
 
-Higher-level wrappers should be written on top of `src/_ffi.mojo`, not on top of
+Higher-level wrappers should be written on top of `clang/_ffi.mojo`, not on top of
 raw libclang signatures and not on top of ad hoc manual patches.
 
 Use this pattern:
@@ -148,7 +148,7 @@ Higher-level wrappers should also:
 
 - convert `CXString` to `String` as soon as possible and dispose the raw string
   immediately
-- use the shared string helpers in `src/libclang/common.mojo` for all
+- use the shared string helpers in `clang/common.mojo` for all
   Mojo-to-C and C-to-Mojo string movement
 - reject embedded NUL bytes when converting a Mojo `String` into a C string
 - use the optional `CXString` path only for APIs that can return a null
@@ -294,7 +294,7 @@ directly and checks that the new approach actually works for:
 
 The generated or probe-related files currently in use are:
 
-- `src/_ffi.mojo`
+- `clang/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
 - `shim/libclang_mojo_shim.h`
 - `shim/libclang_mojo_shim.c`

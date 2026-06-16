@@ -1,8 +1,8 @@
-"""Unit tests for `src/libclang/token.mojo`.
+"""Unit tests for `clang/token.mojo`.
 
 Exercises `TokenGroup`, `Token`, and the corresponding shim calls.
 """
-from src.libclang import (
+from clang.cindex import (
     Index,
     TranslationUnit,
     Cursor,
@@ -10,7 +10,7 @@ from src.libclang import (
     SourceExtentInput,
     SourceRange,
 )
-from src._ffi import (
+from clang._ffi import (
     CXToken_Keyword,
     CXToken_Identifier,
     CXToken_Punctuation,
@@ -37,7 +37,7 @@ def _first_line_extent(mut tu: TranslationUnit) raises -> SourceRange:
 
 
 def _find_function(mut tu: TranslationUnit, name: String) raises -> Cursor:
-    from src.libclang import Cursor
+    from clang.cindex import Cursor
 
     var root = tu.cursor()
     var children = root.get_children()

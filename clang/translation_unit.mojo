@@ -1,6 +1,6 @@
 """`TranslationUnit` — shared ARC handle for a `CXTranslationUnit`."""
 
-from src._ffi import (
+from clang._ffi import (
     CXTranslationUnit,
     CXCodeCompleteResults,
     CXFile,
@@ -31,9 +31,9 @@ from src._ffi import (
     size_t,
 )
 
-from src.libclang.enums import TranslationUnitFlags, SaveError
+from clang.enums import TranslationUnitFlags, SaveError
 
-from src.libclang.common import (
+from clang.common import (
     UnsavedFile,
     SourcePosition,
     SourceExtentInput,
@@ -43,17 +43,17 @@ from src.libclang.common import (
     _alloc_c_string,
 )
 
-from src.libclang.state import IndexState, TranslationUnitState
+from clang.state import IndexState, TranslationUnitState
 
-from src.libclang.errors import TranslationUnitLoadError, TranslationUnitSaveError
-from src.libclang.cursor import Cursor
-from src.libclang.file import File
-from src.libclang.source_location import SourceLocation
-from src.libclang.source_range import SourceRange
-from src.libclang.token import TokenGroup
-from src.libclang.diagnostic import Diagnostic, DiagnosticSet
-from src.libclang.file_inclusion import FileInclusion
-from src.libclang.advanced import (
+from clang.errors import TranslationUnitLoadError, TranslationUnitSaveError
+from clang.cursor import Cursor
+from clang.file import File
+from clang.source_location import SourceLocation
+from clang.source_range import SourceRange
+from clang.token import TokenGroup
+from clang.diagnostic import Diagnostic, DiagnosticSet
+from clang.file_inclusion import FileInclusion
+from clang.advanced import (
     TargetInfo,
     TUResourceUsage,
     target_info_for_tu,
@@ -350,7 +350,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         If ``index`` is not provided, a default ``Index`` is created and kept
         alive by the returned translation unit.
         """
-        from src.libclang.index import Index
+        from clang.index import Index
 
         var idx: Index
         if index:
@@ -366,7 +366,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         index: Optional[Index] = None,
     ) raises -> TranslationUnit:
         """Load a serialized AST file into a ``TranslationUnit``."""
-        from src.libclang.index import Index
+        from clang.index import Index
 
         var idx: Index
         if index:

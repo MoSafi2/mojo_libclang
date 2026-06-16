@@ -13,9 +13,9 @@ mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim
 examples/parse_header_example.mojo
 """
 
-from src.libclang import Index, SourceExtentInput, UnsavedFile, CursorKind
-from src.libclang.cursor import Cursor
-from src.libclang.translation_unit import TranslationUnit
+from clang.cindex import Index, SourceExtentInput, UnsavedFile, CursorKind
+from clang.cursor import Cursor
+from clang.translation_unit import TranslationUnit
 
 comptime HEADER_PATH: String = "/virtual/acme_image.h"
 

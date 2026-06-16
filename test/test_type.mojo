@@ -1,5 +1,5 @@
-"""Unit tests for `src/libclang/type_.mojo`."""
-from src.libclang import (
+"""Unit tests for `clang/type_.mojo`."""
+from clang.cindex import (
     Index,
     TranslationUnit,
     Cursor,
@@ -9,7 +9,7 @@ from src.libclang import (
     TypeNullabilityKind,
     PrintingPolicy,
 )
-from src._ffi import (
+from clang._ffi import (
     CXCursorKind,
     CXCursor_FunctionDecl,
     CXCursor_StructDecl,

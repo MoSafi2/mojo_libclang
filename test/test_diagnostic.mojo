@@ -1,8 +1,8 @@
-"""Unit tests for `src/libclang/diagnostic.mojo`.
+"""Unit tests for `clang/diagnostic.mojo`.
 
 Exercises `Diagnostic`, `DiagnosticSet`, and `FixIt` wrappers.
 """
-from src.libclang import (
+from clang.cindex import (
     Index,
     TranslationUnit,
     Diagnostic,

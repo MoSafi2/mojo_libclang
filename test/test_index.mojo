@@ -1,6 +1,6 @@
-"""Unit tests for `src/libclang/index.mojo`."""
-from src.libclang.index import Index
-from src.libclang.translation_unit import TranslationUnit
+"""Unit tests for `clang/index.mojo`."""
+from clang.index import Index
+from clang.translation_unit import TranslationUnit
 from std.ffi import c_uint
 from std.testing import (
     assert_equal,

@@ -1,4 +1,4 @@
-from src.libclang import (
+from clang.cindex import (
     Index,
     CursorKind,
     TranslationUnit,
@@ -6,7 +6,7 @@ from src.libclang import (
     CursorSet,
     TranslationUnitFlags,
 )
-from src.libclang.common import SourcePosition
+from clang.common import SourcePosition
 from std.testing import assert_equal, assert_true, TestSuite
 from std.iter import enumerate
 

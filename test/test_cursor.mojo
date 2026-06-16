@@ -1,5 +1,5 @@
-"""Unit tests for `src/libclang/cursor.mojo`."""
-from src.libclang import (
+"""Unit tests for `clang/cursor.mojo`."""
+from clang.cindex import (
     Index,
     TranslationUnit,
     Cursor,
@@ -10,7 +10,7 @@ from src.libclang import (
     UnaryOperator,
     TemplateArgumentKind,
 )
-from src._ffi import (
+from clang._ffi import (
     CXCursor_TranslationUnit,
     CXCursor_TypedefDecl,
     CXCursor_FunctionDecl,
@@ -30,7 +30,7 @@ from src._ffi import (
     CXType_FunctionProto,
     CXType_Record,
 )
-from src.libclang.cursor import collect_children, walk_preorder
+from clang.cursor import collect_children, walk_preorder
 from std.ffi import c_uint, c_int
 from std.iter import iter, enumerate
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
