@@ -27,12 +27,6 @@ from src.libclang.advanced import (
     EvalResult,
     CursorSet,
 )
-from src.libclang.code_completion import (
-    CodeCompletionResults,
-    CodeCompletionResult,
-    CompletionString,
-    CompletionChunk,
-)
 from src.libclang.compilation_database import (
     CompilationDatabase,
     CompileCommands,
