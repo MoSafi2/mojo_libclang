@@ -79,9 +79,10 @@ struct Index(Copyable, Movable, Writable):
 
     @staticmethod
     def create_with_options(raw_options: CXIndexOptions) raises -> Self:
+        var options = raw_options.copy()
         var raw = clang_createIndexWithOptions(
             rebind[UnsafePointer[CXIndexOptions, ImmutExternalOrigin]](
-                UnsafePointer[CXIndexOptions, MutAnyOrigin](to=raw_options)
+                UnsafePointer[CXIndexOptions, MutAnyOrigin](to=options)
             )
         )
         if not raw:

@@ -14,8 +14,8 @@ version = "0.1.0"
 backend = { name = "pixi-build-mojo", version = "0.*" }
 
 [package.build.config.pkg]
-name = "mojo_libclang"
-path = "mojo_libclang"
+name = "clang"
+path = "clang"
 
 [package.host-dependencies]
 mojo-compiler = "=1.0.0b1"

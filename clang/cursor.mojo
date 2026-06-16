@@ -1048,7 +1048,10 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def binary_opcode_spelling(ref self) raises -> String:
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_getBinaryOperatorKindSpelling(cs.ptr_for_out(), self.binary_opcode())
+        clang_getBinaryOperatorKindSpelling(
+            cs.ptr_for_out(),
+            c_uint(self.binary_opcode().as_c_uint()),
+        )
         return cs.take()
 
     def binary_operator(ref self) raises -> BinaryOperator:
@@ -1066,13 +1069,13 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return _gcc_assembly_operand(self._tu, self._ptr(), index, True).constraint
 
     def gcc_assembly_input_expr(ref self, index: c_uint) raises -> Optional[Self]:
-        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr.copy()
 
     def gcc_assembly_output_constraint(ref self, index: c_uint) raises -> String:
         return _gcc_assembly_operand(self._tu, self._ptr(), index, False).constraint
 
     def gcc_assembly_output_expr(ref self, index: c_uint) raises -> Optional[Self]:
-        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr.copy()
 
 
     def get_included_file(ref self) raises -> Optional[File]:
