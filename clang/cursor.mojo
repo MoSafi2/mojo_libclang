@@ -124,7 +124,6 @@ from clang._ffi import (
     clang_Cursor_isBitField,
     clang_getFieldDeclBitWidth,
     clang_Cursor_getOffsetOfField,
-    clang_getOffsetOfBase,
     clang_Cursor_getStorageClass,
     clang_Cursor_getMangling,
     clang_Cursor_getCXXManglings,
@@ -146,19 +145,9 @@ from clang._ffi import (
     clang_Cursor_getObjCPropertySetterName,
     clang_Cursor_getObjCDeclQualifiers,
     clang_Cursor_isObjCOptional,
-    clang_Cursor_getBinaryOpcode,
-    clang_Cursor_getBinaryOpcodeStr,
+    clang_getBinaryOperatorKindSpelling,
     clang_getCursorBinaryOperatorKind,
     clang_getCursorUnaryOperatorKind,
-    clang_Cursor_getGCCAssemblyTemplate,
-    clang_Cursor_isGCCAssemblyHasGoto,
-    clang_Cursor_getGCCAssemblyNumOutputs,
-    clang_Cursor_getGCCAssemblyNumInputs,
-    clang_Cursor_getGCCAssemblyInput,
-    clang_Cursor_getGCCAssemblyOutput,
-    clang_Cursor_getGCCAssemblyNumClobbers,
-    clang_Cursor_getGCCAssemblyClobber,
-    clang_Cursor_isGCCAssemblyVolatile,
     clang_Cursor_isFunctionInlined,
     clang_disposeStringSet,
     c_char,
@@ -1060,16 +1049,12 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         return Bool(clang_Cursor_isObjCOptional(self._ptr()))
 
     def binary_opcode(ref self) raises -> BinaryOperator:
-        self._check_valid()
-        return BinaryOperator(c_uint(clang_Cursor_getBinaryOpcode(self._ptr())))
+        return self.binary_operator()
 
     def binary_opcode_spelling(ref self) raises -> String:
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Cursor_getBinaryOpcodeStr(
-            cs.ptr_for_out(),
-            clang_Cursor_getBinaryOpcode(self._ptr()),
-        )
+        clang_getBinaryOperatorKindSpelling(cs.ptr_for_out(), self.binary_opcode())
         return cs.take()
 
     def binary_operator(ref self) raises -> BinaryOperator:
