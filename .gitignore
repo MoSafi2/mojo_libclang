@@ -9,3 +9,5 @@ shim/libclang_mojo_shim.so
 plans/
 example.mojo
 opencode.json
+.agents
+skills-lock.json
