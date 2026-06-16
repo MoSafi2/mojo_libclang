@@ -71,3 +71,7 @@ class ConcreteDerived : public ConcreteBase {
 public:
     int derived_field;
 };
+
+inline namespace V1 {
+int inline_ns_value = 11;
+}

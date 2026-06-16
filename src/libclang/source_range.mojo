@@ -16,12 +16,14 @@ from src._ffi import (
     CXSourceRange,
     clang_getNullRange,
     clang_getRange,
+    clang_getRangeStart,
+    clang_getRangeEnd,
     clang_Range_isNull,
     clang_equalRanges,
     c_uint,
 )
 
-from src.libclang.source_location import SourceLocation
+from src.libclang.source_location import SourceLocation, _zero_source_location
 from src.libclang.state import TranslationUnitState
 
 from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
@@ -138,6 +140,31 @@ struct SourceRange(Copyable, Movable, Writable):
 
         out._start = start_copy.copy()
         out._end = end_copy.copy()
+        return out^
+
+    @staticmethod
+    def from_raw(
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXSourceRange,
+    ) raises -> Self:
+        var out = Self(tu=tu)
+        out._raw = InlineArray[CXSourceRange, 1](fill=raw)
+        var start = _zero_source_location()
+        var end = _zero_source_location()
+        clang_getRangeStart(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+                UnsafePointer[CXSourceLocation, MutAnyOrigin](to=start)
+            ),
+            out._ptr(),
+        )
+        clang_getRangeEnd(
+            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+                UnsafePointer[CXSourceLocation, MutAnyOrigin](to=end)
+            ),
+            out._ptr(),
+        )
+        out._start = SourceLocation.from_raw(tu, start)
+        out._end = SourceLocation.from_raw(tu, end)
         return out^
 
     def start(ref self) raises -> SourceLocation:

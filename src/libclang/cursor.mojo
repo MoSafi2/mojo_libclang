@@ -19,6 +19,7 @@ from src._ffi import (
     CXSourceRange,
     CXFile,
     CXPrintingPolicy,
+    CXPlatformAvailability,
     CX_CXXAccessSpecifier,
     CXTemplateArgumentKind,
     CXLinkageKind,
@@ -47,6 +48,7 @@ from src._ffi import (
     clang_Cursor_getTranslationUnit,
     clang_isCursorDefinition,
     clang_isDeclaration,
+    clang_isInvalidDeclaration,
     clang_isReference,
     clang_isExpression,
     clang_isStatement,
@@ -103,6 +105,20 @@ from src._ffi import (
     clang_getIncludedFile,
     clang_getTypedefDeclUnderlyingType,
     clang_getEnumDeclIntegerType,
+    clang_getCursorPlatformAvailability,
+    clang_disposeCXPlatformAvailability,
+    clang_Cursor_getVarDeclInitializer,
+    clang_Cursor_hasVarDeclGlobalStorage,
+    clang_Cursor_hasVarDeclExternalStorage,
+    clang_Cursor_isMacroFunctionLike,
+    clang_Cursor_isMacroBuiltin,
+    clang_Cursor_isInlineNamespace,
+    clang_Cursor_getSpellingNameRange,
+    clang_Cursor_getCommentRange,
+    clang_Cursor_getModule,
+    clang_getCursorReferenceNameRange,
+    clang_getCursorExceptionSpecificationType,
+    clang_Cursor_Evaluate,
     clang_Cursor_isBitField,
     clang_getFieldDeclBitWidth,
     clang_Cursor_getOffsetOfField,
@@ -147,6 +163,13 @@ from src.libclang.enums import (
 )
 
 from src.libclang.common import _CXStringStorage
+from src.libclang.advanced import (
+    PlatformAvailability,
+    EvalResult,
+    Module,
+    copy_platform_availabilities,
+    wrap_module,
+)
 
 from src.libclang.translation_unit import (
     TranslationUnitState,
@@ -157,6 +180,7 @@ from std.iter import Iterable, Iterator, StopIteration
 from std.memory import (
     ArcPointer,
     UnsafePointer,
+    alloc,
     ImmutOpaquePointer,
     MutOpaquePointer,
 )
@@ -367,6 +391,10 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return Bool(clang_isInvalid(self._raw[0].kind))
 
+    def is_invalid_declaration(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_isInvalidDeclaration(self._ptr()))
+
     def is_translation_unit(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_isTranslationUnit(self._raw[0].kind))
@@ -484,6 +512,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         _ = defined_in_cs.take()
         return result
 
+    def has_var_decl_global_storage(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_hasVarDeclGlobalStorage(self._ptr()))
+
+    def has_var_decl_external_storage(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_hasVarDeclExternalStorage(self._ptr()))
+
     def is_anonymous(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isAnonymous(self._ptr()))
@@ -491,6 +527,18 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def is_anonymous_record_decl(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isAnonymousRecordDecl(self._ptr()))
+
+    def is_macro_function_like(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isMacroFunctionLike(self._ptr()))
+
+    def is_macro_builtin(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isMacroBuiltin(self._ptr()))
+
+    def is_inline_namespace(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Cursor_isInlineNamespace(self._ptr()))
 
     def is_const_qualified_type(ref self) raises -> Bool:
         from src.libclang.type_ import Type
@@ -574,6 +622,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if Bool(clang_Cursor_isNull(out._ptr())):
             return None
 
+        return Optional[Self](out^)
+
+    def var_decl_initializer(ref self) raises -> Optional[Self]:
+        self._check_valid()
+        var out = Self(self._tu)
+        clang_Cursor_getVarDeclInitializer(out._ptr(), self._ptr())
+        if out.is_null():
+            return None
         return Optional[Self](out^)
 
     def canonical(ref self) raises -> Self:
@@ -758,6 +814,48 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_Cursor_getRawCommentText(cs.ptr_for_out(), self._ptr())
         return cs.take_optional()
 
+    def comment_range(ref self) raises -> SourceRange:
+        from src.libclang.source_range import SourceRange
+
+        self._check_valid()
+        var out = SourceRange(self._tu)
+        clang_Cursor_getCommentRange(out._ptr(), self._ptr())
+        return out^
+
+    def spelling_name_range(
+        ref self,
+        piece_index: c_uint = c_uint(0),
+        options: c_uint = c_uint(0),
+    ) raises -> SourceRange:
+        from src.libclang.source_range import SourceRange
+
+        self._check_valid()
+        var out = SourceRange(self._tu)
+        clang_Cursor_getSpellingNameRange(
+            out._ptr(),
+            self._ptr(),
+            piece_index,
+            options,
+        )
+        return out^
+
+    def reference_name_range(
+        ref self,
+        name_flags: c_uint = c_uint(0),
+        piece_index: c_uint = c_uint(0),
+    ) raises -> SourceRange:
+        from src.libclang.source_range import SourceRange
+
+        self._check_valid()
+        var out = SourceRange(self._tu)
+        clang_getCursorReferenceNameRange(
+            out._ptr(),
+            self._ptr(),
+            name_flags,
+            piece_index,
+        )
+        return out^
+
     # -----------------------------------------------------------------------
     # Miscellaneous cursor properties
     # -----------------------------------------------------------------------
@@ -787,6 +885,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def storage_class(ref self) raises -> StorageClass:
         self._check_valid()
         return StorageClass(c_uint(clang_Cursor_getStorageClass(self._ptr())))
+
+    def cursor_exception_specification_kind(
+        ref self,
+    ) raises -> ExceptionSpecificationKind:
+        self._check_valid()
+        return ExceptionSpecificationKind(
+            c_uint(clang_getCursorExceptionSpecificationType(self._ptr()))
+        )
 
     def is_bitfield(ref self) raises -> Bool:
         self._check_valid()
@@ -906,6 +1012,47 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             return None
         var f = File(tu=self._tu, raw=raw)
         return Optional[File](f^)
+
+    def module(ref self) raises -> Optional[Module]:
+        self._check_valid()
+        return wrap_module(self._tu, clang_Cursor_getModule(self._ptr()))
+
+    def evaluate(ref self) raises -> Optional[EvalResult]:
+        self._check_valid()
+        var raw = clang_Cursor_Evaluate(self._ptr())
+        if not raw:
+            return None
+        return Optional[EvalResult](EvalResult(raw))
+
+    def platform_availability(ref self) raises -> List[PlatformAvailability]:
+        self._check_valid()
+        var always_deprecated = c_int(0)
+        var always_unavailable = c_int(0)
+        var dep_ptr = UnsafePointer[c_int, MutAnyOrigin](to=always_deprecated)
+        var unavail_ptr = UnsafePointer[c_int, MutAnyOrigin](to=always_unavailable)
+        var dep_message = _CXStringStorage()
+        var unavail_message = _CXStringStorage()
+        var avail = alloc[CXPlatformAvailability](8)
+        var count = clang_getCursorPlatformAvailability(
+            self._ptr(),
+            rebind[UnsafePointer[c_int, MutExternalOrigin]](dep_ptr),
+            dep_message.ptr_for_out(),
+            rebind[UnsafePointer[c_int, MutExternalOrigin]](unavail_ptr),
+            unavail_message.ptr_for_out(),
+            rebind[UnsafePointer[CXPlatformAvailability, MutExternalOrigin]](avail),
+            c_int(8),
+        )
+        var copied = copy_platform_availabilities(
+            rebind[UnsafePointer[CXPlatformAvailability, MutExternalOrigin]](avail),
+            Int(count),
+        )
+        for i in range(Int(count)):
+            clang_disposeCXPlatformAvailability(
+                rebind[UnsafePointer[CXPlatformAvailability, MutExternalOrigin]](avail)
+                + i
+            )
+        avail.free()
+        return copied^
 
     # -----------------------------------------------------------------------
     # Types and source locations

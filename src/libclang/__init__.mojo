@@ -17,6 +17,16 @@ from src.libclang.type_ import Type
 from src.libclang.token import Token, TokenGroup
 from src.libclang.diagnostic import Diagnostic, DiagnosticSet, FixIt
 from src.libclang.index import Index
+from src.libclang.advanced import (
+    TargetInfo,
+    TUResourceUsage,
+    TUResourceUsageItem,
+    PlatformAvailability,
+    VersionTriple,
+    Module,
+    EvalResult,
+    CursorSet,
+)
 from src.libclang.code_completion import (
     CodeCompletionResults,
     CodeCompletionResult,

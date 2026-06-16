@@ -2,10 +2,15 @@
 
 from src._ffi import (
     CXIndex,
+    CXIndexOptions,
     CXTranslationUnit,
     clang_createIndex,
+    clang_createIndexWithOptions,
     clang_parseTranslationUnit2,
     clang_createTranslationUnit2,
+    clang_CXIndex_setGlobalOptions,
+    clang_CXIndex_getGlobalOptions,
+    clang_CXIndex_setInvocationEmissionPathOption,
     clang_defaultEditingTranslationUnitOptions,
     c_uint,
     c_int,
@@ -72,6 +77,21 @@ struct Index(Copyable, Movable, Writable):
     ) raises -> Self:
         return Self(exclude_decls, display_diagnostics)
 
+    @staticmethod
+    def create_with_options(raw_options: CXIndexOptions) raises -> Self:
+        var raw = clang_createIndexWithOptions(
+            rebind[UnsafePointer[CXIndexOptions, ImmutExternalOrigin]](
+                UnsafePointer[CXIndexOptions, MutAnyOrigin](to=raw_options)
+            )
+        )
+        if not raw:
+            raise Error("IndexError: clang_createIndexWithOptions returned null")
+        var out = Self(copy=Self())
+        out._state = ArcPointer(IndexState(raw))
+        out._exclude_decls = False
+        out._display_diagnostics = False
+        return out^
+
     def state(self) -> ArcPointer[IndexState]:
         """Return the shared index state.
 
@@ -82,6 +102,20 @@ struct Index(Copyable, Movable, Writable):
 
     def raw(self) raises -> CXIndex:
         return self._state[].raw()
+
+    def set_global_options(ref self, options: c_uint) raises:
+        clang_CXIndex_setGlobalOptions(self.raw(), options)
+
+    def global_options(ref self) raises -> c_uint:
+        return clang_CXIndex_getGlobalOptions(self.raw())
+
+    def set_invocation_emission_path(ref self, path: String) raises:
+        var path_c = _alloc_c_string(path)
+        clang_CXIndex_setInvocationEmissionPathOption(
+            self.raw(),
+            _c_string(path_c),
+        )
+        path_c.free()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write(

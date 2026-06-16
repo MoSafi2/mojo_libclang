@@ -12,8 +12,10 @@ Important:
   """
 
 from src._ffi import (
+    CXCursor,
     CXType,
     CXTypeKind,
+    CXTypeNullabilityKind,
     c_char,
     c_uint,
     c_int,
@@ -49,6 +51,19 @@ from src._ffi import (
     clang_getArraySize,
     clang_getNumElements,
     clang_Type_getCXXRefQualifier,
+    clang_Type_getObjCEncoding,
+    clang_Type_getObjCObjectBaseType,
+    clang_Type_getNumObjCProtocolRefs,
+    clang_Type_getObjCProtocolDecl,
+    clang_Type_getNumObjCTypeArgs,
+    clang_Type_getObjCTypeArg,
+    clang_Type_isTransparentTagTypedef,
+    clang_Type_getNullability,
+    clang_Type_getModifiedType,
+    CXFieldVisitor,
+    CXClientData,
+    CXVisit_Continue,
+    clang_Type_visitFields,
     clang_equalTypes,
 )
 
@@ -62,7 +77,7 @@ from src.libclang.enums import (
 from src.libclang.common import _CXStringStorage, _alloc_c_string, _c_string
 from src.libclang.state import TranslationUnitState
 
-from std.memory import ArcPointer, UnsafePointer, MutOpaquePointer
+from std.memory import ArcPointer, UnsafePointer, MutOpaquePointer, alloc
 
 
 @fieldwise_init
@@ -303,6 +318,15 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
+    def get_modified_type(ref self) raises -> Optional[Type]:
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_Type_getModifiedType(out._ptr(), self._ptr())
+        if out.kind() == TypeKind.INVALID:
+            return None
+        out._cache_spelling()
+        return Optional[Type](out^)
+
     def get_offset(ref self, fieldname: String) raises -> c_long_long:
         """Return field offset in bits.
 
@@ -360,11 +384,21 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return clang_getAddressSpace(self._ptr())
 
+    def nullability(ref self) raises -> c_uint:
+        self._check_valid()
+        return c_uint(clang_Type_getNullability(self._ptr()))
+
     def typedef_name(ref self) raises -> String:
         self._check_valid()
 
         var cs = _CXStringStorage()
         clang_getTypedefName(cs.ptr_for_out(), self._ptr())
+        return cs.take()
+
+    def objc_encoding(ref self) raises -> String:
+        self._check_valid()
+        var cs = _CXStringStorage()
+        clang_Type_getObjCEncoding(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
     def is_const_qualified(ref self) raises -> Bool:
@@ -387,20 +421,34 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return Bool(clang_isPODType(self._ptr()))
 
+    def is_transparent_tag_typedef(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Type_isTransparentTagTypedef(self._ptr()))
+
     def get_fields(ref self) raises -> List[Cursor]:
         from src.libclang.cursor import Cursor
 
         self._check_valid()
-        var decl = self.get_declaration()
-        if not decl:
-            return List[Cursor]()
-        var children = decl.value().get_children()
-        var fields = List[Cursor]()
-        for i in range(Int(children.__len__())):
-            var child = children[i].copy()
-            if child.kind() == CursorKind.FIELD_DECL:
-                fields.append(child^)
-        return fields^
+        var collector_box = alloc[_TypeFieldCollector](1)
+        collector_box.init_pointee_move(
+            _TypeFieldCollector(
+                tu=self._tu,
+                out=List[Cursor](),
+            )
+        )
+        var client_data = CXClientData(
+            rebind[MutOpaquePointer[MutExternalOrigin]](
+                rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+                    rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
+                )
+            )
+        )
+        _ = clang_Type_visitFields(self._ptr(), _field_visitor_trampoline, client_data)
+        var out = List[Cursor]()
+        for i in range(len(collector_box[].out)):
+            out.append(collector_box[].out[i].copy())
+        collector_box.free()
+        return out^
 
     def get_bases(ref self) raises -> List[Cursor]:
         from src.libclang.cursor import Cursor
@@ -432,6 +480,40 @@ struct Type(Copyable, Movable, Writable):
                 methods.append(child^)
         return methods^
 
+    def objc_object_base_type(ref self) raises -> Optional[Type]:
+        self._check_valid()
+        var out = Type(tu=self._tu)
+        clang_Type_getObjCObjectBaseType(out._ptr(), self._ptr())
+        if out.kind() == TypeKind.INVALID:
+            return None
+        out._cache_spelling()
+        return Optional[Type](out^)
+
+    def objc_protocol_decls(ref self) raises -> List[Cursor]:
+        from src.libclang.cursor import Cursor
+
+        self._check_valid()
+        var out = List[Cursor]()
+        var count = clang_Type_getNumObjCProtocolRefs(self._ptr())
+        for i in range(Int(count)):
+            var cursor = Cursor(tu=self._tu)
+            clang_Type_getObjCProtocolDecl(cursor._ptr(), self._ptr(), c_uint(i))
+            if not cursor.is_null():
+                out.append(cursor^)
+        return out^
+
+    def objc_type_args(ref self) raises -> List[Type]:
+        self._check_valid()
+        var out = List[Type]()
+        var count = clang_Type_getNumObjCTypeArgs(self._ptr())
+        for i in range(Int(count)):
+            var typ = Type(tu=self._tu)
+            clang_Type_getObjCTypeArg(typ._ptr(), self._ptr(), c_uint(i))
+            if typ.kind() != TypeKind.INVALID:
+                typ._cache_spelling()
+                out.append(typ^)
+        return out^
+
     def __eq__(ref self, ref other: Self) raises -> Bool:
         self._check_valid()
         other._check_valid()
@@ -455,3 +537,30 @@ def _zero_type() -> CXType:
             fill=None
         ),
     )
+
+
+@fieldwise_init
+struct _TypeFieldCollector(Movable):
+    var tu: ArcPointer[TranslationUnitState]
+    var out: List[Cursor]
+
+
+def _field_visitor_trampoline(
+    cursor_ptr: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    client_data: CXClientData,
+) abi("C") -> c_uint:
+    if not cursor_ptr:
+        return CXVisit_Continue
+
+    var collector = rebind[UnsafePointer[_TypeFieldCollector, MutAnyOrigin]](
+        rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+            rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+                client_data.value()
+            )
+        )
+    )
+
+    var cursor = Cursor(tu=collector[].tu, raw=cursor_ptr.value()[].copy())
+    collector[].out.append(cursor^)
+
+    return CXVisit_Continue

@@ -6,6 +6,7 @@ from src._ffi import (
     CXFile,
     CXSourceLocation,
     CXClientData,
+    CXSourceRangeList,
     clang_getTranslationUnitSpelling,
     clang_getTranslationUnitCursor,
     clang_getNumDiagnostics,
@@ -20,7 +21,14 @@ from src._ffi import (
     clang_getInclusions,
     clang_createTranslationUnit2,
     clang_parseTranslationUnit2,
+    clang_suspendTranslationUnit,
+    clang_getFileContents,
+    clang_getSkippedRanges,
+    clang_getAllSkippedRanges,
+    clang_disposeSourceRangeList,
     c_uint,
+    c_ulong,
+    size_t,
 )
 
 from src.libclang.enums import TranslationUnitFlags, SaveError
@@ -45,6 +53,12 @@ from src.libclang.source_range import SourceRange
 from src.libclang.token import TokenGroup
 from src.libclang.diagnostic import Diagnostic, DiagnosticSet
 from src.libclang.file_inclusion import FileInclusion
+from src.libclang.advanced import (
+    TargetInfo,
+    TUResourceUsage,
+    target_info_for_tu,
+    resource_usage_for_tu,
+)
 
 from std.memory import ArcPointer, UnsafePointer, alloc
 
@@ -134,6 +148,12 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def get_file(ref self, filename: String) raises -> Optional[File]:
         return File.from_name(self.state(), filename)
+
+    def target_info(ref self) raises -> TargetInfo:
+        return target_info_for_tu(self.raw())
+
+    def resource_usage(ref self) raises -> TUResourceUsage:
+        return resource_usage_for_tu(self.raw())
 
     def get_location(
         ref self,
@@ -264,6 +284,55 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
         self._state[].bump_generation()
 
+    def suspend(ref self) raises -> Bool:
+        return Bool(clang_suspendTranslationUnit(self.raw()))
+
+    def file_contents(ref self, file: File) raises -> String:
+        var size = size_t(0)
+        var size_ptr = UnsafePointer[size_t, MutAnyOrigin](to=size)
+        var raw = clang_getFileContents(
+            self.raw(),
+            file.raw_value(),
+            rebind[UnsafePointer[size_t, MutExternalOrigin]](size_ptr),
+        )
+        if not raw:
+            return String("")
+        return String(unsafe_from_utf8_ptr=raw.value())
+
+    def file_contents(ref self, filename: String) raises -> String:
+        var file_opt = self.get_file(filename)
+        if not file_opt:
+            raise Error("TranslationUnit.file_contents: unknown filename")
+        return self.file_contents(file_opt.value())
+
+    def skipped_ranges(ref self, file: File) raises -> List[SourceRange]:
+        var out = List[SourceRange]()
+        var raw_list = clang_getSkippedRanges(self.raw(), file.raw_value())
+        if not raw_list:
+            return out^
+        for i in range(Int(raw_list.value()[].count)):
+            var raw = (raw_list.value()[].ranges.value() + i)[].copy()
+            out.append(SourceRange.from_raw(self.state(), raw))
+        clang_disposeSourceRangeList(raw_list.value())
+        return out^
+
+    def skipped_ranges(ref self, filename: String) raises -> List[SourceRange]:
+        var file_opt = self.get_file(filename)
+        if not file_opt:
+            raise Error("TranslationUnit.skipped_ranges: unknown filename")
+        return self.skipped_ranges(file_opt.value())
+
+    def all_skipped_ranges(ref self) raises -> List[SourceRange]:
+        var out = List[SourceRange]()
+        var raw_list = clang_getAllSkippedRanges(self.raw())
+        if not raw_list:
+            return out^
+        for i in range(Int(raw_list.value()[].count)):
+            var raw = (raw_list.value()[].ranges.value() + i)[].copy()
+            out.append(SourceRange.from_raw(self.state(), raw))
+        clang_disposeSourceRangeList(raw_list.value())
+        return out^
+
     # -----------------------------------------------------------------------
     # Classmethod construction
     # -----------------------------------------------------------------------
@@ -387,6 +456,4 @@ def _inclusion_visitor_trampoline(
         collector[].out.append(inclusion^)
     except:
         return
-
-
 

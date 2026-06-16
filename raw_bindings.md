@@ -209,6 +209,20 @@ Current status:
   it through the usual location helpers, so those methods are not part of the
   supported surface yet.
 
+## Additional Wrapper Stability Notes
+
+Recent high-level wrapper expansion exposed one more unstable surface:
+
+- `TranslationUnit.target_info()` currently compiles, but calling
+  `clang_TargetInfo_getTriple()` crashed at runtime in this checkout.
+- Treat `TargetInfo` the same way as the unstable token location paths: do not
+  consider it part of the supported high-level API until a dedicated runtime
+  probe shows it is stable.
+- Keep the rest of the added stable wrapper surfaces enabled: resource usage,
+  skipped ranges, macro preprocessing cursors, cursor evaluation, comment/name
+  ranges, cursor sets, and direct type field visitation all passed runtime
+  tests in this repo.
+
 ## What Not To Do
 
 - Do not reintroduce direct libclang signatures into Mojo FFI when they pass or
