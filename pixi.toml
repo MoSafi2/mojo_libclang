@@ -7,7 +7,7 @@ preview = ["pixi-build"]
 version = "0.1.0"
 
 [package]
-name = "mojo_libclang"
+name = "clang"
 version = "0.1.0"
 
 [package.build]
@@ -37,7 +37,6 @@ python = ">=3.14.5,<3.15"
 mojo = ">=1.0.0b1,<2"
 clangdev = "18.*"
 libclang = "18.*"
-mojo_libclang = { path = "." }
 
 [pypi-dependencies]
 mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen" }

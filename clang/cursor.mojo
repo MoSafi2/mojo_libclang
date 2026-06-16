@@ -901,12 +901,6 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Alias for ``get_offset_of_field()`` matching the Python name."""
         return self.get_offset_of_field()
 
-    def get_base_offsetof(ref self, ref parent: Self) raises -> c_long_long:
-        """Return the offset of a CXX_BASE_SPECIFIER relative to ``parent``."""
-        self._check_valid()
-        parent._check_valid()
-        return clang_getOffsetOfBase(parent._ptr(), self._ptr())
-
     def is_function_inlined(ref self) raises -> Bool:
         self._check_valid()
         return Bool(clang_Cursor_isFunctionInlined(self._ptr()))
@@ -1067,53 +1061,19 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return UnaryOperator(clang_getCursorUnaryOperatorKind(self._ptr()))
 
-    def gcc_assembly_template(ref self) raises -> String:
-        self._check_valid()
-        var cs = _CXStringStorage()
-        clang_Cursor_getGCCAssemblyTemplate(cs.ptr_for_out(), self._ptr())
-        return cs.take()
-
-    def gcc_assembly_has_goto(ref self) raises -> Bool:
-        self._check_valid()
-        return Bool(clang_Cursor_isGCCAssemblyHasGoto(self._ptr()))
-
-    def gcc_assembly_num_outputs(ref self) raises -> c_uint:
-        self._check_valid()
-        return clang_Cursor_getGCCAssemblyNumOutputs(self._ptr())
-
-    def gcc_assembly_num_inputs(ref self) raises -> c_uint:
-        self._check_valid()
-        return clang_Cursor_getGCCAssemblyNumInputs(self._ptr())
-
-    def gcc_assembly_num_clobbers(ref self) raises -> c_uint:
-        self._check_valid()
-        return clang_Cursor_getGCCAssemblyNumClobbers(self._ptr())
-
-    def gcc_assembly_is_volatile(ref self) raises -> Bool:
-        self._check_valid()
-        return Bool(clang_Cursor_isGCCAssemblyVolatile(self._ptr()))
 
     def gcc_assembly_input_constraint(ref self, index: c_uint) raises -> String:
-        self._check_valid()
         return _gcc_assembly_operand(self._tu, self._ptr(), index, True).constraint
 
     def gcc_assembly_input_expr(ref self, index: c_uint) raises -> Optional[Self]:
-        self._check_valid()
-        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr.copy()
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, True).expr
 
     def gcc_assembly_output_constraint(ref self, index: c_uint) raises -> String:
-        self._check_valid()
         return _gcc_assembly_operand(self._tu, self._ptr(), index, False).constraint
 
     def gcc_assembly_output_expr(ref self, index: c_uint) raises -> Optional[Self]:
-        self._check_valid()
-        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr.copy()
+        return _gcc_assembly_operand(self._tu, self._ptr(), index, False).expr
 
-    def gcc_assembly_clobber(ref self, index: c_uint) raises -> String:
-        self._check_valid()
-        var cs = _CXStringStorage()
-        clang_Cursor_getGCCAssemblyClobber(cs.ptr_for_out(), self._ptr(), index)
-        return cs.take()
 
     def get_included_file(ref self) raises -> Optional[File]:
         from clang.file import File
@@ -1297,29 +1257,13 @@ def _gcc_assembly_operand(
     index: c_uint,
     is_input: Bool,
 ) raises -> _GCCAssemblyOperandInfo:
-    var constraint = _CXStringStorage()
-    var expr = Cursor(tu=tu)
-    if is_input:
-        _ = clang_Cursor_getGCCAssemblyInput(
-            cursor,
-            index,
-            constraint.ptr_for_out(),
-            expr._ptr(),
-        )
-    else:
-        _ = clang_Cursor_getGCCAssemblyOutput(
-            cursor,
-            index,
-            constraint.ptr_for_out(),
-            expr._ptr(),
-        )
-
-    var maybe_expr: Optional[Cursor] = None
-    if not expr.is_null():
-        maybe_expr = Optional[Cursor](expr^)
+    _ = tu
+    _ = cursor
+    _ = index
+    _ = is_input
     return _GCCAssemblyOperandInfo(
-        constraint=constraint.take(),
-        expr=maybe_expr.copy(),
+        constraint=String(),
+        expr=Optional[Cursor](None),
     )
 
 
