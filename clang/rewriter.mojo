@@ -71,7 +71,7 @@ struct Rewriter(Movable, Writable):
         var loc_copy = loc.copy()
         clang_CXRewriter_insertTextBefore(
             self._raw,
-            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
                 loc_copy._raw.unsafe_ptr()
             ),
             _c_string(text_c),
@@ -88,7 +88,7 @@ struct Rewriter(Movable, Writable):
         var extent_copy = extent.copy()
         clang_CXRewriter_replaceText(
             self._raw,
-            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
                 extent_copy._raw.unsafe_ptr()
             ),
             _c_string(replacement_c),
@@ -100,7 +100,7 @@ struct Rewriter(Movable, Writable):
         var extent_copy = extent.copy()
         clang_CXRewriter_removeText(
             self._raw,
-            rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
                 extent_copy._raw.unsafe_ptr()
             ),
         )

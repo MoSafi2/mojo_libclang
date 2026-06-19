@@ -107,8 +107,8 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr(ref self) -> UnsafePointer[CXToken, MutExternalOrigin]:
-        return rebind[UnsafePointer[CXToken, MutExternalOrigin]](
+    def _ptr(ref self) -> UnsafePointer[CXToken, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXToken, MutUntrackedOrigin]](
             self._raw.unsafe_ptr(),
         )
 
@@ -187,14 +187,16 @@ struct Token(Copyable, Movable, Writable):
         return out^
 
 
-struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](Movable, Iterator):
+struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](
+    Iterator, Movable
+):
     """Iterator over tokens in a `TokenGroup`."""
 
     comptime Element = Token
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _tokens: Optional[UnsafePointer[CXToken, MutExternalOrigin]]
+    var _tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
     var _count: c_uint
     var _index: Int
 
@@ -217,7 +219,7 @@ struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](Movable, Itera
         return Token(tu=self._tu, raw=raw, _unchecked=True)
 
 
-struct TokenGroup(Movable, Sized, Writable, Iterable):
+struct TokenGroup(Iterable, Movable, Sized, Writable):
     """Owns the buffer returned by `clang_tokenize`.
 
     ```
@@ -232,7 +234,7 @@ struct TokenGroup(Movable, Sized, Writable, Iterable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _tokens: Optional[UnsafePointer[CXToken, MutExternalOrigin]]
+    var _tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
     var _count: c_uint
 
     def __init__(
@@ -267,8 +269,8 @@ struct TokenGroup(Movable, Sized, Writable, Iterable):
             )
 
         var token_storage = InlineArray[
-            Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
-        ](fill=Optional[UnsafePointer[CXToken, MutExternalOrigin]]())
+            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
+        ](fill=Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]())
 
         var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
 
@@ -277,18 +279,18 @@ struct TokenGroup(Movable, Sized, Writable, Iterable):
             e._ptr(),
             Optional[
                 UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutExternalOrigin]],
-                    MutExternalOrigin,
+                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                    MutUntrackedOrigin,
                 ]
             ](
                 rebind[
                     UnsafePointer[
-                        Optional[UnsafePointer[CXToken, MutExternalOrigin]],
-                        MutExternalOrigin,
+                        Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                        MutUntrackedOrigin,
                     ]
                 ](token_storage.unsafe_ptr())
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 count_storage.unsafe_ptr(),
             ),
         )
@@ -328,8 +330,8 @@ struct TokenGroup(Movable, Sized, Writable, Iterable):
             )
 
         var token_storage = InlineArray[
-            Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
-        ](fill=Optional[UnsafePointer[CXToken, MutExternalOrigin]]())
+            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
+        ](fill=Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]())
 
         var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
 
@@ -338,18 +340,18 @@ struct TokenGroup(Movable, Sized, Writable, Iterable):
             e._ptr(),
             Optional[
                 UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutExternalOrigin]],
-                    MutExternalOrigin,
+                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                    MutUntrackedOrigin,
                 ]
             ](
                 rebind[
                     UnsafePointer[
-                        Optional[UnsafePointer[CXToken, MutExternalOrigin]],
-                        MutExternalOrigin,
+                        Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                        MutUntrackedOrigin,
                     ]
                 ](token_storage.unsafe_ptr())
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 count_storage.unsafe_ptr(),
             ),
         )

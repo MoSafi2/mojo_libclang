@@ -143,8 +143,8 @@ struct Type(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("Type used after TranslationUnit.reparse()")
 
-    def _ptr(ref self) -> UnsafePointer[CXType, MutExternalOrigin]:
-        return rebind[UnsafePointer[CXType, MutExternalOrigin]](
+    def _ptr(ref self) -> UnsafePointer[CXType, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXType, MutUntrackedOrigin]](
             self._raw.unsafe_ptr(),
         )
 
@@ -172,8 +172,6 @@ struct Type(Copyable, Movable, Writable):
         var cs = _CXStringStorage()
         clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
-
-
 
     def get_canonical(ref self) raises -> Type:
         self._check_valid()
@@ -390,7 +388,9 @@ struct Type(Copyable, Movable, Writable):
 
     def nullability(ref self) raises -> TypeNullabilityKind:
         self._check_valid()
-        return TypeNullabilityKind(c_uint(clang_Type_getNullability(self._ptr())))
+        return TypeNullabilityKind(
+            c_uint(clang_Type_getNullability(self._ptr()))
+        )
 
     def typedef_name(ref self) raises -> String:
         self._check_valid()
@@ -441,20 +441,20 @@ struct Type(Copyable, Movable, Writable):
             )
         )
         var client_data = CXClientData(
-            rebind[MutOpaquePointer[MutExternalOrigin]](
-                rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+            rebind[MutOpaquePointer[MutUntrackedOrigin]](
+                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
                     rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
                 )
             )
         )
-        _ = clang_Type_visitFields(self._ptr(), _field_visitor_trampoline, client_data)
+        _ = clang_Type_visitFields(
+            self._ptr(), _field_visitor_trampoline, client_data
+        )
         var out = List[Cursor]()
         for i in range(len(collector_box[].out)):
             out.append(collector_box[].out[i].copy())
         collector_box.free()
         return out^
-
-
 
     def objc_object_base_type(ref self) raises -> Optional[Type]:
         self._check_valid()
@@ -473,7 +473,9 @@ struct Type(Copyable, Movable, Writable):
         var count = clang_Type_getNumObjCProtocolRefs(self._ptr())
         for i in range(Int(count)):
             var cursor = Cursor(tu=self._tu)
-            clang_Type_getObjCProtocolDecl(cursor._ptr(), self._ptr(), c_uint(i))
+            clang_Type_getObjCProtocolDecl(
+                cursor._ptr(), self._ptr(), c_uint(i)
+            )
             if not cursor.is_null():
                 out.append(cursor^)
         return out^
@@ -509,7 +511,7 @@ struct Type(Copyable, Movable, Writable):
 def _zero_type() -> CXType:
     return CXType(
         kind=CXTypeKind(c_uint(0)),
-        data=InlineArray[Optional[MutOpaquePointer[MutExternalOrigin]], 2](
+        data=InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2](
             fill=None
         ),
     )
@@ -522,7 +524,7 @@ struct _TypeFieldCollector(Movable):
 
 
 def _field_visitor_trampoline(
-    cursor_ptr: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    cursor_ptr: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> c_uint:
     if not cursor_ptr:
@@ -530,7 +532,7 @@ def _field_visitor_trampoline(
 
     var collector = rebind[UnsafePointer[_TypeFieldCollector, MutAnyOrigin]](
         rebind[UnsafePointer[UInt8, MutAnyOrigin]](
-            rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
                 client_data.value()
             )
         )

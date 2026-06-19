@@ -293,7 +293,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         var raw = clang_getFileContents(
             self.raw(),
             file.raw_value(),
-            rebind[UnsafePointer[size_t, MutExternalOrigin]](size_ptr),
+            rebind[UnsafePointer[size_t, MutUntrackedOrigin]](size_ptr),
         )
         if not raw:
             return String("")
@@ -391,8 +391,8 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
         var client_data = CXClientData(
-            rebind[MutOpaquePointer[MutExternalOrigin]](
-                rebind[UnsafePointer[UInt8, MutExternalOrigin]](
+            rebind[MutOpaquePointer[MutUntrackedOrigin]](
+                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
                     rebind[UnsafePointer[UInt8, MutAnyOrigin]](
                         collector_box,
                     )
@@ -421,7 +421,9 @@ struct _InclusionCollector(Movable):
 
 def _inclusion_visitor_trampoline(
     included_file: CXFile,
-    inclusion_stack: Optional[UnsafePointer[CXSourceLocation, MutExternalOrigin]],
+    inclusion_stack: Optional[
+        UnsafePointer[CXSourceLocation, MutUntrackedOrigin]
+    ],
     include_len: c_uint,
     client_data: CXClientData,
 ) abi("C") -> None:
@@ -434,12 +436,14 @@ def _inclusion_visitor_trampoline(
     var opaque = client_data.value()
     var collector = rebind[UnsafePointer[_InclusionCollector, MutAnyOrigin]](
         rebind[UnsafePointer[UInt8, MutAnyOrigin]](
-            rebind[UnsafePointer[UInt8, MutExternalOrigin]](opaque),
+            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](opaque),
         ),
     )
 
     try:
-        var source_loc_raw = (inclusion_stack.value() + Int(include_len) - 1)[].copy()
+        var source_loc_raw = (
+            inclusion_stack.value() + Int(include_len) - 1
+        )[].copy()
         var source_loc = SourceLocation.from_raw(collector[].tu, source_loc_raw)
 
         var source_file_opt = source_loc.file()
@@ -456,4 +460,3 @@ def _inclusion_visitor_trampoline(
         collector[].out.append(inclusion^)
     except:
         return
-

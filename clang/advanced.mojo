@@ -228,7 +228,9 @@ struct Module(Copyable, Movable, Writable):
     def top_level_headers(ref self) raises -> List[File]:
         self._check_valid()
         var out = List[File]()
-        var count = clang_Module_getNumTopLevelHeaders(self._tu[].raw(), self._raw)
+        var count = clang_Module_getNumTopLevelHeaders(
+            self._tu[].raw(), self._raw
+        )
         for i in range(Int(count)):
             var header = clang_Module_getTopLevelHeader(
                 self._tu[].raw(),
@@ -334,7 +336,7 @@ def wrap_module(
 
 
 def copy_platform_availabilities(
-    raw_items: UnsafePointer[CXPlatformAvailability, MutExternalOrigin],
+    raw_items: UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin],
     count: Int,
 ) raises -> List[PlatformAvailability]:
     var out = List[PlatformAvailability]()
@@ -368,7 +370,7 @@ def copy_platform_availabilities(
 def _take_cxstring_value(raw: CXString) raises -> String:
     var slot = alloc[CXString](1)
     slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
-    var ptr = rebind[UnsafePointer[CXString, MutExternalOrigin]](slot)
+    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
     var out = _take_cxstring(ptr)
     slot.free()
     return out
@@ -377,7 +379,7 @@ def _take_cxstring_value(raw: CXString) raises -> String:
 def _take_cxstring_optional_value(raw: CXString) raises -> Optional[String]:
     var slot = alloc[CXString](1)
     slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
-    var ptr = rebind[UnsafePointer[CXString, MutExternalOrigin]](slot)
+    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
     var out = _take_cxstring_optional(ptr)
     slot.free()
     return out

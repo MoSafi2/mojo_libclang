@@ -76,8 +76,8 @@ struct SourceRange(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("SourceRange used after TranslationUnit.reparse()")
 
-    def _ptr(ref self) -> UnsafePointer[CXSourceRange, MutExternalOrigin]:
-        return rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
+    def _ptr(ref self) -> UnsafePointer[CXSourceRange, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
             self._raw.unsafe_ptr(),
         )
 
@@ -130,10 +130,10 @@ struct SourceRange(Copyable, Movable, Writable):
 
         clang_getRange(
             out._ptr(),
-            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
                 start_copy._raw.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
                 end_copy._raw.unsafe_ptr(),
             ),
         )
@@ -152,13 +152,13 @@ struct SourceRange(Copyable, Movable, Writable):
         var start = _zero_source_location()
         var end = _zero_source_location()
         clang_getRangeStart(
-            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
                 UnsafePointer[CXSourceLocation, MutAnyOrigin](to=start)
             ),
             out._ptr(),
         )
         clang_getRangeEnd(
-            rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
                 UnsafePointer[CXSourceLocation, MutAnyOrigin](to=end)
             ),
             out._ptr(),
@@ -192,7 +192,7 @@ struct SourceRange(Copyable, Movable, Writable):
         return Bool(
             clang_equalRanges(
                 self._ptr(),
-                rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
+                rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
                     other._raw.unsafe_ptr(),
                 ),
             ),
@@ -218,7 +218,7 @@ struct SourceRange(Copyable, Movable, Writable):
 def _zero_source_range() -> CXSourceRange:
     return CXSourceRange(
         ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
         ](fill=None),
         begin_int_data=c_uint(0),
         end_int_data=c_uint(0),

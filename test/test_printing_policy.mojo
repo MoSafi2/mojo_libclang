@@ -24,7 +24,10 @@ def _find_function(mut tu: TranslationUnit, name: String) raises -> Cursor:
     var cursors = root.walk_preorder()
     for i in range(cursors.__len__()):
         var c = cursors[i].copy()
-        if c.kind().as_c_uint() == CXCursor_FunctionDecl and c.spelling() == name:
+        if (
+            c.kind().as_c_uint() == CXCursor_FunctionDecl
+            and c.spelling() == name
+        ):
             return c^
     raise Error("function not found: " + name)
 
@@ -35,7 +38,7 @@ def test_printing_policy_create() raises:
     var raw = c.raw_value()
     var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
     var policy = PrintingPolicy(
-        rebind[UnsafePointer[CXCursor, MutExternalOrigin]](ptr),
+        rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     _ = policy
 
@@ -46,7 +49,7 @@ def test_printing_policy_get_and_set_property() raises:
     var raw = c.raw_value()
     var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
     var policy = PrintingPolicy(
-        rebind[UnsafePointer[CXCursor, MutExternalOrigin]](ptr),
+        rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     var original = policy.get_property(PrintingPolicyProperty.SUPPRESS_SCOPE)
     policy.set_property(PrintingPolicyProperty.SUPPRESS_SCOPE, original + 1)
@@ -63,7 +66,7 @@ def test_printing_policy_write_to() raises:
     var raw = c.raw_value()
     var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
     var policy = PrintingPolicy(
-        rebind[UnsafePointer[CXCursor, MutExternalOrigin]](ptr),
+        rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     var s = String(policy)
     assert_true(s.byte_length() > 0, "write_to should produce output")

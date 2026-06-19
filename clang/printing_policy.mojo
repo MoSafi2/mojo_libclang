@@ -29,9 +29,13 @@ struct PrintingPolicy(Movable, Writable):
         cursor._check_valid()
         self._raw = clang_getCursorPrintingPolicy(cursor._ptr())
         if not self._raw:
-            raise Error("PrintingPolicy: clang_getCursorPrintingPolicy returned null")
+            raise Error(
+                "PrintingPolicy: clang_getCursorPrintingPolicy returned null"
+            )
 
-    def __init__(out self, cursor_ptr: UnsafePointer[CXCursor, MutExternalOrigin]) raises:
+    def __init__(
+        out self, cursor_ptr: UnsafePointer[CXCursor, MutUntrackedOrigin]
+    ) raises:
         """Create a policy from a cursor.
 
         The caller must ensure the cursor pointer is valid for the duration of
@@ -39,7 +43,9 @@ struct PrintingPolicy(Movable, Writable):
         """
         self._raw = clang_getCursorPrintingPolicy(cursor_ptr)
         if not self._raw:
-            raise Error("PrintingPolicy: clang_getCursorPrintingPolicy returned null")
+            raise Error(
+                "PrintingPolicy: clang_getCursorPrintingPolicy returned null"
+            )
 
     @staticmethod
     def create(ref cursor: Cursor) raises -> Self:

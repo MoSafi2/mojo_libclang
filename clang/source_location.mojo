@@ -92,8 +92,8 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr(ref self) -> UnsafePointer[CXSourceLocation, MutExternalOrigin]:
-        return rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+    def _ptr(ref self) -> UnsafePointer[CXSourceLocation, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
             self._raw.unsafe_ptr(),
         )
 
@@ -232,16 +232,16 @@ struct SourceLocation(Copyable, Movable, Writable):
 
         clang_getSpellingLocation(
             self._ptr(),
-            rebind[UnsafePointer[CXFile, MutExternalOrigin]](
+            rebind[UnsafePointer[CXFile, MutUntrackedOrigin]](
                 file_out.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 line_out.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 col_out.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 off_out.unsafe_ptr(),
             ),
         )
@@ -338,7 +338,7 @@ struct SourceLocation(Copyable, Movable, Writable):
 def _zero_source_location() -> CXSourceLocation:
     return CXSourceLocation(
         ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
         ](fill=None),
         int_data=c_uint(0),
     )

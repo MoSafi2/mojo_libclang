@@ -74,15 +74,17 @@ def test_cxstring_storage_ptr_not_null() raises:
 def test_cxstring_storage_take_empty() raises:
     var cs = _CXStringStorage()
     var s = cs.take()
-    assert_equal(s, String(""),
-                 "take() on zeroed storage should return empty string")
+    assert_equal(
+        s, String(""), "take() on zeroed storage should return empty string"
+    )
 
 
 def test_cxstring_storage_take_optional_null() raises:
     var cs = _CXStringStorage()
     var s = cs.take_optional()
-    assert_equal(s, None,
-                 "take_optional() on zeroed storage should return None")
+    assert_equal(
+        s, None, "take_optional() on zeroed storage should return None"
+    )
 
 
 def test_cxstring_storage_drop() raises:
@@ -97,17 +99,20 @@ def test_cxstring_storage_drop() raises:
 def test_take_cxstring_null_data_returns_empty() raises:
     var owned = alloc[CXString](1)
     owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[UnsafePointer[CXString, MutExternalOrigin]](owned)
+    var raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](owned)
     var s = _take_cxstring(raw)
-    assert_equal(s, String(""),
-                 "_take_cxstring with null data should return empty string")
+    assert_equal(
+        s,
+        String(""),
+        "_take_cxstring with null data should return empty string",
+    )
     owned.free()
 
 
 def test_take_cxstring_disposes_storage() raises:
     var owned = alloc[CXString](1)
     owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[UnsafePointer[CXString, MutExternalOrigin]](owned)
+    var raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](owned)
     _ = _take_cxstring(raw)
     owned.free()
 
@@ -115,10 +120,11 @@ def test_take_cxstring_disposes_storage() raises:
 def test_take_cxstring_optional_null_returns_none() raises:
     var owned = alloc[CXString](1)
     owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[UnsafePointer[CXString, MutExternalOrigin]](owned)
+    var raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](owned)
     var s = _take_cxstring_optional(raw)
-    assert_equal(s, None,
-                 "_take_cxstring_optional with null data should return None")
+    assert_equal(
+        s, None, "_take_cxstring_optional with null data should return None"
+    )
     owned.free()
 
 
@@ -139,7 +145,9 @@ def test_source_extent_input_write_to() raises:
         c_uint(1), c_uint(1), c_uint(1), c_uint(5)
     )
     var s = String(extent)
-    _check(s.byte_length() > 0, "SourceExtentInput write_to should produce output")
+    _check(
+        s.byte_length() > 0, "SourceExtentInput write_to should produce output"
+    )
 
 
 def test_file_location_value_write_to() raises:
@@ -150,7 +158,9 @@ def test_file_location_value_write_to() raises:
         offset=c_uint(0),
     )
     var s = String(loc)
-    _check(s.byte_length() > 0, "FileLocationValue write_to should produce output")
+    _check(
+        s.byte_length() > 0, "FileLocationValue write_to should produce output"
+    )
 
 
 def test_presumed_location_value_write_to() raises:
@@ -160,7 +170,10 @@ def test_presumed_location_value_write_to() raises:
         column=c_uint(2),
     )
     var s = String(loc)
-    _check(s.byte_length() > 0, "PresumedLocationValue write_to should produce output")
+    _check(
+        s.byte_length() > 0,
+        "PresumedLocationValue write_to should produce output",
+    )
 
 
 def test_cstring_array() raises:
@@ -169,7 +182,10 @@ def test_cstring_array() raises:
     args.append("-std=c++17")
     var arena = CStringArray(args)
     _check(Int(arena.count()) == 2, "CStringArray count should match input")
-    _check(arena.ptr() is not None, "CStringArray ptr should not be null for non-empty args")
+    _check(
+        arena.ptr() is not None,
+        "CStringArray ptr should not be null for non-empty args",
+    )
 
 
 def test_cstring_array_empty() raises:

@@ -219,7 +219,7 @@ struct CompilationDatabase(Movable, Writable):
         var raw = clang_CompilationDatabase_fromDirectory(
             _c_string(dir_c),
             rebind[
-                UnsafePointer[CXCompilationDatabase_Error, MutExternalOrigin]
+                UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
             ](err.unsafe_ptr()),
         )
 

@@ -81,12 +81,14 @@ struct Index(Copyable, Movable, Writable):
     def create_with_options(raw_options: CXIndexOptions) raises -> Self:
         var options = raw_options.copy()
         var raw = clang_createIndexWithOptions(
-            rebind[UnsafePointer[CXIndexOptions, ImmutExternalOrigin]](
+            rebind[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]](
                 UnsafePointer[CXIndexOptions, MutAnyOrigin](to=options)
             )
         )
         if not raw:
-            raise Error("IndexError: clang_createIndexWithOptions returned null")
+            raise Error(
+                "IndexError: clang_createIndexWithOptions returned null"
+            )
         var out = Self(copy=Self())
         out._state = ArcPointer(IndexState(raw))
         out._exclude_decls = False
@@ -160,7 +162,7 @@ struct Index(Copyable, Movable, Writable):
             unsaved_arena.ptr(),
             unsaved_arena.count(),
             options.as_c_uint(),
-            rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
+            rebind[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]](
                 out_ptr,
             ),
         )
@@ -188,7 +190,7 @@ struct Index(Copyable, Movable, Writable):
             clang_createTranslationUnit2(
                 self.raw(),
                 _c_string(path_c),
-                rebind[UnsafePointer[CXTranslationUnit, MutExternalOrigin]](
+                rebind[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]](
                     out_ptr,
                 ),
             )
