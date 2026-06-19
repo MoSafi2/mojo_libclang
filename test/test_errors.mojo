@@ -7,7 +7,6 @@ from clang.cindex import (
     CompilationDatabaseError,
     SaveError,
 )
-from std.ffi import c_uint
 from std.testing import assert_raises, TestSuite
 
 
@@ -26,7 +25,7 @@ def test_translation_unit_save_error_code() raises:
 
 def test_compilation_database_error() raises:
     with assert_raises():
-        raise CompilationDatabaseError(c_uint(1), "cannot load")
+        raise CompilationDatabaseError(1, "cannot load")
 
 
 def main() raises:

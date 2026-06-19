@@ -231,7 +231,7 @@ struct CompilationDatabase(Movable, Writable):
 
         if not raw:
             raise CompilationDatabaseError(
-                err[0],
+                Int(err[0]),
                 "could not load compilation database from " + build_dir,
             )
 

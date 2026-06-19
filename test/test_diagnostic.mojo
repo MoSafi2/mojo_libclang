@@ -207,7 +207,7 @@ def test_diagnostic_set_write_to() raises:
 def test_fixit_write_to() raises:
     var tu = _parse_invalid()
     var d = tu.diagnostic(0)
-    if d.num_fixits() > c_uint(0):
+    if d.num_fixits() > 0:
         var fix = d.fixit(0)
         var s = String(fix)
         _check(s.byte_length() > 0, "FixIt write_to should produce output")

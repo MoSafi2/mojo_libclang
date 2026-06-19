@@ -158,10 +158,10 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def location(
         ref self,
         filename: String,
-        line: c_uint,
-        column: c_uint,
+        line: Int,
+        column: Int,
     ) raises -> SourceLocation:
-        if line == 0 or column == 0:
+        if line < 1 or column < 1:
             raise Error(
                 "TranslationUnit.location: line and column must be >= 1",
             )
@@ -176,8 +176,11 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def location_for_offset(
         ref self,
         filename: String,
-        offset: c_uint,
+        offset: Int,
     ) raises -> SourceLocation:
+        if offset < 0:
+            raise Error("TranslationUnit.location_for_offset: offset must be >= 0")
+
         return SourceLocation.from_offset(
             self._shared_state(),
             self._get_file_handle(filename),
@@ -208,23 +211,13 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def extent(
         ref self,
         filename: String,
-        start_line: c_uint,
-        start_column: c_uint,
-        end_line: c_uint,
-        end_column: c_uint,
+        start_line: Int,
+        start_column: Int,
+        end_line: Int,
+        end_column: Int,
     ) raises -> SourceRange:
         var start = self.location(filename, start_line, start_column)
         var end = self.location(filename, end_line, end_column)
-        return SourceRange.from_locations(start, end)
-
-    def extent_from_offsets(
-        ref self,
-        filename: String,
-        start_offset: c_uint,
-        end_offset: c_uint,
-    ) raises -> SourceRange:
-        var start = self.location_for_offset(filename, start_offset)
-        var end = self.location_for_offset(filename, end_offset)
         return SourceRange.from_locations(start, end)
 
     def extent_from_offsets(
@@ -237,11 +230,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
             raise Error(
                 "TranslationUnit.extent_from_offsets: offsets must be >= 0",
             )
-        return self.extent_from_offsets(
-            filename,
-            c_uint(start_offset),
-            c_uint(end_offset),
-        )
+        var start = self.location_for_offset(filename, start_offset)
+        var end = self.location_for_offset(filename, end_offset)
+        return SourceRange.from_locations(start, end)
 
     def tokens(ref self, extent: SourceRange) raises -> TokenGroup:
         return TokenGroup(tu=self._shared_state(), extent=extent)

@@ -54,7 +54,7 @@ def test_location_from_line_column() raises:
 
 def test_location_from_offset() raises:
     var tu = _parse_fixture()
-    var loc = tu.location_for_offset(FIXTURE_PATH, c_uint(0))
+    var loc = tu.location_for_offset(FIXTURE_PATH, 0)
     assert_equal(Int(loc.line()), 1)
     assert_equal(Int(loc.column()), 1)
 
@@ -158,7 +158,7 @@ def test_location_line_column_vs_offset_consistency() raises:
         1,
         1,
     )
-    var loc2 = tu.location_for_offset(FIXTURE_PATH, c_uint(0))
+    var loc2 = tu.location_for_offset(FIXTURE_PATH, 0)
     _check(loc1 == loc2, "line 1 col 1 should equal offset 0")
 
 
@@ -202,16 +202,16 @@ def test_source_location_from_position_arc_pointer() raises:
     var tu = _parse_fixture()
     var file_handle = tu.file(FIXTURE_PATH).value()._raw_value()
     var loc = SourceLocation.from_position(
-        tu._shared_state(), file_handle, c_uint(1), c_uint(1)
+        tu._shared_state(), file_handle, 1, 1
     )
-    _check(loc.line() == c_uint(1), "line should be 1")
+    _check(loc.line() == 1, "line should be 1")
 
 
 def test_source_location_from_offset_arc_pointer() raises:
     var tu = _parse_fixture()
     var file_handle = tu.file(FIXTURE_PATH).value()._raw_value()
-    var loc = SourceLocation.from_offset(tu._shared_state(), file_handle, c_uint(0))
-    _check(loc.offset() == c_uint(0), "offset should be 0")
+    var loc = SourceLocation.from_offset(tu._shared_state(), file_handle, 0)
+    _check(loc.offset() == 0, "offset should be 0")
 
 
 def test_source_location_from_raw() raises:
@@ -251,8 +251,8 @@ def test_source_location_spelling_tuple() raises:
         1,
     )
     var (_, line, col, _) = loc.spelling_tuple()
-    _check(line == c_uint(1), "line should be 1")
-    _check(col == c_uint(1), "column should be 1")
+    _check(line == 1, "line should be 1")
+    _check(col == 1, "column should be 1")
 
 
 def test_source_location_refresh() raises:
@@ -263,7 +263,7 @@ def test_source_location_refresh() raises:
         1,
     )
     loc.refresh()
-    _check(loc.line() == c_uint(1), "refresh should keep line 1")
+    _check(loc.line() == 1, "refresh should keep line 1")
 
 
 def test_source_location_write_to() raises:

@@ -1076,30 +1076,38 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return UnaryOperator(clang_getCursorUnaryOperatorKind(self._ptr()))
 
-    def gcc_assembly_input_constraint(ref self, index: c_uint) raises -> String:
+    def gcc_assembly_input_constraint(ref self, index: Int) raises -> String:
+        if index < 0:
+            raise Error("Cursor.gcc_assembly_input_constraint: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), index, True
+            self._tu, self._ptr(), c_uint(index), True
         ).constraint
 
     def gcc_assembly_input_expr(
-        ref self, index: c_uint
+        ref self, index: Int
     ) raises -> Optional[Self]:
+        if index < 0:
+            raise Error("Cursor.gcc_assembly_input_expr: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), index, True
+            self._tu, self._ptr(), c_uint(index), True
         ).expr.copy()
 
     def gcc_assembly_output_constraint(
-        ref self, index: c_uint
+        ref self, index: Int
     ) raises -> String:
+        if index < 0:
+            raise Error("Cursor.gcc_assembly_output_constraint: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), index, False
+            self._tu, self._ptr(), c_uint(index), False
         ).constraint
 
     def gcc_assembly_output_expr(
-        ref self, index: c_uint
+        ref self, index: Int
     ) raises -> Optional[Self]:
+        if index < 0:
+            raise Error("Cursor.gcc_assembly_output_expr: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), index, False
+            self._tu, self._ptr(), c_uint(index), False
         ).expr.copy()
 
     def included_file(ref self) raises -> Optional[File]:

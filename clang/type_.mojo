@@ -386,9 +386,9 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return CallingConv(clang_getFunctionTypeCallingConv(self._ptr()))
 
-    def address_space(ref self) raises -> c_uint:
+    def address_space(ref self) raises -> Int:
         self._check_valid()
-        return clang_getAddressSpace(self._ptr())
+        return Int(clang_getAddressSpace(self._ptr()))
 
     def nullability(ref self) raises -> TypeNullabilityKind:
         self._check_valid()

@@ -724,7 +724,7 @@ def test_get_fields_empty() raises:
     var tu = _parse()
     var c = _find(tu, CXCursor_TypedefDecl)
     var t = c.type()
-    var fields = t.get_fields()
+    var fields = t.fields()
     assert_equal(fields.__len__(), 0, "typedef has no fields")
 
 

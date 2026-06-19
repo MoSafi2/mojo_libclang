@@ -126,7 +126,7 @@ def test_get_location_invalid_path_raises() raises:
 def test_location_for_offset_invalid_path_raises() raises:
     var tu = _parse_fixture()
     with assert_raises():
-        _ = tu.location_for_offset(MISSING_PATH, c_uint(0))
+        _ = tu.location_for_offset(MISSING_PATH, 0)
 
 
 # -- cursor_for_location -------------------------------------------------------

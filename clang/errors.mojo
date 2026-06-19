@@ -8,8 +8,6 @@ Mojo raises `Error` values, so these are functions that build a prefixed
 which expands to an `Error` whose message starts with the type name.
 """
 
-from std.ffi import c_uint
-
 from clang.enums import SaveError
 
 
@@ -28,11 +26,11 @@ def TranslationUnitSaveError(save_error: SaveError, message: String = "") -> Err
     )
 
 
-def CompilationDatabaseError(error_code: c_uint, message: String = "") -> Error:
+def CompilationDatabaseError(error_code: Int, message: String = "") -> Error:
     """Return an Error for compilation database failures."""
     return Error(
         "CompilationDatabaseError: "
-        + String(Int(error_code))
+        + String(error_code)
         + ": "
         + message
     )

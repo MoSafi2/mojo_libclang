@@ -1,7 +1,7 @@
 """Unit tests for `clang/index.mojo`."""
 from clang.index import Index
 from clang.translation_unit import TranslationUnit
-from std.ffi import c_uint
+from clang.enums import TranslationUnitFlags
 from std.testing import (
     assert_equal,
     assert_true,
@@ -128,7 +128,10 @@ def test_parse_valid_file() raises:
 
 def test_parse_with_options() raises:
     var index = Index.create()
-    var tu = index.parse(FIXTURE_PATH, options=c_uint(1))
+    var tu = index.parse(
+        FIXTURE_PATH,
+        options=TranslationUnitFlags.DETAILED_PREPROCESSING_RECORD,
+    )
     _check(
         tu.spelling().byte_length() > 0, "TU with options should have spelling"
     )
@@ -196,7 +199,7 @@ def test_index_write_to() raises:
 def test_index_default_editing_options() raises:
     var index = Index.create()
     var opts = index.default_editing_options()
-    _check(Int(opts) >= 0, "default editing options should be non-negative")
+    _check(Int(opts.as_c_uint()) >= 0, "default editing options should be non-negative")
 
 
 def test_index_read_success() raises:

@@ -156,16 +156,19 @@ struct SourceLocation(Copyable, Movable, Writable):
     def from_position(
         tu: TranslationUnit,
         file: CXFile,
-        line: c_uint,
-        column: c_uint,
+        line: Int,
+        column: Int,
     ) raises -> Self:
+        if line < 1 or column < 1:
+            raise Error("SourceLocation.from_position: line and column must be >= 1")
+
         var out = Self(tu=tu)
         clang_getLocation(
             out._ptr(),
             out._tu_raw(),
             file,
-            line,
-            column,
+            c_uint(line),
+            c_uint(column),
         )
         out._cache_from_ffi()
         return out^
@@ -174,16 +177,19 @@ struct SourceLocation(Copyable, Movable, Writable):
     def from_position(
         tu: ArcPointer[TranslationUnitState],
         file: CXFile,
-        line: c_uint,
-        column: c_uint,
+        line: Int,
+        column: Int,
     ) raises -> Self:
+        if line < 1 or column < 1:
+            raise Error("SourceLocation.from_position: line and column must be >= 1")
+
         var out = Self(tu=tu)
         clang_getLocation(
             out._ptr(),
             out._tu_raw(),
             file,
-            line,
-            column,
+            c_uint(line),
+            c_uint(column),
         )
         out._cache_from_ffi()
         return out^
@@ -192,14 +198,17 @@ struct SourceLocation(Copyable, Movable, Writable):
     def from_offset(
         tu: TranslationUnit,
         file: CXFile,
-        offset: c_uint,
+        offset: Int,
     ) raises -> Self:
+        if offset < 0:
+            raise Error("SourceLocation.from_offset: offset must be >= 0")
+
         var out = Self(tu=tu)
         clang_getLocationForOffset(
             out._ptr(),
             out._tu_raw(),
             file,
-            offset,
+            c_uint(offset),
         )
         out._cache_from_ffi()
         return out^
@@ -208,14 +217,17 @@ struct SourceLocation(Copyable, Movable, Writable):
     def from_offset(
         tu: ArcPointer[TranslationUnitState],
         file: CXFile,
-        offset: c_uint,
+        offset: Int,
     ) raises -> Self:
+        if offset < 0:
+            raise Error("SourceLocation.from_offset: offset must be >= 0")
+
         var out = Self(tu=tu)
         clang_getLocationForOffset(
             out._ptr(),
             out._tu_raw(),
             file,
-            offset,
+            c_uint(offset),
         )
         out._cache_from_ffi()
         return out^
@@ -282,9 +294,10 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     def spelling_tuple(
         ref self,
-    ) raises -> Tuple[CXFile, c_uint, c_uint, c_uint]:
+    ) raises -> Tuple[CXFile, Int, Int, Int]:
         """Return fresh spelling-location parts from libclang."""
-        return self._spelling_parts()
+        var (file, line, column, offset) = self._spelling_parts()
+        return (file, Int(line), Int(column), Int(offset))
 
     def refresh(mut self) raises:
         """Refresh cached file, line, column, offset, and file name."""

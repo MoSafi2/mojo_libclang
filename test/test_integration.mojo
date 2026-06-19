@@ -297,7 +297,7 @@ def test_token_cursor_annotation() raises:
 
 def test_source_location_from_offset() raises:
     var tu = _parse_fixture()
-    var loc = tu.location_for_offset(FIXTURE_PATH, c_uint(0))
+    var loc = tu.location_for_offset(FIXTURE_PATH, 0)
     _check(Int(loc.line()) >= 1, "offset 0 should map to line 1")
     var loc2 = tu.location_for_offset(
         FIXTURE_PATH,

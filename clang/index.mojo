@@ -106,11 +106,13 @@ struct Index(Copyable, Movable, Writable):
     def _raw_handle(self) raises -> CXIndex:
         return self._state[].raw()
 
-    def set_global_options(ref self, options: c_uint) raises:
-        clang_CXIndex_setGlobalOptions(self._raw_handle(), options)
+    def set_global_options(ref self, options: Int) raises:
+        if options < 0:
+            raise Error("Index.set_global_options: options must be >= 0")
+        clang_CXIndex_setGlobalOptions(self._raw_handle(), c_uint(options))
 
-    def global_options(ref self) raises -> c_uint:
-        return clang_CXIndex_getGlobalOptions(self._raw_handle())
+    def global_options(ref self) raises -> Int:
+        return Int(clang_CXIndex_getGlobalOptions(self._raw_handle()))
 
     def set_invocation_emission_path(ref self, path: String) raises:
         var path_c = _alloc_c_string(path)
@@ -129,9 +131,9 @@ struct Index(Copyable, Movable, Writable):
             ")",
         )
 
-    def default_editing_options(self) -> c_uint:
+    def default_editing_options(self) -> TranslationUnitFlags:
         """Return libclang's default editing translation-unit parse options."""
-        return clang_defaultEditingTranslationUnitOptions()
+        return TranslationUnitFlags(clang_defaultEditingTranslationUnitOptions())
 
     def parse(
         ref self,
