@@ -13,7 +13,7 @@ def _check_eq(label: String, got: Int, expected: Int) raises:
 
 
 def test_layout_CXString() raises:
-    comptime r = reflect[CXString]()
+    comptime r = reflect[CXString]
     _check_eq("CXString.size", Int(size_of[CXString]()), 16)
     _check_eq("CXString.align", Int(align_of[CXString]()), 8)
     _check_eq("CXString.data.offset", Int(r.field_offset[index=0]()), 0)
@@ -21,7 +21,7 @@ def test_layout_CXString() raises:
 
 
 def test_layout_CXStringSet() raises:
-    comptime r = reflect[CXStringSet]()
+    comptime r = reflect[CXStringSet]
     _check_eq("CXStringSet.size", Int(size_of[CXStringSet]()), 16)
     _check_eq("CXStringSet.align", Int(align_of[CXStringSet]()), 8)
     _check_eq("CXStringSet.Strings.offset", Int(r.field_offset[index=0]()), 0)
@@ -29,14 +29,14 @@ def test_layout_CXStringSet() raises:
 
 
 def test_layout_CXFileUniqueID() raises:
-    comptime r = reflect[CXFileUniqueID]()
+    comptime r = reflect[CXFileUniqueID]
     _check_eq("CXFileUniqueID.size", Int(size_of[CXFileUniqueID]()), 24)
     _check_eq("CXFileUniqueID.align", Int(align_of[CXFileUniqueID]()), 8)
     _check_eq("CXFileUniqueID.data.offset", Int(r.field_offset[index=0]()), 0)
 
 
 def test_layout_CXSourceLocation() raises:
-    comptime r = reflect[CXSourceLocation]()
+    comptime r = reflect[CXSourceLocation]
     _check_eq("CXSourceLocation.size", Int(size_of[CXSourceLocation]()), 24)
     _check_eq("CXSourceLocation.align", Int(align_of[CXSourceLocation]()), 8)
     _check_eq("CXSourceLocation.ptr_data.offset", Int(r.field_offset[index=0]()), 0)
@@ -44,7 +44,7 @@ def test_layout_CXSourceLocation() raises:
 
 
 def test_layout_CXSourceRange() raises:
-    comptime r = reflect[CXSourceRange]()
+    comptime r = reflect[CXSourceRange]
     _check_eq("CXSourceRange.size", Int(size_of[CXSourceRange]()), 24)
     _check_eq("CXSourceRange.align", Int(align_of[CXSourceRange]()), 8)
     _check_eq("CXSourceRange.ptr_data.offset", Int(r.field_offset[index=0]()), 0)
@@ -53,7 +53,7 @@ def test_layout_CXSourceRange() raises:
 
 
 def test_layout_CXSourceRangeList() raises:
-    comptime r = reflect[CXSourceRangeList]()
+    comptime r = reflect[CXSourceRangeList]
     _check_eq("CXSourceRangeList.size", Int(size_of[CXSourceRangeList]()), 16)
     _check_eq("CXSourceRangeList.align", Int(align_of[CXSourceRangeList]()), 8)
     _check_eq("CXSourceRangeList.count.offset", Int(r.field_offset[index=0]()), 0)
@@ -61,7 +61,7 @@ def test_layout_CXSourceRangeList() raises:
 
 
 def test_layout_CXUnsavedFile() raises:
-    comptime r = reflect[CXUnsavedFile]()
+    comptime r = reflect[CXUnsavedFile]
     _check_eq("CXUnsavedFile.size", Int(size_of[CXUnsavedFile]()), 24)
     _check_eq("CXUnsavedFile.align", Int(align_of[CXUnsavedFile]()), 8)
     _check_eq("CXUnsavedFile.Filename.offset", Int(r.field_offset[index=0]()), 0)
@@ -70,7 +70,7 @@ def test_layout_CXUnsavedFile() raises:
 
 
 def test_layout_CXVersion() raises:
-    comptime r = reflect[CXVersion]()
+    comptime r = reflect[CXVersion]
     _check_eq("CXVersion.size", Int(size_of[CXVersion]()), 12)
     _check_eq("CXVersion.align", Int(align_of[CXVersion]()), 4)
     _check_eq("CXVersion.Major.offset", Int(r.field_offset[index=0]()), 0)
@@ -79,13 +79,13 @@ def test_layout_CXVersion() raises:
 
 
 def test_layout_CXIndexOptions() raises:
-    comptime r = reflect[CXIndexOptions]()
+    comptime r = reflect[CXIndexOptions]
     _check_eq("CXIndexOptions.size", Int(size_of[CXIndexOptions]()), 24)
     _check_eq("CXIndexOptions.align", Int(align_of[CXIndexOptions]()), 8)
 
 
 def test_layout_CXTUResourceUsageEntry() raises:
-    comptime r = reflect[CXTUResourceUsageEntry]()
+    comptime r = reflect[CXTUResourceUsageEntry]
     _check_eq("CXTUResourceUsageEntry.size", Int(size_of[CXTUResourceUsageEntry]()), 16)
     _check_eq("CXTUResourceUsageEntry.align", Int(align_of[CXTUResourceUsageEntry]()), 8)
     _check_eq("CXTUResourceUsageEntry.kind.offset", Int(r.field_offset[index=0]()), 0)
@@ -93,7 +93,7 @@ def test_layout_CXTUResourceUsageEntry() raises:
 
 
 def test_layout_CXTUResourceUsage() raises:
-    comptime r = reflect[CXTUResourceUsage]()
+    comptime r = reflect[CXTUResourceUsage]
     _check_eq("CXTUResourceUsage.size", Int(size_of[CXTUResourceUsage]()), 24)
     _check_eq("CXTUResourceUsage.align", Int(align_of[CXTUResourceUsage]()), 8)
     _check_eq("CXTUResourceUsage.data.offset", Int(r.field_offset[index=0]()), 0)
@@ -102,7 +102,7 @@ def test_layout_CXTUResourceUsage() raises:
 
 
 def test_layout_CXCursor() raises:
-    comptime r = reflect[CXCursor]()
+    comptime r = reflect[CXCursor]
     _check_eq("CXCursor.size", Int(size_of[CXCursor]()), 32)
     _check_eq("CXCursor.align", Int(align_of[CXCursor]()), 8)
     _check_eq("CXCursor.kind.offset", Int(r.field_offset[index=0]()), 0)
@@ -111,7 +111,7 @@ def test_layout_CXCursor() raises:
 
 
 def test_layout_CXPlatformAvailability() raises:
-    comptime r = reflect[CXPlatformAvailability]()
+    comptime r = reflect[CXPlatformAvailability]
     _check_eq("CXPlatformAvailability.size", Int(size_of[CXPlatformAvailability]()), 72)
     _check_eq("CXPlatformAvailability.align", Int(align_of[CXPlatformAvailability]()), 8)
     _check_eq("CXPlatformAvailability.Platform.offset", Int(r.field_offset[index=0]()), 0)
@@ -123,7 +123,7 @@ def test_layout_CXPlatformAvailability() raises:
 
 
 def test_layout_CXType() raises:
-    comptime r = reflect[CXType]()
+    comptime r = reflect[CXType]
     _check_eq("CXType.size", Int(size_of[CXType]()), 24)
     _check_eq("CXType.align", Int(align_of[CXType]()), 8)
     _check_eq("CXType.kind.offset", Int(r.field_offset[index=0]()), 0)
@@ -131,7 +131,7 @@ def test_layout_CXType() raises:
 
 
 def test_layout_CXToken() raises:
-    comptime r = reflect[CXToken]()
+    comptime r = reflect[CXToken]
     _check_eq("CXToken.size", Int(size_of[CXToken]()), 24)
     _check_eq("CXToken.align", Int(align_of[CXToken]()), 8)
     _check_eq("CXToken.int_data.offset", Int(r.field_offset[index=0]()), 0)
@@ -139,7 +139,7 @@ def test_layout_CXToken() raises:
 
 
 def test_layout_CXCompletionResult() raises:
-    comptime r = reflect[CXCompletionResult]()
+    comptime r = reflect[CXCompletionResult]
     _check_eq("CXCompletionResult.size", Int(size_of[CXCompletionResult]()), 16)
     _check_eq("CXCompletionResult.align", Int(align_of[CXCompletionResult]()), 8)
     _check_eq("CXCompletionResult.CursorKind.offset", Int(r.field_offset[index=0]()), 0)
@@ -147,7 +147,7 @@ def test_layout_CXCompletionResult() raises:
 
 
 def test_layout_CXCodeCompleteResults() raises:
-    comptime r = reflect[CXCodeCompleteResults]()
+    comptime r = reflect[CXCodeCompleteResults]
     _check_eq("CXCodeCompleteResults.size", Int(size_of[CXCodeCompleteResults]()), 16)
     _check_eq("CXCodeCompleteResults.align", Int(align_of[CXCodeCompleteResults]()), 8)
     _check_eq("CXCodeCompleteResults.Results.offset", Int(r.field_offset[index=0]()), 0)
@@ -155,7 +155,7 @@ def test_layout_CXCodeCompleteResults() raises:
 
 
 def test_layout_CXCursorAndRangeVisitor() raises:
-    comptime r = reflect[CXCursorAndRangeVisitor]()
+    comptime r = reflect[CXCursorAndRangeVisitor]
     _check_eq("CXCursorAndRangeVisitor.size", Int(size_of[CXCursorAndRangeVisitor]()), 16)
     _check_eq("CXCursorAndRangeVisitor.align", Int(align_of[CXCursorAndRangeVisitor]()), 8)
     _check_eq("CXCursorAndRangeVisitor.context.offset", Int(r.field_offset[index=0]()), 0)
@@ -163,7 +163,7 @@ def test_layout_CXCursorAndRangeVisitor() raises:
 
 
 def test_layout_CXIdxLoc() raises:
-    comptime r = reflect[CXIdxLoc]()
+    comptime r = reflect[CXIdxLoc]
     _check_eq("CXIdxLoc.size", Int(size_of[CXIdxLoc]()), 24)
     _check_eq("CXIdxLoc.align", Int(align_of[CXIdxLoc]()), 8)
     _check_eq("CXIdxLoc.ptr_data.offset", Int(r.field_offset[index=0]()), 0)
@@ -171,7 +171,7 @@ def test_layout_CXIdxLoc() raises:
 
 
 def test_layout_CXIdxIncludedFileInfo() raises:
-    comptime r = reflect[CXIdxIncludedFileInfo]()
+    comptime r = reflect[CXIdxIncludedFileInfo]
     _check_eq("CXIdxIncludedFileInfo.size", Int(size_of[CXIdxIncludedFileInfo]()), 56)
     _check_eq("CXIdxIncludedFileInfo.align", Int(align_of[CXIdxIncludedFileInfo]()), 8)
     _check_eq("CXIdxIncludedFileInfo.hashLoc.offset", Int(r.field_offset[index=0]()), 0)
@@ -183,7 +183,7 @@ def test_layout_CXIdxIncludedFileInfo() raises:
 
 
 def test_layout_CXIdxImportedASTFileInfo() raises:
-    comptime r = reflect[CXIdxImportedASTFileInfo]()
+    comptime r = reflect[CXIdxImportedASTFileInfo]
     _check_eq("CXIdxImportedASTFileInfo.size", Int(size_of[CXIdxImportedASTFileInfo]()), 48)
     _check_eq("CXIdxImportedASTFileInfo.align", Int(align_of[CXIdxImportedASTFileInfo]()), 8)
     _check_eq("CXIdxImportedASTFileInfo.file.offset", Int(r.field_offset[index=0]()), 0)
@@ -193,7 +193,7 @@ def test_layout_CXIdxImportedASTFileInfo() raises:
 
 
 def test_layout_CXIdxAttrInfo() raises:
-    comptime r = reflect[CXIdxAttrInfo]()
+    comptime r = reflect[CXIdxAttrInfo]
     _check_eq("CXIdxAttrInfo.size", Int(size_of[CXIdxAttrInfo]()), 64)
     _check_eq("CXIdxAttrInfo.align", Int(align_of[CXIdxAttrInfo]()), 8)
     _check_eq("CXIdxAttrInfo.kind.offset", Int(r.field_offset[index=0]()), 0)
@@ -202,7 +202,7 @@ def test_layout_CXIdxAttrInfo() raises:
 
 
 def test_layout_CXIdxEntityInfo() raises:
-    comptime r = reflect[CXIdxEntityInfo]()
+    comptime r = reflect[CXIdxEntityInfo]
     _check_eq("CXIdxEntityInfo.size", Int(size_of[CXIdxEntityInfo]()), 80)
     _check_eq("CXIdxEntityInfo.align", Int(align_of[CXIdxEntityInfo]()), 8)
     _check_eq("CXIdxEntityInfo.kind.offset", Int(r.field_offset[index=0]()), 0)
@@ -216,14 +216,14 @@ def test_layout_CXIdxEntityInfo() raises:
 
 
 def test_layout_CXIdxContainerInfo() raises:
-    comptime r = reflect[CXIdxContainerInfo]()
+    comptime r = reflect[CXIdxContainerInfo]
     _check_eq("CXIdxContainerInfo.size", Int(size_of[CXIdxContainerInfo]()), 32)
     _check_eq("CXIdxContainerInfo.align", Int(align_of[CXIdxContainerInfo]()), 8)
     _check_eq("CXIdxContainerInfo.cursor.offset", Int(r.field_offset[index=0]()), 0)
 
 
 def test_layout_CXIdxIBOutletCollectionAttrInfo() raises:
-    comptime r = reflect[CXIdxIBOutletCollectionAttrInfo]()
+    comptime r = reflect[CXIdxIBOutletCollectionAttrInfo]
     _check_eq("CXIdxIBOutletCollectionAttrInfo.size", Int(size_of[CXIdxIBOutletCollectionAttrInfo]()), 72)
     _check_eq("CXIdxIBOutletCollectionAttrInfo.align", Int(align_of[CXIdxIBOutletCollectionAttrInfo]()), 8)
     _check_eq("CXIdxIBOutletCollectionAttrInfo.attrInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -233,7 +233,7 @@ def test_layout_CXIdxIBOutletCollectionAttrInfo() raises:
 
 
 def test_layout_CXIdxDeclInfo() raises:
-    comptime r = reflect[CXIdxDeclInfo]()
+    comptime r = reflect[CXIdxDeclInfo]
     _check_eq("CXIdxDeclInfo.size", Int(size_of[CXIdxDeclInfo]()), 128)
     _check_eq("CXIdxDeclInfo.align", Int(align_of[CXIdxDeclInfo]()), 8)
     _check_eq("CXIdxDeclInfo.entityInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -252,7 +252,7 @@ def test_layout_CXIdxDeclInfo() raises:
 
 
 def test_layout_CXIdxObjCContainerDeclInfo() raises:
-    comptime r = reflect[CXIdxObjCContainerDeclInfo]()
+    comptime r = reflect[CXIdxObjCContainerDeclInfo]
     _check_eq("CXIdxObjCContainerDeclInfo.size", Int(size_of[CXIdxObjCContainerDeclInfo]()), 16)
     _check_eq("CXIdxObjCContainerDeclInfo.align", Int(align_of[CXIdxObjCContainerDeclInfo]()), 8)
     _check_eq("CXIdxObjCContainerDeclInfo.declInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -260,7 +260,7 @@ def test_layout_CXIdxObjCContainerDeclInfo() raises:
 
 
 def test_layout_CXIdxBaseClassInfo() raises:
-    comptime r = reflect[CXIdxBaseClassInfo]()
+    comptime r = reflect[CXIdxBaseClassInfo]
     _check_eq("CXIdxBaseClassInfo.size", Int(size_of[CXIdxBaseClassInfo]()), 64)
     _check_eq("CXIdxBaseClassInfo.align", Int(align_of[CXIdxBaseClassInfo]()), 8)
     _check_eq("CXIdxBaseClassInfo.base.offset", Int(r.field_offset[index=0]()), 0)
@@ -269,7 +269,7 @@ def test_layout_CXIdxBaseClassInfo() raises:
 
 
 def test_layout_CXIdxObjCProtocolRefInfo() raises:
-    comptime r = reflect[CXIdxObjCProtocolRefInfo]()
+    comptime r = reflect[CXIdxObjCProtocolRefInfo]
     _check_eq("CXIdxObjCProtocolRefInfo.size", Int(size_of[CXIdxObjCProtocolRefInfo]()), 64)
     _check_eq("CXIdxObjCProtocolRefInfo.align", Int(align_of[CXIdxObjCProtocolRefInfo]()), 8)
     _check_eq("CXIdxObjCProtocolRefInfo.protocol.offset", Int(r.field_offset[index=0]()), 0)
@@ -278,7 +278,7 @@ def test_layout_CXIdxObjCProtocolRefInfo() raises:
 
 
 def test_layout_CXIdxObjCProtocolRefListInfo() raises:
-    comptime r = reflect[CXIdxObjCProtocolRefListInfo]()
+    comptime r = reflect[CXIdxObjCProtocolRefListInfo]
     _check_eq("CXIdxObjCProtocolRefListInfo.size", Int(size_of[CXIdxObjCProtocolRefListInfo]()), 16)
     _check_eq("CXIdxObjCProtocolRefListInfo.align", Int(align_of[CXIdxObjCProtocolRefListInfo]()), 8)
     _check_eq("CXIdxObjCProtocolRefListInfo.protocols.offset", Int(r.field_offset[index=0]()), 0)
@@ -286,7 +286,7 @@ def test_layout_CXIdxObjCProtocolRefListInfo() raises:
 
 
 def test_layout_CXIdxObjCInterfaceDeclInfo() raises:
-    comptime r = reflect[CXIdxObjCInterfaceDeclInfo]()
+    comptime r = reflect[CXIdxObjCInterfaceDeclInfo]
     _check_eq("CXIdxObjCInterfaceDeclInfo.size", Int(size_of[CXIdxObjCInterfaceDeclInfo]()), 24)
     _check_eq("CXIdxObjCInterfaceDeclInfo.align", Int(align_of[CXIdxObjCInterfaceDeclInfo]()), 8)
     _check_eq("CXIdxObjCInterfaceDeclInfo.containerInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -295,7 +295,7 @@ def test_layout_CXIdxObjCInterfaceDeclInfo() raises:
 
 
 def test_layout_CXIdxObjCCategoryDeclInfo() raises:
-    comptime r = reflect[CXIdxObjCCategoryDeclInfo]()
+    comptime r = reflect[CXIdxObjCCategoryDeclInfo]
     _check_eq("CXIdxObjCCategoryDeclInfo.size", Int(size_of[CXIdxObjCCategoryDeclInfo]()), 80)
     _check_eq("CXIdxObjCCategoryDeclInfo.align", Int(align_of[CXIdxObjCCategoryDeclInfo]()), 8)
     _check_eq("CXIdxObjCCategoryDeclInfo.containerInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -306,7 +306,7 @@ def test_layout_CXIdxObjCCategoryDeclInfo() raises:
 
 
 def test_layout_CXIdxObjCPropertyDeclInfo() raises:
-    comptime r = reflect[CXIdxObjCPropertyDeclInfo]()
+    comptime r = reflect[CXIdxObjCPropertyDeclInfo]
     _check_eq("CXIdxObjCPropertyDeclInfo.size", Int(size_of[CXIdxObjCPropertyDeclInfo]()), 24)
     _check_eq("CXIdxObjCPropertyDeclInfo.align", Int(align_of[CXIdxObjCPropertyDeclInfo]()), 8)
     _check_eq("CXIdxObjCPropertyDeclInfo.declInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -315,7 +315,7 @@ def test_layout_CXIdxObjCPropertyDeclInfo() raises:
 
 
 def test_layout_CXIdxCXXClassDeclInfo() raises:
-    comptime r = reflect[CXIdxCXXClassDeclInfo]()
+    comptime r = reflect[CXIdxCXXClassDeclInfo]
     _check_eq("CXIdxCXXClassDeclInfo.size", Int(size_of[CXIdxCXXClassDeclInfo]()), 24)
     _check_eq("CXIdxCXXClassDeclInfo.align", Int(align_of[CXIdxCXXClassDeclInfo]()), 8)
     _check_eq("CXIdxCXXClassDeclInfo.declInfo.offset", Int(r.field_offset[index=0]()), 0)
@@ -324,7 +324,7 @@ def test_layout_CXIdxCXXClassDeclInfo() raises:
 
 
 def test_layout_CXIdxEntityRefInfo() raises:
-    comptime r = reflect[CXIdxEntityRefInfo]()
+    comptime r = reflect[CXIdxEntityRefInfo]
     _check_eq("CXIdxEntityRefInfo.size", Int(size_of[CXIdxEntityRefInfo]()), 96)
     _check_eq("CXIdxEntityRefInfo.align", Int(align_of[CXIdxEntityRefInfo]()), 8)
     _check_eq("CXIdxEntityRefInfo.kind.offset", Int(r.field_offset[index=0]()), 0)
@@ -337,7 +337,7 @@ def test_layout_CXIdxEntityRefInfo() raises:
 
 
 def test_layout_IndexerCallbacks() raises:
-    comptime r = reflect[IndexerCallbacks]()
+    comptime r = reflect[IndexerCallbacks]
     _check_eq("IndexerCallbacks.size", Int(size_of[IndexerCallbacks]()), 64)
     _check_eq("IndexerCallbacks.align", Int(align_of[IndexerCallbacks]()), 8)
     _check_eq("IndexerCallbacks.abortQuery.offset", Int(r.field_offset[index=0]()), 0)
@@ -351,7 +351,7 @@ def test_layout_IndexerCallbacks() raises:
 
 
 def test_layout_CXComment() raises:
-    comptime r = reflect[CXComment]()
+    comptime r = reflect[CXComment]
     _check_eq("CXComment.size", Int(size_of[CXComment]()), 16)
     _check_eq("CXComment.align", Int(align_of[CXComment]()), 8)
     _check_eq("CXComment.ASTNode.offset", Int(r.field_offset[index=0]()), 0)
