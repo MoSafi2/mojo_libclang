@@ -51,7 +51,7 @@ def test_diagnostic_set_iteration() raises:
     var n = Int(diags.__len__())
     var count = 0
     for i in range(n):
-        var d = diags[c_uint(i)]
+        var d = diags[i]
         _ = d.severity()
         count += 1
     assert_equal(count, n, "iteration count should match")
@@ -65,14 +65,14 @@ def test_diagnostic_set_iteration() raises:
 # def test_diagnostic_severity() raises:
 #     var tu = _parse_invalid()
 #     var diags = tu.diagnostics()
-#     var first = diags[c_uint(0)]
+#     var first = diags[0]
 #     _ = first.severity()
 
 
 def test_diagnostic_spelling() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     var text = first.spelling()
     _check(text.byte_length() > 0, "diagnostic spelling should not be empty")
 
@@ -81,7 +81,7 @@ def test_diagnostic_spelling() raises:
 # def test_diagnostic_location() raises:
 #     var tu = _parse_invalid()
 #     var diags = tu.diagnostics()
-#     var first = diags[c_uint(0)]
+#     var first = diags[0]
 #     var loc = first.location()
 #     _check(
 #         Int(loc.line()) >= 1, "diagnostic location should have positive line"
@@ -91,7 +91,7 @@ def test_diagnostic_spelling() raises:
 def test_diagnostic_category() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     var num = first.category_number()
     var name = first.category_name()
     _check(Int(num) >= 0, "category number should be non-negative")
@@ -101,7 +101,7 @@ def test_diagnostic_category() raises:
 def test_diagnostic_option() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     _ = first.option()
     _ = first.disable_option()
 
@@ -109,7 +109,7 @@ def test_diagnostic_option() raises:
 def test_diagnostic_format() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     var formatted = first.format()
     _check(
         formatted.byte_length() > 0, "formatted diagnostic should not be empty"
@@ -119,9 +119,9 @@ def test_diagnostic_format() raises:
 def test_diagnostic_ranges() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     if first.num_ranges() > 0:
-        var r = first.range(c_uint(0))
+        var r = first.range(0)
         _ = r.start()
 
 
@@ -131,9 +131,9 @@ def test_diagnostic_ranges() raises:
 def test_diagnostic_fixits() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     if first.num_fixits() > 0:
-        var fix = first.fixit(c_uint(0))
+        var fix = first.fixit(0)
         _check(fix.value.byte_length() > 0, "fixit value should not be empty")
         _ = fix.range
 
@@ -144,7 +144,7 @@ def test_diagnostic_fixits() raises:
 def test_diagnostic_children() raises:
     var tu = _parse_invalid()
     var diags = tu.diagnostics()
-    var first = diags[c_uint(0)]
+    var first = diags[0]
     var children = first.children()
     _ = Int(children.__len__())
 
@@ -185,14 +185,14 @@ def test_diagnostic_set_enumerate_iteration() raises:
 
 def test_diagnostic_write_to() raises:
     var tu = _parse_invalid()
-    var d = tu.diagnostic(c_uint(0))
+    var d = tu.diagnostic(0)
     var s = String(d)
     _check(s.byte_length() > 0, "Diagnostic write_to should produce output")
 
 
 def test_diagnostic_formatted() raises:
     var tu = _parse_invalid()
-    var d = tu.diagnostic(c_uint(0))
+    var d = tu.diagnostic(0)
     var s = d.formatted()
     _check(s.byte_length() > 0, "formatted diagnostic should not be empty")
 
@@ -206,9 +206,9 @@ def test_diagnostic_set_write_to() raises:
 
 def test_fixit_write_to() raises:
     var tu = _parse_invalid()
-    var d = tu.diagnostic(c_uint(0))
+    var d = tu.diagnostic(0)
     if d.num_fixits() > c_uint(0):
-        var fix = d.fixit(c_uint(0))
+        var fix = d.fixit(0)
         var s = String(fix)
         _check(s.byte_length() > 0, "FixIt write_to should produce output")
     else:

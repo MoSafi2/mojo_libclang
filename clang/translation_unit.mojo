@@ -127,13 +127,15 @@ struct TranslationUnit(Copyable, Movable, Writable):
         clang_getTranslationUnitCursor(out._ptr(), self._raw_handle())
         return out^
 
-    def num_diagnostics(ref self) raises -> c_uint:
-        return clang_getNumDiagnostics(self._raw_handle())
+    def num_diagnostics(ref self) raises -> Int:
+        return Int(clang_getNumDiagnostics(self._raw_handle()))
 
-    def diagnostic(ref self, index: c_uint) raises -> Diagnostic:
+    def diagnostic(ref self, index: Int) raises -> Diagnostic:
+        if index < 0 or index >= self.num_diagnostics():
+            raise Error("TranslationUnit.diagnostic: index out of range")
         var d = Diagnostic(
             tu=self._shared_state(),
-            raw=clang_getDiagnostic(self._raw_handle(), index),
+            raw=clang_getDiagnostic(self._raw_handle(), c_uint(index)),
         )
         d._cache_format()
         return d^

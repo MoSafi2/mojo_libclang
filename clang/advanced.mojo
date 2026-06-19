@@ -138,13 +138,13 @@ struct TUResourceUsage(Movable, Sized, Writable):
     def __len__(self) -> Int:
         return Int(self._raw.numEntries)
 
-    def __getitem__(ref self, i: c_uint) raises -> TUResourceUsageItem:
-        if i >= self._raw.numEntries:
+    def __getitem__(ref self, i: Int) raises -> TUResourceUsageItem:
+        if i < 0 or i >= Int(self._raw.numEntries):
             raise Error("TUResourceUsage index out of range")
         if not self._raw.entries:
             raise Error("TUResourceUsage has no entry buffer")
 
-        var raw = (self._raw.entries.value() + Int(i))[]
+        var raw = (self._raw.entries.value() + i)[]
         var name_ptr = clang_getTUResourceUsageName(raw.kind)
         var name = String("")
         if name_ptr:
@@ -159,23 +159,23 @@ struct TUResourceUsage(Movable, Sized, Writable):
     def entries(ref self) raises -> List[TUResourceUsageItem]:
         var out = List[TUResourceUsageItem]()
         for i in range(Int(self._raw.numEntries)):
-            out.append(self[c_uint(i)])
+            out.append(self[i])
         return out^
 
-    def total(ref self) -> c_ulong:
+    def total(ref self) -> Int:
         var total = c_ulong(0)
         if not self._raw.entries:
-            return total
+            return 0
         for i in range(Int(self._raw.numEntries)):
             total += (self._raw.entries.value() + i)[].amount
-        return total
+        return Int(total)
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
             "TUResourceUsage(count=",
             Int(self._raw.numEntries),
             ", total=",
-            Int(self.total()),
+            self.total(),
             ")",
         )
 
@@ -260,20 +260,20 @@ struct EvalResult(Movable, Writable):
         if self._raw:
             clang_EvalResult_dispose(self._raw)
 
-    def kind(ref self) -> c_uint:
-        return c_uint(clang_EvalResult_getKind(self._raw))
+    def kind(ref self) -> Int:
+        return Int(clang_EvalResult_getKind(self._raw))
 
     def as_int(ref self) -> Int:
         return Int(clang_EvalResult_getAsInt(self._raw))
 
-    def as_long_long(ref self) -> c_long_long:
-        return clang_EvalResult_getAsLongLong(self._raw)
+    def as_long_long(ref self) -> Int:
+        return Int(clang_EvalResult_getAsLongLong(self._raw))
 
     def is_unsigned_int(ref self) -> Bool:
         return Bool(clang_EvalResult_isUnsignedInt(self._raw))
 
-    def as_unsigned(ref self) -> c_ulong_long:
-        return clang_EvalResult_getAsUnsigned(self._raw)
+    def as_unsigned(ref self) -> Int:
+        return Int(clang_EvalResult_getAsUnsigned(self._raw))
 
     def as_double(ref self) -> Float64:
         return Float64(clang_EvalResult_getAsDouble(self._raw))

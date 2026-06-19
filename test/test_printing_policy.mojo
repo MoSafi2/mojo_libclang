@@ -51,9 +51,9 @@ def test_printing_policy_get_and_set_property() raises:
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
-    var original = policy.get_property(PrintingPolicyProperty.SUPPRESS_SCOPE)
+    var original = policy.property(PrintingPolicyProperty.SUPPRESS_SCOPE)
     policy.set_property(PrintingPolicyProperty.SUPPRESS_SCOPE, original + 1)
-    var updated = policy.get_property(PrintingPolicyProperty.SUPPRESS_SCOPE)
+    var updated = policy.property(PrintingPolicyProperty.SUPPRESS_SCOPE)
     assert_true(
         updated == original + 1,
         "set_property should update the property value",

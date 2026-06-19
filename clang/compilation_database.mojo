@@ -76,39 +76,41 @@ struct CompileCommand(Copyable, Movable, Writable):
         clang_CompileCommand_getFilename(cs.ptr_for_out(), self._raw)
         return cs.take()
 
-    def num_args(ref self) -> c_uint:
-        return clang_CompileCommand_getNumArgs(self._raw)
+    def num_args(ref self) -> Int:
+        return Int(clang_CompileCommand_getNumArgs(self._raw))
 
-    def get_arg(ref self, i: c_uint) raises -> String:
-        if i >= self.num_args():
+    def arg(ref self, i: Int) raises -> String:
+        if i < 0 or i >= self.num_args():
             raise Error("CompileCommand arg index out of range")
         var cs = _CXStringStorage()
-        clang_CompileCommand_getArg(cs.ptr_for_out(), self._raw, i)
+        clang_CompileCommand_getArg(cs.ptr_for_out(), self._raw, c_uint(i))
         return cs.take()
 
     def arguments(ref self) raises -> List[String]:
         var n = Int(self.num_args())
         var out = List[String]()
         for i in range(n):
-            out.append(self.get_arg(c_uint(i)))
+            out.append(self.arg(i))
         return out^
 
-    def num_mapped_sources(ref self) -> c_uint:
-        return clang_CompileCommand_getNumMappedSources(self._raw)
+    def num_mapped_sources(ref self) -> Int:
+        return Int(clang_CompileCommand_getNumMappedSources(self._raw))
 
-    def get_mapped_source_path(ref self, i: c_uint) raises -> String:
-        if i >= self.num_mapped_sources():
+    def mapped_source_path(ref self, i: Int) raises -> String:
+        if i < 0 or i >= self.num_mapped_sources():
             raise Error("CompileCommand mapped source index out of range")
         var cs = _CXStringStorage()
-        clang_CompileCommand_getMappedSourcePath(cs.ptr_for_out(), self._raw, i)
+        clang_CompileCommand_getMappedSourcePath(
+            cs.ptr_for_out(), self._raw, c_uint(i)
+        )
         return cs.take()
 
-    def get_mapped_source_content(ref self, i: c_uint) raises -> String:
-        if i >= self.num_mapped_sources():
+    def mapped_source_content(ref self, i: Int) raises -> String:
+        if i < 0 or i >= self.num_mapped_sources():
             raise Error("CompileCommand mapped source index out of range")
         var cs = _CXStringStorage()
         clang_CompileCommand_getMappedSourceContent(
-            cs.ptr_for_out(), self._raw, i
+            cs.ptr_for_out(), self._raw, c_uint(i)
         )
         return cs.take()
 
@@ -188,10 +190,12 @@ struct CompileCommands(Iterable, Movable, Sized, Writable):
     def __len__(self) -> Int:
         return Int(self._count)
 
-    def __getitem__(ref self, i: c_uint) raises -> CompileCommand:
-        if i >= self._count:
+    def __getitem__(ref self, i: Int) raises -> CompileCommand:
+        if i < 0 or i >= Int(self._count):
             raise Error("CompileCommands index out of range")
-        return CompileCommand(clang_CompileCommands_getCommand(self._raw, i))
+        return CompileCommand(
+            clang_CompileCommands_getCommand(self._raw, c_uint(i))
+        )
 
     def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:
         return CompileCommandsIterator[origin_of(self)](self)

@@ -80,9 +80,9 @@ def test_num_diagnostics_positive_for_invalid() raises:
 def test_diagnostic_matches_diagnostics_set() raises:
     var tu = _parse_invalid()
     if tu.num_diagnostics() > 0:
-        var d1 = tu.diagnostic(c_uint(0))
+        var d1 = tu.diagnostic(0)
         var set = tu.diagnostics()
-        var d2 = set[c_uint(0)]
+        var d2 = set[0]
         _check(
             d1.spelling() == d2.spelling(),
             "diagnostic(0) should match diagnostics()[0] spelling",

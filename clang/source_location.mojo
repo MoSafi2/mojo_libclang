@@ -268,17 +268,17 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._check_valid()
         return self._file_name
 
-    def line(ref self) raises -> c_uint:
+    def line(ref self) raises -> Int:
         self._check_valid()
-        return self._line
+        return Int(self._line)
 
-    def column(ref self) raises -> c_uint:
+    def column(ref self) raises -> Int:
         self._check_valid()
-        return self._column
+        return Int(self._column)
 
-    def offset(ref self) raises -> c_uint:
+    def offset(ref self) raises -> Int:
         self._check_valid()
-        return self._offset
+        return Int(self._offset)
 
     def spelling_tuple(
         ref self,

@@ -349,9 +349,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return CursorKind(clang_getCursorKind(self._ptr()))
 
-    def hash(ref self) raises -> c_uint:
+    def hash(ref self) raises -> Int:
         self._check_valid()
-        return clang_hashCursor(self._ptr())
+        return Int(clang_hashCursor(self._ptr()))
 
     def spelling(ref self) raises -> String:
         self._check_valid()
@@ -702,46 +702,62 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             clang_disposeOverriddenCursors(raw_ptr.value())
         return out^
 
-    def num_overloaded_decls(ref self) raises -> c_uint:
+    def num_overloaded_decls(ref self) raises -> Int:
         self._check_valid()
-        return clang_getNumOverloadedDecls(self._ptr())
+        return Int(clang_getNumOverloadedDecls(self._ptr()))
 
-    def get_overloaded_decl(ref self, index: c_uint) raises -> Self:
+    def overloaded_decl(ref self, index: Int) raises -> Self:
         self._check_valid()
+        if index < 0:
+            raise Error("Cursor.overloaded_decl: index out of range")
         var out = Self(self._tu)
-        clang_getOverloadedDecl(out._ptr(), self._ptr(), index)
+        clang_getOverloadedDecl(out._ptr(), self._ptr(), c_uint(index))
         return out^
 
-    def num_template_arguments(ref self) raises -> c_int:
+    def num_template_arguments(ref self) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getNumTemplateArguments(self._ptr())
+        return Int(clang_Cursor_getNumTemplateArguments(self._ptr()))
 
     def template_argument_kind(
-        ref self, i: c_uint
+        ref self, i: Int
     ) raises -> TemplateArgumentKind:
         self._check_valid()
+        if i < 0:
+            raise Error("Cursor.template_argument_kind: index out of range")
         return TemplateArgumentKind(
-            c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), i))
+            c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), c_uint(i)))
         )
 
-    def template_argument_type(ref self, i: c_uint) raises -> Type:
+    def template_argument_type(ref self, i: Int) raises -> Type:
         from clang.type_ import Type
 
         self._check_valid()
+        if i < 0:
+            raise Error("Cursor.template_argument_type: index out of range")
         var out = Type(tu=self._tu)
-        clang_Cursor_getTemplateArgumentType(out._ptr(), self._ptr(), i)
+        clang_Cursor_getTemplateArgumentType(
+            out._ptr(), self._ptr(), c_uint(i)
+        )
         out._cache_spelling()
         return out^
 
-    def template_argument_value(ref self, i: c_uint) raises -> c_long_long:
+    def template_argument_value(ref self, i: Int) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getTemplateArgumentValue(self._ptr(), i)
+        if i < 0:
+            raise Error("Cursor.template_argument_value: index out of range")
+        return Int(clang_Cursor_getTemplateArgumentValue(self._ptr(), c_uint(i)))
 
     def template_argument_unsigned_value(
-        ref self, i: c_uint
-    ) raises -> c_ulong_long:
+        ref self, i: Int
+    ) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getTemplateArgumentUnsignedValue(self._ptr(), i)
+        if i < 0:
+            raise Error(
+                "Cursor.template_argument_unsigned_value: index out of range"
+            )
+        return Int(
+            clang_Cursor_getTemplateArgumentUnsignedValue(self._ptr(), c_uint(i))
+        )
 
     def specialized_cursor_template(ref self) raises -> Optional[Self]:
         self._check_valid()
@@ -759,22 +775,24 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     # Arguments and tokens
     # -----------------------------------------------------------------------
 
-    def num_arguments(ref self) raises -> c_int:
+    def num_arguments(ref self) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getNumArguments(self._ptr())
+        return Int(clang_Cursor_getNumArguments(self._ptr()))
 
-    def argument(ref self, i: c_uint) raises -> Self:
+    def argument(ref self, i: Int) raises -> Self:
         self._check_valid()
+        if i < 0:
+            raise Error("Cursor.argument: index out of range")
         var out = Self(self._tu)
-        clang_Cursor_getArgument(out._ptr(), self._ptr(), i)
+        clang_Cursor_getArgument(out._ptr(), self._ptr(), c_uint(i))
         return out^
 
     def arguments(ref self) raises -> List[Cursor]:
         self._check_valid()
         var n = self.num_arguments()
         var out = List[Cursor]()
-        for i in range(Int(n)):
-            out.append(self.argument(c_uint(i)))
+        for i in range(n):
+            out.append(self.argument(i))
         return out^
 
     def tokens(ref self) raises -> TokenGroup:
@@ -885,13 +903,13 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return Bool(clang_Cursor_isBitField(self._ptr()))
 
-    def get_bitfield_width(ref self) raises -> c_int:
+    def bitfield_width(ref self) raises -> Int:
         self._check_valid()
-        return clang_getFieldDeclBitWidth(self._ptr())
+        return Int(clang_getFieldDeclBitWidth(self._ptr()))
 
-    def offset_of_field(ref self) raises -> c_long_long:
+    def offset_of_field(ref self) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getOffsetOfField(self._ptr())
+        return Int(clang_Cursor_getOffsetOfField(self._ptr()))
 
     def is_function_inlined(ref self) raises -> Bool:
         self._check_valid()
@@ -933,7 +951,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             clang_Cursor_getObjCManglings(self._ptr())
         )
 
-    def enum_value(ref self) raises -> c_long_long:
+    def enum_value(ref self) raises -> Int:
         """Return the value of an enum constant declaration.
 
         This inspects the underlying integer type to decide whether to use the
@@ -964,11 +982,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             or uk == TypeKind.ULONG_LONG
             or uk == TypeKind.UINT128
         ):
-            return c_long_long(
-                clang_getEnumConstantDeclUnsignedValue(self._ptr())
-            )
+            return Int(clang_getEnumConstantDeclUnsignedValue(self._ptr()))
 
-        return clang_getEnumConstantDeclValue(self._ptr())
+        return Int(clang_getEnumConstantDeclValue(self._ptr()))
 
     def objc_type_encoding(ref self) raises -> String:
         """Return the Objective-C type encoding for this cursor."""
@@ -988,9 +1004,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
-    def objc_selector_index(ref self) raises -> c_int:
+    def objc_selector_index(ref self) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getObjCSelectorIndex(self._ptr())
+        return Int(clang_Cursor_getObjCSelectorIndex(self._ptr()))
 
     def is_dynamic_call(ref self) raises -> Bool:
         self._check_valid()
@@ -1009,10 +1025,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def objc_property_attributes(
         ref self,
-        reserved: c_uint = c_uint(0),
-    ) raises -> c_uint:
+        reserved: Int = 0,
+    ) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getObjCPropertyAttributes(self._ptr(), reserved)
+        if reserved < 0:
+            raise Error("Cursor.objc_property_attributes: reserved must be >= 0")
+        return Int(
+            clang_Cursor_getObjCPropertyAttributes(self._ptr(), c_uint(reserved))
+        )
 
     def objc_property_getter_name(ref self) raises -> String:
         self._check_valid()
@@ -1026,9 +1046,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_Cursor_getObjCPropertySetterName(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def objc_decl_qualifiers(ref self) raises -> c_uint:
+    def objc_decl_qualifiers(ref self) raises -> Int:
         self._check_valid()
-        return clang_Cursor_getObjCDeclQualifiers(self._ptr())
+        return Int(clang_Cursor_getObjCDeclQualifiers(self._ptr()))
 
     def is_objc_optional(ref self) raises -> Bool:
         self._check_valid()

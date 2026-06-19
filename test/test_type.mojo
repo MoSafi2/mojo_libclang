@@ -138,8 +138,8 @@ def test_type_element_type_matches_array_element_type() raises:
 def test_type_arg_type() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
-    var first = t.arg_type(c_uint(0))
-    var second = t.arg_type(c_uint(1))
+    var first = t.arg_type(0)
+    var second = t.arg_type(1)
     assert_equal(Int(first.kind().as_c_uint()), Int(CXType_Int))
     assert_equal(Int(second.kind().as_c_uint()), Int(CXType_Int))
     assert_true(first == second)
@@ -157,7 +157,7 @@ def test_type_argument_types() raises:
 def test_type_template_argument_type_for_non_template_is_invalid() raises:
     var tu = _parse_fixture()
     var t = _function_type(tu, String("add"))
-    var arg = t.template_argument_type(c_uint(0))
+    var arg = t.template_argument_type(0)
     assert_equal(Int(arg.kind().as_c_uint()), Int(CXType_Invalid))
 
 

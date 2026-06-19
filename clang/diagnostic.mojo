@@ -182,9 +182,9 @@ struct Diagnostic(Movable, Writable):
         out._cache_from_ffi()
         return out^
 
-    def category_number(ref self) raises -> c_uint:
+    def category_number(ref self) raises -> Int:
         self._check_valid()
-        return clang_getDiagnosticCategory(self._raw)
+        return Int(clang_getDiagnosticCategory(self._raw))
 
     def category_name(ref self) raises -> String:
         self._check_valid()
@@ -229,28 +229,28 @@ struct Diagnostic(Movable, Writable):
 
         return disable.take()
 
-    def num_ranges(ref self) raises -> c_uint:
+    def num_ranges(ref self) raises -> Int:
         self._check_valid()
-        return clang_getDiagnosticNumRanges(self._raw)
+        return Int(clang_getDiagnosticNumRanges(self._raw))
 
-    def range(ref self, i: c_uint) raises -> SourceRange:
+    def range(ref self, i: Int) raises -> SourceRange:
         self._check_valid()
 
-        if i >= self.num_ranges():
+        if i < 0 or i >= self.num_ranges():
             raise Error("Diagnostic.range: index out of range")
 
         var out = SourceRange(tu=self._tu)
-        clang_getDiagnosticRange(out._ptr(), self._raw, i)
+        clang_getDiagnosticRange(out._ptr(), self._raw, c_uint(i))
         return out^
 
-    def num_fixits(ref self) raises -> c_uint:
+    def num_fixits(ref self) raises -> Int:
         self._check_valid()
-        return clang_getDiagnosticNumFixIts(self._raw)
+        return Int(clang_getDiagnosticNumFixIts(self._raw))
 
-    def fixit(ref self, i: c_uint) raises -> FixIt:
+    def fixit(ref self, i: Int) raises -> FixIt:
         self._check_valid()
 
-        if i >= self.num_fixits():
+        if i < 0 or i >= self.num_fixits():
             raise Error("Diagnostic.fixit: index out of range")
 
         var range_out = SourceRange(tu=self._tu)
@@ -259,7 +259,7 @@ struct Diagnostic(Movable, Writable):
         clang_getDiagnosticFixIt(
             cs.ptr_for_out(),
             self._raw,
-            i,
+            c_uint(i),
             range_out._ptr(),
         )
 
@@ -414,15 +414,15 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
     def __len__(self) -> Int:
         return self._count
 
-    def __getitem__(ref self, i: c_uint) raises -> Diagnostic:
+    def __getitem__(ref self, i: Int) raises -> Diagnostic:
         self._check_valid()
 
-        if i >= clang_getNumDiagnosticsInSet(self._raw):
+        if i < 0 or i >= Int(clang_getNumDiagnosticsInSet(self._raw)):
             raise Error("DiagnosticSet index out of range")
 
         return Diagnostic(
             tu=self._tu,
-            raw=clang_getDiagnosticInSet(self._raw, i),
+            raw=clang_getDiagnosticInSet(self._raw, c_uint(i)),
             owns=True,
         )
 

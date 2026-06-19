@@ -398,7 +398,7 @@ def test_cursor_equality() raises:
 #     var diags = tu.diagnostics()
 #     assert_equal(diags.__len__(), Int(tu.num_diagnostics()),
 #                  "set size should match")
-#     var first = diags[c_uint(0)]
+#     var first = diags[0]
 #     _check(first.spelling().byte_length() > 0,
 #            "diagnostic spelling should not be empty")
 #     _ = first.severity()
@@ -423,7 +423,7 @@ def test_cursor_equality() raises:
 #     var n = diags.__len__()
 #     var count = 0
 #     for i in range(n):
-#         var d = diags[c_uint(i)]
+#         var d = diags[i]
 #         _ = d.severity()
 #         _ = d.spelling()
 #         count += 1

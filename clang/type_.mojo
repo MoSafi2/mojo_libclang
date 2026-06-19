@@ -229,23 +229,25 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def array_size(ref self) raises -> c_long_long:
+    def array_size(ref self) raises -> Int:
         self._check_valid()
-        return clang_getArraySize(self._ptr())
+        return Int(clang_getArraySize(self._ptr()))
 
-    def element_count(ref self) raises -> c_long_long:
+    def element_count(ref self) raises -> Int:
         self._check_valid()
-        return clang_getNumElements(self._ptr())
+        return Int(clang_getNumElements(self._ptr()))
 
-    def num_arg_types(ref self) raises -> c_int:
+    def num_arg_types(ref self) raises -> Int:
         self._check_valid()
-        return clang_getNumArgTypes(self._ptr())
+        return Int(clang_getNumArgTypes(self._ptr()))
 
-    def arg_type(ref self, i: c_uint) raises -> Type:
+    def arg_type(ref self, i: Int) raises -> Type:
         self._check_valid()
+        if i < 0:
+            raise Error("Type.arg_type: index out of range")
 
         var out = Type(tu=self._tu)
-        clang_getArgType(out._ptr(), self._ptr(), i)
+        clang_getArgType(out._ptr(), self._ptr(), c_uint(i))
         out._cache_spelling()
         return out^
 
@@ -253,24 +255,26 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var n = self.num_arg_types()
-        if n < c_int(0):
+        if n < 0:
             raise Error("Type.argument_types: type has no argument list")
 
         var out = List[Type]()
-        for i in range(Int(n)):
-            out.append(self.arg_type(c_uint(i)))
+        for i in range(n):
+            out.append(self.arg_type(i))
 
         return out^
 
-    def num_template_args(ref self) raises -> c_int:
+    def num_template_args(ref self) raises -> Int:
         self._check_valid()
-        return clang_Type_getNumTemplateArguments(self._ptr())
+        return Int(clang_Type_getNumTemplateArguments(self._ptr()))
 
-    def template_argument_type(ref self, i: c_uint) raises -> Type:
+    def template_argument_type(ref self, i: Int) raises -> Type:
         self._check_valid()
+        if i < 0:
+            raise Error("Type.template_argument_type: index out of range")
 
         var out = Type(tu=self._tu)
-        clang_Type_getTemplateArgumentAsType(out._ptr(), self._ptr(), i)
+        clang_Type_getTemplateArgumentAsType(out._ptr(), self._ptr(), c_uint(i))
         out._cache_spelling()
         return out^
 
@@ -329,7 +333,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
-    def offset(ref self, fieldname: String) raises -> c_long_long:
+    def offset(ref self, fieldname: String) raises -> Int:
         """Return field offset in bits.
 
         Wraps ``clang_Type_getOffsetOf``.
@@ -349,15 +353,15 @@ struct Type(Copyable, Movable, Writable):
                 t"{Int(result)} for field '{fieldname}'"
             )
 
-        return result
+        return Int(result)
 
-    def align(ref self) raises -> c_long_long:
+    def align(ref self) raises -> Int:
         self._check_valid()
-        return clang_Type_getAlignOf(self._ptr())
+        return Int(clang_Type_getAlignOf(self._ptr()))
 
-    def size(ref self) raises -> c_long_long:
+    def size(ref self) raises -> Int:
         self._check_valid()
-        return clang_Type_getSizeOf(self._ptr())
+        return Int(clang_Type_getSizeOf(self._ptr()))
 
     def translation_unit(ref self) raises -> TranslationUnit:
         """Return the TranslationUnit to which this type belongs."""

@@ -188,7 +188,7 @@ def test_kind_predicates_false() raises:
 def test_bitfield_width() raises:
     var tu = _parse()
     var c = _find(tu, CXCursor_TypedefDecl)
-    assert_equal(Int(c.get_bitfield_width()), -1)
+    assert_equal(Int(c.bitfield_width()), -1)
 
 
 def test_underlying_typedef_type() raises:
@@ -569,7 +569,7 @@ def test_cxx_get_bitfield_width_not_bitfield() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "virtual_method")
     assert_equal(
-        Int(c.get_bitfield_width()), -1, "non-bitfield should return -1"
+        Int(c.bitfield_width()), -1, "non-bitfield should return -1"
     )
 
 
@@ -856,7 +856,7 @@ def test_cursor_equals_and_ne() raises:
 def test_cursor_argument() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "add")
-    var arg0 = c.argument(c_uint(0))
+    var arg0 = c.argument(0)
     assert_equal(arg0.kind(), CursorKind.PARM_DECL)
     assert_equal(arg0.spelling(), "a")
 
@@ -943,10 +943,10 @@ def test_cursor_template_arguments() raises:
     var spec = decl.value().copy()
     assert_equal(Int(spec.num_template_arguments()), 1)
     assert_equal(
-        spec.template_argument_kind(c_uint(0)),
+        spec.template_argument_kind(0),
         TemplateArgumentKind.TYPE,
     )
-    var t = spec.template_argument_type(c_uint(0))
+    var t = spec.template_argument_type(0)
     assert_equal(Int(t.kind().as_c_uint()), Int(CXType_Int))
     var tmpl = spec.specialized_cursor_template()
     _check(tmpl != None, "specialized cursor template not found")
@@ -961,11 +961,11 @@ def test_cursor_nttp_arguments() raises:
     var spec = decl.value().copy()
     assert_equal(Int(spec.num_template_arguments()), 1)
     assert_equal(
-        spec.template_argument_kind(c_uint(0)),
+        spec.template_argument_kind(0),
         TemplateArgumentKind.INTEGRAL,
     )
-    assert_equal(Int(spec.template_argument_value(c_uint(0))), 42)
-    assert_equal(Int(spec.template_argument_unsigned_value(c_uint(0))), 42)
+    assert_equal(Int(spec.template_argument_value(0)), 42)
+    assert_equal(Int(spec.template_argument_unsigned_value(0)), 42)
 
 
 def test_cursor_overloaded_decls() raises:
@@ -975,7 +975,7 @@ def test_cursor_overloaded_decls() raises:
     for i in range(cursors.__len__()):
         var c = cursors[i].copy()
         if c.spelling() == "overloaded_fn" and Int(c.num_overloaded_decls()) > 0:
-            var decl = c.get_overloaded_decl(c_uint(0))
+            var decl = c.overloaded_decl(0)
             _check(decl.spelling() == "overloaded_fn")
             return
     _check(True, "no overloaded decl cursor found")

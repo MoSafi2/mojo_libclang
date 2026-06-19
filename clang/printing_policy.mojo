@@ -55,18 +55,22 @@ struct PrintingPolicy(Movable, Writable):
         if self._raw:
             clang_PrintingPolicy_dispose(self._raw)
 
-    def get_property(ref self, property: PrintingPolicyProperty) -> c_uint:
-        return clang_PrintingPolicy_getProperty(self._raw, property.as_c_uint())
+    def property(ref self, property: PrintingPolicyProperty) -> Int:
+        return Int(
+            clang_PrintingPolicy_getProperty(self._raw, property.as_c_uint())
+        )
 
     def set_property(
         ref self,
         property: PrintingPolicyProperty,
-        value: c_uint,
-    ):
+        value: Int,
+    ) raises:
+        if value < 0:
+            raise Error("PrintingPolicy.set_property: value must be >= 0")
         clang_PrintingPolicy_setProperty(
             self._raw,
             property.as_c_uint(),
-            value,
+            c_uint(value),
         )
 
     def write_to(self, mut writer: Some[Writer]):

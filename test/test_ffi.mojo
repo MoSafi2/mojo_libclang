@@ -149,7 +149,7 @@ def _source_range_ptr(
 
 def _cursor_zero() -> CXCursor:
     return CXCursor(
-        kind=CXCursorKind(c_uint(0)),
+        kind=CXCursorKind(0),
         xdata=c_int(0),
         data=InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 3](
             fill=None
@@ -167,7 +167,7 @@ def _cursor_ptr(
 
 def _type_zero() -> CXType:
     return CXType(
-        kind=CXTypeKind(c_uint(0)),
+        kind=CXTypeKind(0),
         data=InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2](
             fill=None
         ),
