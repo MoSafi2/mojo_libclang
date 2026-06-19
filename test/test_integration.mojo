@@ -6,8 +6,6 @@ types, tokenize, and handle diagnostics — all in one coherent flow.
 from clang.cindex import (
     Index,
     TranslationUnit,
-    SourcePosition,
-    SourceExtentInput,
     Cursor,
     Type,
     SourceLocation,
@@ -223,7 +221,7 @@ def test_tokenize_line1() raises:
     var tu = _parse_fixture()
     var extent = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 1, 100),
+        1, 1, 1, 100,
     )
     var tokens = tu.get_tokens(extent)
     _check(tokens.__len__() > 0, "expected at least one token")
@@ -243,7 +241,7 @@ def test_tokenize_whole_file() raises:
     var tu = _parse_fixture()
     var extent = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 6, 80),
+        1, 1, 6, 80,
     )
     var tokens = tu.get_tokens(extent)
     _check(tokens.__len__() > 0, "whole file should produce tokens")
@@ -258,7 +256,7 @@ def test_tokenize_whole_file() raises:
 #     var tu = _parse_fixture()
 #     var extent = tu.get_extent(
 #         FIXTURE_PATH,
-#         SourceExtentInput.from_line_columns(1, 1, 1, 100),
+#         1, 1, 1, 100,
 #     )
 #     var tokens = tu.get_tokens(extent)
 #     var first = tokens[0]
@@ -271,7 +269,7 @@ def test_tokenize_whole_file() raises:
 #     var tu = _parse_fixture()
 #     var extent = tu.get_extent(
 #         FIXTURE_PATH,
-#         SourceExtentInput.from_line_columns(1, 1, 1, 100),
+#         1, 1, 1, 100,
 #     )
 #     var tokens = tu.get_tokens(extent)
 #     var first = tokens[0]
@@ -285,7 +283,7 @@ def test_token_cursor_annotation() raises:
     var tu = _parse_fixture()
     var extent = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 1, 100),
+        1, 1, 1, 100,
     )
     var tokens = tu.get_tokens(extent)
     var first = tokens[0]
@@ -297,46 +295,28 @@ def test_token_cursor_annotation() raises:
 # -- Source locations ------------------------------------------------------
 
 
-# def test_source_location_from_position() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(1, 1),
-#     )
-#     assert_equal(Int(loc.line()), 1)
-#     assert_equal(Int(loc.column()), 1)
-
-
 def test_source_location_from_offset() raises:
     var tu = _parse_fixture()
     var loc = tu.get_location_for_offset(FIXTURE_PATH, c_uint(0))
     _check(Int(loc.line()) >= 1, "offset 0 should map to line 1")
-    var loc2 = tu.get_location(
+    var loc2 = tu.get_location_for_offset(
         FIXTURE_PATH,
-        SourcePosition.from_offset(0),
+        0,
     )
     _check(loc == loc2,
-           "get_location(from_offset) should match get_location_for_offset")
+           "offset overload should match get_location_for_offset")
 
 
 def test_source_location_system_header() raises:
     var tu = _parse_fixture()
     var loc = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     _check(not loc.is_in_system_header(),
            "fixture should not be in system header")
     _check(loc.is_from_main_file(), "fixture should be from main file")
-
-
-# def test_source_location_file() raises:
-#     var tu = _parse_fixture()
-#     var loc = tu.get_location(
-#         FIXTURE_PATH,
-#         SourcePosition.from_line_column(1, 1),
-#     )
-#     _ = loc.file()
 
 
 # -- Source ranges ---------------------------------------------------------
@@ -346,11 +326,13 @@ def test_source_range_from_locations() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 5),
+        1,
+        5,
     )
     var rng = SourceRange.from_locations(start, end)
     _check(not rng.is_null(), "range should not be null")
@@ -467,7 +449,7 @@ def test_token_group_drop_after_read() raises:
     var tu = _parse_fixture()
     var extent = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 6, 80),
+        1, 1, 6, 80,
     )
     for i in range(3):
         var tokens = tu.get_tokens(extent)

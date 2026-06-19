@@ -6,10 +6,6 @@ from clang.common import (
     _take_cxstring_optional,
     _CXStringStorage,
     UnsavedFile,
-    SourcePosition,
-    SourceExtentInput,
-    FileLocationValue,
-    PresumedLocationValue,
     CStringArray,
     UnsavedFileArena,
 )
@@ -132,48 +128,6 @@ def test_unsaved_file_write_to() raises:
     var uf = UnsavedFile(filename="test.c", contents="int x;")
     var s = String(uf)
     _check(s.byte_length() > 0, "UnsavedFile write_to should produce output")
-
-
-def test_source_position_write_to() raises:
-    var pos = SourcePosition.from_line_column(c_uint(1), c_uint(2))
-    var s = String(pos)
-    _check(s.byte_length() > 0, "SourcePosition write_to should produce output")
-
-
-def test_source_extent_input_write_to() raises:
-    var extent = SourceExtentInput.from_line_columns(
-        c_uint(1), c_uint(1), c_uint(1), c_uint(5)
-    )
-    var s = String(extent)
-    _check(
-        s.byte_length() > 0, "SourceExtentInput write_to should produce output"
-    )
-
-
-def test_file_location_value_write_to() raises:
-    var loc = FileLocationValue(
-        file_name=Optional[String]("test.c"),
-        line=c_uint(1),
-        column=c_uint(2),
-        offset=c_uint(0),
-    )
-    var s = String(loc)
-    _check(
-        s.byte_length() > 0, "FileLocationValue write_to should produce output"
-    )
-
-
-def test_presumed_location_value_write_to() raises:
-    var loc = PresumedLocationValue(
-        filename="test.c",
-        line=c_uint(1),
-        column=c_uint(2),
-    )
-    var s = String(loc)
-    _check(
-        s.byte_length() > 0,
-        "PresumedLocationValue write_to should produce output",
-    )
 
 
 def test_cstring_array() raises:

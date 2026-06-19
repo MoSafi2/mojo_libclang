@@ -13,7 +13,7 @@ mojo run -I . -Xlinker -L$PWD/build -Xlinker -lclang_mojo_shim
 examples/parse_header_example.mojo
 """
 
-from clang.cindex import Index, SourceExtentInput, UnsavedFile, CursorKind
+from clang.cindex import Index, UnsavedFile, CursorKind
 from clang.cursor import Cursor
 from clang.translation_unit import TranslationUnit
 
@@ -151,7 +151,7 @@ def print_tokens(tu: TranslationUnit) raises:
     """Tokenize the top part of the header and print a small sample."""
     var extent = tu.get_extent(
         HEADER_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 35, 1),
+        1, 1, 35, 1,
     )
 
     var tokens = tu.get_tokens(extent)

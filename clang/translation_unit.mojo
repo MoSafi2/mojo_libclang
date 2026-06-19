@@ -35,8 +35,6 @@ from clang.enums import TranslationUnitFlags, SaveError
 
 from clang.common import (
     UnsavedFile,
-    SourcePosition,
-    SourceExtentInput,
     _c_string,
     _CXStringStorage,
     UnsavedFileArena,
@@ -158,34 +156,19 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def get_location(
         ref self,
         filename: String,
-        position: SourcePosition,
+        line: c_uint,
+        column: c_uint,
     ) raises -> SourceLocation:
-        var pos = position.copy()
-        pos.validate()
-
-        # Keep filename alive during the C call.
-        var filename_c = _alloc_c_string(filename)
-
-        var file_handle = clang_getFile(
-            self.raw(),
-            _c_string(filename_c),
-        )
-        filename_c.free()
-        if not file_handle:
-            raise Error("TranslationUnit.get_location: unknown filename")
-
-        if pos.is_offset_only():
-            return SourceLocation.from_offset(
-                self.state(),
-                file_handle,
-                pos.offset.value(),
+        if line == 0 or column == 0:
+            raise Error(
+                "TranslationUnit.get_location: line and column must be >= 1",
             )
 
         return SourceLocation.from_position(
             self.state(),
-            file_handle,
-            pos.line.value(),
-            pos.column.value(),
+            self._get_file_handle(filename),
+            line,
+            column,
         )
 
     def get_location_for_offset(
@@ -193,6 +176,13 @@ struct TranslationUnit(Copyable, Movable, Writable):
         filename: String,
         offset: c_uint,
     ) raises -> SourceLocation:
+        return SourceLocation.from_offset(
+            self.state(),
+            self._get_file_handle(filename),
+            offset,
+        )
+
+    def _get_file_handle(ref self, filename: String) raises -> CXFile:
         var filename_c = _alloc_c_string(filename)
 
         var file_handle = clang_getFile(
@@ -201,33 +191,55 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
         filename_c.free()
         if not file_handle:
-            raise Error(
-                "TranslationUnit.get_location_for_offset: unknown filename",
-            )
+            raise Error("TranslationUnit: unknown filename")
 
-        return SourceLocation.from_offset(
-            self.state(),
-            file_handle,
-            offset,
-        )
+        return file_handle
 
     def get_extent(
         ref self,
         filename: String,
-        locations: SourceExtentInput,
+        start: SourceLocation,
+        end: SourceLocation,
     ) raises -> SourceRange:
-        locations.validate()
-
-        var start = self.get_location(
-            filename,
-            locations.start,
-        )
-        var end = self.get_location(
-            filename,
-            locations.end,
-        )
-
         return SourceRange.from_locations(start, end)
+
+    def get_extent(
+        ref self,
+        filename: String,
+        start_line: c_uint,
+        start_column: c_uint,
+        end_line: c_uint,
+        end_column: c_uint,
+    ) raises -> SourceRange:
+        var start = self.get_location(filename, start_line, start_column)
+        var end = self.get_location(filename, end_line, end_column)
+        return SourceRange.from_locations(start, end)
+
+    def get_extent_from_offsets(
+        ref self,
+        filename: String,
+        start_offset: c_uint,
+        end_offset: c_uint,
+    ) raises -> SourceRange:
+        var start = self.get_location_for_offset(filename, start_offset)
+        var end = self.get_location_for_offset(filename, end_offset)
+        return SourceRange.from_locations(start, end)
+
+    def get_extent_from_offsets(
+        ref self,
+        filename: String,
+        start_offset: Int,
+        end_offset: Int,
+    ) raises -> SourceRange:
+        if start_offset < 0 or end_offset < 0:
+            raise Error(
+                "TranslationUnit.get_extent_from_offsets: offsets must be >= 0",
+            )
+        return self.get_extent_from_offsets(
+            filename,
+            c_uint(start_offset),
+            c_uint(end_offset),
+        )
 
     def get_tokens(ref self, extent: SourceRange) raises -> TokenGroup:
         return TokenGroup(tu=self.state(), extent=extent)

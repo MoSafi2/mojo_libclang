@@ -4,8 +4,6 @@ Import via `from clang.cindex import Index, TranslationUnit, ...`.
 """
 from clang.common import (
     UnsavedFile,
-    SourcePosition,
-    SourceExtentInput,
 )
 from clang.translation_unit import TranslationUnit
 from clang.source_location import SourceLocation

@@ -2,9 +2,7 @@
 from clang.index import Index
 from clang.common import (
     UnsavedFile,
-    SourcePosition,
-    SourceExtentInput,
-)
+        )
 from clang.source_range import SourceRange
 from clang.cursor import Cursor
 from clang.translation_unit import TranslationUnit
@@ -120,8 +118,9 @@ def test_get_location_invalid_path_raises() raises:
     with assert_raises():
         _ = tu.get_location(
             MISSING_PATH,
-            SourcePosition.from_line_column(1, 1),
-        )
+        1,
+        1,
+    )
 
 
 def test_get_location_for_offset_invalid_path_raises() raises:
@@ -137,7 +136,8 @@ def test_get_cursor_at_typedef() raises:
     var tu = _parse_fixture()
     var loc = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var c = tu.get_cursor(loc)
     assert_equal(
@@ -151,7 +151,8 @@ def test_get_cursor_at_function() raises:
     var tu = _parse_fixture()
     var loc = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 1),
+        10,
+        1,
     )
     var c = tu.get_cursor(loc)
     _check(not c.is_null(), "cursor at line 10 should not be null")
@@ -171,7 +172,7 @@ def test_get_tokens_nonempty() raises:
     var tu = _parse_fixture()
     var extent = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 1, 100),
+        1, 1, 1, 100,
     )
     var tokens = tu.get_tokens(extent)
     _check(Int(tokens.__len__()) > 0, "expected at least one token")

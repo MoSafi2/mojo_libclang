@@ -1,5 +1,5 @@
 """Tests for the Rewriter wrapper."""
-from clang.cindex import Index, TranslationUnit, Rewriter, SourcePosition
+from clang.cindex import Index, TranslationUnit, Rewriter
 from clang.source_range import SourceRange
 from std.testing import assert_true, TestSuite
 
@@ -23,7 +23,8 @@ def test_rewriter_insert_text() raises:
     var rewriter = Rewriter(tu)
     var loc = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     rewriter.insert_text_before(loc, "// inserted\n")
 
@@ -33,11 +34,13 @@ def test_rewriter_replace_text() raises:
     var rewriter = Rewriter(tu)
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 9),
+        1,
+        9,
     )
     var extent = SourceRange.from_locations(start, end)
     rewriter.replace_text(extent, "/* replaced */")
@@ -54,11 +57,13 @@ def test_rewriter_remove_text() raises:
     var rewriter = Rewriter(tu)
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 9),
+        1,
+        9,
     )
     var extent = SourceRange.from_locations(start, end)
     rewriter.remove_text(extent)

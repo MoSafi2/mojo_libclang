@@ -6,7 +6,6 @@ from clang.cindex import (
     CursorSet,
     TranslationUnitFlags,
 )
-from clang.common import SourcePosition
 from std.testing import assert_equal, assert_true, TestSuite
 from std.iter import enumerate
 

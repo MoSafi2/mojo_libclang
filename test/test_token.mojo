@@ -7,7 +7,6 @@ from clang.cindex import (
     TranslationUnit,
     Cursor,
     Token,
-    SourceExtentInput,
     SourceRange,
 )
 from clang._ffi import (
@@ -32,7 +31,7 @@ def _parse_fixture() raises -> TranslationUnit:
 def _first_line_extent(mut tu: TranslationUnit) raises -> SourceRange:
     return tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 1, 100),
+        1, 1, 1, 100,
     )
 
 
@@ -75,7 +74,7 @@ def test_token_group_getitem_negative() raises:
 #     var tu = _parse_fixture()
 #     var extent = tu.get_extent(
 #         FIXTURE_PATH,
-#         SourceExtentInput.from_offsets(0, 0),
+#         0, 0,
 #     )
 #     var tokens = tu.get_tokens(extent)
 #     assert_equal(
@@ -89,7 +88,7 @@ def test_token_group_getitem_negative() raises:
 #     var tu = _parse_fixture()
 #     var empty_extent = tu.get_extent(
 #         FIXTURE_PATH,
-#         SourceExtentInput.from_offsets(0, 0),
+#         0, 0,
 #     )
 #     var tokens = tu.get_tokens(empty_extent)
 #     assert_equal(

@@ -4,8 +4,6 @@ from clang.cindex import (
     TranslationUnit,
     SourceLocation,
     SourceRange,
-    SourcePosition,
-    SourceExtentInput,
 )
 from std.ffi import c_uint
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
@@ -54,11 +52,13 @@ def test_range_from_locations_not_null() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        1,
+        8,
     )
     var rng = SourceRange.from_locations(start, end)
     _check(not rng.is_null(), "non-null range should not be null")
@@ -68,11 +68,13 @@ def test_range_start_matches_input() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        1,
+        8,
     )
     var rng = SourceRange.from_locations(start, end)
     var got_start = rng.start()
@@ -83,11 +85,13 @@ def test_range_end_matches_input() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        1,
+        8,
     )
     var rng = SourceRange.from_locations(start, end)
     var got_end = rng.end()
@@ -98,11 +102,13 @@ def test_range_start_end_line_column() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 1),
+        10,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 11),
+        10,
+        11,
     )
     var rng = SourceRange.from_locations(start, end)
     var s = rng.start()
@@ -117,20 +123,35 @@ def test_range_via_tu_extent() raises:
     var tu = _parse_fixture()
     var rng = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(1, 1, 1, 8),
+        1, 1, 1, 8,
     )
     _check(not rng.is_null(), "get_extent should return non-null range")
+
+
+def test_range_via_tu_extent_from_offsets() raises:
+    var tu = _parse_fixture()
+    var rng = tu.get_extent_from_offsets(FIXTURE_PATH, 0, 7)
+    _check(
+        not rng.is_null(),
+        "get_extent_from_offsets should return non-null range",
+    )
+    assert_equal(Int(rng.start().line()), 1)
+    assert_equal(Int(rng.start().column()), 1)
+    assert_equal(Int(rng.end().line()), 1)
+    assert_equal(Int(rng.end().column()), 8)
 
 
 def test_range_equality_same() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        1,
+        8,
     )
     var rng1 = SourceRange.from_locations(start, end)
     var rng2 = SourceRange.from_locations(start, end)
@@ -141,11 +162,13 @@ def test_range_equality_different() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        1,
+        8,
     )
     var rng = SourceRange.from_locations(start, end)
     var null_rng = SourceRange.null(tu)
@@ -163,16 +186,18 @@ def test_range_extent_consistency() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 1),
+        10,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 11),
+        10,
+        11,
     )
     var rng1 = SourceRange.from_locations(start, end)
     var rng2 = tu.get_extent(
         FIXTURE_PATH,
-        SourceExtentInput.from_line_columns(10, 1, 10, 11),
+        10, 1, 10, 11,
     )
     _check(rng1 == rng2, "from_locations and get_extent should match")
 
@@ -181,16 +206,19 @@ def test_range_contains() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 1),
+        10,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 11),
+        10,
+        11,
     )
     var extent = SourceRange.from_locations(start, end)
     var mid = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(10, 5),
+        10,
+        5,
     )
     _check(mid in extent, "mid location should be inside range")
     _check(start in extent, "start location should be inside range")
@@ -198,7 +226,8 @@ def test_range_contains() raises:
 
     var before = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(9, 1),
+        9,
+        1,
     )
     _check(before not in extent, "before location should not be inside range")
 
@@ -214,11 +243,13 @@ def test_source_range_ne() raises:
     var tu = _parse_fixture()
     var start = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 1),
+        1,
+        1,
     )
     var end = tu.get_location(
         FIXTURE_PATH,
-        SourcePosition.from_line_column(1, 8),
+        1,
+        8,
     )
     var rng = SourceRange.from_locations(start, end)
     var null_rng = SourceRange.null(tu)

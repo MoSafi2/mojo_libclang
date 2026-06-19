@@ -18,7 +18,6 @@ from clang.cindex import (
     Index,
     TranslationUnit,
     UnsavedFile,
-    SourceExtentInput,
     CursorKind,
     TypeKind,
     Cursor,
@@ -215,7 +214,7 @@ def print_token_stream(tu: TranslationUnit) raises:
     """
     var extent = tu.get_extent(
         String(HEADER_PATH),
-        SourceExtentInput.from_line_columns(1, 1, 25, 1),
+        1, 1, 25, 1,
     )
     var tokens = tu.get_tokens(extent)
 
