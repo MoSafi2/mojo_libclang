@@ -125,7 +125,7 @@ def test_kind_spellings() raises:
         CursorKind.TRANSLATION_UNIT.spelling().byte_length() > 0,
         "CursorKind spelling should be non-empty",
     )
-    _check(TypeKind.VOID.spelling() == String("void"), "TypeKind.VOID spelling")
+    _check(TypeKind.VOID.spelling() == String("Void"), "TypeKind.VOID spelling")
 
 
 def test_type_nullability_kind_constants() raises:

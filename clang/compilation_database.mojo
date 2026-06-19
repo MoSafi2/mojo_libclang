@@ -55,16 +55,58 @@ struct _CompilationDatabaseState(Movable):
             clang_CompilationDatabase_dispose(self._raw)
 
 
+struct _CompileCommandsState(Movable):
+    """Owns a ``CXCompileCommands`` handle and keeps its database alive."""
+
+    var _db: ArcPointer[_CompilationDatabaseState]
+    var _raw: CXCompileCommands
+    var _count: c_uint
+
+    def __init__(
+        out self,
+        db: ArcPointer[_CompilationDatabaseState],
+        raw: CXCompileCommands,
+    ):
+        self._db = db
+        self._raw = raw
+        if raw:
+            self._count = clang_CompileCommands_getSize(raw)
+        else:
+            self._count = c_uint(0)
+
+    def raw(self) -> CXCompileCommands:
+        return self._raw
+
+    def count(self) -> c_uint:
+        return self._count
+
+    def __del__(deinit self):
+        if self._raw:
+            clang_CompileCommands_dispose(self._raw)
+
+
 # ---------------------------------------------------------------------------
 # CompileCommand
 # ---------------------------------------------------------------------------
 
 
-@fieldwise_init
 struct CompileCommand(Copyable, Movable, Writable):
     """One compile command from a compilation database."""
 
+    var _commands: ArcPointer[_CompileCommandsState]
     var _raw: CXCompileCommand
+
+    def __init__(
+        out self,
+        commands: ArcPointer[_CompileCommandsState],
+        raw: CXCompileCommand,
+    ):
+        self._commands = commands
+        self._raw = raw
+
+    def __init__(out self, *, copy: Self):
+        self._commands = copy._commands
+        self._raw = copy._raw
 
     def directory(ref self) raises -> String:
         var cs = _CXStringStorage()
@@ -135,20 +177,23 @@ struct CompileCommandsIterator[mut: Bool, //, origin: Origin[mut=mut]](
 
     comptime Element = CompileCommand
 
+    var _state: ArcPointer[_CompileCommandsState]
     var _raw: CXCompileCommands
     var _count: c_uint
     var _index: c_uint
 
     def __init__(out self, ref cmds: CompileCommands):
-        self._raw = cmds._raw
-        self._count = cmds._count
+        self._state = cmds._state
+        self._raw = cmds._state[].raw()
+        self._count = cmds._state[].count()
         self._index = c_uint(0)
 
     def __next__(mut self) raises StopIteration -> CompileCommand:
         if self._index >= self._count:
             raise StopIteration()
         var cmd = CompileCommand(
-            clang_CompileCommands_getCommand(self._raw, self._index)
+            self._state,
+            clang_CompileCommands_getCommand(self._raw, self._index),
         )
         self._index += 1
         return cmd^
@@ -167,41 +212,31 @@ struct CompileCommands(Iterable, Movable, Sized, Writable):
         mut=iterable_mut, origin=iterable_origin
     ]
 
-    var _db: ArcPointer[_CompilationDatabaseState]
-    var _raw: CXCompileCommands
-    var _count: c_uint
+    var _state: ArcPointer[_CompileCommandsState]
 
     def __init__(
         out self,
         db: ArcPointer[_CompilationDatabaseState],
         raw: CXCompileCommands,
     ):
-        self._db = db
-        self._raw = raw
-        if raw:
-            self._count = clang_CompileCommands_getSize(raw)
-        else:
-            self._count = c_uint(0)
-
-    def __del__(deinit self):
-        if self._raw:
-            clang_CompileCommands_dispose(self._raw)
+        self._state = ArcPointer(_CompileCommandsState(db, raw))
 
     def __len__(self) -> Int:
-        return Int(self._count)
+        return Int(self._state[].count())
 
     def __getitem__(ref self, i: Int) raises -> CompileCommand:
-        if i < 0 or i >= Int(self._count):
+        if i < 0 or i >= Int(self._state[].count()):
             raise Error("CompileCommands index out of range")
         return CompileCommand(
-            clang_CompileCommands_getCommand(self._raw, c_uint(i))
+            self._state,
+            clang_CompileCommands_getCommand(self._state[].raw(), c_uint(i)),
         )
 
     def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:
         return CompileCommandsIterator[origin_of(self)](self)
 
     def write_to(self, mut writer: Some[Writer]):
-        writer.write("CompileCommands(count=", Int(self._count), ")")
+        writer.write("CompileCommands(count=", Int(self._state[].count()), ")")
 
 
 # ---------------------------------------------------------------------------

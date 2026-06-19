@@ -20,6 +20,28 @@ def test_get_compile_commands() raises:
     assert_true(cmd.directory().byte_length() > 0, "directory should be non-empty")
     assert_true(cmd.filename().byte_length() > 0, "filename should be non-empty")
     assert_true(cmd.num_args() > 0, "should have args")
+    assert_equal(cmd.directory(), String("/tmp"), "directory should match fixture")
+    assert_equal(
+        cmd.filename(),
+        String("test/fixtures/type_test_fixture.c"),
+        "filename should match fixture",
+    )
+
+
+def _first_compile_command() raises -> CompileCommand:
+    var db = CompilationDatabase.from_directory(DB_PATH)
+    var cmds = db.get_compile_commands("test/fixtures/type_test_fixture.c")
+    return cmds[0]
+
+
+def test_compile_command_keeps_owner_alive() raises:
+    var cmd = _first_compile_command()
+    assert_equal(cmd.directory(), String("/tmp"), "directory should remain valid")
+    assert_equal(
+        cmd.filename(),
+        String("test/fixtures/type_test_fixture.c"),
+        "filename should remain valid",
+    )
 
 
 def test_get_all_compile_commands() raises:
