@@ -18,13 +18,13 @@ name = "clang"
 path = "clang"
 
 [package.host-dependencies]
-mojo-compiler = "=1.0.0b1"
+mojo-compiler = "=1.0.0b2"
 
 [package.build-dependencies]
-mojo-compiler = "=1.0.0b1"
+mojo-compiler = "=1.0.0b2"
 
 [package.run-dependencies]
-mojo-compiler = "=1.0.0b1"
+mojo-compiler = "=1.0.0b2"
 
 [tasks]
 generate = "python scripts/generate_libclang_bindings.py"
@@ -34,7 +34,7 @@ build-test = "env LD_LIBRARY_PATH=$PWD/shim:$PWD/.pixi/envs/default/lib:$LD_LIBR
 
 [dependencies]
 python = ">=3.14.5,<3.15"
-mojo = ">=1.0.0b1,<2"
+mojo = ">=1.0.0b2,<2"
 clangdev = "18.*"
 libclang = "18.*"
 
