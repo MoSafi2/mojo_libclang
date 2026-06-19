@@ -22,7 +22,7 @@ from clang._ffi import (
     CXTranslationUnit,
 )
 
-from clang.common import _c_string, _CXStringStorage, _alloc_c_string
+from clang.common import _borrow_c_string, _CXStringStorage
 from clang.state import TranslationUnitState
 
 from std.memory import ArcPointer
@@ -138,14 +138,10 @@ struct File(Copyable, Movable, Writable):
         if not tu_state[].alive:
             raise Error("File.from_name: TranslationUnit used after disposal")
 
-        var filename_c = _alloc_c_string(filename)
-
         var handle = clang_getFile(
             tu_state[].raw(),
-            _c_string(filename_c),
+            _borrow_c_string(filename),
         )
-
-        filename_c.free()
 
         if not handle:
             return None
@@ -161,14 +157,10 @@ struct File(Copyable, Movable, Writable):
         if not tu[].alive:
             raise Error("File.from_name: TranslationUnit used after disposal")
 
-        var filename_c = _alloc_c_string(filename)
-
         var handle = clang_getFile(
             tu[].raw(),
-            _c_string(filename_c),
+            _borrow_c_string(filename),
         )
-
-        filename_c.free()
 
         if not handle:
             return None

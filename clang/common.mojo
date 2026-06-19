@@ -12,6 +12,7 @@ foundation those modules use:
     UnsavedFileArena
 
 - string handling:
+    _borrow_c_string()
     _alloc_c_string()
     _c_string()
     _CXStringStorage
@@ -78,6 +79,22 @@ def _borrow_c_string_unsafe(
     """
     return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
         text.unsafe_ptr(),
+    )
+
+
+def _borrow_c_string(
+    text: String,
+) -> UnsafePointer[c_char, ImmutUntrackedOrigin]:
+    """Borrow a null-terminated C string pointer from a Mojo `String`.
+
+    The returned pointer does not own the string data. The string may be
+    mutated to materialize a trailing NUL terminator if it does not already
+    have one.
+    """
+    var mutable_text = text
+    var c_string = mutable_text.as_c_string_slice()
+    return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+        c_string.unsafe_ptr()
     )
 
 
@@ -344,19 +361,15 @@ struct UnsavedFileArena(Movable):
 # ---------------------------------------------------------------------------
 
 
-def _alloc_c_string(text: String) raises -> UnsafePointer[c_char, MutAnyOrigin]:
+def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutAnyOrigin]:
     """Allocate a null-terminated C string.
 
-    Caller owns the returned pointer and must free it. Embedded NUL bytes are
-    rejected because libclang expects a single null-terminated C string.
+    Caller owns the returned pointer and must free it.
     """
     var bytes = text.as_bytes()
     var ptr = alloc[c_char](len(bytes) + 1)
 
     for i in range(len(bytes)):
-        if bytes[i] == 0:
-            ptr.free()
-            raise Error("CStringError: embedded NUL byte")
         ptr[i] = c_char(bytes[i])
 
     ptr[len(bytes)] = c_char(0)

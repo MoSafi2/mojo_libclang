@@ -35,10 +35,9 @@ from clang.enums import TranslationUnitFlags, SaveError
 
 from clang.common import (
     UnsavedFile,
-    _c_string,
     _CXStringStorage,
     UnsavedFileArena,
-    _alloc_c_string,
+    _borrow_c_string,
 )
 
 from clang.state import IndexState, TranslationUnitState
@@ -188,13 +187,10 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
     def _get_file_handle(ref self, filename: String) raises -> CXFile:
-        var filename_c = _alloc_c_string(filename)
-
         var file_handle = clang_getFile(
             self._raw_handle(),
-            _c_string(filename_c),
+            _borrow_c_string(filename),
         )
-        filename_c.free()
         if not file_handle:
             raise Error("TranslationUnit: unknown filename")
 
@@ -247,13 +243,12 @@ struct TranslationUnit(Copyable, Movable, Writable):
         filename: String,
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
-        var file_name_c = _alloc_c_string(filename)
         var opts = options
         if opts == TranslationUnitFlags.NONE:
             opts = TranslationUnitFlags(clang_defaultSaveOptions(self._raw_handle()))
         var result_raw = clang_saveTranslationUnit(
             self._raw_handle(),
-            _c_string(file_name_c),
+            _borrow_c_string(filename),
             opts.as_c_uint(),
         )
         var result = SaveError(c_uint(result_raw))

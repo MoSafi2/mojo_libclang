@@ -26,7 +26,7 @@ from clang._ffi import (
     clang_CompileCommand_getMappedSourceContent,
 )
 
-from clang.common import _alloc_c_string, _c_string, _CXStringStorage
+from clang.common import _borrow_c_string, _CXStringStorage
 from clang.enums import CompilationDatabaseErrorCode
 from clang.errors import CompilationDatabaseError
 
@@ -250,19 +250,16 @@ struct CompilationDatabase(Movable, Writable):
     var _state: ArcPointer[_CompilationDatabaseState]
 
     def __init__(out self, build_dir: String) raises:
-        var dir_c = _alloc_c_string(build_dir)
         var err = InlineArray[CXCompilationDatabase_Error, 1](
             fill=CXCompilationDatabase_Error(c_uint(0))
         )
 
         var raw = clang_CompilationDatabase_fromDirectory(
-            _c_string(dir_c),
+            _borrow_c_string(build_dir),
             rebind[
                 UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
             ](err.unsafe_ptr()),
         )
-
-        dir_c.free()
 
         if not raw:
             raise CompilationDatabaseError(
@@ -282,12 +279,10 @@ struct CompilationDatabase(Movable, Writable):
     def get_compile_commands(
         ref self, filename: String
     ) raises -> CompileCommands:
-        var filename_c = _alloc_c_string(filename)
         var raw = clang_CompilationDatabase_getCompileCommands(
             self._state[].raw(),
-            _c_string(filename_c),
+            _borrow_c_string(filename),
         )
-        filename_c.free()
 
         if not raw:
             raise Error(

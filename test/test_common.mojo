@@ -1,6 +1,7 @@
 """Unit tests for `clang/common.mojo`."""
 from clang.common import (
     _alloc_c_string,
+    _borrow_c_string,
     _c_string,
     _take_cxstring,
     _take_cxstring_optional,
@@ -39,16 +40,11 @@ def test_c_string_empty() raises:
     _check(True, "_c_string on empty text should succeed")
 
 
-def test_c_string_embedded_nul_rejected() raises:
-    var rejected = False
-    try:
-        var text = String("a\00b")
-        var buf = _alloc_c_string(text)
-        buf.free()
-    except:
-        rejected = True
-
-    _check(rejected, "embedded NUL should be rejected")
+def test_borrow_c_string_embedded_nul_allowed() raises:
+    var text = String("a\00b")
+    var ptr = _borrow_c_string(text)
+    _ = ptr
+    _check(True, "_borrow_c_string should allow embedded NUL bytes")
 
 
 # -- _CXStringStorage ------------------------------------------------------

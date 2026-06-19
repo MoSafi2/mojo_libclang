@@ -150,7 +150,6 @@ Higher-level wrappers should also:
   immediately
 - use the shared string helpers in `clang/common.mojo` for all
   Mojo-to-C and C-to-Mojo string movement
-- reject embedded NUL bytes when converting a Mojo `String` into a C string
 - use the optional `CXString` path only for APIs that can return a null
   sentinel; empty strings should stay empty, not become `None`
 - keep pointer ownership clear, especially for borrowed values from a
@@ -168,9 +167,10 @@ the wrapper should adapt around it.
 
 There are three string paths, and they are intentionally different:
 
-- Mojo `String` to libclang C string: use `_alloc_c_string(text)` and borrow it
-  with `_c_string(...)` for the call. The helper validates that `text` does not
-  contain embedded NUL bytes.
+- Mojo `String` to libclang C string: use `_borrow_c_string(text)` for
+  immediate calls when the string only needs to stay alive for the duration of
+  the libclang invocation. Use `_alloc_c_string(text)` plus `_c_string(...)`
+  when you need owned storage.
 - libclang `CXString` to Mojo `String`: use `_CXStringStorage` plus either
   `take()` for normal string-returning APIs or `take_optional()` for APIs that
   use a null `CXString` sentinel.

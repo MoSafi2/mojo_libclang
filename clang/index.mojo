@@ -22,8 +22,7 @@ from clang.common import (
     UnsavedFile,
     CStringArray,
     UnsavedFileArena,
-    _c_string,
-    _alloc_c_string,
+    _borrow_c_string,
 )
 
 from clang.errors import TranslationUnitLoadError
@@ -115,12 +114,10 @@ struct Index(Copyable, Movable, Writable):
         return Int(clang_CXIndex_getGlobalOptions(self._raw_handle()))
 
     def set_invocation_emission_path(ref self, path: String) raises:
-        var path_c = _alloc_c_string(path)
         clang_CXIndex_setInvocationEmissionPathOption(
             self._raw_handle(),
-            _c_string(path_c),
+            _borrow_c_string(path),
         )
-        path_c.free()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
@@ -154,11 +151,9 @@ struct Index(Copyable, Movable, Writable):
         var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
             to=out_tu,
         )
-        var path_c = _alloc_c_string(path)
-
         var raw_err = clang_parseTranslationUnit2(
             self._raw_handle(),
-            _c_string(path_c),
+            _borrow_c_string(path),
             arg_arena.ptr(),
             arg_arena.count(),
             unsaved_arena.ptr(),
@@ -168,8 +163,6 @@ struct Index(Copyable, Movable, Writable):
                 out_ptr,
             ),
         )
-
-        path_c.free()
 
         var err = ErrorCode(raw_err)
         if err != ErrorCode.SUCCESS:
@@ -181,8 +174,6 @@ struct Index(Copyable, Movable, Writable):
 
     def read(ref self, path: String) raises -> TranslationUnit:
         """Read a serialized AST file into a `TranslationUnit`."""
-        var path_c = _alloc_c_string(path)
-
         var out_tu: CXTranslationUnit = CXTranslationUnit()
         var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
             to=out_tu,
@@ -191,14 +182,12 @@ struct Index(Copyable, Movable, Writable):
         var err = ErrorCode(
             clang_createTranslationUnit2(
                 self._raw_handle(),
-                _c_string(path_c),
+                _borrow_c_string(path),
                 rebind[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]](
                     out_ptr,
                 ),
             )
         )
-
-        path_c.free()
 
         if err != ErrorCode.SUCCESS:
             raise TranslationUnitLoadError(

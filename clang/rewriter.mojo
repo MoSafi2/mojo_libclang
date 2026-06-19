@@ -16,7 +16,7 @@ from clang._ffi import (
     clang_CXRewriter_writeMainFileToStdOut,
 )
 
-from clang.common import _alloc_c_string, _c_string
+from clang.common import _borrow_c_string
 from clang.state import TranslationUnitState
 from clang.source_location import SourceLocation
 from clang.source_range import SourceRange
@@ -67,16 +67,14 @@ struct Rewriter(Movable, Writable):
         text: String,
     ) raises:
         self._check_valid()
-        var text_c = _alloc_c_string(text)
         var loc_copy = loc.copy()
         clang_CXRewriter_insertTextBefore(
             self._raw,
             rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
                 loc_copy._raw.unsafe_ptr()
             ),
-            _c_string(text_c),
+            _borrow_c_string(text),
         )
-        text_c.free()
 
     def replace_text(
         ref self,
@@ -84,16 +82,14 @@ struct Rewriter(Movable, Writable):
         replacement: String,
     ) raises:
         self._check_valid()
-        var replacement_c = _alloc_c_string(replacement)
         var extent_copy = extent.copy()
         clang_CXRewriter_replaceText(
             self._raw,
             rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
                 extent_copy._raw.unsafe_ptr()
             ),
-            _c_string(replacement_c),
+            _borrow_c_string(replacement),
         )
-        replacement_c.free()
 
     def remove_text(ref self, extent: SourceRange) raises:
         self._check_valid()

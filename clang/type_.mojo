@@ -75,7 +75,7 @@ from clang.enums import (
     ExceptionSpecificationKind,
     CursorKind,
 )
-from clang.common import _CXStringStorage, _alloc_c_string, _c_string
+from clang.common import _CXStringStorage, _borrow_c_string
 from clang.printing_policy import PrintingPolicy
 from clang.state import TranslationUnitState
 
@@ -340,12 +340,10 @@ struct Type(Copyable, Movable, Writable):
         """
         self._check_valid()
 
-        var fieldname_c = _alloc_c_string(fieldname)
         var result = clang_Type_getOffsetOf(
             self._ptr(),
-            _c_string(fieldname_c),
+            _borrow_c_string(fieldname),
         )
-        fieldname_c.free()
 
         if result < c_long_long(0):
             raise Error(
