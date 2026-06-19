@@ -21,7 +21,7 @@ def test_rewriter_create() raises:
 def test_rewriter_insert_text() raises:
     var tu = _parse()
     var rewriter = Rewriter(tu)
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -32,12 +32,12 @@ def test_rewriter_insert_text() raises:
 def test_rewriter_replace_text() raises:
     var tu = _parse()
     var rewriter = Rewriter(tu)
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         9,
@@ -48,19 +48,19 @@ def test_rewriter_replace_text() raises:
 
 def test_rewriter_arc_pointer_constructor() raises:
     var tu = _parse()
-    var rewriter = Rewriter(tu.state())
+    var rewriter = Rewriter(tu._shared_state())
     _ = rewriter
 
 
 def test_rewriter_remove_text() raises:
     var tu = _parse()
     var rewriter = Rewriter(tu)
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         9,

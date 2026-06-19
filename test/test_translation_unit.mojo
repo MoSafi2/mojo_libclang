@@ -95,51 +95,51 @@ def test_diagnostics_count_matches_num_diagnostics() raises:
     assert_equal(Int(diags.__len__()), Int(tu.num_diagnostics()))
 
 
-# -- get_file -----------------------------------------------------------------
+# -- file ---------------------------------------------------------------------
 
 
 def test_get_file_exists() raises:
     var tu = _parse_fixture()
-    var f_opt = tu.get_file(FIXTURE_PATH)
+    var f_opt = tu.file(FIXTURE_PATH)
     _check(f_opt is not None, "existing file should be found")
 
 
 def test_get_file_not_found() raises:
     var tu = _parse_fixture()
-    var f_opt = tu.get_file(MISSING_PATH)
+    var f_opt = tu.file(MISSING_PATH)
     _check(f_opt is None, "missing file should return None")
 
 
-# -- get_location / get_location_for_offset -----------------------------------
+# -- location / location_for_offset -------------------------------------------
 
 
 def test_get_location_invalid_path_raises() raises:
     var tu = _parse_fixture()
     with assert_raises():
-        _ = tu.get_location(
+        _ = tu.location(
             MISSING_PATH,
         1,
         1,
     )
 
 
-def test_get_location_for_offset_invalid_path_raises() raises:
+def test_location_for_offset_invalid_path_raises() raises:
     var tu = _parse_fixture()
     with assert_raises():
-        _ = tu.get_location_for_offset(MISSING_PATH, c_uint(0))
+        _ = tu.location_for_offset(MISSING_PATH, c_uint(0))
 
 
-# -- get_cursor ----------------------------------------------------------------
+# -- cursor_for_location -------------------------------------------------------
 
 
 def test_get_cursor_at_typedef() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var c = tu.get_cursor(loc)
+    var c = tu.cursor_for_location(loc)
     assert_equal(
         Int(c.kind().as_c_uint()),
         Int(CXCursor_TypedefDecl),
@@ -149,38 +149,38 @@ def test_get_cursor_at_typedef() raises:
 
 def test_get_cursor_at_function() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         10,
         1,
     )
-    var c = tu.get_cursor(loc)
+    var c = tu.cursor_for_location(loc)
     _check(not c.is_null(), "cursor at line 10 should not be null")
 
 
 def test_get_cursor_null_location() raises:
     var tu = _parse_fixture()
     var null_loc = SourceLocation.null(tu)
-    var c = tu.get_cursor(null_loc)
+    var c = tu.cursor_for_location(null_loc)
     _check(c.is_null(), "cursor at null location should be null")
 
 
-# -- get_tokens ----------------------------------------------------------------
+# -- tokens ----------------------------------------------------------------
 
 
-def test_get_tokens_nonempty() raises:
+def test_tokens_nonempty() raises:
     var tu = _parse_fixture()
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         FIXTURE_PATH,
         1, 1, 1, 100,
     )
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.tokens(extent)
     _check(Int(tokens.__len__()) > 0, "expected at least one token")
 
 
-def test_get_tokens_empty_extent() raises:
+def test_tokens_empty_extent() raises:
     var tu = _parse_fixture()
-    var tokens = tu.get_tokens(SourceRange.null(tu))
+    var tokens = tu.tokens(SourceRange.null(tu))
     assert_equal(
         Int(tokens.__len__()), 0, "null range should produce no tokens"
     )
@@ -209,7 +209,7 @@ def test_reparse_no_changes() raises:
 #     )
 #     tu.reparse(unsaved_files=unsaved)
 #     var cursor = tu.cursor()
-#     var children = cursor.get_children()
+#     var children = cursor.children()
 #     _check(Int(children.__len__()) > 0,
 #            "reparsed TU should have children")
 
@@ -260,16 +260,16 @@ def test_from_ast_file() raises:
     )
 
 
-def test_get_includes() raises:
+def test_includes() raises:
     var tu = _parse_fixture()
-    var includes = tu.get_includes()
-    _check(len(includes) >= 0, "get_includes should return a list")
+    var includes = tu.includes()
+    _check(len(includes) >= 0, "includes should return a list")
 
 
-def test_get_includes_with_actual_include() raises:
+def test_includes_with_actual_include() raises:
     var index = Index.create()
     var tu = index.parse("test/fixtures/include_test.c")
-    var includes = tu.get_includes()
+    var includes = tu.includes()
     _check(
         len(includes) > 0, "include_test.c should have at least one inclusion"
     )
@@ -277,13 +277,13 @@ def test_get_includes_with_actual_include() raises:
 
 def test_translation_unit_generation_and_state() raises:
     var tu = _parse_fixture()
-    _check(tu.generation() == 0, "initial generation should be 0")
-    _check(tu.state()[].generation == tu.generation(), "state generation matches")
+    _check(tu._generation_id() == 0, "initial generation should be 0")
+    _check(tu._shared_state()[].generation == tu._generation_id(), "state generation matches")
 
 
 def test_translation_unit_raw() raises:
     var tu = _parse_fixture()
-    var raw = tu.raw()
+    var raw = tu._raw_handle()
     _check(raw is not None, "raw CXTranslationUnit should not be null")
 
 
@@ -307,7 +307,7 @@ def test_translation_unit_copy() raises:
 def test_file_inclusion_fields() raises:
     var index = Index.create()
     var tu = index.parse("test/fixtures/include_test.c")
-    var includes = tu.get_includes()
+    var includes = tu.includes()
     _check(len(includes) > 0, "should have at least one inclusion")
     var inc = includes[0].copy()
     _check(inc.depth > 0, "included file should have depth > 0")

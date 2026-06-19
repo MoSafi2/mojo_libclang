@@ -50,12 +50,12 @@ def test_null_range_end_not_from_main_file() raises:
 
 def test_range_from_locations_not_null() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         8,
@@ -66,12 +66,12 @@ def test_range_from_locations_not_null() raises:
 
 def test_range_start_matches_input() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         8,
@@ -83,12 +83,12 @@ def test_range_start_matches_input() raises:
 
 def test_range_end_matches_input() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         8,
@@ -100,12 +100,12 @@ def test_range_end_matches_input() raises:
 
 def test_range_start_end_line_column() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         10,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         10,
         11,
@@ -121,19 +121,19 @@ def test_range_start_end_line_column() raises:
 
 def test_range_via_tu_extent() raises:
     var tu = _parse_fixture()
-    var rng = tu.get_extent(
+    var rng = tu.extent(
         FIXTURE_PATH,
         1, 1, 1, 8,
     )
-    _check(not rng.is_null(), "get_extent should return non-null range")
+    _check(not rng.is_null(), "extent should return non-null range")
 
 
 def test_range_via_tu_extent_from_offsets() raises:
     var tu = _parse_fixture()
-    var rng = tu.get_extent_from_offsets(FIXTURE_PATH, 0, 7)
+    var rng = tu.extent_from_offsets(FIXTURE_PATH, 0, 7)
     _check(
         not rng.is_null(),
-        "get_extent_from_offsets should return non-null range",
+        "extent_from_offsets should return non-null range",
     )
     assert_equal(Int(rng.start().line()), 1)
     assert_equal(Int(rng.start().column()), 1)
@@ -143,12 +143,12 @@ def test_range_via_tu_extent_from_offsets() raises:
 
 def test_range_equality_same() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         8,
@@ -160,12 +160,12 @@ def test_range_equality_same() raises:
 
 def test_range_equality_different() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         8,
@@ -184,38 +184,38 @@ def test_range_null_equality() raises:
 
 def test_range_extent_consistency() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         10,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         10,
         11,
     )
     var rng1 = SourceRange.from_locations(start, end)
-    var rng2 = tu.get_extent(
+    var rng2 = tu.extent(
         FIXTURE_PATH,
         10, 1, 10, 11,
     )
-    _check(rng1 == rng2, "from_locations and get_extent should match")
+    _check(rng1 == rng2, "from_locations and extent should match")
 
 
 def test_range_contains() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         10,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         10,
         11,
     )
     var extent = SourceRange.from_locations(start, end)
-    var mid = tu.get_location(
+    var mid = tu.location(
         FIXTURE_PATH,
         10,
         5,
@@ -224,7 +224,7 @@ def test_range_contains() raises:
     _check(start in extent, "start location should be inside range")
     _check(end in extent, "end location should be inside range")
 
-    var before = tu.get_location(
+    var before = tu.location(
         FIXTURE_PATH,
         9,
         1,
@@ -235,18 +235,18 @@ def test_range_contains() raises:
 def test_source_range_null_arc_pointer() raises:
     var tu = _parse_fixture()
     var rng1 = SourceRange.null(tu)
-    var rng2 = SourceRange.null(tu.state())
+    var rng2 = SourceRange.null(tu._shared_state())
     _check(rng1 == rng2, "null ranges should be equal")
 
 
 def test_source_range_ne() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         8,

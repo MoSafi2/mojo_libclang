@@ -32,7 +32,7 @@ struct Rewriter(Movable, Writable):
     var _raw: CXRewriter
 
     def __init__(out self, tu: TranslationUnit) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = clang_CXRewriter_create(self._tu[].raw())
 

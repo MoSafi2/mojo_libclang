@@ -131,7 +131,7 @@ def print_children_detail(cursor: Cursor, level: Int) raises:
     var t = cursor.type()
     if t.kind() == TypeKind.RECORD or t.kind() == TypeKind.POINTER:
         # Show canonical type for structs
-        var canon = t.get_canonical()
+        var canon = t.canonical()
         if canon.spelling() != t.spelling():
             indent(level + 1)
             print("  (canonical: ", canon.spelling(), ")", sep="")
@@ -147,7 +147,7 @@ def print_type_fields(c: Cursor) raises:
     if t.kind() != TypeKind.RECORD:
         return
 
-    var fields = t.get_fields()
+    var fields = t.fields()
     if len(fields) == 0:
         return
 
@@ -170,7 +170,7 @@ def print_type_canon(c: Cursor) raises:
         return
 
     var t = c.type()
-    var canon = t.get_canonical()
+    var canon = t.canonical()
 
     print()
     indent(1)
@@ -178,11 +178,11 @@ def print_type_canon(c: Cursor) raises:
 
     # If canonical is a pointer, show pointee
     if canon.kind() == TypeKind.POINTER:
-        var pointee = canon.get_pointee()
+        var pointee = canon.pointee()
         indent(2)
         print(t"pointee: {pointee.spelling()}")
 
-        var pointee_canon = pointee.get_canonical()
+        var pointee_canon = pointee.canonical()
         if pointee_canon.spelling() != pointee.spelling():
             indent(2)
             print("  pointee canonical: ", pointee_canon.spelling(), sep="")
@@ -212,11 +212,11 @@ def print_enumerators(root: Cursor) raises:
 def print_token_stream(tu: TranslationUnit) raises:
     """Tokenize a portion of the header using the new for-in TokenGroup iterator.
     """
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         String(HEADER_PATH),
         1, 1, 25, 1,
     )
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.tokens(extent)
 
     print()
     print("Tokens (lines 1-25):")

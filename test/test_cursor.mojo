@@ -52,7 +52,7 @@ def _parse() raises -> TranslationUnit:
 
 def _find(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
     var root = tu.cursor()
-    var children = root.get_children()
+    var children = root.children()
     for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == kind:
@@ -77,7 +77,7 @@ def _parse_cxx() raises -> TranslationUnit:
 
 def _find_cxx(mut tu: TranslationUnit, kind: c_uint) raises -> Cursor:
     var root = tu.cursor()
-    var children = root.get_children()
+    var children = root.children()
     for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == kind:
@@ -220,14 +220,14 @@ def test_comments_and_mangling() raises:
 def test_included_file() raises:
     var tu = _parse()
     var c = tu.cursor()
-    _check(c.get_included_file() is None)
+    _check(c.included_file() is None)
 
 
 def test_function_arguments() raises:
     var tu = _parse()
     var func = _find(tu, CXCursor_FunctionDecl)
     assert_equal(Int(func.num_arguments()), 2)
-    var args = func.get_arguments()
+    var args = func.arguments()
     assert_equal(args.__len__(), 2)
     for i in range(args.__len__()):
         var arg = args[i].copy()
@@ -244,7 +244,7 @@ def test_equality() raises:
     var c1 = tu.cursor()
     var c2 = tu.cursor()
     _check(c1 == c2)
-    var children = c1.get_children()
+    var children = c1.children()
     var child = children[0].copy()
     _check(not (c1 == child))
 
@@ -259,7 +259,7 @@ def test_equality_null() raises:
 def test_children_and_walk() raises:
     var tu = _parse()
     var c = tu.cursor()
-    var children = c.get_children()
+    var children = c.children()
     var walk = c.walk_preorder()
     _check(children.__len__() > 0)
     _check(walk.__len__() >= children.__len__())
@@ -394,7 +394,7 @@ def test_cxx_is_const() raises:
 def test_cxx_is_defaulted() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
-    var children = c.get_children()
+    var children = c.children()
     var found_defaulted = False
     for i in range(children.__len__()):
         var child = children[i].copy()
@@ -408,7 +408,7 @@ def test_cxx_is_deleted() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
     # No deleted functions in this fixture, but check that none are incorrectly detected as deleted
-    var children = c.get_children()
+    var children = c.children()
     for i in range(children.__len__()):
         var child = children[i].copy()
         if child.spelling() == "Derived":
@@ -438,7 +438,7 @@ def test_cxx_is_move_assignment_operator() raises:
 def test_cxx_is_explicit() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
-    var children = c.get_children()
+    var children = c.children()
     var found_explicit = False
     for i in range(children.__len__()):
         var child = children[i].copy()
@@ -483,7 +483,7 @@ def test_cxx_overridden_cursors() raises:
 def test_cxx_is_virtual_base() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
-    var children = c.get_children()
+    var children = c.children()
     for i in range(children.__len__()):
         var child = children[i].copy()
         if child.kind() == CXCursor_CXXBaseSpecifier:
@@ -573,14 +573,14 @@ def test_cxx_get_bitfield_width_not_bitfield() raises:
     )
 
 
-def test_cxx_get_offset_of_field() raises:
+def test_cxx_offset_of_field() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "Derived")
-    var children = c.get_children()
+    var children = c.children()
     for i in range(children.__len__()):
         var child = children[i].copy()
         if child.kind() == CXCursor_CXXBaseSpecifier:
-            _ = child.get_offset_of_field()
+            _ = child.offset_of_field()
             break
 
 
@@ -687,10 +687,10 @@ def test_num_arguments() raises:
     assert_equal(Int(c.num_arguments()), 2, "add() should have 2 params")
 
 
-def test_get_arguments() raises:
+def test_arguments() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "add")
-    var args = c.get_arguments()
+    var args = c.arguments()
     assert_equal(args.__len__(), 2, "add() should have 2 args")
     for i in range(args.__len__()):
         var arg = args[i].copy()
@@ -728,11 +728,11 @@ def test_get_fields_empty() raises:
     assert_equal(fields.__len__(), 0, "typedef has no fields")
 
 
-def test_enum_type_and_get_field_offsetof() raises:
+def test_enum_type_and_field_offsetof() raises:
     var tu = _parse()
     var c = _find(tu, CXCursor_StructDecl)
     _ = c.enum_type()
-    _ = c.get_field_offsetof()
+    _ = c.offset_of_field()
 
 
 def test_cursor_for_in_iteration() raises:
@@ -821,17 +821,17 @@ def test_cursor_translation_unit() raises:
     _check(got_tu.spelling() == tu.spelling(), "cursor translation_unit matches")
 
 
-def test_cursor_raw_value() raises:
+def test_cursor__raw_value() raises:
     var tu = _parse()
     var c = _find(tu, CXCursor_FunctionDecl)
-    var raw = c.raw_value()
+    var raw = c._raw_value()
     assert_equal(Int(raw.kind), Int(CXCursor_FunctionDecl))
 
 
-def test_cursor_raw_translation_unit() raises:
+def test_cursor__raw_translation_unit() raises:
     var tu = _parse()
     var c = _find(tu, CXCursor_FunctionDecl)
-    var raw_tu = c.raw_translation_unit()
+    var raw_tu = c._raw_translation_unit()
     _check(raw_tu is not None, "raw translation unit should not be null")
 
 
@@ -853,18 +853,18 @@ def test_cursor_equals_and_ne() raises:
     _check(not c1.equals(null_c), "equals should return false for null cursor")
 
 
-def test_cursor_get_argument() raises:
+def test_cursor_argument() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "add")
-    var arg0 = c.get_argument(c_uint(0))
+    var arg0 = c.argument(c_uint(0))
     assert_equal(arg0.kind(), CursorKind.PARM_DECL)
     assert_equal(arg0.spelling(), "a")
 
 
-def test_cursor_get_tokens() raises:
+def test_cursor_tokens() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "add")
-    var tokens = c.get_tokens()
+    var tokens = c.tokens()
     _check(Int(tokens.__len__()) > 0, "cursor should have tokens")
 
 
@@ -891,7 +891,7 @@ def test_cursor_is_external_symbol() raises:
 def test_cursor_is_restrict_qualified_type() raises:
     var tu = _parse()
     var c = _find_by_spelling(tu, "restrict_func")
-    var children = c.get_children()
+    var children = c.children()
     var found = False
     for i in range(children.__len__()):
         var child = children[i].copy()
@@ -913,7 +913,7 @@ def test_cursor_is_pod_type() raises:
 def test_cursor_constructor_predicates_extended() raises:
     var tu = _parse_cxx()
     var derived = _find_by_spelling(tu, "Derived")
-    var children = derived.get_children()
+    var children = derived.children()
     var found_default = False
     var found_copy = False
     var found_move = False
@@ -938,7 +938,7 @@ def test_cursor_constructor_predicates_extended() raises:
 def test_cursor_template_arguments() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "int_wrapper")
-    var decl = c.type().get_declaration()
+    var decl = c.type().declaration()
     _check(decl != None, "template specialization declaration not found")
     var spec = decl.value().copy()
     assert_equal(Int(spec.num_template_arguments()), 1)
@@ -956,7 +956,7 @@ def test_cursor_template_arguments() raises:
 def test_cursor_nttp_arguments() raises:
     var tu = _parse_cxx()
     var c = _find_by_spelling(tu, "nttp_instance")
-    var decl = c.type().get_declaration()
+    var decl = c.type().declaration()
     _check(decl != None, "NTTP specialization declaration not found")
     var spec = decl.value().copy()
     assert_equal(Int(spec.num_template_arguments()), 1)
@@ -981,22 +981,22 @@ def test_cursor_overloaded_decls() raises:
     _check(True, "no overloaded decl cursor found")
 
 
-def test_cursor_get_field_offsetof() raises:
+def test_cursor_field_offsetof() raises:
     var tu = _parse()
     var s = _find_by_spelling(tu, "Pair")
-    var children = s.get_children()
+    var children = s.children()
     for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == CursorKind.FIELD_DECL and c.spelling() == "first":
-            assert_equal(Int(c.get_field_offsetof()), 0)
+            assert_equal(Int(c.offset_of_field()), 0)
         if c.kind() == CursorKind.FIELD_DECL and c.spelling() == "second":
-            assert_equal(Int(c.get_field_offsetof()), 32)
+            assert_equal(Int(c.offset_of_field()), 32)
 
 
 # def test_cursor_get_base_offsetof() raises:
 #     var tu = _parse_cxx()
 #     var derived = _find_by_spelling(tu, "ConcreteDerived")
-#     var children = derived.get_children()
+#     var children = derived.children()
 #     for i in range(children.__len__()):
 #         var c = children[i].copy()
 #         if c.kind() == CursorKind.CXX_BASE_SPECIFIER:

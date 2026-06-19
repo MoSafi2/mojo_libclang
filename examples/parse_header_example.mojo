@@ -149,12 +149,12 @@ def print_diagnostics(tu: TranslationUnit) raises:
 
 def print_tokens(tu: TranslationUnit) raises:
     """Tokenize the top part of the header and print a small sample."""
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         HEADER_PATH,
         1, 1, 35, 1,
     )
 
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.tokens(extent)
     print("")
     print("Token sample:")
     print("  token count:", len(tokens))

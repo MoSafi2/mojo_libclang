@@ -142,7 +142,7 @@ def test_type_modified_and_nullability() raises:
 def test_type_fields_via_visitor() raises:
     var tu = _parse()
     var cursor = _find_by_spelling(tu, "Pair")
-    var fields = cursor.type().get_fields()
+    var fields = cursor.type().fields()
     assert_equal(len(fields), 2)
 
 

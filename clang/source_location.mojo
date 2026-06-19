@@ -51,7 +51,7 @@ struct SourceLocation(Copyable, Movable, Writable):
     var _file_name: String
 
     def __init__(out self, tu: TranslationUnit) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXSourceLocation, 1](
             fill=_zero_source_location(),
@@ -97,7 +97,7 @@ struct SourceLocation(Copyable, Movable, Writable):
             self._raw.unsafe_ptr(),
         )
 
-    def raw_value(ref self) raises -> CXSourceLocation:
+    def _raw_value(ref self) raises -> CXSourceLocation:
         """Return a copied raw ``CXSourceLocation`` value."""
         self._check_valid()
         return self._raw[0].copy()
@@ -248,7 +248,7 @@ struct SourceLocation(Copyable, Movable, Writable):
 
         return (file_out[0], line_out[0], col_out[0], off_out[0])
 
-    def raw_file(ref self) raises -> CXFile:
+    def _raw_file(ref self) raises -> CXFile:
         """Return the raw ``CXFile`` handle for this location."""
         self._check_valid()
         return self._file

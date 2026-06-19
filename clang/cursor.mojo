@@ -219,7 +219,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def __init__(out self, tu: TranslationUnit) raises:
         """Create a null cursor tied to `tu`."""
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXCursor, 1](
             fill=_zero_cursor(),
@@ -227,8 +227,8 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_getNullCursor(self._ptr())
 
     def __init__(out self, tu: TranslationUnit, raw: CXCursor):
-        self._tu = tu.state()
-        self._generation = tu.state()[].generation
+        self._tu = tu._shared_state()
+        self._generation = tu._shared_state()[].generation
         self._raw = InlineArray[CXCursor, 1](fill=raw)
 
     def __init__(
@@ -298,17 +298,13 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return collect_children(self.copy())
 
-    def get_children(ref self) raises -> List[Cursor]:
-        """Alias for `children()`."""
-        return self.children()
-
     def walk_preorder(ref self) raises -> List[Cursor]:
         """Return this cursor and all descendants in preorder."""
 
         self._check_valid()
         return walk_preorder(self.copy())
 
-    def raw_value(self) raises -> CXCursor:
+    def _raw_value(self) raises -> CXCursor:
         """Return a copied raw cursor value.
 
         This does not transfer ownership of anything. It is mostly useful for
@@ -324,7 +320,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return TranslationUnit(self._tu)
 
-    def raw_translation_unit(self) raises -> CXTranslationUnit:
+    def _raw_translation_unit(self) raises -> CXTranslationUnit:
         """Return the borrowed raw TU handle after validity checks."""
         self._check_valid()
         return self._tu[].raw()
@@ -767,21 +763,21 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return clang_Cursor_getNumArguments(self._ptr())
 
-    def get_argument(ref self, i: c_uint) raises -> Self:
+    def argument(ref self, i: c_uint) raises -> Self:
         self._check_valid()
         var out = Self(self._tu)
         clang_Cursor_getArgument(out._ptr(), self._ptr(), i)
         return out^
 
-    def get_arguments(ref self) raises -> List[Cursor]:
+    def arguments(ref self) raises -> List[Cursor]:
         self._check_valid()
         var n = self.num_arguments()
         var out = List[Cursor]()
         for i in range(Int(n)):
-            out.append(self.get_argument(c_uint(i)))
+            out.append(self.argument(c_uint(i)))
         return out^
 
-    def get_tokens(ref self) raises -> TokenGroup:
+    def tokens(ref self) raises -> TokenGroup:
         from clang.token import TokenGroup
 
         self._check_valid()
@@ -893,13 +889,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return clang_getFieldDeclBitWidth(self._ptr())
 
-    def get_offset_of_field(ref self) raises -> c_long_long:
+    def offset_of_field(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_Cursor_getOffsetOfField(self._ptr())
-
-    def get_field_offsetof(ref self) raises -> c_long_long:
-        """Alias for ``get_offset_of_field()`` matching the Python name."""
-        return self.get_offset_of_field()
 
     def is_function_inlined(ref self) raises -> Bool:
         self._check_valid()
@@ -956,7 +948,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         var underlying = self.type()
         if underlying.kind() == TypeKind.ENUM:
-            var decl = underlying.get_declaration()
+            var decl = underlying.declaration()
             if decl:
                 underlying = decl.value().enum_type()
 
@@ -1090,7 +1082,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             self._tu, self._ptr(), index, False
         ).expr.copy()
 
-    def get_included_file(ref self) raises -> Optional[File]:
+    def included_file(ref self) raises -> Optional[File]:
         from clang.file import File
 
         self._check_valid()

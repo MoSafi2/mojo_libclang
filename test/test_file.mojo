@@ -31,13 +31,13 @@ def test_null_file_creation() raises:
 
 def test_from_name_exists() raises:
     var tu = _parse_fixture()
-    var f_opt = tu.get_file(FIXTURE_PATH)
+    var f_opt = tu.file(FIXTURE_PATH)
     _check(f_opt is not None, "existing file should be found")
 
 
 def test_from_name_not_found() raises:
     var tu = _parse_fixture()
-    var f_opt = tu.get_file(MISSING_PATH)
+    var f_opt = tu.file(MISSING_PATH)
     _check(f_opt is None, "missing file should return None")
 
 
@@ -46,20 +46,20 @@ def test_from_name_not_found() raises:
 
 def test_name_nonempty() raises:
     var tu = _parse_fixture()
-    var f = tu.get_file(FIXTURE_PATH).copy()
+    var f = tu.file(FIXTURE_PATH).copy()
     _check(f.value().name().byte_length() > 0, "file name should not be empty")
 
 
 def test_real_path_nonempty() raises:
     var tu = _parse_fixture()
-    var f = tu.get_file(FIXTURE_PATH)
+    var f = tu.file(FIXTURE_PATH)
     var path = f.value().real_path()
     _check(path.byte_length() > 0, "real_path should not be empty")
 
 
 def test_time_succeeds() raises:
     var tu = _parse_fixture()
-    var f = tu.get_file(FIXTURE_PATH)
+    var f = tu.file(FIXTURE_PATH)
     _ = f.value().time()
 
 
@@ -68,7 +68,7 @@ def test_time_succeeds() raises:
 
 def test_not_include_guarded() raises:
     var tu = _parse_fixture()
-    var f = tu.get_file(FIXTURE_PATH)
+    var f = tu.file(FIXTURE_PATH)
     _check(
         not f.value().is_multiple_include_guarded(),
         "fixture should not be include-guarded",
@@ -80,14 +80,14 @@ def test_not_include_guarded() raises:
 
 def test_equality_same_file() raises:
     var tu = _parse_fixture()
-    var f1 = tu.get_file(FIXTURE_PATH)
-    var f2 = tu.get_file(FIXTURE_PATH)
+    var f1 = tu.file(FIXTURE_PATH)
+    var f2 = tu.file(FIXTURE_PATH)
     _check(f1.value() == f2.value(), "same file should be equal")
 
 
 def test_equality_null_vs_nonnull() raises:
     var tu = _parse_fixture()
-    var f = tu.get_file(FIXTURE_PATH)
+    var f = tu.file(FIXTURE_PATH)
     var null_f = File.null(tu)
     _check(
         not (f.value() == null_f), "non-null file should not equal null file"
@@ -104,13 +104,13 @@ def test_equality_two_null() raises:
 def test_null_file_arc_pointer() raises:
     var tu = _parse_fixture()
     var f1 = File.null(tu)
-    var f2 = File.null(tu.state())
+    var f2 = File.null(tu._shared_state())
     _check(f1 == f2, "null files from ArcPointer should be equal")
 
 
 def test_file_from_name_arc_pointer() raises:
     var tu = _parse_fixture()
-    var f_opt = File.from_name(tu.state(), FIXTURE_PATH)
+    var f_opt = File.from_name(tu._shared_state(), FIXTURE_PATH)
     _check(f_opt is not None, "from_name with ArcPointer should find file")
 
 
@@ -123,14 +123,14 @@ def test_file_from_handle_null_returns_none() raises:
 
 def test_file_copy() raises:
     var tu = _parse_fixture()
-    var f1 = tu.get_file(FIXTURE_PATH).value().copy()
+    var f1 = tu.file(FIXTURE_PATH).value().copy()
     var f2 = f1.copy()
     _check(f1 == f2, "copied file should be equal")
 
 
 def test_file_write_to() raises:
     var tu = _parse_fixture()
-    var f = tu.get_file(FIXTURE_PATH).value().copy()
+    var f = tu.file(FIXTURE_PATH).value().copy()
     var s = String(f)
     _check(s.byte_length() > 0, "write_to should produce non-empty string")
 

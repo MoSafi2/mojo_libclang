@@ -59,7 +59,7 @@ struct Token(Copyable, Movable, Writable):
         tu: TranslationUnit,
         raw: CXToken,
     ) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXToken, 1](fill=raw)
         self._spelling = String()
@@ -242,7 +242,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
         tu: TranslationUnit,
         extent: SourceRange,
     ) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._tokens = None
         self._count = c_uint(0)

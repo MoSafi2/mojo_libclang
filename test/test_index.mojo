@@ -181,9 +181,9 @@ def test_index_drop_and_recreate() raises:
 
 def test_index_state_and_raw() raises:
     var index = Index.create()
-    var state = index.state()
+    var state = index._shared_state()
     _check(state[].alive, "state should be alive")
-    var raw = index.raw()
+    var raw = index._raw_handle()
     _check(Bool(raw), "raw CXIndex should not be null")
 
 

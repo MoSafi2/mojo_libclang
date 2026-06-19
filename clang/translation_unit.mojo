@@ -98,62 +98,62 @@ struct TranslationUnit(Copyable, Movable, Writable):
         self._state = copy._state
         self._spelling = copy._spelling
 
-    def raw(self) raises -> CXTranslationUnit:
+    def _raw_handle(self) raises -> CXTranslationUnit:
         return self._state[].raw()
 
-    def state(self) -> ArcPointer[TranslationUnitState]:
+    def _shared_state(self) -> ArcPointer[TranslationUnitState]:
         return self._state
 
-    def generation(self) -> Int:
+    def _generation_id(self) -> Int:
         return self._state[].generation
 
     def _handle(self) raises -> CXTranslationUnit:
         """Expose raw handle for internal FFI calls."""
-        return self.raw()
+        return self._raw_handle()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("TranslationUnit(", self._spelling, ")")
 
     def __len__(self) raises -> Int:
-        return Int(clang_getNumDiagnostics(self.raw()))
+        return Int(clang_getNumDiagnostics(self._raw_handle()))
 
     def spelling(ref self) raises -> String:
         var cs = _CXStringStorage()
-        clang_getTranslationUnitSpelling(cs.ptr_for_out(), self.raw())
+        clang_getTranslationUnitSpelling(cs.ptr_for_out(), self._raw_handle())
         return cs.take()
 
     def cursor(ref self) raises -> Cursor:
-        var out = Cursor(tu=self.state())
-        clang_getTranslationUnitCursor(out._ptr(), self.raw())
+        var out = Cursor(tu=self._shared_state())
+        clang_getTranslationUnitCursor(out._ptr(), self._raw_handle())
         return out^
 
     def num_diagnostics(ref self) raises -> c_uint:
-        return clang_getNumDiagnostics(self.raw())
+        return clang_getNumDiagnostics(self._raw_handle())
 
     def diagnostic(ref self, index: c_uint) raises -> Diagnostic:
         var d = Diagnostic(
-            tu=self.state(),
-            raw=clang_getDiagnostic(self.raw(), index),
+            tu=self._shared_state(),
+            raw=clang_getDiagnostic(self._raw_handle(), index),
         )
         d._cache_format()
         return d^
 
     def diagnostics(ref self) raises -> DiagnosticSet:
         return DiagnosticSet._from_handle(
-            self.state(),
-            clang_getDiagnosticSetFromTU(self.raw()),
+            self._shared_state(),
+            clang_getDiagnosticSetFromTU(self._raw_handle()),
         )
 
-    def get_file(ref self, filename: String) raises -> Optional[File]:
-        return File.from_name(self.state(), filename)
+    def file(ref self, filename: String) raises -> Optional[File]:
+        return File.from_name(self._shared_state(), filename)
 
     def target_info(ref self) raises -> TargetInfo:
-        return target_info_for_tu(self.raw())
+        return target_info_for_tu(self._raw_handle())
 
     def resource_usage(ref self) raises -> TUResourceUsage:
-        return resource_usage_for_tu(self.raw())
+        return resource_usage_for_tu(self._raw_handle())
 
-    def get_location(
+    def location(
         ref self,
         filename: String,
         line: c_uint,
@@ -161,23 +161,23 @@ struct TranslationUnit(Copyable, Movable, Writable):
     ) raises -> SourceLocation:
         if line == 0 or column == 0:
             raise Error(
-                "TranslationUnit.get_location: line and column must be >= 1",
+                "TranslationUnit.location: line and column must be >= 1",
             )
 
         return SourceLocation.from_position(
-            self.state(),
+            self._shared_state(),
             self._get_file_handle(filename),
             line,
             column,
         )
 
-    def get_location_for_offset(
+    def location_for_offset(
         ref self,
         filename: String,
         offset: c_uint,
     ) raises -> SourceLocation:
         return SourceLocation.from_offset(
-            self.state(),
+            self._shared_state(),
             self._get_file_handle(filename),
             offset,
         )
@@ -186,7 +186,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         var filename_c = _alloc_c_string(filename)
 
         var file_handle = clang_getFile(
-            self.raw(),
+            self._raw_handle(),
             _c_string(filename_c),
         )
         filename_c.free()
@@ -195,7 +195,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
         return file_handle
 
-    def get_extent(
+    def extent(
         ref self,
         filename: String,
         start: SourceLocation,
@@ -203,7 +203,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
     ) raises -> SourceRange:
         return SourceRange.from_locations(start, end)
 
-    def get_extent(
+    def extent(
         ref self,
         filename: String,
         start_line: c_uint,
@@ -211,21 +211,21 @@ struct TranslationUnit(Copyable, Movable, Writable):
         end_line: c_uint,
         end_column: c_uint,
     ) raises -> SourceRange:
-        var start = self.get_location(filename, start_line, start_column)
-        var end = self.get_location(filename, end_line, end_column)
+        var start = self.location(filename, start_line, start_column)
+        var end = self.location(filename, end_line, end_column)
         return SourceRange.from_locations(start, end)
 
-    def get_extent_from_offsets(
+    def extent_from_offsets(
         ref self,
         filename: String,
         start_offset: c_uint,
         end_offset: c_uint,
     ) raises -> SourceRange:
-        var start = self.get_location_for_offset(filename, start_offset)
-        var end = self.get_location_for_offset(filename, end_offset)
+        var start = self.location_for_offset(filename, start_offset)
+        var end = self.location_for_offset(filename, end_offset)
         return SourceRange.from_locations(start, end)
 
-    def get_extent_from_offsets(
+    def extent_from_offsets(
         ref self,
         filename: String,
         start_offset: Int,
@@ -233,20 +233,20 @@ struct TranslationUnit(Copyable, Movable, Writable):
     ) raises -> SourceRange:
         if start_offset < 0 or end_offset < 0:
             raise Error(
-                "TranslationUnit.get_extent_from_offsets: offsets must be >= 0",
+                "TranslationUnit.extent_from_offsets: offsets must be >= 0",
             )
-        return self.get_extent_from_offsets(
+        return self.extent_from_offsets(
             filename,
             c_uint(start_offset),
             c_uint(end_offset),
         )
 
-    def get_tokens(ref self, extent: SourceRange) raises -> TokenGroup:
-        return TokenGroup(tu=self.state(), extent=extent)
+    def tokens(ref self, extent: SourceRange) raises -> TokenGroup:
+        return TokenGroup(tu=self._shared_state(), extent=extent)
 
-    def get_cursor(ref self, ref loc: SourceLocation) raises -> Cursor:
-        var out = Cursor(tu=self.state())
-        clang_getCursor(out._ptr(), self.raw(), loc._ptr())
+    def cursor_for_location(ref self, ref loc: SourceLocation) raises -> Cursor:
+        var out = Cursor(tu=self._shared_state())
+        clang_getCursor(out._ptr(), self._raw_handle(), loc._ptr())
         return out^
 
     def save(
@@ -257,9 +257,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
         var file_name_c = _alloc_c_string(filename)
         var opts = options
         if opts == TranslationUnitFlags.NONE:
-            opts = TranslationUnitFlags(clang_defaultSaveOptions(self.raw()))
+            opts = TranslationUnitFlags(clang_defaultSaveOptions(self._raw_handle()))
         var result_raw = clang_saveTranslationUnit(
-            self.raw(),
+            self._raw_handle(),
             _c_string(file_name_c),
             opts.as_c_uint(),
         )
@@ -277,12 +277,12 @@ struct TranslationUnit(Copyable, Movable, Writable):
     ) raises:
         var opts = options
         if opts == TranslationUnitFlags.NONE:
-            opts = TranslationUnitFlags(clang_defaultReparseOptions(self.raw()))
+            opts = TranslationUnitFlags(clang_defaultReparseOptions(self._raw_handle()))
 
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
         var result = clang_reparseTranslationUnit(
-            self.raw(),
+            self._raw_handle(),
             unsaved_arena.count(),
             unsaved_arena.ptr(),
             opts.as_c_uint(),
@@ -297,14 +297,14 @@ struct TranslationUnit(Copyable, Movable, Writable):
         self._state[].bump_generation()
 
     def suspend(ref self) raises -> Bool:
-        return Bool(clang_suspendTranslationUnit(self.raw()))
+        return Bool(clang_suspendTranslationUnit(self._raw_handle()))
 
     def file_contents(ref self, file: File) raises -> String:
         var size = size_t(0)
         var size_ptr = UnsafePointer[size_t, MutAnyOrigin](to=size)
         var raw = clang_getFileContents(
-            self.raw(),
-            file.raw_value(),
+            self._raw_handle(),
+            file._raw_value(),
             rebind[UnsafePointer[size_t, MutUntrackedOrigin]](size_ptr),
         )
         if not raw:
@@ -312,36 +312,36 @@ struct TranslationUnit(Copyable, Movable, Writable):
         return String(unsafe_from_utf8_ptr=raw.value())
 
     def file_contents(ref self, filename: String) raises -> String:
-        var file_opt = self.get_file(filename)
+        var file_opt = self.file(filename)
         if not file_opt:
             raise Error("TranslationUnit.file_contents: unknown filename")
         return self.file_contents(file_opt.value())
 
     def skipped_ranges(ref self, file: File) raises -> List[SourceRange]:
         var out = List[SourceRange]()
-        var raw_list = clang_getSkippedRanges(self.raw(), file.raw_value())
+        var raw_list = clang_getSkippedRanges(self._raw_handle(), file._raw_value())
         if not raw_list:
             return out^
         for i in range(Int(raw_list.value()[].count)):
             var raw = (raw_list.value()[].ranges.value() + i)[].copy()
-            out.append(SourceRange.from_raw(self.state(), raw))
+            out.append(SourceRange.from_raw(self._shared_state(), raw))
         clang_disposeSourceRangeList(raw_list.value())
         return out^
 
     def skipped_ranges(ref self, filename: String) raises -> List[SourceRange]:
-        var file_opt = self.get_file(filename)
+        var file_opt = self.file(filename)
         if not file_opt:
             raise Error("TranslationUnit.skipped_ranges: unknown filename")
         return self.skipped_ranges(file_opt.value())
 
     def all_skipped_ranges(ref self) raises -> List[SourceRange]:
         var out = List[SourceRange]()
-        var raw_list = clang_getAllSkippedRanges(self.raw())
+        var raw_list = clang_getAllSkippedRanges(self._raw_handle())
         if not raw_list:
             return out^
         for i in range(Int(raw_list.value()[].count)):
             var raw = (raw_list.value()[].ranges.value() + i)[].copy()
-            out.append(SourceRange.from_raw(self.state(), raw))
+            out.append(SourceRange.from_raw(self._shared_state(), raw))
         clang_disposeSourceRangeList(raw_list.value())
         return out^
 
@@ -392,7 +392,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
     # Includes
     # -----------------------------------------------------------------------
 
-    def get_includes(ref self) raises -> List[FileInclusion]:
+    def includes(ref self) raises -> List[FileInclusion]:
         """Return all inclusion relationships in this translation unit."""
         var collector_box = alloc[_InclusionCollector](1)
         collector_box.init_pointee_move(
@@ -413,7 +413,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
         clang_getInclusions(
-            self.raw(),
+            self._raw_handle(),
             _inclusion_visitor_trampoline,
             client_data,
         )

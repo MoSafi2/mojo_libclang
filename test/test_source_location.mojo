@@ -43,7 +43,7 @@ def test_null_location_properties() raises:
 
 def test_location_from_line_column() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -54,14 +54,14 @@ def test_location_from_line_column() raises:
 
 def test_location_from_offset() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location_for_offset(FIXTURE_PATH, c_uint(0))
+    var loc = tu.location_for_offset(FIXTURE_PATH, c_uint(0))
     assert_equal(Int(loc.line()), 1)
     assert_equal(Int(loc.column()), 1)
 
 
 def test_location_line_column_mid_file() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         10,
         1,
@@ -72,7 +72,7 @@ def test_location_line_column_mid_file() raises:
 
 def test_location_offset_zero() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -83,7 +83,7 @@ def test_location_offset_zero() raises:
 
 def test_location_file_not_null() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -94,7 +94,7 @@ def test_location_file_not_null() raises:
 
 def test_location_is_in_system_header() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -106,7 +106,7 @@ def test_location_is_in_system_header() raises:
 
 def test_location_is_from_main_file() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -116,12 +116,12 @@ def test_location_is_from_main_file() raises:
 
 def test_location_equality_same() raises:
     var tu = _parse_fixture()
-    var loc1 = tu.get_location(
+    var loc1 = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var loc2 = tu.get_location(
+    var loc2 = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -131,12 +131,12 @@ def test_location_equality_same() raises:
 
 def test_location_equality_different() raises:
     var tu = _parse_fixture()
-    var loc1 = tu.get_location(
+    var loc1 = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var loc2 = tu.get_location(
+    var loc2 = tu.location(
         FIXTURE_PATH,
         10,
         1,
@@ -153,18 +153,18 @@ def test_location_equality_null() raises:
 
 def test_location_line_column_vs_offset_consistency() raises:
     var tu = _parse_fixture()
-    var loc1 = tu.get_location(
+    var loc1 = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var loc2 = tu.get_location_for_offset(FIXTURE_PATH, c_uint(0))
+    var loc2 = tu.location_for_offset(FIXTURE_PATH, c_uint(0))
     _check(loc1 == loc2, "line 1 col 1 should equal offset 0")
 
 
 def test_location_line_column_non_zero_offset() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location_for_offset(
+    var loc = tu.location_for_offset(
         FIXTURE_PATH,
         7,
     )
@@ -174,12 +174,12 @@ def test_location_line_column_non_zero_offset() raises:
 
 def test_location_ordering() raises:
     var tu = _parse_fixture()
-    var a = tu.get_location(
+    var a = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var b = tu.get_location(
+    var b = tu.location(
         FIXTURE_PATH,
         2,
         1,
@@ -194,48 +194,48 @@ def test_location_ordering() raises:
 def test_source_location_null_arc_pointer() raises:
     var tu = _parse_fixture()
     var loc1 = SourceLocation.null(tu)
-    var loc2 = SourceLocation.null(tu.state())
+    var loc2 = SourceLocation.null(tu._shared_state())
     _check(loc1 == loc2, "null locations should be equal")
 
 
 def test_source_location_from_position_arc_pointer() raises:
     var tu = _parse_fixture()
-    var file_handle = tu.get_file(FIXTURE_PATH).value().raw_value()
+    var file_handle = tu.file(FIXTURE_PATH).value()._raw_value()
     var loc = SourceLocation.from_position(
-        tu.state(), file_handle, c_uint(1), c_uint(1)
+        tu._shared_state(), file_handle, c_uint(1), c_uint(1)
     )
     _check(loc.line() == c_uint(1), "line should be 1")
 
 
 def test_source_location_from_offset_arc_pointer() raises:
     var tu = _parse_fixture()
-    var file_handle = tu.get_file(FIXTURE_PATH).value().raw_value()
-    var loc = SourceLocation.from_offset(tu.state(), file_handle, c_uint(0))
+    var file_handle = tu.file(FIXTURE_PATH).value()._raw_value()
+    var loc = SourceLocation.from_offset(tu._shared_state(), file_handle, c_uint(0))
     _check(loc.offset() == c_uint(0), "offset should be 0")
 
 
 def test_source_location_from_raw() raises:
     var tu = _parse_fixture()
     var loc = SourceLocation.null(tu)
-    var raw = loc.raw_value()
-    var loc2 = SourceLocation.from_raw(tu.state(), raw)
+    var raw = loc._raw_value()
+    var loc2 = SourceLocation.from_raw(tu._shared_state(), raw)
     _check(loc == loc2, "from_raw should reconstruct equal location")
 
 
 def test_source_location_raw_file() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var f = File(tu=tu.state(), raw=loc.raw_file())
-    _check(f.name().byte_length() > 0, "raw_file should yield a valid file")
+    var f = File(tu=tu._shared_state(), raw=loc._raw_file())
+    _check(f.name().byte_length() > 0, "_raw_file should yield a valid file")
 
 
 def test_source_location_file_name() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -245,7 +245,7 @@ def test_source_location_file_name() raises:
 
 def test_source_location_spelling_tuple() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -257,7 +257,7 @@ def test_source_location_spelling_tuple() raises:
 
 def test_source_location_refresh() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,

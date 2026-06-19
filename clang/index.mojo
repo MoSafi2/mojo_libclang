@@ -95,7 +95,7 @@ struct Index(Copyable, Movable, Writable):
         out._display_diagnostics = False
         return out^
 
-    def state(self) -> ArcPointer[IndexState]:
+    def _shared_state(self) -> ArcPointer[IndexState]:
         """Return the shared index state.
 
         This is passed into `TranslationUnit`, so the translation unit keeps
@@ -103,19 +103,19 @@ struct Index(Copyable, Movable, Writable):
         """
         return self._state
 
-    def raw(self) raises -> CXIndex:
+    def _raw_handle(self) raises -> CXIndex:
         return self._state[].raw()
 
     def set_global_options(ref self, options: c_uint) raises:
-        clang_CXIndex_setGlobalOptions(self.raw(), options)
+        clang_CXIndex_setGlobalOptions(self._raw_handle(), options)
 
     def global_options(ref self) raises -> c_uint:
-        return clang_CXIndex_getGlobalOptions(self.raw())
+        return clang_CXIndex_getGlobalOptions(self._raw_handle())
 
     def set_invocation_emission_path(ref self, path: String) raises:
         var path_c = _alloc_c_string(path)
         clang_CXIndex_setInvocationEmissionPathOption(
-            self.raw(),
+            self._raw_handle(),
             _c_string(path_c),
         )
         path_c.free()
@@ -155,7 +155,7 @@ struct Index(Copyable, Movable, Writable):
         var path_c = _alloc_c_string(path)
 
         var raw_err = clang_parseTranslationUnit2(
-            self.raw(),
+            self._raw_handle(),
             _c_string(path_c),
             arg_arena.ptr(),
             arg_arena.count(),
@@ -175,7 +175,7 @@ struct Index(Copyable, Movable, Writable):
                 "parse failed: error code=" + String(Int(err.as_c_uint())),
             )
 
-        return TranslationUnit(self.state(), out_tu)
+        return TranslationUnit(self._shared_state(), out_tu)
 
     def read(ref self, path: String) raises -> TranslationUnit:
         """Read a serialized AST file into a `TranslationUnit`."""
@@ -188,7 +188,7 @@ struct Index(Copyable, Movable, Writable):
 
         var err = ErrorCode(
             clang_createTranslationUnit2(
-                self.raw(),
+                self._raw_handle(),
                 _c_string(path_c),
                 rebind[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]](
                     out_ptr,
@@ -203,7 +203,7 @@ struct Index(Copyable, Movable, Writable):
                 "read failed: error code=" + String(Int(err.as_c_uint())),
             )
 
-        return TranslationUnit(self.state(), out_tu)
+        return TranslationUnit(self._shared_state(), out_tu)
 
 
 def _check_index_alive(state: ArcPointer[IndexState]) raises:

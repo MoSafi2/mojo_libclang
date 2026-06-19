@@ -51,7 +51,7 @@ def _find_children(
 ) raises -> List[Cursor]:
     var root = tu.cursor()
     var out = List[Cursor]()
-    var children = root.get_children()
+    var children = root.children()
     for i in range(children.__len__()):
         var c = children[i].copy()
         if c.kind() == kind:
@@ -102,7 +102,7 @@ def test_tu_cursor() raises:
 def test_tu_cursor_children() raises:
     var tu = _parse_fixture()
     var c = tu.cursor()
-    var children = c.get_children()
+    var children = c.children()
     _check(children.__len__() >= 5, "expected at least 5 top-level decls")
     var walk = c.walk_preorder()
     _check(
@@ -124,7 +124,7 @@ def test_tu_cursor_children() raises:
 #     var result = add.result_type()
 #     assert_equal(Int(result.kind()), Int(CXType_Int))
 
-#     var args = add.get_arguments()
+#     var args = add.arguments()
 #     assert_equal(args.__len__(), 2)
 #     arg0 = args[0].copy()
 #     arg1 = args[1].copy()
@@ -160,7 +160,7 @@ def test_tu_cursor_children() raises:
 #     var divide = _find_function(tu, "divide")
 #     assert_equal(divide.spelling(), "divide")
 #     assert_equal(Int(divide.num_arguments()), 2)
-#     var args = divide.get_arguments()
+#     var args = divide.arguments()
 #     arg0 = args[0].copy()
 #     assert_equal(arg0.spelling(), "x")
 #     arg1 = args[1].copy()
@@ -205,7 +205,7 @@ def test_struct_cursor() raises:
     var point = structs[0].copy()
     assert_equal(point.spelling(), "Point")
 
-    var children = point.get_children()
+    var children = point.children()
     _check(children.__len__() >= 2,
            "struct Point should have at least 2 fields")
 
@@ -219,11 +219,11 @@ def test_struct_cursor() raises:
 
 def test_tokenize_line1() raises:
     var tu = _parse_fixture()
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         FIXTURE_PATH,
         1, 1, 1, 100,
     )
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.tokens(extent)
     _check(tokens.__len__() > 0, "expected at least one token")
     var first = tokens[0]
     assert_equal(Int(first.kind().as_c_uint()), Int(CXToken_Keyword))
@@ -239,11 +239,11 @@ def test_tokenize_line1() raises:
 
 def test_tokenize_whole_file() raises:
     var tu = _parse_fixture()
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         FIXTURE_PATH,
         1, 1, 6, 80,
     )
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.tokens(extent)
     _check(tokens.__len__() > 0, "whole file should produce tokens")
     var first = tokens[0]
     _ = first.kind()
@@ -254,11 +254,11 @@ def test_tokenize_whole_file() raises:
 # Keep these disabled until the shim-layer ABI for these wrappers is fixed.
 # def test_token_location() raises:
 #     var tu = _parse_fixture()
-#     var extent = tu.get_extent(
+#     var extent = tu.extent(
 #         FIXTURE_PATH,
 #         1, 1, 1, 100,
 #     )
-#     var tokens = tu.get_tokens(extent)
+#     var tokens = tu.tokens(extent)
 #     var first = tokens[0]
 #     var loc = first.location()
 #     assert_equal(Int(loc.line()), 1, "first token at line 1")
@@ -267,11 +267,11 @@ def test_tokenize_whole_file() raises:
 #
 # def test_token_extent_not_null() raises:
 #     var tu = _parse_fixture()
-#     var extent = tu.get_extent(
+#     var extent = tu.extent(
 #         FIXTURE_PATH,
 #         1, 1, 1, 100,
 #     )
-#     var tokens = tu.get_tokens(extent)
+#     var tokens = tu.tokens(extent)
 #     var first = tokens[0]
 #     var tok_extent = first.extent()
 #     _check(not tok_extent.is_null(), "token extent should not be null")
@@ -281,11 +281,11 @@ def test_tokenize_whole_file() raises:
 
 def test_token_cursor_annotation() raises:
     var tu = _parse_fixture()
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         FIXTURE_PATH,
         1, 1, 1, 100,
     )
-    var tokens = tu.get_tokens(extent)
+    var tokens = tu.tokens(extent)
     var first = tokens[0]
     var c = first.cursor()
     assert_equal(Int(c.kind().as_c_uint()), Int(CXCursor_FunctionDecl),
@@ -297,19 +297,19 @@ def test_token_cursor_annotation() raises:
 
 def test_source_location_from_offset() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location_for_offset(FIXTURE_PATH, c_uint(0))
+    var loc = tu.location_for_offset(FIXTURE_PATH, c_uint(0))
     _check(Int(loc.line()) >= 1, "offset 0 should map to line 1")
-    var loc2 = tu.get_location_for_offset(
+    var loc2 = tu.location_for_offset(
         FIXTURE_PATH,
         0,
     )
     _check(loc == loc2,
-           "offset overload should match get_location_for_offset")
+           "offset overload should match location_for_offset")
 
 
 def test_source_location_system_header() raises:
     var tu = _parse_fixture()
-    var loc = tu.get_location(
+    var loc = tu.location(
         FIXTURE_PATH,
         1,
         1,
@@ -324,12 +324,12 @@ def test_source_location_system_header() raises:
 
 def test_source_range_from_locations() raises:
     var tu = _parse_fixture()
-    var start = tu.get_location(
+    var start = tu.location(
         FIXTURE_PATH,
         1,
         1,
     )
-    var end = tu.get_location(
+    var end = tu.location(
         FIXTURE_PATH,
         1,
         5,
@@ -349,7 +349,7 @@ def test_source_range_null() raises:
 
 # def test_file_from_name() raises:
 #     var tu = _parse_fixture()
-#     var f_opt = tu.get_file(FIXTURE_PATH)
+#     var f_opt = tu.file(FIXTURE_PATH)
 #     _check(f_opt is not None, "file lookup should succeed")
 #     var f = f_opt.value().copy()
 #     _check(f.name().byte_length() > 0, "file name should not be empty")
@@ -360,8 +360,8 @@ def test_source_range_null() raises:
 
 def test_file_equality() raises:
     var tu = _parse_fixture()
-    var f1_opt = tu.get_file(FIXTURE_PATH)
-    var f2_opt = tu.get_file(FIXTURE_PATH)
+    var f1_opt = tu.file(FIXTURE_PATH)
+    var f2_opt = tu.file(FIXTURE_PATH)
     _check(f1_opt is not None, "f1 should exist")
     _check(f2_opt is not None, "f2 should exist")
     _check(f1_opt.value() == f2_opt.value(), "same file should be equal")
@@ -447,12 +447,12 @@ def test_cursor_equality() raises:
 
 def test_token_group_drop_after_read() raises:
     var tu = _parse_fixture()
-    var extent = tu.get_extent(
+    var extent = tu.extent(
         FIXTURE_PATH,
         1, 1, 6, 80,
     )
     for i in range(3):
-        var tokens = tu.get_tokens(extent)
+        var tokens = tu.tokens(extent)
         _ = tokens.__len__()
         _ = i
 

@@ -98,7 +98,7 @@ struct Type(Copyable, Movable, Writable):
 
     def __init__(out self, tu: TranslationUnit) raises:
         """Create a null type tied to `tu`."""
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXType, 1](
             fill=_zero_type(),
@@ -110,7 +110,7 @@ struct Type(Copyable, Movable, Writable):
         tu: TranslationUnit,
         raw: CXType,
     ) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXType, 1](fill=raw)
         self._spelling = String()
@@ -158,7 +158,7 @@ struct Type(Copyable, Movable, Writable):
     def write_to(self, mut writer: Some[Writer]):
         writer.write("Type(", self._spelling, ")")
 
-    def raw_value(self) raises -> CXType:
+    def _raw_value(self) raises -> CXType:
         self._check_valid()
         return self._raw[0].copy()
 
@@ -173,7 +173,7 @@ struct Type(Copyable, Movable, Writable):
         clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
         return cs.take()
 
-    def get_canonical(ref self) raises -> Type:
+    def canonical(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -181,7 +181,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_pointee(ref self) raises -> Type:
+    def pointee(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -189,7 +189,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_unqualified(ref self) raises -> Type:
+    def unqualified(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -197,7 +197,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_non_reference(ref self) raises -> Type:
+    def non_reference(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -205,7 +205,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_result(ref self) raises -> Type:
+    def result(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -221,7 +221,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_array_element_type(ref self) raises -> Type:
+    def array_element_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -229,7 +229,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_array_size(ref self) raises -> c_long_long:
+    def array_size(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_getArraySize(self._ptr())
 
@@ -241,7 +241,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return clang_getNumArgTypes(self._ptr())
 
-    def get_arg_type(ref self, i: c_uint) raises -> Type:
+    def arg_type(ref self, i: c_uint) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -258,7 +258,7 @@ struct Type(Copyable, Movable, Writable):
 
         var out = List[Type]()
         for i in range(Int(n)):
-            out.append(self.get_arg_type(c_uint(i)))
+            out.append(self.arg_type(c_uint(i)))
 
         return out^
 
@@ -266,7 +266,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return clang_Type_getNumTemplateArguments(self._ptr())
 
-    def get_template_argument_type(ref self, i: c_uint) raises -> Type:
+    def template_argument_type(ref self, i: c_uint) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -274,7 +274,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_declaration(ref self) raises -> Optional[Cursor]:
+    def declaration(ref self) raises -> Optional[Cursor]:
         from clang.cursor import Cursor
 
         self._check_valid()
@@ -287,7 +287,7 @@ struct Type(Copyable, Movable, Writable):
 
         return Optional[Cursor](out^)
 
-    def get_named_type(ref self) raises -> Type:
+    def named_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -295,7 +295,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_class_type(ref self) raises -> Type:
+    def class_type(ref self) raises -> Type:
         self._check_valid()
 
         var out = Type(tu=self._tu)
@@ -303,7 +303,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def get_value_type(ref self) raises -> Optional[Type]:
+    def value_type(ref self) raises -> Optional[Type]:
         """Return the modified value type for wrappers like ``_Atomic(T)``.
 
         Wraps ``clang_Type_getValueType``. Returns ``None`` when the type has
@@ -320,7 +320,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
-    def get_modified_type(ref self) raises -> Optional[Type]:
+    def modified_type(ref self) raises -> Optional[Type]:
         self._check_valid()
         var out = Type(tu=self._tu)
         clang_Type_getModifiedType(out._ptr(), self._ptr())
@@ -329,7 +329,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
-    def get_offset(ref self, fieldname: String) raises -> c_long_long:
+    def offset(ref self, fieldname: String) raises -> c_long_long:
         """Return field offset in bits.
 
         Wraps ``clang_Type_getOffsetOf``.
@@ -345,17 +345,17 @@ struct Type(Copyable, Movable, Writable):
 
         if result < c_long_long(0):
             raise Error(
-                t"Type.get_offset: layout error "
+                t"Type.offset: layout error "
                 t"{Int(result)} for field '{fieldname}'"
             )
 
         return result
 
-    def get_align(ref self) raises -> c_long_long:
+    def align(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_Type_getAlignOf(self._ptr())
 
-    def get_size(ref self) raises -> c_long_long:
+    def size(ref self) raises -> c_long_long:
         self._check_valid()
         return clang_Type_getSizeOf(self._ptr())
 
@@ -366,11 +366,11 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return TranslationUnit(self._tu)
 
-    def get_ref_qualifier(ref self) raises -> RefQualifierKind:
+    def ref_qualifier(ref self) raises -> RefQualifierKind:
         self._check_valid()
         return RefQualifierKind(clang_Type_getCXXRefQualifier(self._ptr()))
 
-    def get_exception_specification_kind(
+    def exception_specification_kind(
         ref self,
     ) raises -> ExceptionSpecificationKind:
         self._check_valid()
@@ -378,7 +378,7 @@ struct Type(Copyable, Movable, Writable):
             c_uint(clang_getExceptionSpecificationType(self._ptr())),
         )
 
-    def get_calling_conv(ref self) raises -> CallingConv:
+    def calling_conv(ref self) raises -> CallingConv:
         self._check_valid()
         return CallingConv(clang_getFunctionTypeCallingConv(self._ptr()))
 
@@ -429,7 +429,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return Bool(clang_Type_isTransparentTagTypedef(self._ptr()))
 
-    def get_fields(ref self) raises -> List[Cursor]:
+    def fields(ref self) raises -> List[Cursor]:
         from clang.cursor import Cursor
 
         self._check_valid()

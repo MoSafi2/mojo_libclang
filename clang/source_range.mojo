@@ -45,7 +45,7 @@ struct SourceRange(Copyable, Movable, Writable):
     var _end: SourceLocation
 
     def __init__(out self, tu: TranslationUnit) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXSourceRange, 1](
             fill=_zero_source_range(),
@@ -81,7 +81,7 @@ struct SourceRange(Copyable, Movable, Writable):
             self._raw.unsafe_ptr(),
         )
 
-    def raw_value(ref self) raises -> CXSourceRange:
+    def _raw_value(ref self) raises -> CXSourceRange:
         """Return a copied raw ``CXSourceRange`` value."""
         self._check_valid()
         return self._raw[0].copy()

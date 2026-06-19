@@ -89,7 +89,7 @@ struct Diagnostic(Movable, Writable):
         raw: CXDiagnostic,
         owns: Bool = True,
     ) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = raw
         self._owns = owns
@@ -364,7 +364,7 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
         raw: CXDiagnosticSet,
         owns: Bool = True,
     ) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = raw
         self._owns = owns

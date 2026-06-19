@@ -35,7 +35,7 @@ def _find_function(mut tu: TranslationUnit, name: String) raises -> Cursor:
 def test_printing_policy_create() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
-    var raw = c.raw_value()
+    var raw = c._raw_value()
     var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
@@ -46,7 +46,7 @@ def test_printing_policy_create() raises:
 def test_printing_policy_get_and_set_property() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
-    var raw = c.raw_value()
+    var raw = c._raw_value()
     var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
@@ -63,7 +63,7 @@ def test_printing_policy_get_and_set_property() raises:
 def test_printing_policy_write_to() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
-    var raw = c.raw_value()
+    var raw = c._raw_value()
     var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),

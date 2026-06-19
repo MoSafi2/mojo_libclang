@@ -237,7 +237,7 @@ struct CompilationDatabase(Movable, Writable):
     def from_directory(build_dir: String) raises -> Self:
         return Self(build_dir)
 
-    def state(self) -> ArcPointer[_CompilationDatabaseState]:
+    def _shared_state(self) -> ArcPointer[_CompilationDatabaseState]:
         return self._state
 
     def get_compile_commands(

@@ -47,7 +47,7 @@ struct File(Copyable, Movable, Writable):
         tu: TranslationUnit,
         raw: CXFile,
     ) raises:
-        self._tu = tu.state()
+        self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = raw
         self._name = String()
@@ -81,7 +81,7 @@ struct File(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("File used after TranslationUnit.reparse()")
 
-    def raw_value(ref self) raises -> CXFile:
+    def _raw_value(ref self) raises -> CXFile:
         """Return the raw ``CXFile`` handle."""
         self._check_valid()
         return self._raw
@@ -134,7 +134,7 @@ struct File(Copyable, Movable, Writable):
         tu: TranslationUnit,
         filename: String,
     ) raises -> Optional[Self]:
-        var tu_state = tu.state()
+        var tu_state = tu._shared_state()
         if not tu_state[].alive:
             raise Error("File.from_name: TranslationUnit used after disposal")
 

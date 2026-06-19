@@ -1,4 +1,4 @@
-"""File inclusion description returned by ``TranslationUnit.get_includes``."""
+"""File inclusion description returned by ``TranslationUnit.includes``."""
 
 from clang.source_location import SourceLocation
 from clang.file import File
