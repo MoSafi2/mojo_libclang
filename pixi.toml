@@ -39,4 +39,4 @@ clangdev = "18.*"
 libclang = "18.*"
 
 [pypi-dependencies]
-mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "ea02e000fe3d9043a4ddea0210cfae98f167344c" }
+mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "858aa18f63322b9feb33f5a60e61b57302cdebb9" }

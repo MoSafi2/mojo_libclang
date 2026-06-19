@@ -83,7 +83,7 @@ environments:
       - conda: https://conda.modular.com/max/linux-64/mojo-compiler-1.0.0b2-release.conda
       - conda: https://conda.modular.com/max/noarch/mblack-26.4.0-release.conda
       - conda: https://conda.modular.com/max/noarch/mojo-python-1.0.0b2-release.conda
-      - pypi: git+https://github.com/MoSafi2/mojo_bindgen?rev=ea02e000fe3d9043a4ddea0210cfae98f167344c#ea02e000fe3d9043a4ddea0210cfae98f167344c
+      - pypi: git+https://github.com/MoSafi2/mojo_bindgen?rev=858aa18f63322b9feb33f5a60e61b57302cdebb9#858aa18f63322b9feb33f5a60e61b57302cdebb9
       - pypi: https://files.pythonhosted.org/packages/1d/fc/716c1e62e512ef1c160e7984a73a5fc7df45166f2ff3f254e71c58076f7c/libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/1e/d3/26bf1008eb3d2daa8ef4cacc7f3bfdc11818d111f7e2d0201bc6e3b49d45/annotated_doc-0.0.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/24/25/2201973529af2c954de0bb725323c3aaed6d7f0ceee8f550dec9185df013/typer-0.26.7-py3-none-any.whl
@@ -1142,7 +1142,7 @@ packages:
   run_exports: {}
   size: 24682
   timestamp: 1781220753246
-- pypi: git+https://github.com/MoSafi2/mojo_bindgen?rev=ea02e000fe3d9043a4ddea0210cfae98f167344c#ea02e000fe3d9043a4ddea0210cfae98f167344c
+- pypi: git+https://github.com/MoSafi2/mojo_bindgen?rev=858aa18f63322b9feb33f5a60e61b57302cdebb9#858aa18f63322b9feb33f5a60e61b57302cdebb9
   name: mojo-bindgen
   version: 0.3.1
   requires_dist:

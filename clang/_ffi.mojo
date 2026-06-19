@@ -3,38 +3,19 @@
 # library: libclang_mojo_shim  link_name: libclang_mojo_shim
 # FFI mode: owned_dl_handle
 
-from std.ffi import (
-    OwnedDLHandle,
-    _DLHandle,
-    _Global,
-    _find_dylib,
-    _get_global,
-    c_char,
-    c_double,
-    c_int,
-    c_long,
-    c_long_long,
-    c_uint,
-    c_ulong,
-    c_ulong_long,
-)
+from std.ffi import OwnedDLHandle, _DLHandle, _Global, _find_dylib, _get_global, c_char, c_double, c_int, c_long, c_long_long, c_uint, c_ulong, c_ulong_long
 from std.memory import ImmutOpaquePointer, MutOpaquePointer
 from std.memory.unsafe_pointer import unsafe_cast
 from std.os import abort
 
 comptime _BINDGEN_LIB_NAME = "libclang_mojo_shim"
 comptime _BINDGEN_LINK_NAME = "libclang_mojo_shim"
-comptime _BINDGEN_LIB_PATH: String = "../shim/libclang_mojo_shim.so"
-
+comptime _BINDGEN_LIB_PATH: String = "/home/mohamed/mojo_libclang/shim/libclang_mojo_shim.so"
 
 def _bindgen_init_dylib() -> OwnedDLHandle:
     return _find_dylib[_BINDGEN_LIB_NAME](_BINDGEN_LIB_PATH)
 
-
-comptime _BINDGEN_DYLIB = _Global[
-    "mojo_bindgen/libclang_mojo_shim", _bindgen_init_dylib
-]
-
+comptime _BINDGEN_DYLIB = _Global["mojo_bindgen/libclang_mojo_shim", _bindgen_init_dylib]
 
 # Returns a borrowed process-lifetime dynamic library handle; do not close it.
 def _bindgen_dylib() -> _DLHandle:
@@ -43,15 +24,10 @@ def _bindgen_dylib() -> _DLHandle:
         _BINDGEN_DYLIB._init_wrapper,
         _BINDGEN_DYLIB._deinit_wrapper,
     ]()
-    var dylib = (
-        unsafe_cast[Type=_BINDGEN_DYLIB.StorageType](dylib_ptr)
-        .value()[]
-        .borrow()
-    )
+    var dylib = unsafe_cast[Type=_BINDGEN_DYLIB.StorageType](dylib_ptr).value()[].borrow()
     if not dylib:
         abort(t"bindgen: failed to load dynamic library '{_BINDGEN_LIB_NAME}'")
     return dylib
-
 
 def _bindgen_function[Fn: TrivialRegisterPassable](symbol: StringSlice) -> Fn:
     var fn_ptr = _bindgen_dylib().get_symbol[NoneType](symbol)
@@ -62,60 +38,25 @@ def _bindgen_function[Fn: TrivialRegisterPassable](symbol: StringSlice) -> Fn:
         )
     return UnsafePointer(to=fn_ptr.value()).bitcast[Fn]()[]
 
+comptime clang_executeOnThread_fn__cb = def (arg0: Optional[MutOpaquePointer[MutUntrackedOrigin]]) thin abi("C") -> None
 
-comptime clang_executeOnThread_fn__cb = def(
-    arg0: Optional[MutOpaquePointer[MutUntrackedOrigin]]
-) thin abi("C") -> None
+comptime CXCursorAndRangeVisitor_visit_cb = def (context: Optional[MutOpaquePointer[MutUntrackedOrigin]], arg1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], arg2: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> CXVisitorResult
 
-comptime CXCursorAndRangeVisitor_visit_cb = def(
-    context: Optional[MutOpaquePointer[MutUntrackedOrigin]],
-    arg1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    arg2: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-) thin abi("C") -> CXVisitorResult
+comptime IndexerCallbacks_abortQuery_cb = def (client_data: CXClientData, reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]]) thin abi("C") -> c_int
 
-comptime IndexerCallbacks_abortQuery_cb = def(
-    client_data: CXClientData,
-    reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]],
-) thin abi("C") -> c_int
+comptime IndexerCallbacks_diagnostic_cb = def (client_data: CXClientData, arg1: CXDiagnosticSet, reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]]) thin abi("C") -> None
 
-comptime IndexerCallbacks_diagnostic_cb = def(
-    client_data: CXClientData,
-    arg1: CXDiagnosticSet,
-    reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]],
-) thin abi("C") -> None
+comptime IndexerCallbacks_enteredMainFile_cb = def (client_data: CXClientData, mainFile: CXFile, reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]]) thin abi("C") -> CXIdxClientFile
 
-comptime IndexerCallbacks_enteredMainFile_cb = def(
-    client_data: CXClientData,
-    mainFile: CXFile,
-    reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]],
-) thin abi("C") -> CXIdxClientFile
+comptime IndexerCallbacks_ppIncludedFile_cb = def (client_data: CXClientData, arg1: Optional[UnsafePointer[CXIdxIncludedFileInfo, ImmutUntrackedOrigin]]) thin abi("C") -> CXIdxClientFile
 
-comptime IndexerCallbacks_ppIncludedFile_cb = def(
-    client_data: CXClientData,
-    arg1: Optional[UnsafePointer[CXIdxIncludedFileInfo, ImmutUntrackedOrigin]],
-) thin abi("C") -> CXIdxClientFile
+comptime IndexerCallbacks_importedASTFile_cb = def (client_data: CXClientData, arg1: Optional[UnsafePointer[CXIdxImportedASTFileInfo, ImmutUntrackedOrigin]]) thin abi("C") -> CXIdxClientASTFile
 
-comptime IndexerCallbacks_importedASTFile_cb = def(
-    client_data: CXClientData,
-    arg1: Optional[
-        UnsafePointer[CXIdxImportedASTFileInfo, ImmutUntrackedOrigin]
-    ],
-) thin abi("C") -> CXIdxClientASTFile
+comptime IndexerCallbacks_startedTranslationUnit_cb = def (client_data: CXClientData, reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]]) thin abi("C") -> CXIdxClientContainer
 
-comptime IndexerCallbacks_startedTranslationUnit_cb = def(
-    client_data: CXClientData,
-    reserved: Optional[MutOpaquePointer[MutUntrackedOrigin]],
-) thin abi("C") -> CXIdxClientContainer
+comptime IndexerCallbacks_indexDeclaration_cb = def (client_data: CXClientData, arg1: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> None
 
-comptime IndexerCallbacks_indexDeclaration_cb = def(
-    client_data: CXClientData,
-    arg1: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]],
-) thin abi("C") -> None
-
-comptime IndexerCallbacks_indexEntityReference_cb = def(
-    client_data: CXClientData,
-    arg1: Optional[UnsafePointer[CXIdxEntityRefInfo, ImmutUntrackedOrigin]],
-) thin abi("C") -> None
+comptime IndexerCallbacks_indexEntityReference_cb = def (client_data: CXClientData, arg1: Optional[UnsafePointer[CXIdxEntityRefInfo, ImmutUntrackedOrigin]]) thin abi("C") -> None
 
 comptime __time_t = c_long
 
@@ -133,13 +74,9 @@ comptime CXError_InvalidArguments = CXErrorCode(c_uint(3))
 
 comptime CXError_ASTReadError = CXErrorCode(c_uint(4))
 
-comptime CXVirtualFileOverlay = Optional[
-    UnsafePointer[CXVirtualFileOverlayImpl, MutUntrackedOrigin]
-]
+comptime CXVirtualFileOverlay = Optional[UnsafePointer[CXVirtualFileOverlayImpl, MutUntrackedOrigin]]
 
-comptime CXModuleMapDescriptor = Optional[
-    UnsafePointer[CXModuleMapDescriptorImpl, MutUntrackedOrigin]
-]
+comptime CXModuleMapDescriptor = Optional[UnsafePointer[CXModuleMapDescriptorImpl, MutUntrackedOrigin]]
 
 comptime time_t = __time_t
 
@@ -173,33 +110,23 @@ comptime CXLoadDiag_InvalidFile = CXLoadDiag_Error(c_uint(3))
 
 comptime CXDiagnosticDisplayOptions = c_uint
 
-comptime CXDiagnostic_DisplaySourceLocation = CXDiagnosticDisplayOptions(
-    c_uint(1)
-)
+comptime CXDiagnostic_DisplaySourceLocation = CXDiagnosticDisplayOptions(c_uint(1))
 
 comptime CXDiagnostic_DisplayColumn = CXDiagnosticDisplayOptions(c_uint(2))
 
-comptime CXDiagnostic_DisplaySourceRanges = CXDiagnosticDisplayOptions(
-    c_uint(4)
-)
+comptime CXDiagnostic_DisplaySourceRanges = CXDiagnosticDisplayOptions(c_uint(4))
 
 comptime CXDiagnostic_DisplayOption = CXDiagnosticDisplayOptions(c_uint(8))
 
 comptime CXDiagnostic_DisplayCategoryId = CXDiagnosticDisplayOptions(c_uint(16))
 
-comptime CXDiagnostic_DisplayCategoryName = CXDiagnosticDisplayOptions(
-    c_uint(32)
-)
+comptime CXDiagnostic_DisplayCategoryName = CXDiagnosticDisplayOptions(c_uint(32))
 
 comptime CXIndex = Optional[MutOpaquePointer[MutUntrackedOrigin]]
 
-comptime CXTargetInfo = Optional[
-    UnsafePointer[CXTargetInfoImpl, MutUntrackedOrigin]
-]
+comptime CXTargetInfo = Optional[UnsafePointer[CXTargetInfoImpl, MutUntrackedOrigin]]
 
-comptime CXTranslationUnit = Optional[
-    UnsafePointer[CXTranslationUnitImpl, MutUntrackedOrigin]
-]
+comptime CXTranslationUnit = Optional[UnsafePointer[CXTranslationUnitImpl, MutUntrackedOrigin]]
 
 comptime CXClientData = Optional[MutOpaquePointer[MutUntrackedOrigin]]
 
@@ -215,45 +142,25 @@ comptime CXAvailability_NotAccessible = CXAvailabilityKind(c_uint(3))
 
 comptime CXCursor_ExceptionSpecificationKind = c_uint
 
-comptime CXCursor_ExceptionSpecificationKind_None = CXCursor_ExceptionSpecificationKind(
-    c_uint(0)
-)
+comptime CXCursor_ExceptionSpecificationKind_None = CXCursor_ExceptionSpecificationKind(c_uint(0))
 
-comptime CXCursor_ExceptionSpecificationKind_DynamicNone = CXCursor_ExceptionSpecificationKind(
-    c_uint(1)
-)
+comptime CXCursor_ExceptionSpecificationKind_DynamicNone = CXCursor_ExceptionSpecificationKind(c_uint(1))
 
-comptime CXCursor_ExceptionSpecificationKind_Dynamic = CXCursor_ExceptionSpecificationKind(
-    c_uint(2)
-)
+comptime CXCursor_ExceptionSpecificationKind_Dynamic = CXCursor_ExceptionSpecificationKind(c_uint(2))
 
-comptime CXCursor_ExceptionSpecificationKind_MSAny = CXCursor_ExceptionSpecificationKind(
-    c_uint(3)
-)
+comptime CXCursor_ExceptionSpecificationKind_MSAny = CXCursor_ExceptionSpecificationKind(c_uint(3))
 
-comptime CXCursor_ExceptionSpecificationKind_BasicNoexcept = CXCursor_ExceptionSpecificationKind(
-    c_uint(4)
-)
+comptime CXCursor_ExceptionSpecificationKind_BasicNoexcept = CXCursor_ExceptionSpecificationKind(c_uint(4))
 
-comptime CXCursor_ExceptionSpecificationKind_ComputedNoexcept = CXCursor_ExceptionSpecificationKind(
-    c_uint(5)
-)
+comptime CXCursor_ExceptionSpecificationKind_ComputedNoexcept = CXCursor_ExceptionSpecificationKind(c_uint(5))
 
-comptime CXCursor_ExceptionSpecificationKind_Unevaluated = CXCursor_ExceptionSpecificationKind(
-    c_uint(6)
-)
+comptime CXCursor_ExceptionSpecificationKind_Unevaluated = CXCursor_ExceptionSpecificationKind(c_uint(6))
 
-comptime CXCursor_ExceptionSpecificationKind_Uninstantiated = CXCursor_ExceptionSpecificationKind(
-    c_uint(7)
-)
+comptime CXCursor_ExceptionSpecificationKind_Uninstantiated = CXCursor_ExceptionSpecificationKind(c_uint(7))
 
-comptime CXCursor_ExceptionSpecificationKind_Unparsed = CXCursor_ExceptionSpecificationKind(
-    c_uint(8)
-)
+comptime CXCursor_ExceptionSpecificationKind_Unparsed = CXCursor_ExceptionSpecificationKind(c_uint(8))
 
-comptime CXCursor_ExceptionSpecificationKind_NoThrow = CXCursor_ExceptionSpecificationKind(
-    c_uint(9)
-)
+comptime CXCursor_ExceptionSpecificationKind_NoThrow = CXCursor_ExceptionSpecificationKind(c_uint(9))
 
 comptime CXChoice = c_uint
 
@@ -267,79 +174,47 @@ comptime CXGlobalOptFlags = c_uint
 
 comptime CXGlobalOpt_None = CXGlobalOptFlags(c_uint(0))
 
-comptime CXGlobalOpt_ThreadBackgroundPriorityForIndexing = CXGlobalOptFlags(
-    c_uint(1)
-)
+comptime CXGlobalOpt_ThreadBackgroundPriorityForIndexing = CXGlobalOptFlags(c_uint(1))
 
-comptime CXGlobalOpt_ThreadBackgroundPriorityForEditing = CXGlobalOptFlags(
-    c_uint(2)
-)
+comptime CXGlobalOpt_ThreadBackgroundPriorityForEditing = CXGlobalOptFlags(c_uint(2))
 
-comptime CXGlobalOpt_ThreadBackgroundPriorityForAll = CXGlobalOptFlags(
-    c_uint(3)
-)
+comptime CXGlobalOpt_ThreadBackgroundPriorityForAll = CXGlobalOptFlags(c_uint(3))
 
 comptime CXTranslationUnit_Flags = c_uint
 
 comptime CXTranslationUnit_None = CXTranslationUnit_Flags(c_uint(0))
 
-comptime CXTranslationUnit_DetailedPreprocessingRecord = CXTranslationUnit_Flags(
-    c_uint(1)
-)
+comptime CXTranslationUnit_DetailedPreprocessingRecord = CXTranslationUnit_Flags(c_uint(1))
 
 comptime CXTranslationUnit_Incomplete = CXTranslationUnit_Flags(c_uint(2))
 
-comptime CXTranslationUnit_PrecompiledPreamble = CXTranslationUnit_Flags(
-    c_uint(4)
-)
+comptime CXTranslationUnit_PrecompiledPreamble = CXTranslationUnit_Flags(c_uint(4))
 
-comptime CXTranslationUnit_CacheCompletionResults = CXTranslationUnit_Flags(
-    c_uint(8)
-)
+comptime CXTranslationUnit_CacheCompletionResults = CXTranslationUnit_Flags(c_uint(8))
 
-comptime CXTranslationUnit_ForSerialization = CXTranslationUnit_Flags(
-    c_uint(16)
-)
+comptime CXTranslationUnit_ForSerialization = CXTranslationUnit_Flags(c_uint(16))
 
 comptime CXTranslationUnit_CXXChainedPCH = CXTranslationUnit_Flags(c_uint(32))
 
-comptime CXTranslationUnit_SkipFunctionBodies = CXTranslationUnit_Flags(
-    c_uint(64)
-)
+comptime CXTranslationUnit_SkipFunctionBodies = CXTranslationUnit_Flags(c_uint(64))
 
-comptime CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = CXTranslationUnit_Flags(
-    c_uint(128)
-)
+comptime CXTranslationUnit_IncludeBriefCommentsInCodeCompletion = CXTranslationUnit_Flags(c_uint(128))
 
-comptime CXTranslationUnit_CreatePreambleOnFirstParse = CXTranslationUnit_Flags(
-    c_uint(256)
-)
+comptime CXTranslationUnit_CreatePreambleOnFirstParse = CXTranslationUnit_Flags(c_uint(256))
 
 comptime CXTranslationUnit_KeepGoing = CXTranslationUnit_Flags(c_uint(512))
 
-comptime CXTranslationUnit_SingleFileParse = CXTranslationUnit_Flags(
-    c_uint(1024)
-)
+comptime CXTranslationUnit_SingleFileParse = CXTranslationUnit_Flags(c_uint(1024))
 
-comptime CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = CXTranslationUnit_Flags(
-    c_uint(2048)
-)
+comptime CXTranslationUnit_LimitSkipFunctionBodiesToPreamble = CXTranslationUnit_Flags(c_uint(2048))
 
-comptime CXTranslationUnit_IncludeAttributedTypes = CXTranslationUnit_Flags(
-    c_uint(4096)
-)
+comptime CXTranslationUnit_IncludeAttributedTypes = CXTranslationUnit_Flags(c_uint(4096))
 
-comptime CXTranslationUnit_VisitImplicitAttributes = CXTranslationUnit_Flags(
-    c_uint(8192)
-)
+comptime CXTranslationUnit_VisitImplicitAttributes = CXTranslationUnit_Flags(c_uint(8192))
 
-comptime CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = CXTranslationUnit_Flags(
-    c_uint(16384)
-)
+comptime CXTranslationUnit_IgnoreNonErrorsFromIncludedFiles = CXTranslationUnit_Flags(c_uint(16384))
 
-comptime CXTranslationUnit_RetainExcludedConditionalBlocks = CXTranslationUnit_Flags(
-    c_uint(32768)
-)
+comptime CXTranslationUnit_RetainExcludedConditionalBlocks = CXTranslationUnit_Flags(c_uint(32768))
 
 comptime CXSaveTranslationUnit_Flags = c_uint
 
@@ -367,53 +242,31 @@ comptime CXTUResourceUsage_Identifiers = CXTUResourceUsageKind(c_uint(2))
 
 comptime CXTUResourceUsage_Selectors = CXTUResourceUsageKind(c_uint(3))
 
-comptime CXTUResourceUsage_GlobalCompletionResults = CXTUResourceUsageKind(
-    c_uint(4)
-)
+comptime CXTUResourceUsage_GlobalCompletionResults = CXTUResourceUsageKind(c_uint(4))
 
-comptime CXTUResourceUsage_SourceManagerContentCache = CXTUResourceUsageKind(
-    c_uint(5)
-)
+comptime CXTUResourceUsage_SourceManagerContentCache = CXTUResourceUsageKind(c_uint(5))
 
 comptime CXTUResourceUsage_AST_SideTables = CXTUResourceUsageKind(c_uint(6))
 
-comptime CXTUResourceUsage_SourceManager_Membuffer_Malloc = CXTUResourceUsageKind(
-    c_uint(7)
-)
+comptime CXTUResourceUsage_SourceManager_Membuffer_Malloc = CXTUResourceUsageKind(c_uint(7))
 
-comptime CXTUResourceUsage_SourceManager_Membuffer_MMap = CXTUResourceUsageKind(
-    c_uint(8)
-)
+comptime CXTUResourceUsage_SourceManager_Membuffer_MMap = CXTUResourceUsageKind(c_uint(8))
 
-comptime CXTUResourceUsage_ExternalASTSource_Membuffer_Malloc = CXTUResourceUsageKind(
-    c_uint(9)
-)
+comptime CXTUResourceUsage_ExternalASTSource_Membuffer_Malloc = CXTUResourceUsageKind(c_uint(9))
 
-comptime CXTUResourceUsage_ExternalASTSource_Membuffer_MMap = CXTUResourceUsageKind(
-    c_uint(10)
-)
+comptime CXTUResourceUsage_ExternalASTSource_Membuffer_MMap = CXTUResourceUsageKind(c_uint(10))
 
 comptime CXTUResourceUsage_Preprocessor = CXTUResourceUsageKind(c_uint(11))
 
-comptime CXTUResourceUsage_PreprocessingRecord = CXTUResourceUsageKind(
-    c_uint(12)
-)
+comptime CXTUResourceUsage_PreprocessingRecord = CXTUResourceUsageKind(c_uint(12))
 
-comptime CXTUResourceUsage_SourceManager_DataStructures = CXTUResourceUsageKind(
-    c_uint(13)
-)
+comptime CXTUResourceUsage_SourceManager_DataStructures = CXTUResourceUsageKind(c_uint(13))
 
-comptime CXTUResourceUsage_Preprocessor_HeaderSearch = CXTUResourceUsageKind(
-    c_uint(14)
-)
+comptime CXTUResourceUsage_Preprocessor_HeaderSearch = CXTUResourceUsageKind(c_uint(14))
 
-comptime CXTUResourceUsage_MEMORY_IN_BYTES_BEGIN = CXTUResourceUsageKind(
-    c_uint(1)
-)
+comptime CXTUResourceUsage_MEMORY_IN_BYTES_BEGIN = CXTUResourceUsageKind(c_uint(1))
 
-comptime CXTUResourceUsage_MEMORY_IN_BYTES_END = CXTUResourceUsageKind(
-    c_uint(14)
-)
+comptime CXTUResourceUsage_MEMORY_IN_BYTES_END = CXTUResourceUsageKind(c_uint(14))
 
 comptime CXTUResourceUsage_First = CXTUResourceUsageKind(c_uint(1))
 
@@ -795,9 +648,7 @@ comptime CXCursor_OMPTargetUpdateDirective = CXCursorKind(c_uint(265))
 
 comptime CXCursor_OMPDistributeParallelForDirective = CXCursorKind(c_uint(266))
 
-comptime CXCursor_OMPDistributeParallelForSimdDirective = CXCursorKind(
-    c_uint(267)
-)
+comptime CXCursor_OMPDistributeParallelForSimdDirective = CXCursorKind(c_uint(267))
 
 comptime CXCursor_OMPDistributeSimdDirective = CXCursorKind(c_uint(268))
 
@@ -809,29 +660,19 @@ comptime CXCursor_OMPTeamsDistributeDirective = CXCursorKind(c_uint(271))
 
 comptime CXCursor_OMPTeamsDistributeSimdDirective = CXCursorKind(c_uint(272))
 
-comptime CXCursor_OMPTeamsDistributeParallelForSimdDirective = CXCursorKind(
-    c_uint(273)
-)
+comptime CXCursor_OMPTeamsDistributeParallelForSimdDirective = CXCursorKind(c_uint(273))
 
-comptime CXCursor_OMPTeamsDistributeParallelForDirective = CXCursorKind(
-    c_uint(274)
-)
+comptime CXCursor_OMPTeamsDistributeParallelForDirective = CXCursorKind(c_uint(274))
 
 comptime CXCursor_OMPTargetTeamsDirective = CXCursorKind(c_uint(275))
 
 comptime CXCursor_OMPTargetTeamsDistributeDirective = CXCursorKind(c_uint(276))
 
-comptime CXCursor_OMPTargetTeamsDistributeParallelForDirective = CXCursorKind(
-    c_uint(277)
-)
+comptime CXCursor_OMPTargetTeamsDistributeParallelForDirective = CXCursorKind(c_uint(277))
 
-comptime CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = CXCursorKind(
-    c_uint(278)
-)
+comptime CXCursor_OMPTargetTeamsDistributeParallelForSimdDirective = CXCursorKind(c_uint(278))
 
-comptime CXCursor_OMPTargetTeamsDistributeSimdDirective = CXCursorKind(
-    c_uint(279)
-)
+comptime CXCursor_OMPTargetTeamsDistributeSimdDirective = CXCursorKind(c_uint(279))
 
 comptime CXCursor_BuiltinBitCastExpr = CXCursorKind(c_uint(280))
 
@@ -841,9 +682,7 @@ comptime CXCursor_OMPParallelMasterTaskLoopDirective = CXCursorKind(c_uint(282))
 
 comptime CXCursor_OMPMasterTaskLoopSimdDirective = CXCursorKind(c_uint(283))
 
-comptime CXCursor_OMPParallelMasterTaskLoopSimdDirective = CXCursorKind(
-    c_uint(284)
-)
+comptime CXCursor_OMPParallelMasterTaskLoopSimdDirective = CXCursorKind(c_uint(284))
 
 comptime CXCursor_OMPParallelMasterDirective = CXCursorKind(c_uint(285))
 
@@ -873,9 +712,7 @@ comptime CXCursor_OMPTargetTeamsGenericLoopDirective = CXCursorKind(c_uint(297))
 
 comptime CXCursor_OMPParallelGenericLoopDirective = CXCursorKind(c_uint(298))
 
-comptime CXCursor_OMPTargetParallelGenericLoopDirective = CXCursorKind(
-    c_uint(299)
-)
+comptime CXCursor_OMPTargetParallelGenericLoopDirective = CXCursorKind(c_uint(299))
 
 comptime CXCursor_OMPParallelMaskedDirective = CXCursorKind(c_uint(300))
 
@@ -885,9 +722,7 @@ comptime CXCursor_OMPMaskedTaskLoopSimdDirective = CXCursorKind(c_uint(302))
 
 comptime CXCursor_OMPParallelMaskedTaskLoopDirective = CXCursorKind(c_uint(303))
 
-comptime CXCursor_OMPParallelMaskedTaskLoopSimdDirective = CXCursorKind(
-    c_uint(304)
-)
+comptime CXCursor_OMPParallelMaskedTaskLoopSimdDirective = CXCursorKind(c_uint(304))
 
 comptime CXCursor_OMPErrorDirective = CXCursorKind(c_uint(305))
 
@@ -1055,9 +890,7 @@ comptime CXTLS_Dynamic = CXTLSKind(c_uint(1))
 
 comptime CXTLS_Static = CXTLSKind(c_uint(2))
 
-comptime CXCursorSet = Optional[
-    UnsafePointer[CXCursorSetImpl, MutUntrackedOrigin]
-]
+comptime CXCursorSet = Optional[UnsafePointer[CXCursorSetImpl, MutUntrackedOrigin]]
 
 comptime CXTypeKind = c_uint
 
@@ -1291,33 +1124,19 @@ comptime CXType_OCLIntelSubgroupAVCRefResult = CXTypeKind(c_uint(170))
 
 comptime CXType_OCLIntelSubgroupAVCSicResult = CXTypeKind(c_uint(171))
 
-comptime CXType_OCLIntelSubgroupAVCImeResultSingleReferenceStreamout = CXTypeKind(
-    c_uint(172)
-)
+comptime CXType_OCLIntelSubgroupAVCImeResultSingleReferenceStreamout = CXTypeKind(c_uint(172))
 
-comptime CXType_OCLIntelSubgroupAVCImeResultDualReferenceStreamout = CXTypeKind(
-    c_uint(173)
-)
+comptime CXType_OCLIntelSubgroupAVCImeResultDualReferenceStreamout = CXTypeKind(c_uint(173))
 
-comptime CXType_OCLIntelSubgroupAVCImeSingleReferenceStreamin = CXTypeKind(
-    c_uint(174)
-)
+comptime CXType_OCLIntelSubgroupAVCImeSingleReferenceStreamin = CXTypeKind(c_uint(174))
 
-comptime CXType_OCLIntelSubgroupAVCImeDualReferenceStreamin = CXTypeKind(
-    c_uint(175)
-)
+comptime CXType_OCLIntelSubgroupAVCImeDualReferenceStreamin = CXTypeKind(c_uint(175))
 
-comptime CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout = CXTypeKind(
-    c_uint(172)
-)
+comptime CXType_OCLIntelSubgroupAVCImeResultSingleRefStreamout = CXTypeKind(c_uint(172))
 
-comptime CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = CXTypeKind(
-    c_uint(173)
-)
+comptime CXType_OCLIntelSubgroupAVCImeResultDualRefStreamout = CXTypeKind(c_uint(173))
 
-comptime CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = CXTypeKind(
-    c_uint(174)
-)
+comptime CXType_OCLIntelSubgroupAVCImeSingleRefStreamin = CXTypeKind(c_uint(174))
 
 comptime CXType_OCLIntelSubgroupAVCImeDualRefStreamin = CXTypeKind(c_uint(175))
 
@@ -1389,9 +1208,7 @@ comptime CXTemplateArgumentKind_Integral = CXTemplateArgumentKind(c_uint(4))
 
 comptime CXTemplateArgumentKind_Template = CXTemplateArgumentKind(c_uint(5))
 
-comptime CXTemplateArgumentKind_TemplateExpansion = CXTemplateArgumentKind(
-    c_uint(6)
-)
+comptime CXTemplateArgumentKind_TemplateExpansion = CXTemplateArgumentKind(c_uint(6))
 
 comptime CXTemplateArgumentKind_Expression = CXTemplateArgumentKind(c_uint(7))
 
@@ -1469,15 +1286,9 @@ comptime CXChildVisit_Continue = CXChildVisitResult(c_uint(1))
 
 comptime CXChildVisit_Recurse = CXChildVisitResult(c_uint(2))
 
-comptime CXCursorVisitor = def(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    client_data: CXClientData,
-) thin abi("C") -> CXChildVisitResult
+comptime CXCursorVisitor = def (cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], client_data: CXClientData) thin abi("C") -> CXChildVisitResult
 
-comptime CXCursorVisitorBlock = Optional[
-    UnsafePointer[_CXChildVisitResult, MutUntrackedOrigin]
-]
+comptime CXCursorVisitorBlock = Optional[UnsafePointer[_CXChildVisitResult, MutUntrackedOrigin]]
 
 comptime CXPrintingPolicy = Optional[MutOpaquePointer[MutUntrackedOrigin]]
 
@@ -1485,47 +1296,27 @@ comptime CXPrintingPolicyProperty = c_uint
 
 comptime CXPrintingPolicy_Indentation = CXPrintingPolicyProperty(c_uint(0))
 
-comptime CXPrintingPolicy_SuppressSpecifiers = CXPrintingPolicyProperty(
-    c_uint(1)
-)
+comptime CXPrintingPolicy_SuppressSpecifiers = CXPrintingPolicyProperty(c_uint(1))
 
-comptime CXPrintingPolicy_SuppressTagKeyword = CXPrintingPolicyProperty(
-    c_uint(2)
-)
+comptime CXPrintingPolicy_SuppressTagKeyword = CXPrintingPolicyProperty(c_uint(2))
 
-comptime CXPrintingPolicy_IncludeTagDefinition = CXPrintingPolicyProperty(
-    c_uint(3)
-)
+comptime CXPrintingPolicy_IncludeTagDefinition = CXPrintingPolicyProperty(c_uint(3))
 
 comptime CXPrintingPolicy_SuppressScope = CXPrintingPolicyProperty(c_uint(4))
 
-comptime CXPrintingPolicy_SuppressUnwrittenScope = CXPrintingPolicyProperty(
-    c_uint(5)
-)
+comptime CXPrintingPolicy_SuppressUnwrittenScope = CXPrintingPolicyProperty(c_uint(5))
 
-comptime CXPrintingPolicy_SuppressInitializers = CXPrintingPolicyProperty(
-    c_uint(6)
-)
+comptime CXPrintingPolicy_SuppressInitializers = CXPrintingPolicyProperty(c_uint(6))
 
-comptime CXPrintingPolicy_ConstantArraySizeAsWritten = CXPrintingPolicyProperty(
-    c_uint(7)
-)
+comptime CXPrintingPolicy_ConstantArraySizeAsWritten = CXPrintingPolicyProperty(c_uint(7))
 
-comptime CXPrintingPolicy_AnonymousTagLocations = CXPrintingPolicyProperty(
-    c_uint(8)
-)
+comptime CXPrintingPolicy_AnonymousTagLocations = CXPrintingPolicyProperty(c_uint(8))
 
-comptime CXPrintingPolicy_SuppressStrongLifetime = CXPrintingPolicyProperty(
-    c_uint(9)
-)
+comptime CXPrintingPolicy_SuppressStrongLifetime = CXPrintingPolicyProperty(c_uint(9))
 
-comptime CXPrintingPolicy_SuppressLifetimeQualifiers = CXPrintingPolicyProperty(
-    c_uint(10)
-)
+comptime CXPrintingPolicy_SuppressLifetimeQualifiers = CXPrintingPolicyProperty(c_uint(10))
 
-comptime CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors = CXPrintingPolicyProperty(
-    c_uint(11)
-)
+comptime CXPrintingPolicy_SuppressTemplateArgsInCXXConstructors = CXPrintingPolicyProperty(c_uint(11))
 
 comptime CXPrintingPolicy_Bool = CXPrintingPolicyProperty(c_uint(12))
 
@@ -1533,19 +1324,13 @@ comptime CXPrintingPolicy_Restrict = CXPrintingPolicyProperty(c_uint(13))
 
 comptime CXPrintingPolicy_Alignof = CXPrintingPolicyProperty(c_uint(14))
 
-comptime CXPrintingPolicy_UnderscoreAlignof = CXPrintingPolicyProperty(
-    c_uint(15)
-)
+comptime CXPrintingPolicy_UnderscoreAlignof = CXPrintingPolicyProperty(c_uint(15))
 
-comptime CXPrintingPolicy_UseVoidForZeroParams = CXPrintingPolicyProperty(
-    c_uint(16)
-)
+comptime CXPrintingPolicy_UseVoidForZeroParams = CXPrintingPolicyProperty(c_uint(16))
 
 comptime CXPrintingPolicy_TerseOutput = CXPrintingPolicyProperty(c_uint(17))
 
-comptime CXPrintingPolicy_PolishForDeclaration = CXPrintingPolicyProperty(
-    c_uint(18)
-)
+comptime CXPrintingPolicy_PolishForDeclaration = CXPrintingPolicyProperty(c_uint(18))
 
 comptime CXPrintingPolicy_Half = CXPrintingPolicyProperty(c_uint(19))
 
@@ -1555,17 +1340,11 @@ comptime CXPrintingPolicy_IncludeNewlines = CXPrintingPolicyProperty(c_uint(21))
 
 comptime CXPrintingPolicy_MSVCFormatting = CXPrintingPolicyProperty(c_uint(22))
 
-comptime CXPrintingPolicy_ConstantsAsWritten = CXPrintingPolicyProperty(
-    c_uint(23)
-)
+comptime CXPrintingPolicy_ConstantsAsWritten = CXPrintingPolicyProperty(c_uint(23))
 
-comptime CXPrintingPolicy_SuppressImplicitBase = CXPrintingPolicyProperty(
-    c_uint(24)
-)
+comptime CXPrintingPolicy_SuppressImplicitBase = CXPrintingPolicyProperty(c_uint(24))
 
-comptime CXPrintingPolicy_FullyQualifiedName = CXPrintingPolicyProperty(
-    c_uint(25)
-)
+comptime CXPrintingPolicy_FullyQualifiedName = CXPrintingPolicyProperty(c_uint(25))
 
 comptime CXPrintingPolicy_LastProperty = CXPrintingPolicyProperty(c_uint(25))
 
@@ -1595,9 +1374,7 @@ comptime CXObjCPropertyAttr_weak = CXObjCPropertyAttrKind(c_uint(512))
 
 comptime CXObjCPropertyAttr_strong = CXObjCPropertyAttrKind(c_uint(1024))
 
-comptime CXObjCPropertyAttr_unsafe_unretained = CXObjCPropertyAttrKind(
-    c_uint(2048)
-)
+comptime CXObjCPropertyAttr_unsafe_unretained = CXObjCPropertyAttrKind(c_uint(2048))
 
 comptime CXObjCPropertyAttr_class = CXObjCPropertyAttrKind(c_uint(4096))
 
@@ -1695,9 +1472,7 @@ comptime CXCodeComplete_IncludeBriefComments = CXCodeComplete_Flags(c_uint(4))
 
 comptime CXCodeComplete_SkipPreamble = CXCodeComplete_Flags(c_uint(8))
 
-comptime CXCodeComplete_IncludeCompletionsWithFixIts = CXCodeComplete_Flags(
-    c_uint(16)
-)
+comptime CXCodeComplete_IncludeCompletionsWithFixIts = CXCodeComplete_Flags(c_uint(16))
 
 comptime CXCompletionContext = c_uint
 
@@ -1717,9 +1492,7 @@ comptime CXCompletionContext_DotMemberAccess = CXCompletionContext(c_uint(32))
 
 comptime CXCompletionContext_ArrowMemberAccess = CXCompletionContext(c_uint(64))
 
-comptime CXCompletionContext_ObjCPropertyAccess = CXCompletionContext(
-    c_uint(128)
-)
+comptime CXCompletionContext_ObjCPropertyAccess = CXCompletionContext(c_uint(128))
 
 comptime CXCompletionContext_EnumTag = CXCompletionContext(c_uint(256))
 
@@ -1731,9 +1504,7 @@ comptime CXCompletionContext_ClassTag = CXCompletionContext(c_uint(2048))
 
 comptime CXCompletionContext_Namespace = CXCompletionContext(c_uint(4096))
 
-comptime CXCompletionContext_NestedNameSpecifier = CXCompletionContext(
-    c_uint(8192)
-)
+comptime CXCompletionContext_NestedNameSpecifier = CXCompletionContext(c_uint(8192))
 
 comptime CXCompletionContext_ObjCInterface = CXCompletionContext(c_uint(16384))
 
@@ -1741,36 +1512,21 @@ comptime CXCompletionContext_ObjCProtocol = CXCompletionContext(c_uint(32768))
 
 comptime CXCompletionContext_ObjCCategory = CXCompletionContext(c_uint(65536))
 
-comptime CXCompletionContext_ObjCInstanceMessage = CXCompletionContext(
-    c_uint(131072)
-)
+comptime CXCompletionContext_ObjCInstanceMessage = CXCompletionContext(c_uint(131072))
 
-comptime CXCompletionContext_ObjCClassMessage = CXCompletionContext(
-    c_uint(262144)
-)
+comptime CXCompletionContext_ObjCClassMessage = CXCompletionContext(c_uint(262144))
 
-comptime CXCompletionContext_ObjCSelectorName = CXCompletionContext(
-    c_uint(524288)
-)
+comptime CXCompletionContext_ObjCSelectorName = CXCompletionContext(c_uint(524288))
 
 comptime CXCompletionContext_MacroName = CXCompletionContext(c_uint(1048576))
 
-comptime CXCompletionContext_NaturalLanguage = CXCompletionContext(
-    c_uint(2097152)
-)
+comptime CXCompletionContext_NaturalLanguage = CXCompletionContext(c_uint(2097152))
 
 comptime CXCompletionContext_IncludedFile = CXCompletionContext(c_uint(4194304))
 
 comptime CXCompletionContext_Unknown = CXCompletionContext(c_uint(8388607))
 
-comptime CXInclusionVisitor = def(
-    included_file: CXFile,
-    inclusion_stack: Optional[
-        UnsafePointer[CXSourceLocation, MutUntrackedOrigin]
-    ],
-    include_len: c_uint,
-    client_data: CXClientData,
-) thin abi("C") -> None
+comptime CXInclusionVisitor = def (included_file: CXFile, inclusion_stack: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], include_len: c_uint, client_data: CXClientData) thin abi("C") -> None
 
 comptime CXEvalResultKind = c_uint
 
@@ -1806,9 +1562,7 @@ comptime CXResult_Invalid = CXResult(c_uint(1))
 
 comptime CXResult_VisitBreak = CXResult(c_uint(2))
 
-comptime CXCursorAndRangeVisitorBlock = Optional[
-    UnsafePointer[_CXCursorAndRangeVisitorBlock, MutUntrackedOrigin]
-]
+comptime CXCursorAndRangeVisitorBlock = Optional[UnsafePointer[_CXCursorAndRangeVisitorBlock, MutUntrackedOrigin]]
 
 comptime CXIdxClientFile = Optional[MutOpaquePointer[MutUntrackedOrigin]]
 
@@ -1894,13 +1648,9 @@ comptime CXIdxEntity_NonTemplate = CXIdxEntityCXXTemplateKind(c_uint(0))
 
 comptime CXIdxEntity_Template = CXIdxEntityCXXTemplateKind(c_uint(1))
 
-comptime CXIdxEntity_TemplatePartialSpecialization = CXIdxEntityCXXTemplateKind(
-    c_uint(2)
-)
+comptime CXIdxEntity_TemplatePartialSpecialization = CXIdxEntityCXXTemplateKind(c_uint(2))
 
-comptime CXIdxEntity_TemplateSpecialization = CXIdxEntityCXXTemplateKind(
-    c_uint(3)
-)
+comptime CXIdxEntity_TemplateSpecialization = CXIdxEntityCXXTemplateKind(c_uint(3))
 
 comptime CXIdxAttrKind = c_uint
 
@@ -1962,18 +1712,13 @@ comptime CXIndexOpt_SuppressRedundantRefs = CXIndexOptFlags(c_uint(1))
 
 comptime CXIndexOpt_IndexFunctionLocalSymbols = CXIndexOptFlags(c_uint(2))
 
-comptime CXIndexOpt_IndexImplicitTemplateInstantiations = CXIndexOptFlags(
-    c_uint(4)
-)
+comptime CXIndexOpt_IndexImplicitTemplateInstantiations = CXIndexOptFlags(c_uint(4))
 
 comptime CXIndexOpt_SuppressWarnings = CXIndexOptFlags(c_uint(8))
 
 comptime CXIndexOpt_SkipParsedBodiesInSession = CXIndexOptFlags(c_uint(16))
 
-comptime CXFieldVisitor = def(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    client_data: CXClientData,
-) thin abi("C") -> CXVisitorResult
+comptime CXFieldVisitor = def (C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], client_data: CXClientData) thin abi("C") -> CXVisitorResult
 
 comptime CXBinaryOperatorKind = c_uint
 
@@ -2107,37 +1852,23 @@ comptime CXComment_FullComment = CXCommentKind(c_uint(12))
 
 comptime CXCommentInlineCommandRenderKind = c_uint
 
-comptime CXCommentInlineCommandRenderKind_Normal = CXCommentInlineCommandRenderKind(
-    c_uint(0)
-)
+comptime CXCommentInlineCommandRenderKind_Normal = CXCommentInlineCommandRenderKind(c_uint(0))
 
-comptime CXCommentInlineCommandRenderKind_Bold = CXCommentInlineCommandRenderKind(
-    c_uint(1)
-)
+comptime CXCommentInlineCommandRenderKind_Bold = CXCommentInlineCommandRenderKind(c_uint(1))
 
-comptime CXCommentInlineCommandRenderKind_Monospaced = CXCommentInlineCommandRenderKind(
-    c_uint(2)
-)
+comptime CXCommentInlineCommandRenderKind_Monospaced = CXCommentInlineCommandRenderKind(c_uint(2))
 
-comptime CXCommentInlineCommandRenderKind_Emphasized = CXCommentInlineCommandRenderKind(
-    c_uint(3)
-)
+comptime CXCommentInlineCommandRenderKind_Emphasized = CXCommentInlineCommandRenderKind(c_uint(3))
 
-comptime CXCommentInlineCommandRenderKind_Anchor = CXCommentInlineCommandRenderKind(
-    c_uint(4)
-)
+comptime CXCommentInlineCommandRenderKind_Anchor = CXCommentInlineCommandRenderKind(c_uint(4))
 
 comptime CXCommentParamPassDirection = c_uint
 
 comptime CXCommentParamPassDirection_In = CXCommentParamPassDirection(c_uint(0))
 
-comptime CXCommentParamPassDirection_Out = CXCommentParamPassDirection(
-    c_uint(1)
-)
+comptime CXCommentParamPassDirection_Out = CXCommentParamPassDirection(c_uint(1))
 
-comptime CXCommentParamPassDirection_InOut = CXCommentParamPassDirection(
-    c_uint(2)
-)
+comptime CXCommentParamPassDirection_InOut = CXCommentParamPassDirection(c_uint(2))
 
 comptime CXAPISet = Optional[UnsafePointer[CXAPISetImpl, MutUntrackedOrigin]]
 
@@ -2151,9 +1882,7 @@ comptime CXCompilationDatabase_Error = c_uint
 
 comptime CXCompilationDatabase_NoError = CXCompilationDatabase_Error(c_uint(0))
 
-comptime CXCompilationDatabase_CanNotLoadDatabase = CXCompilationDatabase_Error(
-    c_uint(1)
-)
+comptime CXCompilationDatabase_CanNotLoadDatabase = CXCompilationDatabase_Error(c_uint(1))
 
 comptime CXRewriter = Optional[MutOpaquePointer[MutUntrackedOrigin]]
 
@@ -2178,14 +1907,11 @@ comptime CINDEX_VERSION = c_int(64)
 
 comptime CINDEX_VERSION_STRING = c_int(0)
 
-
 struct _CXChildVisitResult(Copyable, Movable):
     pass
 
-
 struct _CXCursorAndRangeVisitorBlock(Copyable, Movable):
     pass
-
 
 @align(8)
 @fieldwise_init
@@ -2193,46 +1919,35 @@ struct CXString(RegisterPassable):
     var data: Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]]
     var private_flags: c_uint
 
-
 @align(8)
 @fieldwise_init
 struct CXStringSet(RegisterPassable):
     var Strings: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
     var Count: c_uint
 
-
 struct CXVirtualFileOverlayImpl(Copyable, Movable):
     pass
 
-
 struct CXModuleMapDescriptorImpl(Copyable, Movable):
     pass
-
 
 @align(8)
 @fieldwise_init
 struct CXFileUniqueID(Copyable, Movable):
     var data: InlineArray[c_ulong_long, 3]
 
-
 @align(8)
 @fieldwise_init
 struct CXSourceLocation(Copyable, Movable):
-    var ptr_data: InlineArray[
-        Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
-    ]
+    var ptr_data: InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2]
     var int_data: c_uint
-
 
 @align(8)
 @fieldwise_init
 struct CXSourceRange(Copyable, Movable):
-    var ptr_data: InlineArray[
-        Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
-    ]
+    var ptr_data: InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2]
     var begin_int_data: c_uint
     var end_int_data: c_uint
-
 
 @align(8)
 @fieldwise_init
@@ -2240,14 +1955,11 @@ struct CXSourceRangeList(RegisterPassable):
     var count: c_uint
     var ranges: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]
 
-
 struct CXTargetInfoImpl(Copyable, Movable):
     pass
 
-
 struct CXTranslationUnitImpl(Copyable, Movable):
     pass
-
 
 @align(8)
 @fieldwise_init
@@ -2256,7 +1968,6 @@ struct CXUnsavedFile(RegisterPassable):
     var Contents: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
     var Length: c_ulong
 
-
 @align(4)
 @fieldwise_init
 struct CXVersion(TrivialRegisterPassable):
@@ -2264,13 +1975,11 @@ struct CXVersion(TrivialRegisterPassable):
     var Minor: c_int
     var Subminor: c_int
 
-
 # NOTE[struct_mapping]: member at byte offset 4 is before the natural typed offset 8; opaque storage emitted
 # NOTE[struct_mapping]: member at byte offset 4 is before the natural typed offset 8
 @align(8)
 struct CXIndexOptions(Copyable, Movable):
     var storage: InlineArray[UInt8, 24]
-
 
 @align(8)
 @fieldwise_init
@@ -2278,16 +1987,12 @@ struct CXTUResourceUsageEntry(TrivialRegisterPassable):
     var kind: CXTUResourceUsageKind
     var amount: c_ulong
 
-
 @align(8)
 @fieldwise_init
 struct CXTUResourceUsage(RegisterPassable):
     var data: Optional[MutOpaquePointer[MutUntrackedOrigin]]
     var numEntries: c_uint
-    var entries: Optional[
-        UnsafePointer[CXTUResourceUsageEntry, MutUntrackedOrigin]
-    ]
-
+    var entries: Optional[UnsafePointer[CXTUResourceUsageEntry, MutUntrackedOrigin]]
 
 @align(8)
 @fieldwise_init
@@ -2295,7 +2000,6 @@ struct CXCursor(Copyable, Movable):
     var kind: CXCursorKind
     var xdata: c_int
     var data: InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 3]
-
 
 @align(8)
 @fieldwise_init
@@ -2307,10 +2011,8 @@ struct CXPlatformAvailability(RegisterPassable):
     var Unavailable: c_int
     var Message: CXString
 
-
 struct CXCursorSetImpl(Copyable, Movable):
     pass
-
 
 @align(8)
 @fieldwise_init
@@ -2318,13 +2020,11 @@ struct CXType(Copyable, Movable):
     var kind: CXTypeKind
     var data: InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2]
 
-
 @align(8)
 @fieldwise_init
 struct CXToken(Copyable, Movable):
     var int_data: InlineArray[c_uint, 4]
     var ptr_data: Optional[MutOpaquePointer[MutUntrackedOrigin]]
-
 
 @align(8)
 @fieldwise_init
@@ -2332,13 +2032,11 @@ struct CXCompletionResult(RegisterPassable):
     var CursorKind: CXCursorKind
     var CompletionString: CXCompletionString
 
-
 @align(8)
 @fieldwise_init
 struct CXCodeCompleteResults(RegisterPassable):
     var Results: Optional[UnsafePointer[CXCompletionResult, MutUntrackedOrigin]]
     var NumResults: c_uint
-
 
 @align(8)
 @fieldwise_init
@@ -2346,13 +2044,11 @@ struct CXCursorAndRangeVisitor(RegisterPassable):
     var context: Optional[MutOpaquePointer[MutUntrackedOrigin]]
     var visit: CXCursorAndRangeVisitor_visit_cb
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxLoc(Copyable, Movable):
     var ptr_data: InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2]
     var int_data: c_uint
-
 
 @align(8)
 @fieldwise_init
@@ -2364,7 +2060,6 @@ struct CXIdxIncludedFileInfo(Copyable, Movable):
     var isAngled: c_int
     var isModuleImport: c_int
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxImportedASTFileInfo(Copyable, Movable):
@@ -2373,14 +2068,12 @@ struct CXIdxImportedASTFileInfo(Copyable, Movable):
     var loc: CXIdxLoc
     var isImplicit: c_int
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxAttrInfo(Copyable, Movable):
     var kind: CXIdxAttrKind
     var cursor: CXCursor
     var loc: CXIdxLoc
-
 
 @align(8)
 @fieldwise_init
@@ -2391,69 +2084,44 @@ struct CXIdxEntityInfo(Copyable, Movable):
     var name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
     var USR: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
     var cursor: CXCursor
-    var attributes: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ]
+    var attributes: Optional[UnsafePointer[Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]]
     var numAttributes: c_uint
-
 
 @align(8)
 @fieldwise_init
 struct CXIdxContainerInfo(Copyable, Movable):
     var cursor: CXCursor
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxIBOutletCollectionAttrInfo(Copyable, Movable):
     var attrInfo: Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]]
-    var objcClass: Optional[
-        UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]
-    ]
+    var objcClass: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
     var classCursor: CXCursor
     var classLoc: CXIdxLoc
-
 
 @align(8)
 @fieldwise_init
 struct CXIdxDeclInfo(Copyable, Movable):
-    var entityInfo: Optional[
-        UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]
-    ]
+    var entityInfo: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
     var cursor: CXCursor
     var loc: CXIdxLoc
-    var semanticContainer: Optional[
-        UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]
-    ]
-    var lexicalContainer: Optional[
-        UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]
-    ]
+    var semanticContainer: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]
+    var lexicalContainer: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]
     var isRedeclaration: c_int
     var isDefinition: c_int
     var isContainer: c_int
-    var declAsContainer: Optional[
-        UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]
-    ]
+    var declAsContainer: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]
     var isImplicit: c_int
-    var attributes: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ]
+    var attributes: Optional[UnsafePointer[Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]]
     var numAttributes: c_uint
     var flags: c_uint
-
 
 @align(8)
 @fieldwise_init
 struct CXIdxObjCContainerDeclInfo(RegisterPassable):
     var declInfo: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
     var kind: CXIdxObjCContainerKind
-
 
 @align(8)
 @fieldwise_init
@@ -2462,7 +2130,6 @@ struct CXIdxBaseClassInfo(Copyable, Movable):
     var cursor: CXCursor
     var loc: CXIdxLoc
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxObjCProtocolRefInfo(Copyable, Movable):
@@ -2470,50 +2137,27 @@ struct CXIdxObjCProtocolRefInfo(Copyable, Movable):
     var cursor: CXCursor
     var loc: CXIdxLoc
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxObjCProtocolRefListInfo(RegisterPassable):
-    var protocols: Optional[
-        UnsafePointer[
-            Optional[
-                UnsafePointer[CXIdxObjCProtocolRefInfo, ImmutUntrackedOrigin]
-            ],
-            ImmutUntrackedOrigin,
-        ]
-    ]
+    var protocols: Optional[UnsafePointer[Optional[UnsafePointer[CXIdxObjCProtocolRefInfo, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]]
     var numProtocols: c_uint
-
 
 @align(8)
 @fieldwise_init
 struct CXIdxObjCInterfaceDeclInfo(RegisterPassable):
-    var containerInfo: Optional[
-        UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]
-    ]
-    var superInfo: Optional[
-        UnsafePointer[CXIdxBaseClassInfo, ImmutUntrackedOrigin]
-    ]
-    var protocols: Optional[
-        UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]
-    ]
-
+    var containerInfo: Optional[UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]]
+    var superInfo: Optional[UnsafePointer[CXIdxBaseClassInfo, ImmutUntrackedOrigin]]
+    var protocols: Optional[UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]]
 
 @align(8)
 @fieldwise_init
 struct CXIdxObjCCategoryDeclInfo(Copyable, Movable):
-    var containerInfo: Optional[
-        UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]
-    ]
-    var objcClass: Optional[
-        UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]
-    ]
+    var containerInfo: Optional[UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]]
+    var objcClass: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
     var classCursor: CXCursor
     var classLoc: CXIdxLoc
-    var protocols: Optional[
-        UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]
-    ]
-
+    var protocols: Optional[UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]]
 
 @align(8)
 @fieldwise_init
@@ -2522,19 +2166,12 @@ struct CXIdxObjCPropertyDeclInfo(RegisterPassable):
     var getter: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
     var setter: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
 
-
 @align(8)
 @fieldwise_init
 struct CXIdxCXXClassDeclInfo(RegisterPassable):
     var declInfo: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-    var bases: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[CXIdxBaseClassInfo, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ]
+    var bases: Optional[UnsafePointer[Optional[UnsafePointer[CXIdxBaseClassInfo, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]]
     var numBases: c_uint
-
 
 @align(8)
 @fieldwise_init
@@ -2542,17 +2179,10 @@ struct CXIdxEntityRefInfo(Copyable, Movable):
     var kind: CXIdxEntityRefKind
     var cursor: CXCursor
     var loc: CXIdxLoc
-    var referencedEntity: Optional[
-        UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]
-    ]
-    var parentEntity: Optional[
-        UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]
-    ]
-    var container: Optional[
-        UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]
-    ]
+    var referencedEntity: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
+    var parentEntity: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
+    var container: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]
     var role: CXSymbolRole
-
 
 @align(8)
 @fieldwise_init
@@ -2566,5115 +2196,1651 @@ struct IndexerCallbacks(TrivialRegisterPassable):
     var indexDeclaration: IndexerCallbacks_indexDeclaration_cb
     var indexEntityReference: IndexerCallbacks_indexEntityReference_cb
 
-
 @align(8)
 @fieldwise_init
 struct CXComment(RegisterPassable):
     var ASTNode: Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]]
     var TranslationUnit: CXTranslationUnit
 
-
 struct CXAPISetImpl(Copyable, Movable):
     pass
 
+def clang_getCString(string: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_getCString"))
+    return _bindgen_c_fn(string)
 
-def clang_getCString(
-    string: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
-) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-    ](StringSlice("mojo_clang_getCString"))
-    return fn_(string)
+def clang_disposeString(string: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeString"))
+    _bindgen_c_fn(string)
 
-
-def clang_disposeString(
-    string: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeString"))
-    fn_(string)
-
-
-def clang_disposeStringSet(
-    set: Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeStringSet"))
-    fn_(set)
-
+def clang_disposeStringSet(set: Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeStringSet"))
+    _bindgen_c_fn(set)
 
 def clang_getBuildSessionTimestamp() -> c_ulong_long:
-    var fn_ = _bindgen_function[def() thin abi("C") -> c_ulong_long](
-        StringSlice("mojo_clang_getBuildSessionTimestamp")
-    )
-    return fn_()
-
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> c_ulong_long](StringSlice("mojo_clang_getBuildSessionTimestamp"))
+    return _bindgen_c_fn()
 
 def clang_VirtualFileOverlay_create(options: c_uint) -> CXVirtualFileOverlay:
-    var fn_ = _bindgen_function[
-        def(c_uint) thin abi("C") -> CXVirtualFileOverlay
-    ](StringSlice("mojo_clang_VirtualFileOverlay_create"))
-    return fn_(options)
+    var _bindgen_c_fn = _bindgen_function[def(c_uint) thin abi("C") -> CXVirtualFileOverlay](StringSlice("mojo_clang_VirtualFileOverlay_create"))
+    return _bindgen_c_fn(options)
 
+def clang_VirtualFileOverlay_addFileMapping(a0: CXVirtualFileOverlay, virtualPath: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], realPath: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXVirtualFileOverlay, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_VirtualFileOverlay_addFileMapping"))
+    return _bindgen_c_fn(a0, virtualPath, realPath)
 
-def clang_VirtualFileOverlay_addFileMapping(
-    a0: CXVirtualFileOverlay,
-    virtualPath: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    realPath: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXVirtualFileOverlay,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_VirtualFileOverlay_addFileMapping"))
-    return fn_(a0, virtualPath, realPath)
+def clang_VirtualFileOverlay_setCaseSensitivity(a0: CXVirtualFileOverlay, caseSensitive: c_int) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXVirtualFileOverlay, c_int) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_VirtualFileOverlay_setCaseSensitivity"))
+    return _bindgen_c_fn(a0, caseSensitive)
 
-
-def clang_VirtualFileOverlay_setCaseSensitivity(
-    a0: CXVirtualFileOverlay, caseSensitive: c_int
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(CXVirtualFileOverlay, c_int) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_VirtualFileOverlay_setCaseSensitivity"))
-    return fn_(a0, caseSensitive)
-
-
-def clang_VirtualFileOverlay_writeToBuffer(
-    a0: CXVirtualFileOverlay,
-    options: c_uint,
-    out_buffer_ptr: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, MutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    out_buffer_size: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXVirtualFileOverlay,
-            c_uint,
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, MutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_VirtualFileOverlay_writeToBuffer"))
-    return fn_(a0, options, out_buffer_ptr, out_buffer_size)
-
+def clang_VirtualFileOverlay_writeToBuffer(a0: CXVirtualFileOverlay, options: c_uint, out_buffer_ptr: Optional[UnsafePointer[Optional[UnsafePointer[c_char, MutUntrackedOrigin]], MutUntrackedOrigin]], out_buffer_size: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXVirtualFileOverlay, c_uint, Optional[UnsafePointer[Optional[UnsafePointer[c_char, MutUntrackedOrigin]], MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_VirtualFileOverlay_writeToBuffer"))
+    return _bindgen_c_fn(a0, options, out_buffer_ptr, out_buffer_size)
 
 def clang_free(buffer: Optional[MutOpaquePointer[MutUntrackedOrigin]]) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[MutOpaquePointer[MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_free"))
-    fn_(buffer)
-
+    var _bindgen_c_fn = _bindgen_function[def(Optional[MutOpaquePointer[MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_free"))
+    _bindgen_c_fn(buffer)
 
 def clang_VirtualFileOverlay_dispose(a0: CXVirtualFileOverlay) -> None:
-    var fn_ = _bindgen_function[
-        def(CXVirtualFileOverlay) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_VirtualFileOverlay_dispose"))
-    fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXVirtualFileOverlay) thin abi("C") -> NoneType](StringSlice("mojo_clang_VirtualFileOverlay_dispose"))
+    _bindgen_c_fn(a0)
 
 def clang_ModuleMapDescriptor_create(options: c_uint) -> CXModuleMapDescriptor:
-    var fn_ = _bindgen_function[
-        def(c_uint) thin abi("C") -> CXModuleMapDescriptor
-    ](StringSlice("mojo_clang_ModuleMapDescriptor_create"))
-    return fn_(options)
+    var _bindgen_c_fn = _bindgen_function[def(c_uint) thin abi("C") -> CXModuleMapDescriptor](StringSlice("mojo_clang_ModuleMapDescriptor_create"))
+    return _bindgen_c_fn(options)
 
+def clang_ModuleMapDescriptor_setFrameworkModuleName(a0: CXModuleMapDescriptor, name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXModuleMapDescriptor, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_ModuleMapDescriptor_setFrameworkModuleName"))
+    return _bindgen_c_fn(a0, name)
 
-def clang_ModuleMapDescriptor_setFrameworkModuleName(
-    a0: CXModuleMapDescriptor,
-    name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXModuleMapDescriptor,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_ModuleMapDescriptor_setFrameworkModuleName"))
-    return fn_(a0, name)
+def clang_ModuleMapDescriptor_setUmbrellaHeader(a0: CXModuleMapDescriptor, name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXModuleMapDescriptor, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_ModuleMapDescriptor_setUmbrellaHeader"))
+    return _bindgen_c_fn(a0, name)
 
-
-def clang_ModuleMapDescriptor_setUmbrellaHeader(
-    a0: CXModuleMapDescriptor,
-    name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXModuleMapDescriptor,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_ModuleMapDescriptor_setUmbrellaHeader"))
-    return fn_(a0, name)
-
-
-def clang_ModuleMapDescriptor_writeToBuffer(
-    a0: CXModuleMapDescriptor,
-    options: c_uint,
-    out_buffer_ptr: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, MutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    out_buffer_size: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXModuleMapDescriptor,
-            c_uint,
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, MutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_ModuleMapDescriptor_writeToBuffer"))
-    return fn_(a0, options, out_buffer_ptr, out_buffer_size)
-
+def clang_ModuleMapDescriptor_writeToBuffer(a0: CXModuleMapDescriptor, options: c_uint, out_buffer_ptr: Optional[UnsafePointer[Optional[UnsafePointer[c_char, MutUntrackedOrigin]], MutUntrackedOrigin]], out_buffer_size: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXModuleMapDescriptor, c_uint, Optional[UnsafePointer[Optional[UnsafePointer[c_char, MutUntrackedOrigin]], MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_ModuleMapDescriptor_writeToBuffer"))
+    return _bindgen_c_fn(a0, options, out_buffer_ptr, out_buffer_size)
 
 def clang_ModuleMapDescriptor_dispose(a0: CXModuleMapDescriptor) -> None:
-    var fn_ = _bindgen_function[
-        def(CXModuleMapDescriptor) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_ModuleMapDescriptor_dispose"))
-    fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXModuleMapDescriptor) thin abi("C") -> NoneType](StringSlice("mojo_clang_ModuleMapDescriptor_dispose"))
+    _bindgen_c_fn(a0)
 
-
-def clang_getFileName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], SFile: CXFile
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXFile
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getFileName"))
-    fn_(out_, SFile)
-
+def clang_getFileName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], SFile: CXFile) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXFile) thin abi("C") -> NoneType](StringSlice("mojo_clang_getFileName"))
+    _bindgen_c_fn(out_, SFile)
 
 def clang_getFileTime(SFile: CXFile) -> time_t:
-    var fn_ = _bindgen_function[def(CXFile) thin abi("C") -> time_t](
-        StringSlice("mojo_clang_getFileTime")
-    )
-    return fn_(SFile)
+    var _bindgen_c_fn = _bindgen_function[def(CXFile) thin abi("C") -> time_t](StringSlice("mojo_clang_getFileTime"))
+    return _bindgen_c_fn(SFile)
 
-
-def clang_getFileUniqueID(
-    file: CXFile,
-    outID: Optional[UnsafePointer[CXFileUniqueID, MutUntrackedOrigin]],
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            CXFile, Optional[UnsafePointer[CXFileUniqueID, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_getFileUniqueID"))
-    return fn_(file, outID)
-
+def clang_getFileUniqueID(file: CXFile, outID: Optional[UnsafePointer[CXFileUniqueID, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(CXFile, Optional[UnsafePointer[CXFileUniqueID, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_getFileUniqueID"))
+    return _bindgen_c_fn(file, outID)
 
 def clang_File_isEqual(file1: CXFile, file2: CXFile) -> c_int:
-    var fn_ = _bindgen_function[def(CXFile, CXFile) thin abi("C") -> c_int](
-        StringSlice("mojo_clang_File_isEqual")
-    )
-    return fn_(file1, file2)
+    var _bindgen_c_fn = _bindgen_function[def(CXFile, CXFile) thin abi("C") -> c_int](StringSlice("mojo_clang_File_isEqual"))
+    return _bindgen_c_fn(file1, file2)
 
+def clang_File_tryGetRealPathName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], file: CXFile) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXFile) thin abi("C") -> NoneType](StringSlice("mojo_clang_File_tryGetRealPathName"))
+    _bindgen_c_fn(out_, file)
 
-def clang_File_tryGetRealPathName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], file: CXFile
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXFile
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_File_tryGetRealPathName"))
-    fn_(out_, file)
+def clang_getNullLocation(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getNullLocation"))
+    _bindgen_c_fn(out_)
 
+def clang_equalLocations(loc1: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], loc2: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_equalLocations"))
+    return _bindgen_c_fn(loc1, loc2)
 
-def clang_getNullLocation(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getNullLocation"))
-    fn_(out_)
+def clang_Location_isInSystemHeader(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Location_isInSystemHeader"))
+    return _bindgen_c_fn(location)
 
+def clang_Location_isFromMainFile(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Location_isFromMainFile"))
+    return _bindgen_c_fn(location)
 
-def clang_equalLocations(
-    loc1: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    loc2: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_equalLocations"))
-    return fn_(loc1, loc2)
+def clang_getNullRange(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getNullRange"))
+    _bindgen_c_fn(out_)
 
+def clang_getRange(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], begin: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], end: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getRange"))
+    _bindgen_c_fn(out_, begin, end)
 
-def clang_Location_isInSystemHeader(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Location_isInSystemHeader"))
-    return fn_(location)
+def clang_equalRanges(range1: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], range2: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_equalRanges"))
+    return _bindgen_c_fn(range1, range2)
 
+def clang_Range_isNull(range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Range_isNull"))
+    return _bindgen_c_fn(range)
 
-def clang_Location_isFromMainFile(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Location_isFromMainFile"))
-    return fn_(location)
+def clang_getExpansionLocation(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getExpansionLocation"))
+    _bindgen_c_fn(location, file, line, column, offset)
 
+def clang_getPresumedLocation(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], filename: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getPresumedLocation"))
+    _bindgen_c_fn(location, filename, line, column)
 
-def clang_getNullRange(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getNullRange"))
-    fn_(out_)
+def clang_getInstantiationLocation(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getInstantiationLocation"))
+    _bindgen_c_fn(location, file, line, column, offset)
 
+def clang_getSpellingLocation(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getSpellingLocation"))
+    _bindgen_c_fn(location, file, line, column, offset)
 
-def clang_getRange(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    begin: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    end: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getRange"))
-    fn_(out_, begin, end)
+def clang_getFileLocation(location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getFileLocation"))
+    _bindgen_c_fn(location, file, line, column, offset)
 
+def clang_getRangeStart(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getRangeStart"))
+    _bindgen_c_fn(out_, range)
 
-def clang_equalRanges(
-    range1: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    range2: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_equalRanges"))
-    return fn_(range1, range2)
+def clang_getRangeEnd(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getRangeEnd"))
+    _bindgen_c_fn(out_, range)
 
-
-def clang_Range_isNull(
-    range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Range_isNull"))
-    return fn_(range)
-
-
-def clang_getExpansionLocation(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-    line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getExpansionLocation"))
-    fn_(location, file, line, column, offset)
-
-
-def clang_getPresumedLocation(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    filename: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getPresumedLocation"))
-    fn_(location, filename, line, column)
-
-
-def clang_getInstantiationLocation(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-    line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getInstantiationLocation"))
-    fn_(location, file, line, column, offset)
-
-
-def clang_getSpellingLocation(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-    line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getSpellingLocation"))
-    fn_(location, file, line, column, offset)
-
-
-def clang_getFileLocation(
-    location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-    line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getFileLocation"))
-    fn_(location, file, line, column, offset)
-
-
-def clang_getRangeStart(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getRangeStart"))
-    fn_(out_, range)
-
-
-def clang_getRangeEnd(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getRangeEnd"))
-    fn_(out_, range)
-
-
-def clang_disposeSourceRangeList(
-    ranges: Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeSourceRangeList"))
-    fn_(ranges)
-
+def clang_disposeSourceRangeList(ranges: Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeSourceRangeList"))
+    _bindgen_c_fn(ranges)
 
 def clang_getNumDiagnosticsInSet(Diags: CXDiagnosticSet) -> c_uint:
-    var fn_ = _bindgen_function[def(CXDiagnosticSet) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_getNumDiagnosticsInSet")
-    )
-    return fn_(Diags)
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnosticSet) thin abi("C") -> c_uint](StringSlice("mojo_clang_getNumDiagnosticsInSet"))
+    return _bindgen_c_fn(Diags)
 
+def clang_getDiagnosticInSet(Diags: CXDiagnosticSet, Index: c_uint) -> CXDiagnostic:
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnosticSet, c_uint) thin abi("C") -> CXDiagnostic](StringSlice("mojo_clang_getDiagnosticInSet"))
+    return _bindgen_c_fn(Diags, Index)
 
-def clang_getDiagnosticInSet(
-    Diags: CXDiagnosticSet, Index: c_uint
-) -> CXDiagnostic:
-    var fn_ = _bindgen_function[
-        def(CXDiagnosticSet, c_uint) thin abi("C") -> CXDiagnostic
-    ](StringSlice("mojo_clang_getDiagnosticInSet"))
-    return fn_(Diags, Index)
-
-
-def clang_loadDiagnostics(
-    file: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    error: Optional[UnsafePointer[CXLoadDiag_Error, MutUntrackedOrigin]],
-    errorString: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-) -> CXDiagnosticSet:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[UnsafePointer[CXLoadDiag_Error, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXDiagnosticSet
-    ](StringSlice("mojo_clang_loadDiagnostics"))
-    return fn_(file, error, errorString)
-
+def clang_loadDiagnostics(file: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], error: Optional[UnsafePointer[CXLoadDiag_Error, MutUntrackedOrigin]], errorString: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> CXDiagnosticSet:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[CXLoadDiag_Error, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> CXDiagnosticSet](StringSlice("mojo_clang_loadDiagnostics"))
+    return _bindgen_c_fn(file, error, errorString)
 
 def clang_disposeDiagnosticSet(Diags: CXDiagnosticSet) -> None:
-    var fn_ = _bindgen_function[def(CXDiagnosticSet) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_disposeDiagnosticSet")
-    )
-    fn_(Diags)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnosticSet) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeDiagnosticSet"))
+    _bindgen_c_fn(Diags)
 
 def clang_getChildDiagnostics(D: CXDiagnostic) -> CXDiagnosticSet:
-    var fn_ = _bindgen_function[
-        def(CXDiagnostic) thin abi("C") -> CXDiagnosticSet
-    ](StringSlice("mojo_clang_getChildDiagnostics"))
-    return fn_(D)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnostic) thin abi("C") -> CXDiagnosticSet](StringSlice("mojo_clang_getChildDiagnostics"))
+    return _bindgen_c_fn(D)
 
 def clang_disposeDiagnostic(Diagnostic: CXDiagnostic) -> None:
-    var fn_ = _bindgen_function[def(CXDiagnostic) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_disposeDiagnostic")
-    )
-    fn_(Diagnostic)
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnostic) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeDiagnostic"))
+    _bindgen_c_fn(Diagnostic)
 
-
-def clang_formatDiagnostic(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Diagnostic: CXDiagnostic,
-    Options: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXDiagnostic,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_formatDiagnostic"))
-    fn_(out_, Diagnostic, Options)
-
+def clang_formatDiagnostic(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Diagnostic: CXDiagnostic, Options: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_formatDiagnostic"))
+    _bindgen_c_fn(out_, Diagnostic, Options)
 
 def clang_defaultDiagnosticDisplayOptions() -> c_uint:
-    var fn_ = _bindgen_function[def() thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_defaultDiagnosticDisplayOptions")
-    )
-    return fn_()
-
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> c_uint](StringSlice("mojo_clang_defaultDiagnosticDisplayOptions"))
+    return _bindgen_c_fn()
 
 def clang_getDiagnosticSeverity(a0: CXDiagnostic) -> CXDiagnosticSeverity:
-    var fn_ = _bindgen_function[
-        def(CXDiagnostic) thin abi("C") -> CXDiagnosticSeverity
-    ](StringSlice("mojo_clang_getDiagnosticSeverity"))
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnostic) thin abi("C") -> CXDiagnosticSeverity](StringSlice("mojo_clang_getDiagnosticSeverity"))
+    return _bindgen_c_fn(a0)
 
+def clang_getDiagnosticLocation(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], a1: CXDiagnostic) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], CXDiagnostic) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticLocation"))
+    _bindgen_c_fn(out_, a1)
 
-def clang_getDiagnosticLocation(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    a1: CXDiagnostic,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            CXDiagnostic,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticLocation"))
-    fn_(out_, a1)
+def clang_getDiagnosticSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXDiagnostic) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticSpelling"))
+    _bindgen_c_fn(out_, a1)
 
-
-def clang_getDiagnosticSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXDiagnostic,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticSpelling"))
-    fn_(out_, a1)
-
-
-def clang_getDiagnosticOption(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Diag: CXDiagnostic,
-    Disable: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXDiagnostic,
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticOption"))
-    fn_(out_, Diag, Disable)
-
+def clang_getDiagnosticOption(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Diag: CXDiagnostic, Disable: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic, Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticOption"))
+    _bindgen_c_fn(out_, Diag, Disable)
 
 def clang_getDiagnosticCategory(a0: CXDiagnostic) -> c_uint:
-    var fn_ = _bindgen_function[def(CXDiagnostic) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_getDiagnosticCategory")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnostic) thin abi("C") -> c_uint](StringSlice("mojo_clang_getDiagnosticCategory"))
+    return _bindgen_c_fn(a0)
 
+def clang_getDiagnosticCategoryName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Category: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticCategoryName"))
+    _bindgen_c_fn(out_, Category)
 
-def clang_getDiagnosticCategoryName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Category: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], c_uint
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticCategoryName"))
-    fn_(out_, Category)
-
-
-def clang_getDiagnosticCategoryText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXDiagnostic,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticCategoryText"))
-    fn_(out_, a1)
-
+def clang_getDiagnosticCategoryText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXDiagnostic) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticCategoryText"))
+    _bindgen_c_fn(out_, a1)
 
 def clang_getDiagnosticNumRanges(a0: CXDiagnostic) -> c_uint:
-    var fn_ = _bindgen_function[def(CXDiagnostic) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_getDiagnosticNumRanges")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnostic) thin abi("C") -> c_uint](StringSlice("mojo_clang_getDiagnosticNumRanges"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_getDiagnosticRange(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    Diagnostic: CXDiagnostic,
-    Range: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            CXDiagnostic,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticRange"))
-    fn_(out_, Diagnostic, Range)
-
+def clang_getDiagnosticRange(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Diagnostic: CXDiagnostic, Range: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], CXDiagnostic, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticRange"))
+    _bindgen_c_fn(out_, Diagnostic, Range)
 
 def clang_getDiagnosticNumFixIts(Diagnostic: CXDiagnostic) -> c_uint:
-    var fn_ = _bindgen_function[def(CXDiagnostic) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_getDiagnosticNumFixIts")
-    )
-    return fn_(Diagnostic)
+    var _bindgen_c_fn = _bindgen_function[def(CXDiagnostic) thin abi("C") -> c_uint](StringSlice("mojo_clang_getDiagnosticNumFixIts"))
+    return _bindgen_c_fn(Diagnostic)
 
+def clang_getDiagnosticFixIt(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Diagnostic: CXDiagnostic, FixIt: c_uint, ReplacementRange: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXDiagnostic, c_uint, Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDiagnosticFixIt"))
+    _bindgen_c_fn(out_, Diagnostic, FixIt, ReplacementRange)
 
-def clang_getDiagnosticFixIt(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Diagnostic: CXDiagnostic,
-    FixIt: c_uint,
-    ReplacementRange: Optional[
-        UnsafePointer[CXSourceRange, MutUntrackedOrigin]
-    ],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXDiagnostic,
-            c_uint,
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDiagnosticFixIt"))
-    fn_(out_, Diagnostic, FixIt, ReplacementRange)
-
-
-def clang_createIndex(
-    excludeDeclarationsFromPCH: c_int, displayDiagnostics: c_int
-) -> CXIndex:
-    var fn_ = _bindgen_function[def(c_int, c_int) thin abi("C") -> CXIndex](
-        StringSlice("mojo_clang_createIndex")
-    )
-    return fn_(excludeDeclarationsFromPCH, displayDiagnostics)
-
+def clang_createIndex(excludeDeclarationsFromPCH: c_int, displayDiagnostics: c_int) -> CXIndex:
+    var _bindgen_c_fn = _bindgen_function[def(c_int, c_int) thin abi("C") -> CXIndex](StringSlice("mojo_clang_createIndex"))
+    return _bindgen_c_fn(excludeDeclarationsFromPCH, displayDiagnostics)
 
 def clang_disposeIndex(index: CXIndex) -> None:
-    var fn_ = _bindgen_function[def(CXIndex) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_disposeIndex")
-    )
-    fn_(index)
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeIndex"))
+    _bindgen_c_fn(index)
 
-
-def clang_createIndexWithOptions(
-    options: Optional[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]]
-) -> CXIndex:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> CXIndex
-    ](StringSlice("mojo_clang_createIndexWithOptions"))
-    return fn_(options)
-
+def clang_createIndexWithOptions(options: Optional[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]]) -> CXIndex:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]]) thin abi("C") -> CXIndex](StringSlice("mojo_clang_createIndexWithOptions"))
+    return _bindgen_c_fn(options)
 
 def clang_CXIndex_setGlobalOptions(a0: CXIndex, options: c_uint) -> None:
-    var fn_ = _bindgen_function[def(CXIndex, c_uint) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_CXIndex_setGlobalOptions")
-    )
-    fn_(a0, options)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXIndex_setGlobalOptions"))
+    _bindgen_c_fn(a0, options)
 
 def clang_CXIndex_getGlobalOptions(a0: CXIndex) -> c_uint:
-    var fn_ = _bindgen_function[def(CXIndex) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_CXIndex_getGlobalOptions")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXIndex_getGlobalOptions"))
+    return _bindgen_c_fn(a0)
 
+def clang_CXIndex_setInvocationEmissionPathOption(a0: CXIndex, Path: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXIndex_setInvocationEmissionPathOption"))
+    _bindgen_c_fn(a0, Path)
 
-def clang_CXIndex_setInvocationEmissionPathOption(
-    a0: CXIndex, Path: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CXIndex_setInvocationEmissionPathOption"))
-    fn_(a0, Path)
+def clang_isFileMultipleIncludeGuarded(tu: CXTranslationUnit, file: CXFile) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXFile) thin abi("C") -> c_uint](StringSlice("mojo_clang_isFileMultipleIncludeGuarded"))
+    return _bindgen_c_fn(tu, file)
 
+def clang_getFile(tu: CXTranslationUnit, file_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXFile:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXFile](StringSlice("mojo_clang_getFile"))
+    return _bindgen_c_fn(tu, file_name)
 
-def clang_isFileMultipleIncludeGuarded(
-    tu: CXTranslationUnit, file: CXFile
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit, CXFile) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isFileMultipleIncludeGuarded"))
-    return fn_(tu, file)
+def clang_getFileContents(tu: CXTranslationUnit, file: CXFile, size: Optional[UnsafePointer[size_t, MutUntrackedOrigin]]) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXFile, Optional[UnsafePointer[size_t, MutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_getFileContents"))
+    return _bindgen_c_fn(tu, file, size)
 
+def clang_getLocation(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], tu: CXTranslationUnit, file: CXFile, line: c_uint, column: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], CXTranslationUnit, CXFile, c_uint, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getLocation"))
+    _bindgen_c_fn(out_, tu, file, line, column)
 
-def clang_getFile(
-    tu: CXTranslationUnit,
-    file_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> CXFile:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> CXFile
-    ](StringSlice("mojo_clang_getFile"))
-    return fn_(tu, file_name)
+def clang_getLocationForOffset(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], tu: CXTranslationUnit, file: CXFile, offset: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], CXTranslationUnit, CXFile, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getLocationForOffset"))
+    _bindgen_c_fn(out_, tu, file, offset)
 
+def clang_getSkippedRanges(tu: CXTranslationUnit, file: CXFile) -> Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXFile) thin abi("C") -> Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]](StringSlice("mojo_clang_getSkippedRanges"))
+    return _bindgen_c_fn(tu, file)
 
-def clang_getFileContents(
-    tu: CXTranslationUnit,
-    file: CXFile,
-    size: Optional[UnsafePointer[size_t, MutUntrackedOrigin]],
-) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            CXFile,
-            Optional[UnsafePointer[size_t, MutUntrackedOrigin]],
-        ) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-    ](StringSlice("mojo_clang_getFileContents"))
-    return fn_(tu, file, size)
-
-
-def clang_getLocation(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    tu: CXTranslationUnit,
-    file: CXFile,
-    line: c_uint,
-    column: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            CXTranslationUnit,
-            CXFile,
-            c_uint,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getLocation"))
-    fn_(out_, tu, file, line, column)
-
-
-def clang_getLocationForOffset(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    tu: CXTranslationUnit,
-    file: CXFile,
-    offset: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            CXTranslationUnit,
-            CXFile,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getLocationForOffset"))
-    fn_(out_, tu, file, offset)
-
-
-def clang_getSkippedRanges(
-    tu: CXTranslationUnit, file: CXFile
-) -> Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit, CXFile
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_getSkippedRanges"))
-    return fn_(tu, file)
-
-
-def clang_getAllSkippedRanges(
-    tu: CXTranslationUnit,
-) -> Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_getAllSkippedRanges"))
-    return fn_(tu)
-
+def clang_getAllSkippedRanges(tu: CXTranslationUnit) -> Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> Optional[UnsafePointer[CXSourceRangeList, MutUntrackedOrigin]]](StringSlice("mojo_clang_getAllSkippedRanges"))
+    return _bindgen_c_fn(tu)
 
 def clang_getNumDiagnostics(Unit: CXTranslationUnit) -> c_uint:
-    var fn_ = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_getNumDiagnostics")
-    )
-    return fn_(Unit)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](StringSlice("mojo_clang_getNumDiagnostics"))
+    return _bindgen_c_fn(Unit)
 
 def clang_getDiagnostic(Unit: CXTranslationUnit, Index: c_uint) -> CXDiagnostic:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit, c_uint) thin abi("C") -> CXDiagnostic
-    ](StringSlice("mojo_clang_getDiagnostic"))
-    return fn_(Unit, Index)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, c_uint) thin abi("C") -> CXDiagnostic](StringSlice("mojo_clang_getDiagnostic"))
+    return _bindgen_c_fn(Unit, Index)
 
 def clang_getDiagnosticSetFromTU(Unit: CXTranslationUnit) -> CXDiagnosticSet:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit) thin abi("C") -> CXDiagnosticSet
-    ](StringSlice("mojo_clang_getDiagnosticSetFromTU"))
-    return fn_(Unit)
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> CXDiagnosticSet](StringSlice("mojo_clang_getDiagnosticSetFromTU"))
+    return _bindgen_c_fn(Unit)
 
+def clang_getTranslationUnitSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CTUnit: CXTranslationUnit) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXTranslationUnit) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTranslationUnitSpelling"))
+    _bindgen_c_fn(out_, CTUnit)
 
-def clang_getTranslationUnitSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    CTUnit: CXTranslationUnit,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXTranslationUnit,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTranslationUnitSpelling"))
-    fn_(out_, CTUnit)
+def clang_createTranslationUnitFromSourceFile(CIdx: CXIndex, source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], num_clang_command_line_args: c_int, clang_command_line_args: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], num_unsaved_files: c_uint, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]]) -> CXTranslationUnit:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], c_int, Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], c_uint, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]]) thin abi("C") -> CXTranslationUnit](StringSlice("mojo_clang_createTranslationUnitFromSourceFile"))
+    return _bindgen_c_fn(CIdx, source_filename, num_clang_command_line_args, clang_command_line_args, num_unsaved_files, unsaved_files)
 
+def clang_createTranslationUnit(CIdx: CXIndex, ast_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXTranslationUnit:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXTranslationUnit](StringSlice("mojo_clang_createTranslationUnit"))
+    return _bindgen_c_fn(CIdx, ast_filename)
 
-def clang_createTranslationUnitFromSourceFile(
-    CIdx: CXIndex,
-    source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    num_clang_command_line_args: c_int,
-    clang_command_line_args: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ],
-    num_unsaved_files: c_uint,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-) -> CXTranslationUnit:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            c_int,
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ],
-            c_uint,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXTranslationUnit
-    ](StringSlice("mojo_clang_createTranslationUnitFromSourceFile"))
-    return fn_(
-        CIdx,
-        source_filename,
-        num_clang_command_line_args,
-        clang_command_line_args,
-        num_unsaved_files,
-        unsaved_files,
-    )
-
-
-def clang_createTranslationUnit(
-    CIdx: CXIndex,
-    ast_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> CXTranslationUnit:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> CXTranslationUnit
-    ](StringSlice("mojo_clang_createTranslationUnit"))
-    return fn_(CIdx, ast_filename)
-
-
-def clang_createTranslationUnit2(
-    CIdx: CXIndex,
-    ast_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_createTranslationUnit2"))
-    return fn_(CIdx, ast_filename, out_TU)
-
+def clang_createTranslationUnit2(CIdx: CXIndex, ast_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_createTranslationUnit2"))
+    return _bindgen_c_fn(CIdx, ast_filename, out_TU)
 
 def clang_defaultEditingTranslationUnitOptions() -> c_uint:
-    var fn_ = _bindgen_function[def() thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_defaultEditingTranslationUnitOptions")
-    )
-    return fn_()
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> c_uint](StringSlice("mojo_clang_defaultEditingTranslationUnitOptions"))
+    return _bindgen_c_fn()
 
+def clang_parseTranslationUnit(CIdx: CXIndex, source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], command_line_args: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint) -> CXTranslationUnit:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], c_int, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint, c_uint) thin abi("C") -> CXTranslationUnit](StringSlice("mojo_clang_parseTranslationUnit"))
+    return _bindgen_c_fn(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options)
 
-def clang_parseTranslationUnit(
-    CIdx: CXIndex,
-    source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    command_line_args: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ],
-    num_command_line_args: c_int,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    num_unsaved_files: c_uint,
-    options: c_uint,
-) -> CXTranslationUnit:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ],
-            c_int,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-        ) thin abi("C") -> CXTranslationUnit
-    ](StringSlice("mojo_clang_parseTranslationUnit"))
-    return fn_(
-        CIdx,
-        source_filename,
-        command_line_args,
-        num_command_line_args,
-        unsaved_files,
-        num_unsaved_files,
-        options,
-    )
+def clang_parseTranslationUnit2(CIdx: CXIndex, source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], command_line_args: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint, out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], c_int, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint, c_uint, Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_parseTranslationUnit2"))
+    return _bindgen_c_fn(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU)
 
-
-def clang_parseTranslationUnit2(
-    CIdx: CXIndex,
-    source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    command_line_args: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ],
-    num_command_line_args: c_int,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    num_unsaved_files: c_uint,
-    options: c_uint,
-    out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ],
-            c_int,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_parseTranslationUnit2"))
-    return fn_(
-        CIdx,
-        source_filename,
-        command_line_args,
-        num_command_line_args,
-        unsaved_files,
-        num_unsaved_files,
-        options,
-        out_TU,
-    )
-
-
-def clang_parseTranslationUnit2FullArgv(
-    CIdx: CXIndex,
-    source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    command_line_args: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ],
-    num_command_line_args: c_int,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    num_unsaved_files: c_uint,
-    options: c_uint,
-    out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndex,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ],
-            c_int,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_parseTranslationUnit2FullArgv"))
-    return fn_(
-        CIdx,
-        source_filename,
-        command_line_args,
-        num_command_line_args,
-        unsaved_files,
-        num_unsaved_files,
-        options,
-        out_TU,
-    )
-
+def clang_parseTranslationUnit2FullArgv(CIdx: CXIndex, source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], command_line_args: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint, out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], c_int, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint, c_uint, Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_parseTranslationUnit2FullArgv"))
+    return _bindgen_c_fn(CIdx, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, options, out_TU)
 
 def clang_defaultSaveOptions(TU: CXTranslationUnit) -> c_uint:
-    var fn_ = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_defaultSaveOptions")
-    )
-    return fn_(TU)
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](StringSlice("mojo_clang_defaultSaveOptions"))
+    return _bindgen_c_fn(TU)
 
-
-def clang_saveTranslationUnit(
-    TU: CXTranslationUnit,
-    FileName: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    options: c_uint,
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_saveTranslationUnit"))
-    return fn_(TU, FileName, options)
-
+def clang_saveTranslationUnit(TU: CXTranslationUnit, FileName: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], options: c_uint) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], c_uint) thin abi("C") -> c_int](StringSlice("mojo_clang_saveTranslationUnit"))
+    return _bindgen_c_fn(TU, FileName, options)
 
 def clang_suspendTranslationUnit(a0: CXTranslationUnit) -> c_uint:
-    var fn_ = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_suspendTranslationUnit")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](StringSlice("mojo_clang_suspendTranslationUnit"))
+    return _bindgen_c_fn(a0)
 
 def clang_disposeTranslationUnit(a0: CXTranslationUnit) -> None:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeTranslationUnit"))
-    fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeTranslationUnit"))
+    _bindgen_c_fn(a0)
 
 def clang_defaultReparseOptions(TU: CXTranslationUnit) -> c_uint:
-    var fn_ = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_defaultReparseOptions")
-    )
-    return fn_(TU)
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> c_uint](StringSlice("mojo_clang_defaultReparseOptions"))
+    return _bindgen_c_fn(TU)
 
+def clang_reparseTranslationUnit(TU: CXTranslationUnit, num_unsaved_files: c_uint, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], options: c_uint) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, c_uint, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_int](StringSlice("mojo_clang_reparseTranslationUnit"))
+    return _bindgen_c_fn(TU, num_unsaved_files, unsaved_files, options)
 
-def clang_reparseTranslationUnit(
-    TU: CXTranslationUnit,
-    num_unsaved_files: c_uint,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    options: c_uint,
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            c_uint,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_reparseTranslationUnit"))
-    return fn_(TU, num_unsaved_files, unsaved_files, options)
-
-
-def clang_getTUResourceUsageName(
-    kind: CXTUResourceUsageKind,
-) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXTUResourceUsageKind,
-        ) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-    ](StringSlice("mojo_clang_getTUResourceUsageName"))
-    return fn_(kind)
-
+def clang_getTUResourceUsageName(kind: CXTUResourceUsageKind) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXTUResourceUsageKind) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_getTUResourceUsageName"))
+    return _bindgen_c_fn(kind)
 
 def clang_getCXTUResourceUsage(TU: CXTranslationUnit) -> CXTUResourceUsage:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit) thin abi("C") -> CXTUResourceUsage
-    ](StringSlice("mojo_clang_getCXTUResourceUsage"))
-    return fn_(TU)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> CXTUResourceUsage](StringSlice("mojo_clang_getCXTUResourceUsage"))
+    return _bindgen_c_fn(TU)
 
 def clang_disposeCXTUResourceUsage(usage: CXTUResourceUsage) -> None:
-    var fn_ = _bindgen_function[
-        def(CXTUResourceUsage) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeCXTUResourceUsage"))
-    fn_(usage)
+    var _bindgen_c_fn = _bindgen_function[def(CXTUResourceUsage) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeCXTUResourceUsage"))
+    _bindgen_c_fn(usage)
 
-
-def clang_getTranslationUnitTargetInfo(
-    CTUnit: CXTranslationUnit,
-) -> CXTargetInfo:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit) thin abi("C") -> CXTargetInfo
-    ](StringSlice("mojo_clang_getTranslationUnitTargetInfo"))
-    return fn_(CTUnit)
-
+def clang_getTranslationUnitTargetInfo(CTUnit: CXTranslationUnit) -> CXTargetInfo:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> CXTargetInfo](StringSlice("mojo_clang_getTranslationUnitTargetInfo"))
+    return _bindgen_c_fn(CTUnit)
 
 def clang_TargetInfo_dispose(Info: CXTargetInfo) -> None:
-    var fn_ = _bindgen_function[def(CXTargetInfo) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_TargetInfo_dispose")
-    )
-    fn_(Info)
+    var _bindgen_c_fn = _bindgen_function[def(CXTargetInfo) thin abi("C") -> NoneType](StringSlice("mojo_clang_TargetInfo_dispose"))
+    _bindgen_c_fn(Info)
 
-
-def clang_TargetInfo_getTriple(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Info: CXTargetInfo,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXTargetInfo
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_TargetInfo_getTriple"))
-    fn_(out_, Info)
-
+def clang_TargetInfo_getTriple(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Info: CXTargetInfo) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXTargetInfo) thin abi("C") -> NoneType](StringSlice("mojo_clang_TargetInfo_getTriple"))
+    _bindgen_c_fn(out_, Info)
 
 def clang_TargetInfo_getPointerWidth(Info: CXTargetInfo) -> c_int:
-    var fn_ = _bindgen_function[def(CXTargetInfo) thin abi("C") -> c_int](
-        StringSlice("mojo_clang_TargetInfo_getPointerWidth")
-    )
-    return fn_(Info)
+    var _bindgen_c_fn = _bindgen_function[def(CXTargetInfo) thin abi("C") -> c_int](StringSlice("mojo_clang_TargetInfo_getPointerWidth"))
+    return _bindgen_c_fn(Info)
 
+def clang_getNullCursor(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getNullCursor"))
+    _bindgen_c_fn(out_)
 
-def clang_getNullCursor(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getNullCursor"))
-    fn_(out_)
+def clang_getTranslationUnitCursor(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: CXTranslationUnit) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXTranslationUnit) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTranslationUnitCursor"))
+    _bindgen_c_fn(out_, a1)
 
+def clang_equalCursors(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_equalCursors"))
+    return _bindgen_c_fn(a0, a1)
 
-def clang_getTranslationUnitCursor(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: CXTranslationUnit,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXTranslationUnit,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTranslationUnitCursor"))
-    fn_(out_, a1)
+def clang_Cursor_isNull(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_isNull"))
+    return _bindgen_c_fn(cursor)
 
+def clang_hashCursor(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_hashCursor"))
+    return _bindgen_c_fn(a0)
 
-def clang_equalCursors(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_equalCursors"))
-    return fn_(a0, a1)
-
-
-def clang_Cursor_isNull(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_isNull"))
-    return fn_(cursor)
-
-
-def clang_hashCursor(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_hashCursor"))
-    return fn_(a0)
-
-
-def clang_getCursorKind(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXCursorKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCursorKind
-    ](StringSlice("mojo_clang_getCursorKind"))
-    return fn_(a0)
-
+def clang_getCursorKind(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXCursorKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXCursorKind](StringSlice("mojo_clang_getCursorKind"))
+    return _bindgen_c_fn(a0)
 
 def clang_isDeclaration(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isDeclaration")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isDeclaration"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_isInvalidDeclaration(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isInvalidDeclaration"))
-    return fn_(a0)
-
+def clang_isInvalidDeclaration(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isInvalidDeclaration"))
+    return _bindgen_c_fn(a0)
 
 def clang_isReference(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isReference")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isReference"))
+    return _bindgen_c_fn(a0)
 
 def clang_isExpression(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isExpression")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isExpression"))
+    return _bindgen_c_fn(a0)
 
 def clang_isStatement(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isStatement")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isStatement"))
+    return _bindgen_c_fn(a0)
 
 def clang_isAttribute(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isAttribute")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isAttribute"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_Cursor_hasAttrs(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_hasAttrs"))
-    return fn_(C)
-
+def clang_Cursor_hasAttrs(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_hasAttrs"))
+    return _bindgen_c_fn(C)
 
 def clang_isInvalid(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isInvalid")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isInvalid"))
+    return _bindgen_c_fn(a0)
 
 def clang_isTranslationUnit(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isTranslationUnit")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isTranslationUnit"))
+    return _bindgen_c_fn(a0)
 
 def clang_isPreprocessing(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isPreprocessing")
-    )
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isPreprocessing"))
+    return _bindgen_c_fn(a0)
 
 def clang_isUnexposed(a0: CXCursorKind) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_isUnexposed")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorKind) thin abi("C") -> c_uint](StringSlice("mojo_clang_isUnexposed"))
+    return _bindgen_c_fn(a0)
 
+def clang_getCursorLinkage(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXLinkageKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXLinkageKind](StringSlice("mojo_clang_getCursorLinkage"))
+    return _bindgen_c_fn(cursor)
 
-def clang_getCursorLinkage(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXLinkageKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXLinkageKind
-    ](StringSlice("mojo_clang_getCursorLinkage"))
-    return fn_(cursor)
+def clang_getCursorVisibility(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXVisibilityKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXVisibilityKind](StringSlice("mojo_clang_getCursorVisibility"))
+    return _bindgen_c_fn(cursor)
 
+def clang_getCursorAvailability(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXAvailabilityKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXAvailabilityKind](StringSlice("mojo_clang_getCursorAvailability"))
+    return _bindgen_c_fn(cursor)
 
-def clang_getCursorVisibility(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXVisibilityKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXVisibilityKind
-    ](StringSlice("mojo_clang_getCursorVisibility"))
-    return fn_(cursor)
+def clang_getCursorPlatformAvailability(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], always_deprecated: Optional[UnsafePointer[c_int, MutUntrackedOrigin]], deprecated_message: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], always_unavailable: Optional[UnsafePointer[c_int, MutUntrackedOrigin]], unavailable_message: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], availability: Optional[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]], availability_size: c_int) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[c_int, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_int, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]], c_int) thin abi("C") -> c_int](StringSlice("mojo_clang_getCursorPlatformAvailability"))
+    return _bindgen_c_fn(cursor, always_deprecated, deprecated_message, always_unavailable, unavailable_message, availability, availability_size)
 
+def clang_disposeCXPlatformAvailability(availability: Optional[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeCXPlatformAvailability"))
+    _bindgen_c_fn(availability)
 
-def clang_getCursorAvailability(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXAvailabilityKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXAvailabilityKind
-    ](StringSlice("mojo_clang_getCursorAvailability"))
-    return fn_(cursor)
+def clang_Cursor_getVarDeclInitializer(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getVarDeclInitializer"))
+    _bindgen_c_fn(out_, cursor)
 
+def clang_Cursor_hasVarDeclGlobalStorage(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_hasVarDeclGlobalStorage"))
+    return _bindgen_c_fn(cursor)
 
-def clang_getCursorPlatformAvailability(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    always_deprecated: Optional[UnsafePointer[c_int, MutUntrackedOrigin]],
-    deprecated_message: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    always_unavailable: Optional[UnsafePointer[c_int, MutUntrackedOrigin]],
-    unavailable_message: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    availability: Optional[
-        UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]
-    ],
-    availability_size: c_int,
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_int, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_int, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]],
-            c_int,
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_getCursorPlatformAvailability"))
-    return fn_(
-        cursor,
-        always_deprecated,
-        deprecated_message,
-        always_unavailable,
-        unavailable_message,
-        availability,
-        availability_size,
-    )
+def clang_Cursor_hasVarDeclExternalStorage(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_hasVarDeclExternalStorage"))
+    return _bindgen_c_fn(cursor)
 
+def clang_getCursorLanguage(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXLanguageKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXLanguageKind](StringSlice("mojo_clang_getCursorLanguage"))
+    return _bindgen_c_fn(cursor)
 
-def clang_disposeCXPlatformAvailability(
-    availability: Optional[
-        UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]
-    ]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeCXPlatformAvailability"))
-    fn_(availability)
+def clang_getCursorTLSKind(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXTLSKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXTLSKind](StringSlice("mojo_clang_getCursorTLSKind"))
+    return _bindgen_c_fn(cursor)
 
-
-def clang_Cursor_getVarDeclInitializer(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getVarDeclInitializer"))
-    fn_(out_, cursor)
-
-
-def clang_Cursor_hasVarDeclGlobalStorage(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_hasVarDeclGlobalStorage"))
-    return fn_(cursor)
-
-
-def clang_Cursor_hasVarDeclExternalStorage(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_hasVarDeclExternalStorage"))
-    return fn_(cursor)
-
-
-def clang_getCursorLanguage(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXLanguageKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXLanguageKind
-    ](StringSlice("mojo_clang_getCursorLanguage"))
-    return fn_(cursor)
-
-
-def clang_getCursorTLSKind(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXTLSKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXTLSKind
-    ](StringSlice("mojo_clang_getCursorTLSKind"))
-    return fn_(cursor)
-
-
-def clang_Cursor_getTranslationUnit(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXTranslationUnit:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXTranslationUnit
-    ](StringSlice("mojo_clang_Cursor_getTranslationUnit"))
-    return fn_(a0)
-
+def clang_Cursor_getTranslationUnit(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXTranslationUnit:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXTranslationUnit](StringSlice("mojo_clang_Cursor_getTranslationUnit"))
+    return _bindgen_c_fn(a0)
 
 def clang_createCXCursorSet() -> CXCursorSet:
-    var fn_ = _bindgen_function[def() thin abi("C") -> CXCursorSet](
-        StringSlice("mojo_clang_createCXCursorSet")
-    )
-    return fn_()
-
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> CXCursorSet](StringSlice("mojo_clang_createCXCursorSet"))
+    return _bindgen_c_fn()
 
 def clang_disposeCXCursorSet(cset: CXCursorSet) -> None:
-    var fn_ = _bindgen_function[def(CXCursorSet) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_disposeCXCursorSet")
-    )
-    fn_(cset)
-
-
-def clang_CXCursorSet_contains(
-    cset: CXCursorSet,
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            CXCursorSet, Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXCursorSet_contains"))
-    return fn_(cset, cursor)
-
-
-def clang_CXCursorSet_insert(
-    cset: CXCursorSet,
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            CXCursorSet, Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXCursorSet_insert"))
-    return fn_(cset, cursor)
-
-
-def clang_getCursorSemanticParent(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorSemanticParent"))
-    fn_(out_, cursor)
-
-
-def clang_getCursorLexicalParent(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorLexicalParent"))
-    fn_(out_, cursor)
-
-
-def clang_getOverriddenCursors(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    overridden: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    num_overridden: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getOverriddenCursors"))
-    fn_(cursor, overridden, num_overridden)
-
-
-def clang_disposeOverriddenCursors(
-    overridden: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeOverriddenCursors"))
-    fn_(overridden)
-
-
-def clang_getIncludedFile(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXFile:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXFile
-    ](StringSlice("mojo_clang_getIncludedFile"))
-    return fn_(cursor)
-
-
-def clang_getCursor(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: CXTranslationUnit,
-    a2: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursor"))
-    fn_(out_, a1, a2)
-
-
-def clang_getCursorLocation(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorLocation"))
-    fn_(out_, a1)
-
-
-def clang_getCursorExtent(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorExtent"))
-    fn_(out_, a1)
-
-
-def clang_getCursorType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorType"))
-    fn_(out_, C)
-
-
-def clang_getTypeSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTypeSpelling"))
-    fn_(out_, CT)
-
-
-def clang_getTypedefDeclUnderlyingType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTypedefDeclUnderlyingType"))
-    fn_(out_, C)
-
-
-def clang_getEnumDeclIntegerType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getEnumDeclIntegerType"))
-    fn_(out_, C)
-
-
-def clang_getEnumConstantDeclValue(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_getEnumConstantDeclValue"))
-    return fn_(C)
-
-
-def clang_getEnumConstantDeclUnsignedValue(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_ulong_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_ulong_long
-    ](StringSlice("mojo_clang_getEnumConstantDeclUnsignedValue"))
-    return fn_(C)
-
-
-def clang_Cursor_isBitField(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isBitField"))
-    return fn_(C)
-
-
-def clang_getFieldDeclBitWidth(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_getFieldDeclBitWidth"))
-    return fn_(C)
-
-
-def clang_Cursor_getNumArguments(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_getNumArguments"))
-    return fn_(C)
-
-
-def clang_Cursor_getArgument(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    i: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getArgument"))
-    fn_(out_, C, i)
-
-
-def clang_Cursor_getNumTemplateArguments(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_getNumTemplateArguments"))
-    return fn_(C)
-
-
-def clang_Cursor_getTemplateArgumentKind(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint
-) -> CXTemplateArgumentKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint
-        ) thin abi("C") -> CXTemplateArgumentKind
-    ](StringSlice("mojo_clang_Cursor_getTemplateArgumentKind"))
-    return fn_(C, I)
-
-
-def clang_Cursor_getTemplateArgumentType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    I: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getTemplateArgumentType"))
-    fn_(out_, C, I)
-
-
-def clang_Cursor_getTemplateArgumentValue(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_Cursor_getTemplateArgumentValue"))
-    return fn_(C, I)
-
-
-def clang_Cursor_getTemplateArgumentUnsignedValue(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint
-) -> c_ulong_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint
-        ) thin abi("C") -> c_ulong_long
-    ](StringSlice("mojo_clang_Cursor_getTemplateArgumentUnsignedValue"))
-    return fn_(C, I)
-
-
-def clang_equalTypes(
-    A: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    B: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_equalTypes"))
-    return fn_(A, B)
-
-
-def clang_getCanonicalType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCanonicalType"))
-    fn_(out_, T)
-
-
-def clang_isConstQualifiedType(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isConstQualifiedType"))
-    return fn_(T)
-
-
-def clang_Cursor_isMacroFunctionLike(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isMacroFunctionLike"))
-    return fn_(C)
-
-
-def clang_Cursor_isMacroBuiltin(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isMacroBuiltin"))
-    return fn_(C)
-
-
-def clang_Cursor_isFunctionInlined(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isFunctionInlined"))
-    return fn_(C)
-
-
-def clang_isVolatileQualifiedType(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isVolatileQualifiedType"))
-    return fn_(T)
-
-
-def clang_isRestrictQualifiedType(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isRestrictQualifiedType"))
-    return fn_(T)
-
-
-def clang_getAddressSpace(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_getAddressSpace"))
-    return fn_(T)
-
-
-def clang_getTypedefName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTypedefName"))
-    fn_(out_, CT)
-
-
-def clang_getPointeeType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getPointeeType"))
-    fn_(out_, T)
-
-
-def clang_getUnqualifiedType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getUnqualifiedType"))
-    fn_(out_, CT)
-
-
-def clang_getNonReferenceType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getNonReferenceType"))
-    fn_(out_, CT)
-
-
-def clang_getTypeDeclaration(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTypeDeclaration"))
-    fn_(out_, T)
-
-
-def clang_getDeclObjCTypeEncoding(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDeclObjCTypeEncoding"))
-    fn_(out_, C)
-
-
-def clang_Type_getObjCEncoding(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    type: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getObjCEncoding"))
-    fn_(out_, type)
-
-
-def clang_getTypeKindSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], K: CXTypeKind
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXTypeKind
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTypeKindSpelling"))
-    fn_(out_, K)
-
-
-def clang_getFunctionTypeCallingConv(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> CXCallingConv:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCallingConv
-    ](StringSlice("mojo_clang_getFunctionTypeCallingConv"))
-    return fn_(T)
-
-
-def clang_getResultType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getResultType"))
-    fn_(out_, T)
-
-
-def clang_getExceptionSpecificationType(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_getExceptionSpecificationType"))
-    return fn_(T)
-
-
-def clang_getNumArgTypes(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_getNumArgTypes"))
-    return fn_(T)
-
-
-def clang_getArgType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    i: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getArgType"))
-    fn_(out_, T, i)
-
-
-def clang_Type_getObjCObjectBaseType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getObjCObjectBaseType"))
-    fn_(out_, T)
-
-
-def clang_Type_getNumObjCProtocolRefs(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Type_getNumObjCProtocolRefs"))
-    return fn_(T)
-
-
-def clang_Type_getObjCProtocolDecl(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    i: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getObjCProtocolDecl"))
-    fn_(out_, T, i)
-
-
-def clang_Type_getNumObjCTypeArgs(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Type_getNumObjCTypeArgs"))
-    return fn_(T)
-
-
-def clang_Type_getObjCTypeArg(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    i: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getObjCTypeArg"))
-    fn_(out_, T, i)
-
-
-def clang_isFunctionTypeVariadic(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isFunctionTypeVariadic"))
-    return fn_(T)
-
-
-def clang_getCursorResultType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorResultType"))
-    fn_(out_, C)
-
-
-def clang_getCursorExceptionSpecificationType(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_getCursorExceptionSpecificationType"))
-    return fn_(C)
-
-
-def clang_isPODType(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isPODType"))
-    return fn_(T)
-
-
-def clang_getElementType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getElementType"))
-    fn_(out_, T)
-
-
-def clang_getNumElements(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_getNumElements"))
-    return fn_(T)
-
-
-def clang_getArrayElementType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getArrayElementType"))
-    fn_(out_, T)
-
-
-def clang_getArraySize(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_getArraySize"))
-    return fn_(T)
-
-
-def clang_Type_getNamedType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getNamedType"))
-    fn_(out_, T)
-
-
-def clang_Type_isTransparentTagTypedef(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Type_isTransparentTagTypedef"))
-    return fn_(T)
-
-
-def clang_Type_getNullability(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> CXTypeNullabilityKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXTypeNullabilityKind
-    ](StringSlice("mojo_clang_Type_getNullability"))
-    return fn_(T)
-
-
-def clang_Type_getAlignOf(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_Type_getAlignOf"))
-    return fn_(T)
-
-
-def clang_Type_getClassType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getClassType"))
-    fn_(out_, T)
-
-
-def clang_Type_getSizeOf(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_Type_getSizeOf"))
-    return fn_(T)
-
-
-def clang_Type_getOffsetOf(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    S: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_Type_getOffsetOf"))
-    return fn_(T, S)
-
-
-def clang_Type_getModifiedType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getModifiedType"))
-    fn_(out_, T)
-
-
-def clang_Type_getValueType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getValueType"))
-    fn_(out_, CT)
-
-
-def clang_Cursor_getOffsetOfField(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_long_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_long_long
-    ](StringSlice("mojo_clang_Cursor_getOffsetOfField"))
-    return fn_(C)
-
-
-def clang_Cursor_isAnonymous(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isAnonymous"))
-    return fn_(C)
-
-
-def clang_Cursor_isAnonymousRecordDecl(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isAnonymousRecordDecl"))
-    return fn_(C)
-
-
-def clang_Cursor_isInlineNamespace(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isInlineNamespace"))
-    return fn_(C)
-
-
-def clang_Type_getNumTemplateArguments(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Type_getNumTemplateArguments"))
-    return fn_(T)
-
-
-def clang_Type_getTemplateArgumentAsType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    i: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Type_getTemplateArgumentAsType"))
-    fn_(out_, T, i)
-
-
-def clang_Type_getCXXRefQualifier(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-) -> CXRefQualifierKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXRefQualifierKind
-    ](StringSlice("mojo_clang_Type_getCXXRefQualifier"))
-    return fn_(T)
-
-
-def clang_isVirtualBase(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isVirtualBase"))
-    return fn_(a0)
-
-
-def clang_getCXXAccessSpecifier(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CX_CXXAccessSpecifier:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CX_CXXAccessSpecifier
-    ](StringSlice("mojo_clang_getCXXAccessSpecifier"))
-    return fn_(a0)
-
-
-def clang_Cursor_getStorageClass(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CX_StorageClass:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CX_StorageClass
-    ](StringSlice("mojo_clang_Cursor_getStorageClass"))
-    return fn_(a0)
-
-
-def clang_getNumOverloadedDecls(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_getNumOverloadedDecls"))
-    return fn_(cursor)
-
-
-def clang_getOverloadedDecl(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    index: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getOverloadedDecl"))
-    fn_(out_, cursor, index)
-
-
-def clang_getIBOutletCollectionType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getIBOutletCollectionType"))
-    fn_(out_, a1)
-
-
-def clang_visitChildren(
-    parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    visitor: CXCursorVisitor,
-    client_data: CXClientData,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXCursorVisitor,
-            CXClientData,
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_visitChildren"))
-    return fn_(parent, visitor, client_data)
-
-
-def clang_visitChildrenWithBlock(
-    parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    block: CXCursorVisitorBlock,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXCursorVisitorBlock,
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_visitChildrenWithBlock"))
-    return fn_(parent, block)
-
-
-def clang_getCursorUSR(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorUSR"))
-    fn_(out_, a1)
-
-
-def clang_constructUSR_ObjCClass(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    class_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_constructUSR_ObjCClass"))
-    fn_(out_, class_name)
-
-
-def clang_constructUSR_ObjCCategory(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    class_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    category_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_constructUSR_ObjCCategory"))
-    fn_(out_, class_name, category_name)
-
-
-def clang_constructUSR_ObjCProtocol(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    protocol_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_constructUSR_ObjCProtocol"))
-    fn_(out_, protocol_name)
-
-
-def clang_constructUSR_ObjCIvar(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    classUSR: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_constructUSR_ObjCIvar"))
-    fn_(out_, name, classUSR)
-
-
-def clang_constructUSR_ObjCMethod(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    isInstanceMethod: c_uint,
-    classUSR: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            c_uint,
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_constructUSR_ObjCMethod"))
-    fn_(out_, name, isInstanceMethod, classUSR)
-
-
-def clang_constructUSR_ObjCProperty(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    property: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    classUSR: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_constructUSR_ObjCProperty"))
-    fn_(out_, property, classUSR)
-
-
-def clang_getCursorSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorSpelling"))
-    fn_(out_, a1)
-
-
-def clang_Cursor_getSpellingNameRange(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    pieceIndex: c_uint,
-    options: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getSpellingNameRange"))
-    fn_(out_, a1, pieceIndex, options)
-
-
-def clang_PrintingPolicy_getProperty(
-    Policy: CXPrintingPolicy, Property: CXPrintingPolicyProperty
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(CXPrintingPolicy, CXPrintingPolicyProperty) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_PrintingPolicy_getProperty"))
-    return fn_(Policy, Property)
-
-
-def clang_PrintingPolicy_setProperty(
-    Policy: CXPrintingPolicy, Property: CXPrintingPolicyProperty, Value: c_uint
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXPrintingPolicy, CXPrintingPolicyProperty, c_uint
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_PrintingPolicy_setProperty"))
-    fn_(Policy, Property, Value)
-
-
-def clang_getCursorPrintingPolicy(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXPrintingPolicy:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXPrintingPolicy
-    ](StringSlice("mojo_clang_getCursorPrintingPolicy"))
-    return fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorSet) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeCXCursorSet"))
+    _bindgen_c_fn(cset)
+
+def clang_CXCursorSet_contains(cset: CXCursorSet, cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorSet, Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXCursorSet_contains"))
+    return _bindgen_c_fn(cset, cursor)
+
+def clang_CXCursorSet_insert(cset: CXCursorSet, cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXCursorSet, Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXCursorSet_insert"))
+    return _bindgen_c_fn(cset, cursor)
+
+def clang_getCursorSemanticParent(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorSemanticParent"))
+    _bindgen_c_fn(out_, cursor)
+
+def clang_getCursorLexicalParent(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorLexicalParent"))
+    _bindgen_c_fn(out_, cursor)
+
+def clang_getOverriddenCursors(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], overridden: Optional[UnsafePointer[Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], MutUntrackedOrigin]], num_overridden: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getOverriddenCursors"))
+    _bindgen_c_fn(cursor, overridden, num_overridden)
+
+def clang_disposeOverriddenCursors(overridden: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeOverriddenCursors"))
+    _bindgen_c_fn(overridden)
+
+def clang_getIncludedFile(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXFile:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXFile](StringSlice("mojo_clang_getIncludedFile"))
+    return _bindgen_c_fn(cursor)
+
+def clang_getCursor(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: CXTranslationUnit, a2: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursor"))
+    _bindgen_c_fn(out_, a1, a2)
+
+def clang_getCursorLocation(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorLocation"))
+    _bindgen_c_fn(out_, a1)
+
+def clang_getCursorExtent(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorExtent"))
+    _bindgen_c_fn(out_, a1)
+
+def clang_getCursorType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorType"))
+    _bindgen_c_fn(out_, C)
+
+def clang_getTypeSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTypeSpelling"))
+    _bindgen_c_fn(out_, CT)
+
+def clang_getTypedefDeclUnderlyingType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTypedefDeclUnderlyingType"))
+    _bindgen_c_fn(out_, C)
+
+def clang_getEnumDeclIntegerType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getEnumDeclIntegerType"))
+    _bindgen_c_fn(out_, C)
+
+def clang_getEnumConstantDeclValue(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_getEnumConstantDeclValue"))
+    return _bindgen_c_fn(C)
+
+def clang_getEnumConstantDeclUnsignedValue(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_ulong_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_ulong_long](StringSlice("mojo_clang_getEnumConstantDeclUnsignedValue"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_isBitField(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isBitField"))
+    return _bindgen_c_fn(C)
+
+def clang_getFieldDeclBitWidth(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_getFieldDeclBitWidth"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_getNumArguments(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_getNumArguments"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_getArgument(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], i: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getArgument"))
+    _bindgen_c_fn(out_, C, i)
+
+def clang_Cursor_getNumTemplateArguments(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_getNumTemplateArguments"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_getTemplateArgumentKind(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint) -> CXTemplateArgumentKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> CXTemplateArgumentKind](StringSlice("mojo_clang_Cursor_getTemplateArgumentKind"))
+    return _bindgen_c_fn(C, I)
+
+def clang_Cursor_getTemplateArgumentType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getTemplateArgumentType"))
+    _bindgen_c_fn(out_, C, I)
+
+def clang_Cursor_getTemplateArgumentValue(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_long_long](StringSlice("mojo_clang_Cursor_getTemplateArgumentValue"))
+    return _bindgen_c_fn(C, I)
+
+def clang_Cursor_getTemplateArgumentUnsignedValue(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], I: c_uint) -> c_ulong_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_ulong_long](StringSlice("mojo_clang_Cursor_getTemplateArgumentUnsignedValue"))
+    return _bindgen_c_fn(C, I)
+
+def clang_equalTypes(A: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], B: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_equalTypes"))
+    return _bindgen_c_fn(A, B)
+
+def clang_getCanonicalType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCanonicalType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_isConstQualifiedType(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isConstQualifiedType"))
+    return _bindgen_c_fn(T)
+
+def clang_Cursor_isMacroFunctionLike(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isMacroFunctionLike"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_isMacroBuiltin(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isMacroBuiltin"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_isFunctionInlined(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isFunctionInlined"))
+    return _bindgen_c_fn(C)
+
+def clang_isVolatileQualifiedType(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isVolatileQualifiedType"))
+    return _bindgen_c_fn(T)
+
+def clang_isRestrictQualifiedType(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isRestrictQualifiedType"))
+    return _bindgen_c_fn(T)
+
+def clang_getAddressSpace(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_getAddressSpace"))
+    return _bindgen_c_fn(T)
+
+def clang_getTypedefName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTypedefName"))
+    _bindgen_c_fn(out_, CT)
+
+def clang_getPointeeType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getPointeeType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_getUnqualifiedType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getUnqualifiedType"))
+    _bindgen_c_fn(out_, CT)
+
+def clang_getNonReferenceType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getNonReferenceType"))
+    _bindgen_c_fn(out_, CT)
+
+def clang_getTypeDeclaration(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTypeDeclaration"))
+    _bindgen_c_fn(out_, T)
+
+def clang_getDeclObjCTypeEncoding(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDeclObjCTypeEncoding"))
+    _bindgen_c_fn(out_, C)
+
+def clang_Type_getObjCEncoding(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], type: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getObjCEncoding"))
+    _bindgen_c_fn(out_, type)
+
+def clang_getTypeKindSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], K: CXTypeKind) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXTypeKind) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTypeKindSpelling"))
+    _bindgen_c_fn(out_, K)
+
+def clang_getFunctionTypeCallingConv(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> CXCallingConv:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> CXCallingConv](StringSlice("mojo_clang_getFunctionTypeCallingConv"))
+    return _bindgen_c_fn(T)
+
+def clang_getResultType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getResultType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_getExceptionSpecificationType(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_getExceptionSpecificationType"))
+    return _bindgen_c_fn(T)
+
+def clang_getNumArgTypes(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_getNumArgTypes"))
+    return _bindgen_c_fn(T)
+
+def clang_getArgType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], i: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getArgType"))
+    _bindgen_c_fn(out_, T, i)
+
+def clang_Type_getObjCObjectBaseType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getObjCObjectBaseType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_Type_getNumObjCProtocolRefs(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Type_getNumObjCProtocolRefs"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getObjCProtocolDecl(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], i: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getObjCProtocolDecl"))
+    _bindgen_c_fn(out_, T, i)
+
+def clang_Type_getNumObjCTypeArgs(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Type_getNumObjCTypeArgs"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getObjCTypeArg(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], i: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getObjCTypeArg"))
+    _bindgen_c_fn(out_, T, i)
+
+def clang_isFunctionTypeVariadic(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isFunctionTypeVariadic"))
+    return _bindgen_c_fn(T)
+
+def clang_getCursorResultType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorResultType"))
+    _bindgen_c_fn(out_, C)
+
+def clang_getCursorExceptionSpecificationType(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_getCursorExceptionSpecificationType"))
+    return _bindgen_c_fn(C)
+
+def clang_isPODType(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isPODType"))
+    return _bindgen_c_fn(T)
+
+def clang_getElementType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getElementType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_getNumElements(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_getNumElements"))
+    return _bindgen_c_fn(T)
+
+def clang_getArrayElementType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getArrayElementType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_getArraySize(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_getArraySize"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getNamedType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getNamedType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_Type_isTransparentTagTypedef(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Type_isTransparentTagTypedef"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getNullability(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> CXTypeNullabilityKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> CXTypeNullabilityKind](StringSlice("mojo_clang_Type_getNullability"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getAlignOf(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_Type_getAlignOf"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getClassType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getClassType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_Type_getSizeOf(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_Type_getSizeOf"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getOffsetOf(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], S: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_Type_getOffsetOf"))
+    return _bindgen_c_fn(T, S)
+
+def clang_Type_getModifiedType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getModifiedType"))
+    _bindgen_c_fn(out_, T)
+
+def clang_Type_getValueType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], CT: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getValueType"))
+    _bindgen_c_fn(out_, CT)
+
+def clang_Cursor_getOffsetOfField(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_long_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_long_long](StringSlice("mojo_clang_Cursor_getOffsetOfField"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_isAnonymous(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isAnonymous"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_isAnonymousRecordDecl(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isAnonymousRecordDecl"))
+    return _bindgen_c_fn(C)
+
+def clang_Cursor_isInlineNamespace(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isInlineNamespace"))
+    return _bindgen_c_fn(C)
+
+def clang_Type_getNumTemplateArguments(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Type_getNumTemplateArguments"))
+    return _bindgen_c_fn(T)
+
+def clang_Type_getTemplateArgumentAsType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], i: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXType, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Type_getTemplateArgumentAsType"))
+    _bindgen_c_fn(out_, T, i)
+
+def clang_Type_getCXXRefQualifier(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) -> CXRefQualifierKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]]) thin abi("C") -> CXRefQualifierKind](StringSlice("mojo_clang_Type_getCXXRefQualifier"))
+    return _bindgen_c_fn(T)
+
+def clang_isVirtualBase(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isVirtualBase"))
+    return _bindgen_c_fn(a0)
+
+def clang_getCXXAccessSpecifier(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CX_CXXAccessSpecifier:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CX_CXXAccessSpecifier](StringSlice("mojo_clang_getCXXAccessSpecifier"))
+    return _bindgen_c_fn(a0)
+
+def clang_Cursor_getStorageClass(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CX_StorageClass:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CX_StorageClass](StringSlice("mojo_clang_Cursor_getStorageClass"))
+    return _bindgen_c_fn(a0)
+
+def clang_getNumOverloadedDecls(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_getNumOverloadedDecls"))
+    return _bindgen_c_fn(cursor)
+
+def clang_getOverloadedDecl(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], index: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getOverloadedDecl"))
+    _bindgen_c_fn(out_, cursor, index)
+
+def clang_getIBOutletCollectionType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getIBOutletCollectionType"))
+    _bindgen_c_fn(out_, a1)
+
+def clang_visitChildren(parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], visitor: CXCursorVisitor, client_data: CXClientData) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXCursorVisitor, CXClientData) thin abi("C") -> c_uint](StringSlice("mojo_clang_visitChildren"))
+    return _bindgen_c_fn(parent, visitor, client_data)
+
+def clang_visitChildrenWithBlock(parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], block: CXCursorVisitorBlock) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXCursorVisitorBlock) thin abi("C") -> c_uint](StringSlice("mojo_clang_visitChildrenWithBlock"))
+    return _bindgen_c_fn(parent, block)
+
+def clang_getCursorUSR(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorUSR"))
+    _bindgen_c_fn(out_, a1)
+
+def clang_constructUSR_ObjCClass(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], class_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_constructUSR_ObjCClass"))
+    _bindgen_c_fn(out_, class_name)
+
+def clang_constructUSR_ObjCCategory(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], class_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], category_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_constructUSR_ObjCCategory"))
+    _bindgen_c_fn(out_, class_name, category_name)
+
+def clang_constructUSR_ObjCProtocol(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], protocol_name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_constructUSR_ObjCProtocol"))
+    _bindgen_c_fn(out_, protocol_name)
+
+def clang_constructUSR_ObjCIvar(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], classUSR: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_constructUSR_ObjCIvar"))
+    _bindgen_c_fn(out_, name, classUSR)
+
+def clang_constructUSR_ObjCMethod(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], name: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], isInstanceMethod: c_uint, classUSR: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], c_uint, Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_constructUSR_ObjCMethod"))
+    _bindgen_c_fn(out_, name, isInstanceMethod, classUSR)
+
+def clang_constructUSR_ObjCProperty(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], property: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], classUSR: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_constructUSR_ObjCProperty"))
+    _bindgen_c_fn(out_, property, classUSR)
+
+def clang_getCursorSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorSpelling"))
+    _bindgen_c_fn(out_, a1)
+
+def clang_Cursor_getSpellingNameRange(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], pieceIndex: c_uint, options: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getSpellingNameRange"))
+    _bindgen_c_fn(out_, a1, pieceIndex, options)
+
+def clang_PrintingPolicy_getProperty(Policy: CXPrintingPolicy, Property: CXPrintingPolicyProperty) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXPrintingPolicy, CXPrintingPolicyProperty) thin abi("C") -> c_uint](StringSlice("mojo_clang_PrintingPolicy_getProperty"))
+    return _bindgen_c_fn(Policy, Property)
+
+def clang_PrintingPolicy_setProperty(Policy: CXPrintingPolicy, Property: CXPrintingPolicyProperty, Value: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXPrintingPolicy, CXPrintingPolicyProperty, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_PrintingPolicy_setProperty"))
+    _bindgen_c_fn(Policy, Property, Value)
+
+def clang_getCursorPrintingPolicy(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXPrintingPolicy:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXPrintingPolicy](StringSlice("mojo_clang_getCursorPrintingPolicy"))
+    return _bindgen_c_fn(a0)
 
 def clang_PrintingPolicy_dispose(Policy: CXPrintingPolicy) -> None:
-    var fn_ = _bindgen_function[
-        def(CXPrintingPolicy) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_PrintingPolicy_dispose"))
-    fn_(Policy)
+    var _bindgen_c_fn = _bindgen_function[def(CXPrintingPolicy) thin abi("C") -> NoneType](StringSlice("mojo_clang_PrintingPolicy_dispose"))
+    _bindgen_c_fn(Policy)
 
+def clang_getCursorPrettyPrinted(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Policy: CXPrintingPolicy) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXPrintingPolicy) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorPrettyPrinted"))
+    _bindgen_c_fn(out_, Cursor, Policy)
 
-def clang_getCursorPrettyPrinted(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    Policy: CXPrintingPolicy,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXPrintingPolicy,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorPrettyPrinted"))
-    fn_(out_, Cursor, Policy)
+def clang_getCursorDisplayName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorDisplayName"))
+    _bindgen_c_fn(out_, a1)
 
+def clang_getCursorReferenced(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorReferenced"))
+    _bindgen_c_fn(out_, a1)
 
-def clang_getCursorDisplayName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorDisplayName"))
-    fn_(out_, a1)
+def clang_getCursorDefinition(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorDefinition"))
+    _bindgen_c_fn(out_, a1)
 
+def clang_isCursorDefinition(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_isCursorDefinition"))
+    return _bindgen_c_fn(a0)
 
-def clang_getCursorReferenced(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorReferenced"))
-    fn_(out_, a1)
+def clang_getCanonicalCursor(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCanonicalCursor"))
+    _bindgen_c_fn(out_, a1)
 
+def clang_Cursor_getObjCSelectorIndex(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_getObjCSelectorIndex"))
+    return _bindgen_c_fn(a0)
 
-def clang_getCursorDefinition(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorDefinition"))
-    fn_(out_, a1)
+def clang_Cursor_isDynamicCall(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_int](StringSlice("mojo_clang_Cursor_isDynamicCall"))
+    return _bindgen_c_fn(C)
 
+def clang_Cursor_getReceiverType(out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getReceiverType"))
+    _bindgen_c_fn(out_, C)
 
-def clang_isCursorDefinition(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_isCursorDefinition"))
-    return fn_(a0)
+def clang_Cursor_getObjCPropertyAttributes(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], reserved: c_uint) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_getObjCPropertyAttributes"))
+    return _bindgen_c_fn(C, reserved)
 
+def clang_Cursor_getObjCPropertyGetterName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getObjCPropertyGetterName"))
+    _bindgen_c_fn(out_, C)
 
-def clang_getCanonicalCursor(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCanonicalCursor"))
-    fn_(out_, a1)
+def clang_Cursor_getObjCPropertySetterName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getObjCPropertySetterName"))
+    _bindgen_c_fn(out_, C)
 
+def clang_Cursor_getObjCDeclQualifiers(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_getObjCDeclQualifiers"))
+    return _bindgen_c_fn(C)
 
-def clang_Cursor_getObjCSelectorIndex(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_getObjCSelectorIndex"))
-    return fn_(a0)
+def clang_Cursor_isObjCOptional(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isObjCOptional"))
+    return _bindgen_c_fn(C)
 
+def clang_Cursor_isVariadic(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isVariadic"))
+    return _bindgen_c_fn(C)
 
-def clang_Cursor_isDynamicCall(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_Cursor_isDynamicCall"))
-    return fn_(C)
+def clang_Cursor_isExternalSymbol(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], language: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], definedIn: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], isGenerated: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Cursor_isExternalSymbol"))
+    return _bindgen_c_fn(C, language, definedIn, isGenerated)
 
+def clang_Cursor_getCommentRange(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getCommentRange"))
+    _bindgen_c_fn(out_, C)
 
-def clang_Cursor_getReceiverType(
-    out_: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getReceiverType"))
-    fn_(out_, C)
+def clang_Cursor_getRawCommentText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getRawCommentText"))
+    _bindgen_c_fn(out_, C)
 
+def clang_Cursor_getBriefCommentText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getBriefCommentText"))
+    _bindgen_c_fn(out_, C)
 
-def clang_Cursor_getObjCPropertyAttributes(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], reserved: c_uint
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_getObjCPropertyAttributes"))
-    return fn_(C, reserved)
+def clang_Cursor_getMangling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getMangling"))
+    _bindgen_c_fn(out_, a1)
 
+def clang_Cursor_getCXXManglings(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]](StringSlice("mojo_clang_Cursor_getCXXManglings"))
+    return _bindgen_c_fn(a0)
 
-def clang_Cursor_getObjCPropertyGetterName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getObjCPropertyGetterName"))
-    fn_(out_, C)
+def clang_Cursor_getObjCManglings(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]](StringSlice("mojo_clang_Cursor_getObjCManglings"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_Cursor_getObjCPropertySetterName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getObjCPropertySetterName"))
-    fn_(out_, C)
-
-
-def clang_Cursor_getObjCDeclQualifiers(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_getObjCDeclQualifiers"))
-    return fn_(C)
-
-
-def clang_Cursor_isObjCOptional(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isObjCOptional"))
-    return fn_(C)
-
-
-def clang_Cursor_isVariadic(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isVariadic"))
-    return fn_(C)
-
-
-def clang_Cursor_isExternalSymbol(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    language: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    definedIn: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    isGenerated: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Cursor_isExternalSymbol"))
-    return fn_(C, language, definedIn, isGenerated)
-
-
-def clang_Cursor_getCommentRange(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getCommentRange"))
-    fn_(out_, C)
-
-
-def clang_Cursor_getRawCommentText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getRawCommentText"))
-    fn_(out_, C)
-
-
-def clang_Cursor_getBriefCommentText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getBriefCommentText"))
-    fn_(out_, C)
-
-
-def clang_Cursor_getMangling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getMangling"))
-    fn_(out_, a1)
-
-
-def clang_Cursor_getCXXManglings(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXStringSet, MutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_Cursor_getCXXManglings"))
-    return fn_(a0)
-
-
-def clang_Cursor_getObjCManglings(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXStringSet, MutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_Cursor_getObjCManglings"))
-    return fn_(a0)
-
-
-def clang_Cursor_getModule(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXModule:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXModule
-    ](StringSlice("mojo_clang_Cursor_getModule"))
-    return fn_(C)
-
+def clang_Cursor_getModule(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXModule:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXModule](StringSlice("mojo_clang_Cursor_getModule"))
+    return _bindgen_c_fn(C)
 
 def clang_getModuleForFile(a0: CXTranslationUnit, a1: CXFile) -> CXModule:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit, CXFile) thin abi("C") -> CXModule
-    ](StringSlice("mojo_clang_getModuleForFile"))
-    return fn_(a0, a1)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXFile) thin abi("C") -> CXModule](StringSlice("mojo_clang_getModuleForFile"))
+    return _bindgen_c_fn(a0, a1)
 
 def clang_Module_getASTFile(Module: CXModule) -> CXFile:
-    var fn_ = _bindgen_function[def(CXModule) thin abi("C") -> CXFile](
-        StringSlice("mojo_clang_Module_getASTFile")
-    )
-    return fn_(Module)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXModule) thin abi("C") -> CXFile](StringSlice("mojo_clang_Module_getASTFile"))
+    return _bindgen_c_fn(Module)
 
 def clang_Module_getParent(Module: CXModule) -> CXModule:
-    var fn_ = _bindgen_function[def(CXModule) thin abi("C") -> CXModule](
-        StringSlice("mojo_clang_Module_getParent")
-    )
-    return fn_(Module)
+    var _bindgen_c_fn = _bindgen_function[def(CXModule) thin abi("C") -> CXModule](StringSlice("mojo_clang_Module_getParent"))
+    return _bindgen_c_fn(Module)
 
+def clang_Module_getName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Module: CXModule) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXModule) thin abi("C") -> NoneType](StringSlice("mojo_clang_Module_getName"))
+    _bindgen_c_fn(out_, Module)
 
-def clang_Module_getName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Module: CXModule,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXModule
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Module_getName"))
-    fn_(out_, Module)
-
-
-def clang_Module_getFullName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Module: CXModule,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXModule
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Module_getFullName"))
-    fn_(out_, Module)
-
+def clang_Module_getFullName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Module: CXModule) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXModule) thin abi("C") -> NoneType](StringSlice("mojo_clang_Module_getFullName"))
+    _bindgen_c_fn(out_, Module)
 
 def clang_Module_isSystem(Module: CXModule) -> c_int:
-    var fn_ = _bindgen_function[def(CXModule) thin abi("C") -> c_int](
-        StringSlice("mojo_clang_Module_isSystem")
-    )
-    return fn_(Module)
+    var _bindgen_c_fn = _bindgen_function[def(CXModule) thin abi("C") -> c_int](StringSlice("mojo_clang_Module_isSystem"))
+    return _bindgen_c_fn(Module)
 
+def clang_Module_getNumTopLevelHeaders(a0: CXTranslationUnit, Module: CXModule) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXModule) thin abi("C") -> c_uint](StringSlice("mojo_clang_Module_getNumTopLevelHeaders"))
+    return _bindgen_c_fn(a0, Module)
 
-def clang_Module_getNumTopLevelHeaders(
-    a0: CXTranslationUnit, Module: CXModule
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit, CXModule) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Module_getNumTopLevelHeaders"))
-    return fn_(a0, Module)
+def clang_Module_getTopLevelHeader(a0: CXTranslationUnit, Module: CXModule, Index: c_uint) -> CXFile:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXModule, c_uint) thin abi("C") -> CXFile](StringSlice("mojo_clang_Module_getTopLevelHeader"))
+    return _bindgen_c_fn(a0, Module, Index)
 
+def clang_CXXConstructor_isConvertingConstructor(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXConstructor_isConvertingConstructor"))
+    return _bindgen_c_fn(C)
 
-def clang_Module_getTopLevelHeader(
-    a0: CXTranslationUnit, Module: CXModule, Index: c_uint
-) -> CXFile:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit, CXModule, c_uint) thin abi("C") -> CXFile
-    ](StringSlice("mojo_clang_Module_getTopLevelHeader"))
-    return fn_(a0, Module, Index)
+def clang_CXXConstructor_isCopyConstructor(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXConstructor_isCopyConstructor"))
+    return _bindgen_c_fn(C)
 
+def clang_CXXConstructor_isDefaultConstructor(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXConstructor_isDefaultConstructor"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXConstructor_isConvertingConstructor(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXConstructor_isConvertingConstructor"))
-    return fn_(C)
+def clang_CXXConstructor_isMoveConstructor(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXConstructor_isMoveConstructor"))
+    return _bindgen_c_fn(C)
 
+def clang_CXXField_isMutable(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXField_isMutable"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXConstructor_isCopyConstructor(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXConstructor_isCopyConstructor"))
-    return fn_(C)
+def clang_CXXMethod_isDefaulted(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isDefaulted"))
+    return _bindgen_c_fn(C)
 
+def clang_CXXMethod_isDeleted(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isDeleted"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXConstructor_isDefaultConstructor(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXConstructor_isDefaultConstructor"))
-    return fn_(C)
+def clang_CXXMethod_isPureVirtual(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isPureVirtual"))
+    return _bindgen_c_fn(C)
 
+def clang_CXXMethod_isStatic(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isStatic"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXConstructor_isMoveConstructor(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXConstructor_isMoveConstructor"))
-    return fn_(C)
+def clang_CXXMethod_isVirtual(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isVirtual"))
+    return _bindgen_c_fn(C)
 
+def clang_CXXMethod_isCopyAssignmentOperator(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isCopyAssignmentOperator"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXField_isMutable(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXField_isMutable"))
-    return fn_(C)
+def clang_CXXMethod_isMoveAssignmentOperator(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isMoveAssignmentOperator"))
+    return _bindgen_c_fn(C)
 
+def clang_CXXMethod_isExplicit(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isExplicit"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXMethod_isDefaulted(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isDefaulted"))
-    return fn_(C)
+def clang_CXXRecord_isAbstract(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXRecord_isAbstract"))
+    return _bindgen_c_fn(C)
 
+def clang_EnumDecl_isScoped(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_EnumDecl_isScoped"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXMethod_isDeleted(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isDeleted"))
-    return fn_(C)
+def clang_CXXMethod_isConst(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_CXXMethod_isConst"))
+    return _bindgen_c_fn(C)
 
+def clang_getTemplateCursorKind(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXCursorKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXCursorKind](StringSlice("mojo_clang_getTemplateCursorKind"))
+    return _bindgen_c_fn(C)
 
-def clang_CXXMethod_isPureVirtual(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isPureVirtual"))
-    return fn_(C)
+def clang_getSpecializedCursorTemplate(out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getSpecializedCursorTemplate"))
+    _bindgen_c_fn(out_, C)
 
+def clang_getCursorReferenceNameRange(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], NameFlags: c_uint, PieceIndex: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], c_uint, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorReferenceNameRange"))
+    _bindgen_c_fn(out_, C, NameFlags, PieceIndex)
 
-def clang_CXXMethod_isStatic(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isStatic"))
-    return fn_(C)
+def clang_getToken(TU: CXTranslationUnit, Location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) -> Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]](StringSlice("mojo_clang_getToken"))
+    return _bindgen_c_fn(TU, Location)
 
+def clang_getTokenKind(a0: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) -> CXTokenKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) thin abi("C") -> CXTokenKind](StringSlice("mojo_clang_getTokenKind"))
+    return _bindgen_c_fn(a0)
 
-def clang_CXXMethod_isVirtual(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isVirtual"))
-    return fn_(C)
+def clang_getTokenSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXTranslationUnit, a2: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTokenSpelling"))
+    _bindgen_c_fn(out_, a1, a2)
 
+def clang_getTokenLocation(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], a1: CXTranslationUnit, a2: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTokenLocation"))
+    _bindgen_c_fn(out_, a1, a2)
 
-def clang_CXXMethod_isCopyAssignmentOperator(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isCopyAssignmentOperator"))
-    return fn_(C)
+def clang_getTokenExtent(out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], a1: CXTranslationUnit, a2: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], CXTranslationUnit, Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getTokenExtent"))
+    _bindgen_c_fn(out_, a1, a2)
 
+def clang_tokenize(TU: CXTranslationUnit, Range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Tokens: Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], MutUntrackedOrigin]], NumTokens: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_tokenize"))
+    _bindgen_c_fn(TU, Range, Tokens, NumTokens)
 
-def clang_CXXMethod_isMoveAssignmentOperator(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isMoveAssignmentOperator"))
-    return fn_(C)
+def clang_annotateTokens(TU: CXTranslationUnit, Tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], NumTokens: c_uint, Cursors: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], c_uint, Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_annotateTokens"))
+    _bindgen_c_fn(TU, Tokens, NumTokens, Cursors)
 
+def clang_disposeTokens(TU: CXTranslationUnit, Tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], NumTokens: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeTokens"))
+    _bindgen_c_fn(TU, Tokens, NumTokens)
 
-def clang_CXXMethod_isExplicit(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isExplicit"))
-    return fn_(C)
+def clang_getCursorKindSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Kind: CXCursorKind) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCursorKind) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCursorKindSpelling"))
+    _bindgen_c_fn(out_, Kind)
 
-
-def clang_CXXRecord_isAbstract(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXRecord_isAbstract"))
-    return fn_(C)
-
-
-def clang_EnumDecl_isScoped(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_EnumDecl_isScoped"))
-    return fn_(C)
-
-
-def clang_CXXMethod_isConst(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_CXXMethod_isConst"))
-    return fn_(C)
-
-
-def clang_getTemplateCursorKind(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXCursorKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCursorKind
-    ](StringSlice("mojo_clang_getTemplateCursorKind"))
-    return fn_(C)
-
-
-def clang_getSpecializedCursorTemplate(
-    out_: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getSpecializedCursorTemplate"))
-    fn_(out_, C)
-
-
-def clang_getCursorReferenceNameRange(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    NameFlags: c_uint,
-    PieceIndex: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorReferenceNameRange"))
-    fn_(out_, C, NameFlags, PieceIndex)
-
-
-def clang_getToken(
-    TU: CXTranslationUnit,
-    Location: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-) -> Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-        ) thin abi("C") -> Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
-    ](StringSlice("mojo_clang_getToken"))
-    return fn_(TU, Location)
-
-
-def clang_getTokenKind(
-    a0: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
-) -> CXTokenKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXTokenKind
-    ](StringSlice("mojo_clang_getTokenKind"))
-    return fn_(a0)
-
-
-def clang_getTokenSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXTranslationUnit,
-    a2: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTokenSpelling"))
-    fn_(out_, a1, a2)
-
-
-def clang_getTokenLocation(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    a1: CXTranslationUnit,
-    a2: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTokenLocation"))
-    fn_(out_, a1, a2)
-
-
-def clang_getTokenExtent(
-    out_: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    a1: CXTranslationUnit,
-    a2: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getTokenExtent"))
-    fn_(out_, a1, a2)
-
-
-def clang_tokenize(
-    TU: CXTranslationUnit,
-    Range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    Tokens: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    NumTokens: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_tokenize"))
-    fn_(TU, Range, Tokens, NumTokens)
-
-
-def clang_annotateTokens(
-    TU: CXTranslationUnit,
-    Tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-    NumTokens: c_uint,
-    Cursors: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-            c_uint,
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_annotateTokens"))
-    fn_(TU, Tokens, NumTokens, Cursors)
-
-
-def clang_disposeTokens(
-    TU: CXTranslationUnit,
-    Tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-    NumTokens: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeTokens"))
-    fn_(TU, Tokens, NumTokens)
-
-
-def clang_getCursorKindSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Kind: CXCursorKind,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCursorKind
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCursorKindSpelling"))
-    fn_(out_, Kind)
-
-
-def clang_getDefinitionSpellingAndExtent(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    startBuf: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    endBuf: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    startLine: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    startColumn: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    endLine: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    endColumn: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getDefinitionSpellingAndExtent"))
-    fn_(a0, startBuf, endBuf, startLine, startColumn, endLine, endColumn)
-
+def clang_getDefinitionSpellingAndExtent(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], startBuf: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], MutUntrackedOrigin]], endBuf: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], MutUntrackedOrigin]], startLine: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], startColumn: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], endLine: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], endColumn: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], MutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getDefinitionSpellingAndExtent"))
+    _bindgen_c_fn(a0, startBuf, endBuf, startLine, startColumn, endLine, endColumn)
 
 def clang_enableStackTraces() -> None:
-    var fn_ = _bindgen_function[def() thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_enableStackTraces")
-    )
-    fn_()
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> NoneType](StringSlice("mojo_clang_enableStackTraces"))
+    _bindgen_c_fn()
 
+def clang_executeOnThread(fn_: clang_executeOnThread_fn__cb, user_data: Optional[MutOpaquePointer[MutUntrackedOrigin]], stack_size: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(clang_executeOnThread_fn__cb, Optional[MutOpaquePointer[MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_executeOnThread"))
+    _bindgen_c_fn(fn_, user_data, stack_size)
 
-def clang_executeOnThread(
-    fn_: clang_executeOnThread_fn__cb,
-    user_data: Optional[MutOpaquePointer[MutUntrackedOrigin]],
-    stack_size: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            clang_executeOnThread_fn__cb,
-            Optional[MutOpaquePointer[MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_executeOnThread"))
-    fn_(fn_, user_data, stack_size)
+def clang_getCompletionChunkKind(completion_string: CXCompletionString, chunk_number: c_uint) -> CXCompletionChunkKind:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompletionString, c_uint) thin abi("C") -> CXCompletionChunkKind](StringSlice("mojo_clang_getCompletionChunkKind"))
+    return _bindgen_c_fn(completion_string, chunk_number)
 
+def clang_getCompletionChunkText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], completion_string: CXCompletionString, chunk_number: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompletionString, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCompletionChunkText"))
+    _bindgen_c_fn(out_, completion_string, chunk_number)
 
-def clang_getCompletionChunkKind(
-    completion_string: CXCompletionString, chunk_number: c_uint
-) -> CXCompletionChunkKind:
-    var fn_ = _bindgen_function[
-        def(CXCompletionString, c_uint) thin abi("C") -> CXCompletionChunkKind
-    ](StringSlice("mojo_clang_getCompletionChunkKind"))
-    return fn_(completion_string, chunk_number)
+def clang_getCompletionChunkCompletionString(completion_string: CXCompletionString, chunk_number: c_uint) -> CXCompletionString:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompletionString, c_uint) thin abi("C") -> CXCompletionString](StringSlice("mojo_clang_getCompletionChunkCompletionString"))
+    return _bindgen_c_fn(completion_string, chunk_number)
 
+def clang_getNumCompletionChunks(completion_string: CXCompletionString) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompletionString) thin abi("C") -> c_uint](StringSlice("mojo_clang_getNumCompletionChunks"))
+    return _bindgen_c_fn(completion_string)
 
-def clang_getCompletionChunkText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    completion_string: CXCompletionString,
-    chunk_number: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompletionString,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCompletionChunkText"))
-    fn_(out_, completion_string, chunk_number)
+def clang_getCompletionPriority(completion_string: CXCompletionString) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompletionString) thin abi("C") -> c_uint](StringSlice("mojo_clang_getCompletionPriority"))
+    return _bindgen_c_fn(completion_string)
 
+def clang_getCompletionAvailability(completion_string: CXCompletionString) -> CXAvailabilityKind:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompletionString) thin abi("C") -> CXAvailabilityKind](StringSlice("mojo_clang_getCompletionAvailability"))
+    return _bindgen_c_fn(completion_string)
 
-def clang_getCompletionChunkCompletionString(
-    completion_string: CXCompletionString, chunk_number: c_uint
-) -> CXCompletionString:
-    var fn_ = _bindgen_function[
-        def(CXCompletionString, c_uint) thin abi("C") -> CXCompletionString
-    ](StringSlice("mojo_clang_getCompletionChunkCompletionString"))
-    return fn_(completion_string, chunk_number)
+def clang_getCompletionNumAnnotations(completion_string: CXCompletionString) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompletionString) thin abi("C") -> c_uint](StringSlice("mojo_clang_getCompletionNumAnnotations"))
+    return _bindgen_c_fn(completion_string)
 
+def clang_getCompletionAnnotation(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], completion_string: CXCompletionString, annotation_number: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompletionString, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCompletionAnnotation"))
+    _bindgen_c_fn(out_, completion_string, annotation_number)
 
-def clang_getNumCompletionChunks(
-    completion_string: CXCompletionString,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(CXCompletionString) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_getNumCompletionChunks"))
-    return fn_(completion_string)
+def clang_getCompletionParent(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], completion_string: CXCompletionString, kind: Optional[UnsafePointer[CXCursorKind, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompletionString, Optional[UnsafePointer[CXCursorKind, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCompletionParent"))
+    _bindgen_c_fn(out_, completion_string, kind)
 
+def clang_getCompletionBriefComment(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], completion_string: CXCompletionString) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompletionString) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCompletionBriefComment"))
+    _bindgen_c_fn(out_, completion_string)
 
-def clang_getCompletionPriority(
-    completion_string: CXCompletionString,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(CXCompletionString) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_getCompletionPriority"))
-    return fn_(completion_string)
+def clang_getCursorCompletionString(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXCompletionString:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXCompletionString](StringSlice("mojo_clang_getCursorCompletionString"))
+    return _bindgen_c_fn(cursor)
 
+def clang_getCompletionNumFixIts(results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], completion_index: c_uint) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_uint](StringSlice("mojo_clang_getCompletionNumFixIts"))
+    return _bindgen_c_fn(results, completion_index)
 
-def clang_getCompletionAvailability(
-    completion_string: CXCompletionString,
-) -> CXAvailabilityKind:
-    var fn_ = _bindgen_function[
-        def(CXCompletionString) thin abi("C") -> CXAvailabilityKind
-    ](StringSlice("mojo_clang_getCompletionAvailability"))
-    return fn_(completion_string)
-
-
-def clang_getCompletionNumAnnotations(
-    completion_string: CXCompletionString,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(CXCompletionString) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_getCompletionNumAnnotations"))
-    return fn_(completion_string)
-
-
-def clang_getCompletionAnnotation(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    completion_string: CXCompletionString,
-    annotation_number: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompletionString,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCompletionAnnotation"))
-    fn_(out_, completion_string, annotation_number)
-
-
-def clang_getCompletionParent(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    completion_string: CXCompletionString,
-    kind: Optional[UnsafePointer[CXCursorKind, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompletionString,
-            Optional[UnsafePointer[CXCursorKind, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCompletionParent"))
-    fn_(out_, completion_string, kind)
-
-
-def clang_getCompletionBriefComment(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    completion_string: CXCompletionString,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompletionString,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCompletionBriefComment"))
-    fn_(out_, completion_string)
-
-
-def clang_getCursorCompletionString(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXCompletionString:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCompletionString
-    ](StringSlice("mojo_clang_getCursorCompletionString"))
-    return fn_(cursor)
-
-
-def clang_getCompletionNumFixIts(
-    results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-    completion_index: c_uint,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_getCompletionNumFixIts"))
-    return fn_(results, completion_index)
-
-
-def clang_getCompletionFixIt(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-    completion_index: c_uint,
-    fixit_index: c_uint,
-    replacement_range: Optional[
-        UnsafePointer[CXSourceRange, MutUntrackedOrigin]
-    ],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getCompletionFixIt"))
-    fn_(out_, results, completion_index, fixit_index, replacement_range)
-
+def clang_getCompletionFixIt(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], completion_index: c_uint, fixit_index: c_uint, replacement_range: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], c_uint, c_uint, Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCompletionFixIt"))
+    _bindgen_c_fn(out_, results, completion_index, fixit_index, replacement_range)
 
 def clang_defaultCodeCompleteOptions() -> c_uint:
-    var fn_ = _bindgen_function[def() thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_defaultCodeCompleteOptions")
-    )
-    return fn_()
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> c_uint](StringSlice("mojo_clang_defaultCodeCompleteOptions"))
+    return _bindgen_c_fn()
 
+def clang_codeCompleteAt(TU: CXTranslationUnit, complete_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], complete_line: c_uint, complete_column: c_uint, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint) -> Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], c_uint, c_uint, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint, c_uint) thin abi("C") -> Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]](StringSlice("mojo_clang_codeCompleteAt"))
+    return _bindgen_c_fn(TU, complete_filename, complete_line, complete_column, unsaved_files, num_unsaved_files, options)
 
-def clang_codeCompleteAt(
-    TU: CXTranslationUnit,
-    complete_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    complete_line: c_uint,
-    complete_column: c_uint,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    num_unsaved_files: c_uint,
-    options: c_uint,
-) -> Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_codeCompleteAt"))
-    return fn_(
-        TU,
-        complete_filename,
-        complete_line,
-        complete_column,
-        unsaved_files,
-        num_unsaved_files,
-        options,
-    )
+def clang_sortCodeCompletionResults(Results: Optional[UnsafePointer[CXCompletionResult, MutUntrackedOrigin]], NumResults: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCompletionResult, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_sortCodeCompletionResults"))
+    _bindgen_c_fn(Results, NumResults)
 
+def clang_disposeCodeCompleteResults(Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeCodeCompleteResults"))
+    _bindgen_c_fn(Results)
 
-def clang_sortCodeCompletionResults(
-    Results: Optional[UnsafePointer[CXCompletionResult, MutUntrackedOrigin]],
-    NumResults: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCompletionResult, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_sortCodeCompletionResults"))
-    fn_(Results, NumResults)
+def clang_codeCompleteGetNumDiagnostics(Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_codeCompleteGetNumDiagnostics"))
+    return _bindgen_c_fn(Results)
 
+def clang_codeCompleteGetDiagnostic(Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], Index: c_uint) -> CXDiagnostic:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], c_uint) thin abi("C") -> CXDiagnostic](StringSlice("mojo_clang_codeCompleteGetDiagnostic"))
+    return _bindgen_c_fn(Results, Index)
 
-def clang_disposeCodeCompleteResults(
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_disposeCodeCompleteResults"))
-    fn_(Results)
+def clang_codeCompleteGetContexts(Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> c_ulong_long:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) thin abi("C") -> c_ulong_long](StringSlice("mojo_clang_codeCompleteGetContexts"))
+    return _bindgen_c_fn(Results)
 
+def clang_codeCompleteGetContainerKind(Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], IsIncomplete: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> CXCursorKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> CXCursorKind](StringSlice("mojo_clang_codeCompleteGetContainerKind"))
+    return _bindgen_c_fn(Results, IsIncomplete)
 
-def clang_codeCompleteGetNumDiagnostics(
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_codeCompleteGetNumDiagnostics"))
-    return fn_(Results)
+def clang_codeCompleteGetContainerUSR(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_codeCompleteGetContainerUSR"))
+    _bindgen_c_fn(out_, Results)
 
+def clang_codeCompleteGetObjCSelector(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_codeCompleteGetObjCSelector"))
+    _bindgen_c_fn(out_, Results)
 
-def clang_codeCompleteGetDiagnostic(
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-    Index: c_uint,
-) -> CXDiagnostic:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> CXDiagnostic
-    ](StringSlice("mojo_clang_codeCompleteGetDiagnostic"))
-    return fn_(Results, Index)
-
-
-def clang_codeCompleteGetContexts(
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]
-) -> c_ulong_long:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_ulong_long
-    ](StringSlice("mojo_clang_codeCompleteGetContexts"))
-    return fn_(Results)
-
-
-def clang_codeCompleteGetContainerKind(
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-    IsIncomplete: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> CXCursorKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXCursorKind
-    ](StringSlice("mojo_clang_codeCompleteGetContainerKind"))
-    return fn_(Results, IsIncomplete)
-
-
-def clang_codeCompleteGetContainerUSR(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_codeCompleteGetContainerUSR"))
-    fn_(out_, Results)
-
-
-def clang_codeCompleteGetObjCSelector(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Results: Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCodeCompleteResults, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_codeCompleteGetObjCSelector"))
-    fn_(out_, Results)
-
-
-def clang_getClangVersion(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]]
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getClangVersion"))
-    fn_(out_)
-
+def clang_getClangVersion(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getClangVersion"))
+    _bindgen_c_fn(out_)
 
 def clang_toggleCrashRecovery(isEnabled: c_uint) -> None:
-    var fn_ = _bindgen_function[def(c_uint) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_toggleCrashRecovery")
-    )
-    fn_(isEnabled)
+    var _bindgen_c_fn = _bindgen_function[def(c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_toggleCrashRecovery"))
+    _bindgen_c_fn(isEnabled)
 
+def clang_getInclusions(tu: CXTranslationUnit, visitor: CXInclusionVisitor, client_data: CXClientData) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXInclusionVisitor, CXClientData) thin abi("C") -> NoneType](StringSlice("mojo_clang_getInclusions"))
+    _bindgen_c_fn(tu, visitor, client_data)
 
-def clang_getInclusions(
-    tu: CXTranslationUnit,
-    visitor: CXInclusionVisitor,
-    client_data: CXClientData,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit, CXInclusionVisitor, CXClientData
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getInclusions"))
-    fn_(tu, visitor, client_data)
-
-
-def clang_Cursor_Evaluate(
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXEvalResult:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXEvalResult
-    ](StringSlice("mojo_clang_Cursor_Evaluate"))
-    return fn_(C)
-
+def clang_Cursor_Evaluate(C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXEvalResult:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXEvalResult](StringSlice("mojo_clang_Cursor_Evaluate"))
+    return _bindgen_c_fn(C)
 
 def clang_EvalResult_getKind(E: CXEvalResult) -> CXEvalResultKind:
-    var fn_ = _bindgen_function[
-        def(CXEvalResult) thin abi("C") -> CXEvalResultKind
-    ](StringSlice("mojo_clang_EvalResult_getKind"))
-    return fn_(E)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> CXEvalResultKind](StringSlice("mojo_clang_EvalResult_getKind"))
+    return _bindgen_c_fn(E)
 
 def clang_EvalResult_getAsInt(E: CXEvalResult) -> c_int:
-    var fn_ = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_int](
-        StringSlice("mojo_clang_EvalResult_getAsInt")
-    )
-    return fn_(E)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_int](StringSlice("mojo_clang_EvalResult_getAsInt"))
+    return _bindgen_c_fn(E)
 
 def clang_EvalResult_getAsLongLong(E: CXEvalResult) -> c_long_long:
-    var fn_ = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_long_long](
-        StringSlice("mojo_clang_EvalResult_getAsLongLong")
-    )
-    return fn_(E)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_long_long](StringSlice("mojo_clang_EvalResult_getAsLongLong"))
+    return _bindgen_c_fn(E)
 
 def clang_EvalResult_isUnsignedInt(E: CXEvalResult) -> c_uint:
-    var fn_ = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_EvalResult_isUnsignedInt")
-    )
-    return fn_(E)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_uint](StringSlice("mojo_clang_EvalResult_isUnsignedInt"))
+    return _bindgen_c_fn(E)
 
 def clang_EvalResult_getAsUnsigned(E: CXEvalResult) -> c_ulong_long:
-    var fn_ = _bindgen_function[
-        def(CXEvalResult) thin abi("C") -> c_ulong_long
-    ](StringSlice("mojo_clang_EvalResult_getAsUnsigned"))
-    return fn_(E)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_ulong_long](StringSlice("mojo_clang_EvalResult_getAsUnsigned"))
+    return _bindgen_c_fn(E)
 
 def clang_EvalResult_getAsDouble(E: CXEvalResult) -> c_double:
-    var fn_ = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_double](
-        StringSlice("mojo_clang_EvalResult_getAsDouble")
-    )
-    return fn_(E)
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> c_double](StringSlice("mojo_clang_EvalResult_getAsDouble"))
+    return _bindgen_c_fn(E)
 
-
-def clang_EvalResult_getAsStr(
-    E: CXEvalResult,
-) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            CXEvalResult,
-        ) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-    ](StringSlice("mojo_clang_EvalResult_getAsStr"))
-    return fn_(E)
-
+def clang_EvalResult_getAsStr(E: CXEvalResult) -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_EvalResult_getAsStr"))
+    return _bindgen_c_fn(E)
 
 def clang_EvalResult_dispose(E: CXEvalResult) -> None:
-    var fn_ = _bindgen_function[def(CXEvalResult) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_EvalResult_dispose")
-    )
-    fn_(E)
+    var _bindgen_c_fn = _bindgen_function[def(CXEvalResult) thin abi("C") -> NoneType](StringSlice("mojo_clang_EvalResult_dispose"))
+    _bindgen_c_fn(E)
 
+def clang_getRemappings(path: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXRemapping:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXRemapping](StringSlice("mojo_clang_getRemappings"))
+    return _bindgen_c_fn(path)
 
-def clang_getRemappings(
-    path: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-) -> CXRemapping:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> CXRemapping
-    ](StringSlice("mojo_clang_getRemappings"))
-    return fn_(path)
-
-
-def clang_getRemappingsFromFileList(
-    filePaths: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            MutUntrackedOrigin,
-        ]
-    ],
-    numFiles: c_uint,
-) -> CXRemapping:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ],
-            c_uint,
-        ) thin abi("C") -> CXRemapping
-    ](StringSlice("mojo_clang_getRemappingsFromFileList"))
-    return fn_(filePaths, numFiles)
-
+def clang_getRemappingsFromFileList(filePaths: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], MutUntrackedOrigin]], numFiles: c_uint) -> CXRemapping:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], MutUntrackedOrigin]], c_uint) thin abi("C") -> CXRemapping](StringSlice("mojo_clang_getRemappingsFromFileList"))
+    return _bindgen_c_fn(filePaths, numFiles)
 
 def clang_remap_getNumFiles(a0: CXRemapping) -> c_uint:
-    var fn_ = _bindgen_function[def(CXRemapping) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_remap_getNumFiles")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXRemapping) thin abi("C") -> c_uint](StringSlice("mojo_clang_remap_getNumFiles"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_remap_getFilenames(
-    a0: CXRemapping,
-    index: c_uint,
-    original: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    transformed: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXRemapping,
-            c_uint,
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_remap_getFilenames"))
-    fn_(a0, index, original, transformed)
-
+def clang_remap_getFilenames(a0: CXRemapping, index: c_uint, original: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], transformed: Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXRemapping, c_uint, Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXString, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_remap_getFilenames"))
+    _bindgen_c_fn(a0, index, original, transformed)
 
 def clang_remap_dispose(a0: CXRemapping) -> None:
-    var fn_ = _bindgen_function[def(CXRemapping) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_remap_dispose")
-    )
-    fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXRemapping) thin abi("C") -> NoneType](StringSlice("mojo_clang_remap_dispose"))
+    _bindgen_c_fn(a0)
 
+def clang_findReferencesInFile(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], file: CXFile, visitor: Optional[UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]]) -> CXResult:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXFile, Optional[UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]]) thin abi("C") -> CXResult](StringSlice("mojo_clang_findReferencesInFile"))
+    return _bindgen_c_fn(cursor, file, visitor)
 
-def clang_findReferencesInFile(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    file: CXFile,
-    visitor: Optional[
-        UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]
-    ],
-) -> CXResult:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXFile,
-            Optional[
-                UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]
-            ],
-        ) thin abi("C") -> CXResult
-    ](StringSlice("mojo_clang_findReferencesInFile"))
-    return fn_(cursor, file, visitor)
+def clang_findIncludesInFile(TU: CXTranslationUnit, file: CXFile, visitor: Optional[UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]]) -> CXResult:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXFile, Optional[UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]]) thin abi("C") -> CXResult](StringSlice("mojo_clang_findIncludesInFile"))
+    return _bindgen_c_fn(TU, file, visitor)
 
+def clang_findReferencesInFileWithBlock(a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], a1: CXFile, a2: CXCursorAndRangeVisitorBlock) -> CXResult:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], CXFile, CXCursorAndRangeVisitorBlock) thin abi("C") -> CXResult](StringSlice("mojo_clang_findReferencesInFileWithBlock"))
+    return _bindgen_c_fn(a0, a1, a2)
 
-def clang_findIncludesInFile(
-    TU: CXTranslationUnit,
-    file: CXFile,
-    visitor: Optional[
-        UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]
-    ],
-) -> CXResult:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            CXFile,
-            Optional[
-                UnsafePointer[CXCursorAndRangeVisitor, MutUntrackedOrigin]
-            ],
-        ) thin abi("C") -> CXResult
-    ](StringSlice("mojo_clang_findIncludesInFile"))
-    return fn_(TU, file, visitor)
-
-
-def clang_findReferencesInFileWithBlock(
-    a0: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    a1: CXFile,
-    a2: CXCursorAndRangeVisitorBlock,
-) -> CXResult:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-            CXFile,
-            CXCursorAndRangeVisitorBlock,
-        ) thin abi("C") -> CXResult
-    ](StringSlice("mojo_clang_findReferencesInFileWithBlock"))
-    return fn_(a0, a1, a2)
-
-
-def clang_findIncludesInFileWithBlock(
-    a0: CXTranslationUnit, a1: CXFile, a2: CXCursorAndRangeVisitorBlock
-) -> CXResult:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit, CXFile, CXCursorAndRangeVisitorBlock
-        ) thin abi("C") -> CXResult
-    ](StringSlice("mojo_clang_findIncludesInFileWithBlock"))
-    return fn_(a0, a1, a2)
-
+def clang_findIncludesInFileWithBlock(a0: CXTranslationUnit, a1: CXFile, a2: CXCursorAndRangeVisitorBlock) -> CXResult:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, CXFile, CXCursorAndRangeVisitorBlock) thin abi("C") -> CXResult](StringSlice("mojo_clang_findIncludesInFileWithBlock"))
+    return _bindgen_c_fn(a0, a1, a2)
 
 def clang_index_isEntityObjCContainerKind(a0: CXIdxEntityKind) -> c_int:
-    var fn_ = _bindgen_function[def(CXIdxEntityKind) thin abi("C") -> c_int](
-        StringSlice("mojo_clang_index_isEntityObjCContainerKind")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXIdxEntityKind) thin abi("C") -> c_int](StringSlice("mojo_clang_index_isEntityObjCContainerKind"))
+    return _bindgen_c_fn(a0)
 
+def clang_index_getObjCContainerDeclInfo(a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getObjCContainerDeclInfo"))
+    return _bindgen_c_fn(a0)
 
-def clang_index_getObjCContainerDeclInfo(
-    a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxObjCContainerDeclInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getObjCContainerDeclInfo"))
-    return fn_(a0)
+def clang_index_getObjCInterfaceDeclInfo(a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxObjCInterfaceDeclInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxObjCInterfaceDeclInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getObjCInterfaceDeclInfo"))
+    return _bindgen_c_fn(a0)
 
+def clang_index_getObjCCategoryDeclInfo(a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxObjCCategoryDeclInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxObjCCategoryDeclInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getObjCCategoryDeclInfo"))
+    return _bindgen_c_fn(a0)
 
-def clang_index_getObjCInterfaceDeclInfo(
-    a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXIdxObjCInterfaceDeclInfo, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxObjCInterfaceDeclInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getObjCInterfaceDeclInfo"))
-    return fn_(a0)
+def clang_index_getObjCProtocolRefListInfo(a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getObjCProtocolRefListInfo"))
+    return _bindgen_c_fn(a0)
 
+def clang_index_getObjCPropertyDeclInfo(a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxObjCPropertyDeclInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxObjCPropertyDeclInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getObjCPropertyDeclInfo"))
+    return _bindgen_c_fn(a0)
 
-def clang_index_getObjCCategoryDeclInfo(
-    a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXIdxObjCCategoryDeclInfo, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxObjCCategoryDeclInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getObjCCategoryDeclInfo"))
-    return fn_(a0)
+def clang_index_getIBOutletCollectionAttrInfo(a0: Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxIBOutletCollectionAttrInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxIBOutletCollectionAttrInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getIBOutletCollectionAttrInfo"))
+    return _bindgen_c_fn(a0)
 
+def clang_index_getCXXClassDeclInfo(a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) -> Optional[UnsafePointer[CXIdxCXXClassDeclInfo, ImmutUntrackedOrigin]]:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]) thin abi("C") -> Optional[UnsafePointer[CXIdxCXXClassDeclInfo, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_index_getCXXClassDeclInfo"))
+    return _bindgen_c_fn(a0)
 
-def clang_index_getObjCProtocolRefListInfo(
-    a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-) -> Optional[
-    UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]
-]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxObjCProtocolRefListInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getObjCProtocolRefListInfo"))
-    return fn_(a0)
+def clang_index_getClientContainer(a0: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]) -> CXIdxClientContainer:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]) thin abi("C") -> CXIdxClientContainer](StringSlice("mojo_clang_index_getClientContainer"))
+    return _bindgen_c_fn(a0)
 
+def clang_index_setClientContainer(a0: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]], a1: CXIdxClientContainer) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]], CXIdxClientContainer) thin abi("C") -> NoneType](StringSlice("mojo_clang_index_setClientContainer"))
+    _bindgen_c_fn(a0, a1)
 
-def clang_index_getObjCPropertyDeclInfo(
-    a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXIdxObjCPropertyDeclInfo, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxObjCPropertyDeclInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getObjCPropertyDeclInfo"))
-    return fn_(a0)
+def clang_index_getClientEntity(a0: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]) -> CXIdxClientEntity:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]) thin abi("C") -> CXIdxClientEntity](StringSlice("mojo_clang_index_getClientEntity"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_index_getIBOutletCollectionAttrInfo(
-    a0: Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]]
-) -> Optional[
-    UnsafePointer[CXIdxIBOutletCollectionAttrInfo, ImmutUntrackedOrigin]
-]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxAttrInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxIBOutletCollectionAttrInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getIBOutletCollectionAttrInfo"))
-    return fn_(a0)
-
-
-def clang_index_getCXXClassDeclInfo(
-    a0: Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-) -> Optional[UnsafePointer[CXIdxCXXClassDeclInfo, ImmutUntrackedOrigin]]:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxDeclInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> Optional[
-            UnsafePointer[CXIdxCXXClassDeclInfo, ImmutUntrackedOrigin]
-        ]
-    ](StringSlice("mojo_clang_index_getCXXClassDeclInfo"))
-    return fn_(a0)
-
-
-def clang_index_getClientContainer(
-    a0: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]
-) -> CXIdxClientContainer:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> CXIdxClientContainer
-    ](StringSlice("mojo_clang_index_getClientContainer"))
-    return fn_(a0)
-
-
-def clang_index_setClientContainer(
-    a0: Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]],
-    a1: CXIdxClientContainer,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxContainerInfo, ImmutUntrackedOrigin]],
-            CXIdxClientContainer,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_index_setClientContainer"))
-    fn_(a0, a1)
-
-
-def clang_index_getClientEntity(
-    a0: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
-) -> CXIdxClientEntity:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]]
-        ) thin abi("C") -> CXIdxClientEntity
-    ](StringSlice("mojo_clang_index_getClientEntity"))
-    return fn_(a0)
-
-
-def clang_index_setClientEntity(
-    a0: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]],
-    a1: CXIdxClientEntity,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]],
-            CXIdxClientEntity,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_index_setClientEntity"))
-    fn_(a0, a1)
-
+def clang_index_setClientEntity(a0: Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]], a1: CXIdxClientEntity) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxEntityInfo, ImmutUntrackedOrigin]], CXIdxClientEntity) thin abi("C") -> NoneType](StringSlice("mojo_clang_index_setClientEntity"))
+    _bindgen_c_fn(a0, a1)
 
 def clang_IndexAction_create(CIdx: CXIndex) -> CXIndexAction:
-    var fn_ = _bindgen_function[def(CXIndex) thin abi("C") -> CXIndexAction](
-        StringSlice("mojo_clang_IndexAction_create")
-    )
-    return fn_(CIdx)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXIndex) thin abi("C") -> CXIndexAction](StringSlice("mojo_clang_IndexAction_create"))
+    return _bindgen_c_fn(CIdx)
 
 def clang_IndexAction_dispose(a0: CXIndexAction) -> None:
-    var fn_ = _bindgen_function[def(CXIndexAction) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_IndexAction_dispose")
-    )
-    fn_(a0)
-
-
-def clang_indexSourceFile(
-    a0: CXIndexAction,
-    client_data: CXClientData,
-    index_callbacks: Optional[
-        UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]
-    ],
-    index_callbacks_size: c_uint,
-    index_options: c_uint,
-    source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    command_line_args: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ],
-    num_command_line_args: c_int,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    num_unsaved_files: c_uint,
-    out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-    TU_options: c_uint,
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndexAction,
-            CXClientData,
-            Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ],
-            c_int,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-            Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_indexSourceFile"))
-    return fn_(
-        a0,
-        client_data,
-        index_callbacks,
-        index_callbacks_size,
-        index_options,
-        source_filename,
-        command_line_args,
-        num_command_line_args,
-        unsaved_files,
-        num_unsaved_files,
-        out_TU,
-        TU_options,
-    )
-
-
-def clang_indexSourceFileFullArgv(
-    a0: CXIndexAction,
-    client_data: CXClientData,
-    index_callbacks: Optional[
-        UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]
-    ],
-    index_callbacks_size: c_uint,
-    index_options: c_uint,
-    source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    command_line_args: Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ],
-    num_command_line_args: c_int,
-    unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-    num_unsaved_files: c_uint,
-    out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-    TU_options: c_uint,
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndexAction,
-            CXClientData,
-            Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ],
-            c_int,
-            Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]],
-            c_uint,
-            Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_indexSourceFileFullArgv"))
-    return fn_(
-        a0,
-        client_data,
-        index_callbacks,
-        index_callbacks_size,
-        index_options,
-        source_filename,
-        command_line_args,
-        num_command_line_args,
-        unsaved_files,
-        num_unsaved_files,
-        out_TU,
-        TU_options,
-    )
-
-
-def clang_indexTranslationUnit(
-    a0: CXIndexAction,
-    client_data: CXClientData,
-    index_callbacks: Optional[
-        UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]
-    ],
-    index_callbacks_size: c_uint,
-    index_options: c_uint,
-    a5: CXTranslationUnit,
-) -> c_int:
-    var fn_ = _bindgen_function[
-        def(
-            CXIndexAction,
-            CXClientData,
-            Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]],
-            c_uint,
-            c_uint,
-            CXTranslationUnit,
-        ) thin abi("C") -> c_int
-    ](StringSlice("mojo_clang_indexTranslationUnit"))
-    return fn_(
-        a0,
-        client_data,
-        index_callbacks,
-        index_callbacks_size,
-        index_options,
-        a5,
-    )
-
-
-def clang_indexLoc_getFileLocation(
-    loc: Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]],
-    indexFile: Optional[UnsafePointer[CXIdxClientFile, MutUntrackedOrigin]],
-    file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-    line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-    offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXIdxClientFile, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXFile, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_uint, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_indexLoc_getFileLocation"))
-    fn_(loc, indexFile, file, line, column, offset)
-
-
-def clang_indexLoc_getCXSourceLocation(
-    out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    loc: Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_indexLoc_getCXSourceLocation"))
-    fn_(out_, loc)
-
-
-def clang_Type_visitFields(
-    T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-    visitor: CXFieldVisitor,
-    client_data: CXClientData,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXType, MutUntrackedOrigin]],
-            CXFieldVisitor,
-            CXClientData,
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Type_visitFields"))
-    return fn_(T, visitor, client_data)
-
-
-def clang_getBinaryOperatorKindSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    kind: CXBinaryOperatorKind,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXBinaryOperatorKind,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getBinaryOperatorKindSpelling"))
-    fn_(out_, kind)
-
-
-def clang_getCursorBinaryOperatorKind(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXBinaryOperatorKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXBinaryOperatorKind
-    ](StringSlice("mojo_clang_getCursorBinaryOperatorKind"))
-    return fn_(cursor)
-
-
-def clang_getUnaryOperatorKindSpelling(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    kind: CXUnaryOperatorKind,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXUnaryOperatorKind,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getUnaryOperatorKindSpelling"))
-    fn_(out_, kind)
-
-
-def clang_getCursorUnaryOperatorKind(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-) -> CXUnaryOperatorKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXUnaryOperatorKind
-    ](StringSlice("mojo_clang_getCursorUnaryOperatorKind"))
-    return fn_(cursor)
-
-
-def clang_Cursor_getParsedComment(
-    out_: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Cursor_getParsedComment"))
-    fn_(out_, C)
-
-
-def clang_Comment_getKind(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> CXCommentKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCommentKind
-    ](StringSlice("mojo_clang_Comment_getKind"))
-    return fn_(Comment)
-
-
-def clang_Comment_getNumChildren(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Comment_getNumChildren"))
-    return fn_(Comment)
-
-
-def clang_Comment_getChild(
-    out_: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    ChildIdx: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_Comment_getChild"))
-    fn_(out_, Comment, ChildIdx)
-
-
-def clang_Comment_isWhitespace(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_Comment_isWhitespace"))
-    return fn_(Comment)
-
-
-def clang_InlineContentComment_hasTrailingNewline(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_InlineContentComment_hasTrailingNewline"))
-    return fn_(Comment)
-
-
-def clang_TextComment_getText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_TextComment_getText"))
-    fn_(out_, Comment)
-
-
-def clang_InlineCommandComment_getCommandName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_InlineCommandComment_getCommandName"))
-    fn_(out_, Comment)
-
-
-def clang_InlineCommandComment_getRenderKind(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> CXCommentInlineCommandRenderKind:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCommentInlineCommandRenderKind
-    ](StringSlice("mojo_clang_InlineCommandComment_getRenderKind"))
-    return fn_(Comment)
-
-
-def clang_InlineCommandComment_getNumArgs(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_InlineCommandComment_getNumArgs"))
-    return fn_(Comment)
-
-
-def clang_InlineCommandComment_getArgText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    ArgIdx: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_InlineCommandComment_getArgText"))
-    fn_(out_, Comment, ArgIdx)
-
-
-def clang_HTMLTagComment_getTagName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_HTMLTagComment_getTagName"))
-    fn_(out_, Comment)
-
-
-def clang_HTMLStartTagComment_isSelfClosing(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_HTMLStartTagComment_isSelfClosing"))
-    return fn_(Comment)
-
-
-def clang_HTMLStartTag_getNumAttrs(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_HTMLStartTag_getNumAttrs"))
-    return fn_(Comment)
-
-
-def clang_HTMLStartTag_getAttrName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    AttrIdx: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_HTMLStartTag_getAttrName"))
-    fn_(out_, Comment, AttrIdx)
-
-
-def clang_HTMLStartTag_getAttrValue(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    AttrIdx: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_HTMLStartTag_getAttrValue"))
-    fn_(out_, Comment, AttrIdx)
-
-
-def clang_BlockCommandComment_getCommandName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_BlockCommandComment_getCommandName"))
-    fn_(out_, Comment)
-
-
-def clang_BlockCommandComment_getNumArgs(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_BlockCommandComment_getNumArgs"))
-    return fn_(Comment)
-
-
-def clang_BlockCommandComment_getArgText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    ArgIdx: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_BlockCommandComment_getArgText"))
-    fn_(out_, Comment, ArgIdx)
-
-
-def clang_BlockCommandComment_getParagraph(
-    out_: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_BlockCommandComment_getParagraph"))
-    fn_(out_, Comment)
-
-
-def clang_ParamCommandComment_getParamName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_ParamCommandComment_getParamName"))
-    fn_(out_, Comment)
-
-
-def clang_ParamCommandComment_isParamIndexValid(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_ParamCommandComment_isParamIndexValid"))
-    return fn_(Comment)
-
-
-def clang_ParamCommandComment_getParamIndex(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_ParamCommandComment_getParamIndex"))
-    return fn_(Comment)
-
-
-def clang_ParamCommandComment_isDirectionExplicit(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_ParamCommandComment_isDirectionExplicit"))
-    return fn_(Comment)
-
-
-def clang_ParamCommandComment_getDirection(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> CXCommentParamPassDirection:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> CXCommentParamPassDirection
-    ](StringSlice("mojo_clang_ParamCommandComment_getDirection"))
-    return fn_(Comment)
-
-
-def clang_TParamCommandComment_getParamName(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_TParamCommandComment_getParamName"))
-    fn_(out_, Comment)
-
-
-def clang_TParamCommandComment_isParamPositionValid(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_TParamCommandComment_isParamPositionValid"))
-    return fn_(Comment)
-
-
-def clang_TParamCommandComment_getDepth(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_TParamCommandComment_getDepth"))
-    return fn_(Comment)
-
-
-def clang_TParamCommandComment_getIndex(
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-    Depth: c_uint,
-) -> c_uint:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint
-        ) thin abi("C") -> c_uint
-    ](StringSlice("mojo_clang_TParamCommandComment_getIndex"))
-    return fn_(Comment, Depth)
-
-
-def clang_VerbatimBlockLineComment_getText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_VerbatimBlockLineComment_getText"))
-    fn_(out_, Comment)
-
-
-def clang_VerbatimLineComment_getText(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_VerbatimLineComment_getText"))
-    fn_(out_, Comment)
-
-
-def clang_HTMLTagComment_getAsString(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_HTMLTagComment_getAsString"))
-    fn_(out_, Comment)
-
-
-def clang_FullComment_getAsHTML(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_FullComment_getAsHTML"))
-    fn_(out_, Comment)
-
-
-def clang_FullComment_getAsXML(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXComment, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_FullComment_getAsXML"))
-    fn_(out_, Comment)
-
-
-def clang_createAPISet(
-    tu: CXTranslationUnit,
-    out_api: Optional[UnsafePointer[CXAPISet, MutUntrackedOrigin]],
-) -> CXErrorCode:
-    var fn_ = _bindgen_function[
-        def(
-            CXTranslationUnit,
-            Optional[UnsafePointer[CXAPISet, MutUntrackedOrigin]],
-        ) thin abi("C") -> CXErrorCode
-    ](StringSlice("mojo_clang_createAPISet"))
-    return fn_(tu, out_api)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXIndexAction) thin abi("C") -> NoneType](StringSlice("mojo_clang_IndexAction_dispose"))
+    _bindgen_c_fn(a0)
+
+def clang_indexSourceFile(a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]], index_callbacks_size: c_uint, index_options: c_uint, source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], command_line_args: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]], TU_options: c_uint) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndexAction, CXClientData, Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]], c_uint, c_uint, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], c_int, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint, Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_int](StringSlice("mojo_clang_indexSourceFile"))
+    return _bindgen_c_fn(a0, client_data, index_callbacks, index_callbacks_size, index_options, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, out_TU, TU_options)
+
+def clang_indexSourceFileFullArgv(a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]], index_callbacks_size: c_uint, index_options: c_uint, source_filename: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], command_line_args: Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, out_TU: Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]], TU_options: c_uint) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndexAction, CXClientData, Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]], c_uint, c_uint, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ImmutUntrackedOrigin]], c_int, Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]], c_uint, Optional[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_int](StringSlice("mojo_clang_indexSourceFileFullArgv"))
+    return _bindgen_c_fn(a0, client_data, index_callbacks, index_callbacks_size, index_options, source_filename, command_line_args, num_command_line_args, unsaved_files, num_unsaved_files, out_TU, TU_options)
+
+def clang_indexTranslationUnit(a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]], index_callbacks_size: c_uint, index_options: c_uint, a5: CXTranslationUnit) -> c_int:
+    var _bindgen_c_fn = _bindgen_function[def(CXIndexAction, CXClientData, Optional[UnsafePointer[IndexerCallbacks, MutUntrackedOrigin]], c_uint, c_uint, CXTranslationUnit) thin abi("C") -> c_int](StringSlice("mojo_clang_indexTranslationUnit"))
+    return _bindgen_c_fn(a0, client_data, index_callbacks, index_callbacks_size, index_options, a5)
+
+def clang_indexLoc_getFileLocation(loc: Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]], indexFile: Optional[UnsafePointer[CXIdxClientFile, MutUntrackedOrigin]], file: Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], line: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], column: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], offset: Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]], Optional[UnsafePointer[CXIdxClientFile, MutUntrackedOrigin]], Optional[UnsafePointer[CXFile, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]], Optional[UnsafePointer[c_uint, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_indexLoc_getFileLocation"))
+    _bindgen_c_fn(loc, indexFile, file, line, column, offset)
+
+def clang_indexLoc_getCXSourceLocation(out_: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], loc: Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[CXIdxLoc, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_indexLoc_getCXSourceLocation"))
+    _bindgen_c_fn(out_, loc)
+
+def clang_Type_visitFields(T: Optional[UnsafePointer[CXType, MutUntrackedOrigin]], visitor: CXFieldVisitor, client_data: CXClientData) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXType, MutUntrackedOrigin]], CXFieldVisitor, CXClientData) thin abi("C") -> c_uint](StringSlice("mojo_clang_Type_visitFields"))
+    return _bindgen_c_fn(T, visitor, client_data)
+
+def clang_getBinaryOperatorKindSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], kind: CXBinaryOperatorKind) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXBinaryOperatorKind) thin abi("C") -> NoneType](StringSlice("mojo_clang_getBinaryOperatorKindSpelling"))
+    _bindgen_c_fn(out_, kind)
+
+def clang_getCursorBinaryOperatorKind(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXBinaryOperatorKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXBinaryOperatorKind](StringSlice("mojo_clang_getCursorBinaryOperatorKind"))
+    return _bindgen_c_fn(cursor)
+
+def clang_getUnaryOperatorKindSpelling(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], kind: CXUnaryOperatorKind) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXUnaryOperatorKind) thin abi("C") -> NoneType](StringSlice("mojo_clang_getUnaryOperatorKindSpelling"))
+    _bindgen_c_fn(out_, kind)
+
+def clang_getCursorUnaryOperatorKind(cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> CXUnaryOperatorKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> CXUnaryOperatorKind](StringSlice("mojo_clang_getCursorUnaryOperatorKind"))
+    return _bindgen_c_fn(cursor)
+
+def clang_Cursor_getParsedComment(out_: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], C: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_Cursor_getParsedComment"))
+    _bindgen_c_fn(out_, C)
+
+def clang_Comment_getKind(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> CXCommentKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> CXCommentKind](StringSlice("mojo_clang_Comment_getKind"))
+    return _bindgen_c_fn(Comment)
+
+def clang_Comment_getNumChildren(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Comment_getNumChildren"))
+    return _bindgen_c_fn(Comment)
+
+def clang_Comment_getChild(out_: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], ChildIdx: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_Comment_getChild"))
+    _bindgen_c_fn(out_, Comment, ChildIdx)
+
+def clang_Comment_isWhitespace(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_Comment_isWhitespace"))
+    return _bindgen_c_fn(Comment)
+
+def clang_InlineContentComment_hasTrailingNewline(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_InlineContentComment_hasTrailingNewline"))
+    return _bindgen_c_fn(Comment)
+
+def clang_TextComment_getText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_TextComment_getText"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_InlineCommandComment_getCommandName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_InlineCommandComment_getCommandName"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_InlineCommandComment_getRenderKind(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> CXCommentInlineCommandRenderKind:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> CXCommentInlineCommandRenderKind](StringSlice("mojo_clang_InlineCommandComment_getRenderKind"))
+    return _bindgen_c_fn(Comment)
+
+def clang_InlineCommandComment_getNumArgs(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_InlineCommandComment_getNumArgs"))
+    return _bindgen_c_fn(Comment)
+
+def clang_InlineCommandComment_getArgText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], ArgIdx: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_InlineCommandComment_getArgText"))
+    _bindgen_c_fn(out_, Comment, ArgIdx)
+
+def clang_HTMLTagComment_getTagName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_HTMLTagComment_getTagName"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_HTMLStartTagComment_isSelfClosing(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_HTMLStartTagComment_isSelfClosing"))
+    return _bindgen_c_fn(Comment)
+
+def clang_HTMLStartTag_getNumAttrs(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_HTMLStartTag_getNumAttrs"))
+    return _bindgen_c_fn(Comment)
+
+def clang_HTMLStartTag_getAttrName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], AttrIdx: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_HTMLStartTag_getAttrName"))
+    _bindgen_c_fn(out_, Comment, AttrIdx)
+
+def clang_HTMLStartTag_getAttrValue(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], AttrIdx: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_HTMLStartTag_getAttrValue"))
+    _bindgen_c_fn(out_, Comment, AttrIdx)
+
+def clang_BlockCommandComment_getCommandName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_BlockCommandComment_getCommandName"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_BlockCommandComment_getNumArgs(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_BlockCommandComment_getNumArgs"))
+    return _bindgen_c_fn(Comment)
+
+def clang_BlockCommandComment_getArgText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], ArgIdx: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_BlockCommandComment_getArgText"))
+    _bindgen_c_fn(out_, Comment, ArgIdx)
+
+def clang_BlockCommandComment_getParagraph(out_: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_BlockCommandComment_getParagraph"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_ParamCommandComment_getParamName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_ParamCommandComment_getParamName"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_ParamCommandComment_isParamIndexValid(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_ParamCommandComment_isParamIndexValid"))
+    return _bindgen_c_fn(Comment)
+
+def clang_ParamCommandComment_getParamIndex(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_ParamCommandComment_getParamIndex"))
+    return _bindgen_c_fn(Comment)
+
+def clang_ParamCommandComment_isDirectionExplicit(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_ParamCommandComment_isDirectionExplicit"))
+    return _bindgen_c_fn(Comment)
+
+def clang_ParamCommandComment_getDirection(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> CXCommentParamPassDirection:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> CXCommentParamPassDirection](StringSlice("mojo_clang_ParamCommandComment_getDirection"))
+    return _bindgen_c_fn(Comment)
+
+def clang_TParamCommandComment_getParamName(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_TParamCommandComment_getParamName"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_TParamCommandComment_isParamPositionValid(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_TParamCommandComment_isParamPositionValid"))
+    return _bindgen_c_fn(Comment)
+
+def clang_TParamCommandComment_getDepth(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> c_uint](StringSlice("mojo_clang_TParamCommandComment_getDepth"))
+    return _bindgen_c_fn(Comment)
+
+def clang_TParamCommandComment_getIndex(Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], Depth: c_uint) -> c_uint:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXComment, MutUntrackedOrigin]], c_uint) thin abi("C") -> c_uint](StringSlice("mojo_clang_TParamCommandComment_getIndex"))
+    return _bindgen_c_fn(Comment, Depth)
+
+def clang_VerbatimBlockLineComment_getText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_VerbatimBlockLineComment_getText"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_VerbatimLineComment_getText(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_VerbatimLineComment_getText"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_HTMLTagComment_getAsString(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_HTMLTagComment_getAsString"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_FullComment_getAsHTML(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_FullComment_getAsHTML"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_FullComment_getAsXML(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Comment: Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXComment, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_FullComment_getAsXML"))
+    _bindgen_c_fn(out_, Comment)
+
+def clang_createAPISet(tu: CXTranslationUnit, out_api: Optional[UnsafePointer[CXAPISet, MutUntrackedOrigin]]) -> CXErrorCode:
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit, Optional[UnsafePointer[CXAPISet, MutUntrackedOrigin]]) thin abi("C") -> CXErrorCode](StringSlice("mojo_clang_createAPISet"))
+    return _bindgen_c_fn(tu, out_api)
 
 def clang_disposeAPISet(api: CXAPISet) -> None:
-    var fn_ = _bindgen_function[def(CXAPISet) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_disposeAPISet")
-    )
-    fn_(api)
+    var _bindgen_c_fn = _bindgen_function[def(CXAPISet) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeAPISet"))
+    _bindgen_c_fn(api)
 
+def clang_getSymbolGraphForUSR(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], usr: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], api: CXAPISet) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], CXAPISet) thin abi("C") -> NoneType](StringSlice("mojo_clang_getSymbolGraphForUSR"))
+    _bindgen_c_fn(out_, usr, api)
 
-def clang_getSymbolGraphForUSR(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    usr: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    api: CXAPISet,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            CXAPISet,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getSymbolGraphForUSR"))
-    fn_(out_, usr, api)
+def clang_getSymbolGraphForCursor(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_getSymbolGraphForCursor"))
+    _bindgen_c_fn(out_, cursor)
 
-
-def clang_getSymbolGraphForCursor(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_getSymbolGraphForCursor"))
-    fn_(out_, cursor)
-
-
-def clang_CompilationDatabase_fromDirectory(
-    BuildDir: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-    ErrorCode: Optional[
-        UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
-    ],
-) -> CXCompilationDatabase:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            Optional[
-                UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
-            ],
-        ) thin abi("C") -> CXCompilationDatabase
-    ](StringSlice("mojo_clang_CompilationDatabase_fromDirectory"))
-    return fn_(BuildDir, ErrorCode)
-
+def clang_CompilationDatabase_fromDirectory(BuildDir: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], ErrorCode: Optional[UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]]) -> CXCompilationDatabase:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]], Optional[UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]]) thin abi("C") -> CXCompilationDatabase](StringSlice("mojo_clang_CompilationDatabase_fromDirectory"))
+    return _bindgen_c_fn(BuildDir, ErrorCode)
 
 def clang_CompilationDatabase_dispose(a0: CXCompilationDatabase) -> None:
-    var fn_ = _bindgen_function[
-        def(CXCompilationDatabase) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompilationDatabase_dispose"))
-    fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCompilationDatabase) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompilationDatabase_dispose"))
+    _bindgen_c_fn(a0)
 
+def clang_CompilationDatabase_getCompileCommands(a0: CXCompilationDatabase, CompleteFileName: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> CXCompileCommands:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompilationDatabase, Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> CXCompileCommands](StringSlice("mojo_clang_CompilationDatabase_getCompileCommands"))
+    return _bindgen_c_fn(a0, CompleteFileName)
 
-def clang_CompilationDatabase_getCompileCommands(
-    a0: CXCompilationDatabase,
-    CompleteFileName: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> CXCompileCommands:
-    var fn_ = _bindgen_function[
-        def(
-            CXCompilationDatabase,
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> CXCompileCommands
-    ](StringSlice("mojo_clang_CompilationDatabase_getCompileCommands"))
-    return fn_(a0, CompleteFileName)
-
-
-def clang_CompilationDatabase_getAllCompileCommands(
-    a0: CXCompilationDatabase,
-) -> CXCompileCommands:
-    var fn_ = _bindgen_function[
-        def(CXCompilationDatabase) thin abi("C") -> CXCompileCommands
-    ](StringSlice("mojo_clang_CompilationDatabase_getAllCompileCommands"))
-    return fn_(a0)
-
+def clang_CompilationDatabase_getAllCompileCommands(a0: CXCompilationDatabase) -> CXCompileCommands:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompilationDatabase) thin abi("C") -> CXCompileCommands](StringSlice("mojo_clang_CompilationDatabase_getAllCompileCommands"))
+    return _bindgen_c_fn(a0)
 
 def clang_CompileCommands_dispose(a0: CXCompileCommands) -> None:
-    var fn_ = _bindgen_function[
-        def(CXCompileCommands) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompileCommands_dispose"))
-    fn_(a0)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXCompileCommands) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompileCommands_dispose"))
+    _bindgen_c_fn(a0)
 
 def clang_CompileCommands_getSize(a0: CXCompileCommands) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCompileCommands) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_CompileCommands_getSize")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCompileCommands) thin abi("C") -> c_uint](StringSlice("mojo_clang_CompileCommands_getSize"))
+    return _bindgen_c_fn(a0)
 
+def clang_CompileCommands_getCommand(a0: CXCompileCommands, I: c_uint) -> CXCompileCommand:
+    var _bindgen_c_fn = _bindgen_function[def(CXCompileCommands, c_uint) thin abi("C") -> CXCompileCommand](StringSlice("mojo_clang_CompileCommands_getCommand"))
+    return _bindgen_c_fn(a0, I)
 
-def clang_CompileCommands_getCommand(
-    a0: CXCompileCommands, I: c_uint
-) -> CXCompileCommand:
-    var fn_ = _bindgen_function[
-        def(CXCompileCommands, c_uint) thin abi("C") -> CXCompileCommand
-    ](StringSlice("mojo_clang_CompileCommands_getCommand"))
-    return fn_(a0, I)
+def clang_CompileCommand_getDirectory(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXCompileCommand) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompileCommand) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompileCommand_getDirectory"))
+    _bindgen_c_fn(out_, a1)
 
-
-def clang_CompileCommand_getDirectory(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXCompileCommand,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompileCommand,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompileCommand_getDirectory"))
-    fn_(out_, a1)
-
-
-def clang_CompileCommand_getFilename(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXCompileCommand,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompileCommand,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompileCommand_getFilename"))
-    fn_(out_, a1)
-
+def clang_CompileCommand_getFilename(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXCompileCommand) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompileCommand) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompileCommand_getFilename"))
+    _bindgen_c_fn(out_, a1)
 
 def clang_CompileCommand_getNumArgs(a0: CXCompileCommand) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCompileCommand) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_CompileCommand_getNumArgs")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCompileCommand) thin abi("C") -> c_uint](StringSlice("mojo_clang_CompileCommand_getNumArgs"))
+    return _bindgen_c_fn(a0)
 
-
-def clang_CompileCommand_getArg(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXCompileCommand,
-    I: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompileCommand,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompileCommand_getArg"))
-    fn_(out_, a1, I)
-
+def clang_CompileCommand_getArg(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXCompileCommand, I: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompileCommand, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompileCommand_getArg"))
+    _bindgen_c_fn(out_, a1, I)
 
 def clang_CompileCommand_getNumMappedSources(a0: CXCompileCommand) -> c_uint:
-    var fn_ = _bindgen_function[def(CXCompileCommand) thin abi("C") -> c_uint](
-        StringSlice("mojo_clang_CompileCommand_getNumMappedSources")
-    )
-    return fn_(a0)
+    var _bindgen_c_fn = _bindgen_function[def(CXCompileCommand) thin abi("C") -> c_uint](StringSlice("mojo_clang_CompileCommand_getNumMappedSources"))
+    return _bindgen_c_fn(a0)
 
+def clang_CompileCommand_getMappedSourcePath(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXCompileCommand, I: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompileCommand, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompileCommand_getMappedSourcePath"))
+    _bindgen_c_fn(out_, a1, I)
 
-def clang_CompileCommand_getMappedSourcePath(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXCompileCommand,
-    I: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompileCommand,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompileCommand_getMappedSourcePath"))
-    fn_(out_, a1, I)
-
-
-def clang_CompileCommand_getMappedSourceContent(
-    out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-    a1: CXCompileCommand,
-    I: c_uint,
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            Optional[UnsafePointer[CXString, MutUntrackedOrigin]],
-            CXCompileCommand,
-            c_uint,
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CompileCommand_getMappedSourceContent"))
-    fn_(out_, a1, I)
-
+def clang_CompileCommand_getMappedSourceContent(out_: Optional[UnsafePointer[CXString, MutUntrackedOrigin]], a1: CXCompileCommand, I: c_uint) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXString, MutUntrackedOrigin]], CXCompileCommand, c_uint) thin abi("C") -> NoneType](StringSlice("mojo_clang_CompileCommand_getMappedSourceContent"))
+    _bindgen_c_fn(out_, a1, I)
 
 def clang_CXRewriter_create(TU: CXTranslationUnit) -> CXRewriter:
-    var fn_ = _bindgen_function[
-        def(CXTranslationUnit) thin abi("C") -> CXRewriter
-    ](StringSlice("mojo_clang_CXRewriter_create"))
-    return fn_(TU)
+    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> CXRewriter](StringSlice("mojo_clang_CXRewriter_create"))
+    return _bindgen_c_fn(TU)
 
+def clang_CXRewriter_insertTextBefore(Rew: CXRewriter, Loc: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Insert: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXRewriter, Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXRewriter_insertTextBefore"))
+    _bindgen_c_fn(Rew, Loc, Insert)
 
-def clang_CXRewriter_insertTextBefore(
-    Rew: CXRewriter,
-    Loc: Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-    Insert: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXRewriter,
-            Optional[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CXRewriter_insertTextBefore"))
-    fn_(Rew, Loc, Insert)
+def clang_CXRewriter_replaceText(Rew: CXRewriter, ToBeReplaced: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Replacement: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXRewriter, Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]], Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXRewriter_replaceText"))
+    _bindgen_c_fn(Rew, ToBeReplaced, Replacement)
 
-
-def clang_CXRewriter_replaceText(
-    Rew: CXRewriter,
-    ToBeReplaced: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-    Replacement: Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXRewriter,
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CXRewriter_replaceText"))
-    fn_(Rew, ToBeReplaced, Replacement)
-
-
-def clang_CXRewriter_removeText(
-    Rew: CXRewriter,
-    ToBeRemoved: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-) -> None:
-    var fn_ = _bindgen_function[
-        def(
-            CXRewriter,
-            Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]],
-        ) thin abi("C") -> NoneType
-    ](StringSlice("mojo_clang_CXRewriter_removeText"))
-    fn_(Rew, ToBeRemoved)
-
+def clang_CXRewriter_removeText(Rew: CXRewriter, ToBeRemoved: Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(CXRewriter, Optional[UnsafePointer[CXSourceRange, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXRewriter_removeText"))
+    _bindgen_c_fn(Rew, ToBeRemoved)
 
 def clang_CXRewriter_overwriteChangedFiles(Rew: CXRewriter) -> c_int:
-    var fn_ = _bindgen_function[def(CXRewriter) thin abi("C") -> c_int](
-        StringSlice("mojo_clang_CXRewriter_overwriteChangedFiles")
-    )
-    return fn_(Rew)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXRewriter) thin abi("C") -> c_int](StringSlice("mojo_clang_CXRewriter_overwriteChangedFiles"))
+    return _bindgen_c_fn(Rew)
 
 def clang_CXRewriter_writeMainFileToStdOut(Rew: CXRewriter) -> None:
-    var fn_ = _bindgen_function[def(CXRewriter) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_CXRewriter_writeMainFileToStdOut")
-    )
-    fn_(Rew)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXRewriter) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXRewriter_writeMainFileToStdOut"))
+    _bindgen_c_fn(Rew)
 
 def clang_CXRewriter_dispose(Rew: CXRewriter) -> None:
-    var fn_ = _bindgen_function[def(CXRewriter) thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_CXRewriter_dispose")
-    )
-    fn_(Rew)
-
+    var _bindgen_c_fn = _bindgen_function[def(CXRewriter) thin abi("C") -> NoneType](StringSlice("mojo_clang_CXRewriter_dispose"))
+    _bindgen_c_fn(Rew)
 
 def clang_install_aborting_llvm_fatal_error_handler() -> None:
-    var fn_ = _bindgen_function[def() thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_install_aborting_llvm_fatal_error_handler")
-    )
-    fn_()
-
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> NoneType](StringSlice("mojo_clang_install_aborting_llvm_fatal_error_handler"))
+    _bindgen_c_fn()
 
 def clang_uninstall_llvm_fatal_error_handler() -> None:
-    var fn_ = _bindgen_function[def() thin abi("C") -> NoneType](
-        StringSlice("mojo_clang_uninstall_llvm_fatal_error_handler")
-    )
-    fn_()
+    var _bindgen_c_fn = _bindgen_function[def() thin abi("C") -> NoneType](StringSlice("mojo_clang_uninstall_llvm_fatal_error_handler"))
+    _bindgen_c_fn()
