@@ -11,9 +11,9 @@ rtk pixi run generate
 The important change is that `mojo-bindgen` is now treated as a library
 component inside `scripts/generate_libclang_bindings.py`, not as a code
 emitter whose output is hand-patched after the fact. The generator consumes the
-bindgen CIR, rewrites it where libclang needs ABI normalization, emits the raw
-Mojo FFI, emits the C shim, and builds layout tests as part of the same
-pipeline.
+bindgen CIR, passes it through the reusable ABI shim rewriter in
+`scripts/abi_shim_rewriter.py`, emits the raw Mojo FFI, emits the C shim, and
+builds layout tests as part of the same pipeline.
 
 ## Why This Exists
 
@@ -47,8 +47,8 @@ That is the boundary the higher-level API can rely on.
 
 1. Parse the libclang headers through `mojo-bindgen`.
 2. Run the CIR normalization and analysis passes.
-3. Rewrite the CIR so any aggregate-by-value signature is normalized into a
-   pointer or out-parameter form.
+3. Rewrite the CIR so discovered aggregate-by-value signatures are normalized
+   into a pointer or out-parameter form.
 4. Emit the raw Mojo FFI to `clang/_ffi.mojo`.
 5. Emit the C shim header and implementation to
    `shim/libclang_mojo_shim.h` and `shim/libclang_mojo_shim.c`.
@@ -58,6 +58,22 @@ That is the boundary the higher-level API can rely on.
 The generated FFI layout tests are part of the generator, not a separate
 hand-maintained fixture. The verification binary is built in a temporary
 directory, not under the repo.
+
+The ABI rewrite logic is split into two layers:
+
+- `scripts/abi_shim_rewriter.py` contains the generic CIR scan, aggregate
+  discovery, pointer/out-parameter signature rewrite, C type rendering, dynamic
+  symbol resolver emission, and callback trampoline generation.
+- `scripts/generate_libclang_bindings.py` keeps libclang-specific policy:
+  clang-c header discovery, declaration filtering, include lists, libclang
+  runtime lookup, shim compilation, shim installation, and layout-test
+  orchestration.
+
+The generic rewriter discovers aggregates from the selected API surface instead
+of using a libclang-only allowlist. Any struct that crosses a kept function or
+callback boundary by value is normalized. This includes `CXTUResourceUsage`,
+whose raw functions now use the same out-parameter/pointer pattern as the other
+aggregate handles.
 
 By default the generator now parses the `clang-c` headers installed in the
 active Pixi environment, falling back to `.pixi/envs/default/include/clang-c`
@@ -118,6 +134,8 @@ That includes:
 - aggregate returns
 - aggregate parameters
 - callback trampolines
+- callback-bearing structs with a single context pointer and aggregate-bearing
+  function pointer field
 - helper surfaces for location, range, cursor, type, and token workflows
 
 ## How Higher-Level API Code Should Be Written

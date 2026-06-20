@@ -2608,12 +2608,12 @@ def clang_getTUResourceUsageName(kind: CXTUResourceUsageKind) -> Optional[Unsafe
     var _bindgen_c_fn = _bindgen_function[def(CXTUResourceUsageKind) thin abi("C") -> Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]](StringSlice("mojo_clang_getTUResourceUsageName"))
     return _bindgen_c_fn(kind)
 
-def clang_getCXTUResourceUsage(TU: CXTranslationUnit) -> CXTUResourceUsage:
-    var _bindgen_c_fn = _bindgen_function[def(CXTranslationUnit) thin abi("C") -> CXTUResourceUsage](StringSlice("mojo_clang_getCXTUResourceUsage"))
-    return _bindgen_c_fn(TU)
+def clang_getCXTUResourceUsage(out_: Optional[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]], TU: CXTranslationUnit) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]], CXTranslationUnit) thin abi("C") -> NoneType](StringSlice("mojo_clang_getCXTUResourceUsage"))
+    _bindgen_c_fn(out_, TU)
 
-def clang_disposeCXTUResourceUsage(usage: CXTUResourceUsage) -> None:
-    var _bindgen_c_fn = _bindgen_function[def(CXTUResourceUsage) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeCXTUResourceUsage"))
+def clang_disposeCXTUResourceUsage(usage: Optional[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]]) -> None:
+    var _bindgen_c_fn = _bindgen_function[def(Optional[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]]) thin abi("C") -> NoneType](StringSlice("mojo_clang_disposeCXTUResourceUsage"))
     _bindgen_c_fn(usage)
 
 def clang_getTranslationUnitTargetInfo(CTUnit: CXTranslationUnit) -> CXTargetInfo:

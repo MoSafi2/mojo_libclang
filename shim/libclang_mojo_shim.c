@@ -4586,41 +4586,33 @@ static mojo_fn_clang_uninstall_llvm_fatal_error_handler mojo_load_clang_uninstal
     return fn;
 }
 
-typedef struct MojoCXCursorVisitorContext {
-    enum CXChildVisitResult (*fn)(CXCursor *arg0, CXCursor *arg1, void * arg2);
-    void *client_data;
-} MojoCXCursorVisitorContext;
+typedef struct MojoCallbackContext_clang_visitChildren_1 {
+    enum CXChildVisitResult (*fn)(const CXCursor * arg0, const CXCursor * arg1, void * arg2);
+    CXClientData client_data;
+} MojoCallbackContext_clang_visitChildren_1;
 
-static enum CXChildVisitResult mojo_CXCursorVisitor_trampoline(CXCursor arg0, CXCursor arg1, void * arg2) {
-    MojoCXCursorVisitorContext *ctx = (MojoCXCursorVisitorContext *)arg2;
+static enum CXChildVisitResult mojo_callback_trampoline_clang_visitChildren_1(CXCursor arg0, CXCursor arg1, void * arg2) {
+    MojoCallbackContext_clang_visitChildren_1 *ctx = (MojoCallbackContext_clang_visitChildren_1 *)arg2;
     return ctx->fn(&arg0, &arg1, ctx->client_data);
 }
 
-typedef struct MojoCXFieldVisitorContext {
-    enum CXVisitorResult (*fn)(CXCursor *arg0, void * arg1);
-    void *client_data;
-} MojoCXFieldVisitorContext;
+typedef struct MojoCallbackContext_clang_Type_visitFields_1 {
+    enum CXVisitorResult (*fn)(const CXCursor * arg0, void * arg1);
+    CXClientData client_data;
+} MojoCallbackContext_clang_Type_visitFields_1;
 
-static enum CXVisitorResult mojo_CXFieldVisitor_trampoline(CXCursor arg0, void * arg1) {
-    MojoCXFieldVisitorContext *ctx = (MojoCXFieldVisitorContext *)arg1;
+static enum CXVisitorResult mojo_callback_trampoline_clang_Type_visitFields_1(CXCursor arg0, void * arg1) {
+    MojoCallbackContext_clang_Type_visitFields_1 *ctx = (MojoCallbackContext_clang_Type_visitFields_1 *)arg1;
     return ctx->fn(&arg0, ctx->client_data);
 }
 
-typedef struct MojoCXCursorAndRangeVisitorContext {
-    CXCursorAndRangeVisitor *visitor;
-} MojoCXCursorAndRangeVisitorContext;
+typedef struct MojoStructCallbackContext_CXCursorAndRangeVisitor {
+    const CXCursorAndRangeVisitor *value;
+} MojoStructCallbackContext_CXCursorAndRangeVisitor;
 
-static enum CXVisitorResult mojo_CXCursorAndRangeVisitor_trampoline(
-    void *context,
-    CXCursor cursor,
-    CXSourceRange range
-) {
-    MojoCXCursorAndRangeVisitorContext *ctx = (MojoCXCursorAndRangeVisitorContext *)context;
-    return ((enum CXVisitorResult (*)(void *, CXCursor *, CXSourceRange *))ctx->visitor->visit)(
-        ctx->visitor->context,
-        &cursor,
-        &range
-    );
+static enum CXVisitorResult mojo_struct_callback_trampoline_CXCursorAndRangeVisitor(void * arg0, CXCursor arg1, CXSourceRange arg2) {
+    MojoStructCallbackContext_CXCursorAndRangeVisitor *ctx = (MojoStructCallbackContext_CXCursorAndRangeVisitor *)arg0;
+    return ((enum CXVisitorResult (*)(void * arg0, const CXCursor * arg1, const CXSourceRange * arg2))ctx->value->visit)(ctx->value->context, &arg1, &arg2);
 }
 
 MOJO_SHIM_EXPORT const char * mojo_clang_getCString(const CXString * string) {
@@ -5053,14 +5045,14 @@ MOJO_SHIM_EXPORT const char * mojo_clang_getTUResourceUsageName(enum CXTUResourc
     return target(kind);
 }
 
-MOJO_SHIM_EXPORT CXTUResourceUsage mojo_clang_getCXTUResourceUsage(CXTranslationUnit TU) {
+MOJO_SHIM_EXPORT void mojo_clang_getCXTUResourceUsage(CXTUResourceUsage * out, CXTranslationUnit TU) {
     mojo_fn_clang_getCXTUResourceUsage target = mojo_load_clang_getCXTUResourceUsage();
-    return target(TU);
+    *out = target(TU);
 }
 
-MOJO_SHIM_EXPORT void mojo_clang_disposeCXTUResourceUsage(CXTUResourceUsage usage) {
+MOJO_SHIM_EXPORT void mojo_clang_disposeCXTUResourceUsage(const CXTUResourceUsage * usage) {
     mojo_fn_clang_disposeCXTUResourceUsage target = mojo_load_clang_disposeCXTUResourceUsage();
-    target(usage);
+    target(*usage);
 }
 
 MOJO_SHIM_EXPORT CXTargetInfo mojo_clang_getTranslationUnitTargetInfo(CXTranslationUnit CTUnit) {
@@ -5645,8 +5637,8 @@ MOJO_SHIM_EXPORT void mojo_clang_getIBOutletCollectionType(CXType * out, const C
 
 MOJO_SHIM_EXPORT unsigned int mojo_clang_visitChildren(const CXCursor * parent, enum CXChildVisitResult (*visitor)(const CXCursor * arg0, const CXCursor * arg1, void * arg2), CXClientData client_data) {
     mojo_fn_clang_visitChildren target = mojo_load_clang_visitChildren();
-    MojoCXCursorVisitorContext ctx = { .fn = visitor, .client_data = client_data };
-    return target(*parent, mojo_CXCursorVisitor_trampoline, &ctx);
+    MojoCallbackContext_clang_visitChildren_1 visitor_ctx = { .fn = visitor, .client_data = client_data };
+    return target(*parent, mojo_callback_trampoline_clang_visitChildren_1, &visitor_ctx);
 }
 
 MOJO_SHIM_EXPORT unsigned int mojo_clang_visitChildrenWithBlock(const CXCursor * parent, CXCursorVisitorBlock block) {
@@ -6231,22 +6223,22 @@ MOJO_SHIM_EXPORT void mojo_clang_remap_dispose(CXRemapping arg0) {
 
 MOJO_SHIM_EXPORT CXResult mojo_clang_findReferencesInFile(const CXCursor * cursor, CXFile file, const CXCursorAndRangeVisitor * visitor) {
     mojo_fn_clang_findReferencesInFile target = mojo_load_clang_findReferencesInFile();
-    MojoCXCursorAndRangeVisitorContext visitor_ctx = { .visitor = visitor };
-    CXCursorAndRangeVisitor normalized_visitor = {
+    MojoStructCallbackContext_CXCursorAndRangeVisitor visitor_ctx = { .value = visitor };
+    CXCursorAndRangeVisitor visitor_adapter = {
         .context = &visitor_ctx,
-        .visit = mojo_CXCursorAndRangeVisitor_trampoline,
+        .visit = mojo_struct_callback_trampoline_CXCursorAndRangeVisitor,
     };
-    return target(*cursor, file, normalized_visitor);
+    return target(*cursor, file, visitor_adapter);
 }
 
 MOJO_SHIM_EXPORT CXResult mojo_clang_findIncludesInFile(CXTranslationUnit TU, CXFile file, const CXCursorAndRangeVisitor * visitor) {
     mojo_fn_clang_findIncludesInFile target = mojo_load_clang_findIncludesInFile();
-    MojoCXCursorAndRangeVisitorContext visitor_ctx = { .visitor = visitor };
-    CXCursorAndRangeVisitor normalized_visitor = {
+    MojoStructCallbackContext_CXCursorAndRangeVisitor visitor_ctx = { .value = visitor };
+    CXCursorAndRangeVisitor visitor_adapter = {
         .context = &visitor_ctx,
-        .visit = mojo_CXCursorAndRangeVisitor_trampoline,
+        .visit = mojo_struct_callback_trampoline_CXCursorAndRangeVisitor,
     };
-    return target(TU, file, normalized_visitor);
+    return target(TU, file, visitor_adapter);
 }
 
 MOJO_SHIM_EXPORT CXResult mojo_clang_findReferencesInFileWithBlock(const CXCursor * arg0, CXFile arg1, CXCursorAndRangeVisitorBlock arg2) {
@@ -6356,8 +6348,8 @@ MOJO_SHIM_EXPORT void mojo_clang_indexLoc_getCXSourceLocation(CXSourceLocation *
 
 MOJO_SHIM_EXPORT unsigned int mojo_clang_Type_visitFields(const CXType * T, enum CXVisitorResult (*visitor)(const CXCursor * arg0, void * arg1), CXClientData client_data) {
     mojo_fn_clang_Type_visitFields target = mojo_load_clang_Type_visitFields();
-    MojoCXFieldVisitorContext ctx = { .fn = visitor, .client_data = client_data };
-    return target(*T, mojo_CXFieldVisitor_trampoline, &ctx);
+    MojoCallbackContext_clang_Type_visitFields_1 visitor_ctx = { .fn = visitor, .client_data = client_data };
+    return target(*T, mojo_callback_trampoline_clang_Type_visitFields_1, &visitor_ctx);
 }
 
 MOJO_SHIM_EXPORT void mojo_clang_getBinaryOperatorKindSpelling(CXString * out, enum CXBinaryOperatorKind kind) {

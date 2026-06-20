@@ -59,7 +59,7 @@ from clang.source_location import SourceLocation
 from clang.state import TranslationUnitState
 
 from std.collections import InlineArray, List
-from std.memory import ArcPointer, UnsafePointer
+from std.memory import ArcPointer, MutOpaquePointer, UnsafePointer, alloc
 
 
 @fieldwise_init
@@ -120,31 +120,42 @@ struct TargetInfo(Movable, Writable):
 
 
 struct TUResourceUsage(Movable, Sized, Writable):
-    var _raw: CXTUResourceUsage
+    var _raw: UnsafePointer[CXTUResourceUsage, MutAnyOrigin]
     var _owns: Bool
 
     def __init__(out self, raw: CXTUResourceUsage):
-        self._raw = CXTUResourceUsage(
+        self._raw = alloc[CXTUResourceUsage](1)
+        self._raw[] = CXTUResourceUsage(
             data=raw.data,
             numEntries=raw.numEntries,
             entries=raw.entries,
         )
         self._owns = True
 
+    def _ptr(ref self) -> UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]](
+            self._raw
+        )
+
     def __del__(deinit self):
         if self._owns:
-            clang_disposeCXTUResourceUsage(self._raw)
+            clang_disposeCXTUResourceUsage(
+                rebind[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]](
+                    self._raw
+                )
+            )
+        self._raw.free()
 
     def __len__(self) -> Int:
-        return Int(self._raw.numEntries)
+        return Int(self._raw[].numEntries)
 
     def __getitem__(ref self, i: Int) raises -> TUResourceUsageItem:
-        if i < 0 or i >= Int(self._raw.numEntries):
+        if i < 0 or i >= Int(self._raw[].numEntries):
             raise Error("TUResourceUsage index out of range")
-        if not self._raw.entries:
+        if not self._raw[].entries:
             raise Error("TUResourceUsage has no entry buffer")
 
-        var raw = (self._raw.entries.value() + i)[]
+        var raw = (self._raw[].entries.value() + i)[]
         var name_ptr = clang_getTUResourceUsageName(raw.kind)
         var name = String("")
         if name_ptr:
@@ -158,22 +169,22 @@ struct TUResourceUsage(Movable, Sized, Writable):
 
     def entries(ref self) raises -> List[TUResourceUsageItem]:
         var out = List[TUResourceUsageItem]()
-        for i in range(Int(self._raw.numEntries)):
+        for i in range(Int(self._raw[].numEntries)):
             out.append(self[i])
         return out^
 
     def total(ref self) -> Int:
         var total = c_ulong(0)
-        if not self._raw.entries:
+        if not self._raw[].entries:
             return 0
-        for i in range(Int(self._raw.numEntries)):
-            total += (self._raw.entries.value() + i)[].amount
+        for i in range(Int(self._raw[].numEntries)):
+            total += (self._raw[].entries.value() + i)[].amount
         return Int(total)
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
             "TUResourceUsage(count=",
-            Int(self._raw.numEntries),
+            Int(self._raw[].numEntries),
             ", total=",
             self.total(),
             ")",
@@ -317,7 +328,15 @@ def target_info_for_tu(raw: CXTranslationUnit) raises -> TargetInfo:
 
 
 def resource_usage_for_tu(raw: CXTranslationUnit) -> TUResourceUsage:
-    return TUResourceUsage(clang_getCXTUResourceUsage(raw))
+    var out = TUResourceUsage(
+        CXTUResourceUsage(
+            data=Optional[MutOpaquePointer[MutUntrackedOrigin]](),
+            numEntries=c_uint(0),
+            entries=Optional[UnsafePointer[CXTUResourceUsageEntry, MutUntrackedOrigin]](),
+        )
+    )
+    clang_getCXTUResourceUsage(out._ptr(), raw)
+    return out^
 
 
 def wrap_module(
