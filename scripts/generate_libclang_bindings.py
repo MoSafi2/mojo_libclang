@@ -17,6 +17,8 @@ Environment overrides:
   LIBCLANG_FFI_IR_OUT      Optional rewritten CIR JSON output path.
   LIBCLANG_ORIGINAL_IR_OUT Optional pre-rewrite normalized CIR JSON output path.
   LIBCLANG_SHIM_OUT        Output shared library for the shim.
+  LIBCLANG_INSTALL_SHIM    Copy shim into the active environment lib dir.
+                           Defaults to 1.
 """
 
 from __future__ import annotations
@@ -74,7 +76,6 @@ DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
 DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / "libclang_mojo_shim.so"
 DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
-DEFAULT_PIXI_ENV_DIR = REPO_ROOT / ".pixi" / "envs" / "default"
 
 HEADER_NAMES = (
     "Index.h",
@@ -145,11 +146,10 @@ def main() -> int:
             BindgenOptions(
                 header=primary,
                 library="libclang_mojo_shim",
-                link_name="libclang_mojo_shim",
+                link_name="clang_mojo_shim",
                 linking="owned_dl_handle",
-                library_path_hint=str(shim_out),
                 module_comment=True,
-                emit_doc_comments=False,
+                emit_doc_comments=True,
             )
         ).emit_options
     )
@@ -168,6 +168,7 @@ def main() -> int:
     runtime_version = query_libclang_version(library_path)
     validate_header_runtime_compatibility(primary, runtime_version)
     build_shim(include_root, library_path, shim_out)
+    install_shim_for_loader(shim_out)
 
     analysis = orchestrator.analyze_with_artifacts(rewritten.unit)
     mojo_source = render_mojo_module(
@@ -210,10 +211,9 @@ def parse_unit(primary: Path, headers: list[Path], include_root: Path) -> Unit:
         header=primary,
         include_headers=include_headers,
         library="libclang_mojo_shim",
-        link_name="libclang_mojo_shim",
+        link_name="clang_mojo_shim",
         clang_options=ClangOptions(raw_args=tuple(compile_args)),
         linking="owned_dl_handle",
-        library_path_hint=str(DEFAULT_SHIM_OUT.resolve()),
         module_comment=True,
         emit_doc_comments=False,
         clang_macro_fallback=True,
@@ -267,7 +267,7 @@ class LibclangABIRewriter:
         unit = replace(
             self.unit,
             library="libclang_mojo_shim",
-            link_name="libclang_mojo_shim",
+            link_name="clang_mojo_shim",
             decls=decls,
         )
         header = self._render_header(unit, functions)
@@ -858,7 +858,8 @@ def discover_clang_c_dir() -> Path:
         prefix = Path(conda_prefix).expanduser().resolve()
         candidates.extend([prefix / "include" / "clang-c", prefix / "include"])
 
-    candidates.extend([DEFAULT_PIXI_ENV_DIR / "include" / "clang-c", DEFAULT_PIXI_ENV_DIR / "include"])
+    for prefix in active_environment_prefixes():
+        candidates.extend([prefix / "include" / "clang-c", prefix / "include"])
 
     for candidate in candidates:
         normalized = normalize_clang_c_dir(candidate)
@@ -984,13 +985,14 @@ def discover_libclang_library() -> Path | None:
                 prefix / "bin" / "libclang.dll",
             ]
         )
-    candidates.extend(
-        [
-            DEFAULT_PIXI_ENV_DIR / "lib" / "libclang.so",
-            DEFAULT_PIXI_ENV_DIR / "lib" / "libclang.dylib",
-            DEFAULT_PIXI_ENV_DIR / "bin" / "libclang.dll",
-        ]
-    )
+    for lib_dir in active_environment_library_dirs():
+        candidates.extend(
+            [
+                lib_dir / "libclang.so",
+                lib_dir / "libclang.dylib",
+                lib_dir.parent / "bin" / "libclang.dll",
+            ]
+        )
     for candidate in candidates:
         if candidate.is_file():
             return candidate
@@ -1065,6 +1067,57 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     else:
         cmd.append("-lclang")
     run(cmd)
+
+
+def install_shim_for_loader(shim_out: Path) -> None:
+    disabled_values = {"0", "false", "False", "no"}
+    if os.environ.get("LIBCLANG_INSTALL_SHIM", "1") in disabled_values:
+        return
+
+    installed = False
+    for lib_dir in active_environment_library_dirs():
+        if not lib_dir.is_dir():
+            continue
+        target = lib_dir / shim_out.name
+        if target.resolve() == shim_out.resolve():
+            installed = True
+            continue
+        shutil.copy2(shim_out, target)
+        print(f"installed shim: {display_path(target)}")
+        installed = True
+
+    if not installed:
+        print(
+            "warning: no active environment lib directory found for shim install; "
+            "runtime loading may require MOJO_BINDGEN_LIBCLANG_MOJO_SHIM_LIBRARY_PATH"
+        )
+
+
+def active_environment_library_dirs() -> list[Path]:
+    return [prefix / "lib" for prefix in active_environment_prefixes()]
+
+
+def active_environment_prefixes() -> list[Path]:
+    dirs: list[Path] = []
+
+    conda_prefix = os.environ.get("CONDA_PREFIX")
+    if conda_prefix:
+        dirs.append(Path(conda_prefix).expanduser())
+
+    pixi_project_root = os.environ.get("PIXI_PROJECT_ROOT")
+    pixi_env_name = os.environ.get("PIXI_ENVIRONMENT_NAME")
+    if pixi_project_root and pixi_env_name:
+        dirs.append(Path(pixi_project_root).expanduser() / ".pixi" / "envs" / pixi_env_name)
+
+    deduped: list[Path] = []
+    seen: set[Path] = set()
+    for prefix in dirs:
+        resolved = prefix.resolve()
+        if resolved in seen:
+            continue
+        deduped.append(resolved)
+        seen.add(resolved)
+    return deduped
 
 
 def build_layout_tests(layout_out: Path) -> None:
