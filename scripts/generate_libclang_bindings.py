@@ -31,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 
 try:
@@ -65,6 +66,7 @@ DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / (
 )
 DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
+DEFAULT_METADATA_OUT = REPO_ROOT / "clang" / "_metadata.mojo"
 
 HEADER_NAMES = (
     "Index.h",
@@ -150,12 +152,15 @@ def main() -> int:
         mojo_module=analysis.mojo_module,
         main_module_name=layout_import_module(mojo_out),
     )
+    metadata_source = render_metadata_module()
     mojo_out.write_text(mojo_source, encoding="utf-8")
     layout_out.write_text(layout_source, encoding="utf-8")
+    DEFAULT_METADATA_OUT.write_text(metadata_source, encoding="utf-8")
     build_layout_tests(layout_out)
 
     print(f"generated: {display_path(mojo_out)}")
     print(f"generated: {display_path(layout_out)}")
+    print(f"generated: {display_path(DEFAULT_METADATA_OUT)}")
     print(f"generated: {display_path(DEFAULT_SHIM_HEADER)}")
     print(f"generated: {display_path(DEFAULT_SHIM_SRC)}")
     print(f"shim:      {display_path(shim_out)}")
@@ -322,6 +327,22 @@ def read_cindex_version(index_header: Path) -> tuple[int, int] | None:
     if major_match is None or minor_match is None:
         return None
     return int(major_match.group(1)), int(minor_match.group(1))
+
+
+def render_metadata_module() -> str:
+    with (REPO_ROOT / "pixi.toml").open("rb") as f:
+        config = tomllib.load(f)
+
+    package = config.get("package", {})
+    run_deps = package.get("run-dependencies", {})
+    version = package.get("version", "")
+    mojo_constraint = run_deps.get("mojo-compiler", "")
+    return (
+        '"""Package metadata generated from repository package config."""\n'
+        "\n"
+        f'comptime LIBCLANG_MOJO_VERSION = "{version}"\n'
+        f'comptime MOJO_COMPILER_CONSTRAINT = "{mojo_constraint}"\n'
+    )
 
 
 def query_libclang_version(library_path: Path | None) -> str | None:

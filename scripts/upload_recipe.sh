@@ -21,7 +21,7 @@ cmd=(
   rattler-build upload
   prefix
   --channel "${PREFIX_CHANNEL}"
-  --skip-existing
+  --force
 )
 
 redacted_cmd=("${cmd[@]}")

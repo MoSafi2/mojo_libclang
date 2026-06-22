@@ -13,6 +13,8 @@ Important:
 from clang._ffi import (
     CXCursor,
     CXCursorKind,
+    CXCursorSet,
+    CXEvalResult,
     CXTranslationUnit,
     CXType,
     CXString,
@@ -108,7 +110,6 @@ from clang._ffi import (
     clang_getTypedefDeclUnderlyingType,
     clang_getEnumDeclIntegerType,
     clang_getCursorPlatformAvailability,
-    clang_disposeCXPlatformAvailability,
     clang_Cursor_getVarDeclInitializer,
     clang_Cursor_hasVarDeclGlobalStorage,
     clang_Cursor_hasVarDeclExternalStorage,
@@ -121,6 +122,18 @@ from clang._ffi import (
     clang_getCursorReferenceNameRange,
     clang_getCursorExceptionSpecificationType,
     clang_Cursor_Evaluate,
+    clang_EvalResult_dispose,
+    clang_EvalResult_getAsDouble,
+    clang_EvalResult_getAsInt,
+    clang_EvalResult_getAsLongLong,
+    clang_EvalResult_getAsStr,
+    clang_EvalResult_getAsUnsigned,
+    clang_EvalResult_getKind,
+    clang_EvalResult_isUnsignedInt,
+    clang_createCXCursorSet,
+    clang_disposeCXCursorSet,
+    clang_CXCursorSet_contains,
+    clang_CXCursorSet_insert,
     clang_Cursor_isBitField,
     clang_getFieldDeclBitWidth,
     clang_Cursor_getOffsetOfField,
@@ -151,6 +164,7 @@ from clang._ffi import (
     clang_Cursor_isFunctionInlined,
     clang_disposeStringSet,
     c_char,
+    c_double,
     c_uint,
     c_int,
     c_long_long,
@@ -178,14 +192,14 @@ from clang.enums import (
     UnaryOperator,
 )
 
-from clang.common import _CXStringStorage, _take_cxstring
-from clang.advanced import (
+from clang.common import (
     PlatformAvailability,
-    EvalResult,
-    Module,
-    copy_platform_availabilities,
-    wrap_module,
+    _CXStringStorage,
+    _copy_platform_availabilities,
+    _dispose_platform_availabilities,
+    _take_cxstring,
 )
+from clang.module import Module, wrap_module
 
 from clang.translation_unit import (
     TranslationUnitState,
@@ -200,6 +214,70 @@ from std.memory import (
     ImmutOpaquePointer,
     MutOpaquePointer,
 )
+
+
+struct EvalResult(Movable, Writable):
+    var _raw: CXEvalResult
+
+    def __init__(out self, raw: CXEvalResult) raises:
+        if not raw:
+            raise Error("EvalResult: libclang returned null")
+        self._raw = raw
+
+    def __del__(deinit self):
+        if self._raw:
+            clang_EvalResult_dispose(self._raw)
+
+    def kind(ref self) -> Int:
+        return Int(clang_EvalResult_getKind(self._raw))
+
+    def as_int(ref self) -> Int:
+        return Int(clang_EvalResult_getAsInt(self._raw))
+
+    def as_long_long(ref self) -> Int:
+        return Int(clang_EvalResult_getAsLongLong(self._raw))
+
+    def is_unsigned_int(ref self) -> Bool:
+        return Bool(clang_EvalResult_isUnsignedInt(self._raw))
+
+    def as_unsigned(ref self) -> Int:
+        return Int(clang_EvalResult_getAsUnsigned(self._raw))
+
+    def as_double(ref self) -> Float64:
+        return Float64(clang_EvalResult_getAsDouble(self._raw))
+
+    def as_string(ref self) -> Optional[String]:
+        var ptr = clang_EvalResult_getAsStr(self._raw)
+        if not ptr:
+            return None
+        return Optional[String](String(unsafe_from_utf8_ptr=ptr.value()))
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("EvalResult(kind=", Int(self.kind()), ")")
+
+
+struct CursorSet(Movable, Writable):
+    var _raw: CXCursorSet
+
+    def __init__(out self) raises:
+        self._raw = clang_createCXCursorSet()
+        if not self._raw:
+            raise Error("CursorSet: clang_createCXCursorSet returned null")
+
+    def __del__(deinit self):
+        if self._raw:
+            clang_disposeCXCursorSet(self._raw)
+
+    def contains(ref self, ref cursor: Cursor) raises -> Bool:
+        cursor._check_valid()
+        return Bool(clang_CXCursorSet_contains(self._raw, cursor._ptr()))
+
+    def insert(ref self, ref cursor: Cursor) raises -> Bool:
+        cursor._check_valid()
+        return Bool(clang_CXCursorSet_insert(self._raw, cursor._ptr()))
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("CursorSet()")
 
 
 struct Cursor(Copyable, Iterable, Movable, Writable):
@@ -1153,19 +1231,11 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             ),
             c_int(8),
         )
-        var copied = copy_platform_availabilities(
-            rebind[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]](
-                avail
-            ),
-            Int(count),
-        )
-        for i in range(Int(count)):
-            clang_disposeCXPlatformAvailability(
-                rebind[
-                    UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]
-                ](avail)
-                + i
-            )
+        var avail_ptr = rebind[
+            UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]
+        ](avail)
+        var copied = _copy_platform_availabilities(avail_ptr, Int(count))
+        _dispose_platform_availabilities(avail_ptr, Int(count))
         avail.free()
         return copied^
 

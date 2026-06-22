@@ -10,8 +10,12 @@ plans/
 example.mojo
 opencode.json
 .agents
+*.mojo
+!clang/_metadata.mojo
+!clang/module.mojo
+!clang/version.mojo
+!test/test_version.mojo
 skills-lock.json
 dist/*
 .agents
-*.mojo
 skills-lock.json

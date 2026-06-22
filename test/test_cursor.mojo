@@ -3,12 +3,14 @@ from clang.cindex import (
     Index,
     TranslationUnit,
     Cursor,
+    CursorSet,
     Type,
     AccessSpecifier,
     CursorKind,
     BinaryOperator,
     UnaryOperator,
     TemplateArgumentKind,
+    TranslationUnitFlags,
 )
 from clang._ffi import (
     CXCursor_TranslationUnit,
@@ -1027,6 +1029,80 @@ def test_cursor_unary_operator() raises:
             )
             return
     _check(True, "no unary operator found")
+
+
+def test_cursor_var_initializer_and_storage() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "initialized_global")
+    _check(c.var_decl_initializer() is not None, "initializer should exist")
+    _check(c.has_var_decl_global_storage(), "global should have global storage")
+    _check(
+        not c.has_var_decl_external_storage(),
+        "initialized global is not extern",
+    )
+
+
+def test_cursor_macro_flags() raises:
+    var index = Index.create()
+    var tu = index.parse(
+        FIXTURE_PATH,
+        options=TranslationUnitFlags.DETAILED_PREPROCESSING_RECORD,
+    )
+    var macro = _find_by_spelling(tu, "ADD_ONE")
+    _check(macro.is_macro_function_like(), "ADD_ONE should be function-like macro")
+    var plain = _find_by_spelling(tu, "SIMPLE_MACRO")
+    _check(
+        not plain.is_macro_function_like(),
+        "SIMPLE_MACRO should not be function-like",
+    )
+
+
+def test_cursor_comment_and_name_ranges() raises:
+    var tu = _parse()
+    var c = _find_by_spelling(tu, "documented_helper")
+    _check(not c.comment_range().is_null(), "comment range should be non-null")
+    _check(not c.spelling_name_range().is_null(), "spelling name range should be non-null")
+
+
+def test_cursor_reference_name_range_and_eval() raises:
+    var tu = _parse()
+    var ref_cursor = _find_by_spelling(tu, "add")
+    _check(
+        not ref_cursor.reference_name_range().is_null(),
+        "reference name range should be non-null",
+    )
+    var init = _find_by_spelling(tu, "initialized_global")
+    var result = init.evaluate()
+    _check(result is not None, "initialized global should evaluate")
+    assert_equal(result.value().as_int(), 7)
+
+
+def test_cursor_invalid_and_exception_kind() raises:
+    var tu = _parse()
+    var cursor = _find_by_spelling(tu, "add")
+    _check(not cursor.is_invalid_declaration(), "add should not be invalid")
+    _check(Int(cursor.cursor_exception_specification_kind().as_c_uint()) >= 0)
+
+
+def test_cursor_platform_availability() raises:
+    var tu = _parse()
+    var cursor = _find_by_spelling(tu, "add")
+    var avail = cursor.platform_availability()
+    _check(len(avail) >= 0)
+
+
+def test_cursor_set() raises:
+    var tu = _parse()
+    var cursor = _find_by_spelling(tu, "add")
+    var cset = CursorSet()
+    _check(cset.insert(cursor), "insert should report success for new cursor")
+    _check(cset.contains(cursor), "set should contain inserted cursor")
+
+
+def test_inline_namespace() raises:
+    var tu = _parse_cxx()
+    var cursor = _find_by_spelling(tu, "V1")
+    _check(cursor.is_inline_namespace(), "V1 should be an inline namespace")
 
 
 def main() raises:

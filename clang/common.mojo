@@ -28,17 +28,20 @@ foundation those modules use:
 
 from clang._ffi import (
     CXIndex,
+    CXPlatformAvailability,
     CXTranslationUnit,
     CXUnsavedFile,
     CXString,
     clang_disposeIndex,
+    clang_disposeCXPlatformAvailability,
     clang_disposeTranslationUnit,
     clang_getCString,
     clang_disposeString,
 )
 
+from std.collections import List
 from std.ffi import c_char, c_int, c_uint, c_ulong
-from std.memory import ArcPointer, UnsafePointer
+from std.memory import ArcPointer, UnsafePointer, alloc
 
 
 # ---------------------------------------------------------------------------
@@ -59,6 +62,63 @@ struct UnsavedFile(Copyable, Movable, Writable):
             self.contents,
             ")",
         )
+
+
+@fieldwise_init
+struct VersionTriple(Copyable, Movable, Writable):
+    var major: Int
+    var minor: Int
+    var subminor: Int
+
+
+@fieldwise_init
+struct PlatformAvailability(Copyable, Movable, Writable):
+    var platform: String
+    var introduced: VersionTriple
+    var deprecated: VersionTriple
+    var obsoleted: VersionTriple
+    var unavailable: Bool
+    var message: Optional[String]
+
+
+def _copy_platform_availabilities(
+    raw_items: UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin],
+    count: Int,
+) raises -> List[PlatformAvailability]:
+    var out = List[PlatformAvailability]()
+    for i in range(count):
+        var raw_ptr = raw_items + i
+        out.append(
+            PlatformAvailability(
+                platform=_take_cxstring_value(raw_ptr[].Platform),
+                introduced=VersionTriple(
+                    major=Int(raw_ptr[].Introduced.Major),
+                    minor=Int(raw_ptr[].Introduced.Minor),
+                    subminor=Int(raw_ptr[].Introduced.Subminor),
+                ),
+                deprecated=VersionTriple(
+                    major=Int(raw_ptr[].Deprecated.Major),
+                    minor=Int(raw_ptr[].Deprecated.Minor),
+                    subminor=Int(raw_ptr[].Deprecated.Subminor),
+                ),
+                obsoleted=VersionTriple(
+                    major=Int(raw_ptr[].Obsoleted.Major),
+                    minor=Int(raw_ptr[].Obsoleted.Minor),
+                    subminor=Int(raw_ptr[].Obsoleted.Subminor),
+                ),
+                unavailable=Bool(raw_ptr[].Unavailable),
+                message=_take_cxstring_optional_value(raw_ptr[].Message),
+            )
+        )
+    return out^
+
+
+def _dispose_platform_availabilities(
+    raw_items: UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin],
+    count: Int,
+):
+    for i in range(count):
+        clang_disposeCXPlatformAvailability(raw_items + i)
 
 
 # ---------------------------------------------------------------------------
@@ -134,6 +194,24 @@ def _take_cxstring_optional(
     var value = String(unsafe_from_utf8_ptr=c_string.value())
     clang_disposeString(cxstr_ref)
     return Optional[String](value)
+
+
+def _take_cxstring_value(raw: CXString) raises -> String:
+    var slot = alloc[CXString](1)
+    slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
+    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
+    var out = _take_cxstring(ptr)
+    slot.free()
+    return out
+
+
+def _take_cxstring_optional_value(raw: CXString) raises -> Optional[String]:
+    var slot = alloc[CXString](1)
+    slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
+    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
+    var out = _take_cxstring_optional(ptr)
+    slot.free()
+    return out
 
 
 struct _CXStringStorage:
