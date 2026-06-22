@@ -25,13 +25,18 @@ from std.memory import ArcPointer, UnsafePointer
 
 
 struct Rewriter(Movable, Writable):
-    """Owning wrapper around ``CXRewriter``."""
+    """Owning wrapper around ``CXRewriter``.
+
+    Locations and ranges passed to this wrapper must belong to the same
+    translation unit generation used to create the rewriter.
+    """
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
     var _raw: CXRewriter
 
     def __init__(out self, tu: TranslationUnit) raises:
+        """Create a rewriter for `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = clang_CXRewriter_create(self._tu[].raw())
@@ -43,6 +48,7 @@ struct Rewriter(Movable, Writable):
         out self,
         tu: ArcPointer[TranslationUnitState],
     ) raises:
+        """Create a rewriter for a shared translation unit state."""
         self._tu = tu
         self._generation = tu[].generation
         self._raw = clang_CXRewriter_create(tu[].raw())
@@ -66,6 +72,7 @@ struct Rewriter(Movable, Writable):
         loc: SourceLocation,
         text: String,
     ) raises:
+        """Insert `text` before `loc`."""
         self._check_valid()
         var loc_copy = loc.copy()
         clang_CXRewriter_insertTextBefore(
@@ -81,6 +88,7 @@ struct Rewriter(Movable, Writable):
         extent: SourceRange,
         replacement: String,
     ) raises:
+        """Replace `extent` with `replacement`."""
         self._check_valid()
         var extent_copy = extent.copy()
         clang_CXRewriter_replaceText(
@@ -92,6 +100,7 @@ struct Rewriter(Movable, Writable):
         )
 
     def remove_text(ref self, extent: SourceRange) raises:
+        """Remove the text covered by `extent`."""
         self._check_valid()
         var extent_copy = extent.copy()
         clang_CXRewriter_removeText(
@@ -102,10 +111,12 @@ struct Rewriter(Movable, Writable):
         )
 
     def overwrite_changed_files(ref self) raises -> Int:
+        """Write changes back to disk and return libclang's status code."""
         self._check_valid()
         return Int(clang_CXRewriter_overwriteChangedFiles(self._raw))
 
     def write_main_file_to_stdout(ref self) raises:
+        """Print the rewritten main file to standard output."""
         self._check_valid()
         clang_CXRewriter_writeMainFileToStdOut(self._raw)
 

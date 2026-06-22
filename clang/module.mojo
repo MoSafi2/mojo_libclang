@@ -22,6 +22,8 @@ from std.memory import ArcPointer
 
 @fieldwise_init
 struct Module(Copyable, Movable, Writable):
+    """Borrowed wrapper around a `CXModule` tied to a translation unit."""
+
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
     var _raw: CXModule
@@ -33,26 +35,31 @@ struct Module(Copyable, Movable, Writable):
             raise Error("Module used after TranslationUnit.reparse()")
 
     def name(ref self) raises -> String:
+        """Return the module's short name."""
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Module_getName(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def full_name(ref self) raises -> String:
+        """Return the module's fully qualified name."""
         self._check_valid()
         var cs = _CXStringStorage()
         clang_Module_getFullName(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def is_system(ref self) raises -> Bool:
+        """Return true if libclang classifies this as a system module."""
         self._check_valid()
         return Bool(clang_Module_isSystem(self._raw))
 
     def ast_file(ref self) raises -> Optional[File]:
+        """Return the module AST file, if libclang provides one."""
         self._check_valid()
         return File.from_handle(self._tu, clang_Module_getASTFile(self._raw))
 
     def parent(ref self) raises -> Optional[Module]:
+        """Return the parent module, or `None` for a top-level module."""
         self._check_valid()
         var parent_raw = clang_Module_getParent(self._raw)
         if not parent_raw:
@@ -66,6 +73,7 @@ struct Module(Copyable, Movable, Writable):
         )
 
     def top_level_headers(ref self) raises -> List[File]:
+        """Return the module's top-level headers."""
         self._check_valid()
         var out = List[File]()
         var count = clang_Module_getNumTopLevelHeaders(
@@ -92,6 +100,7 @@ def wrap_module(
     tu: ArcPointer[TranslationUnitState],
     raw: CXModule,
 ) -> Optional[Module]:
+    """Wrap a raw module handle, returning `None` for null handles."""
     if not raw:
         return None
     return Optional[Module](

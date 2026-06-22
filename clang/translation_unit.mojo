@@ -66,15 +66,20 @@ from std.memory import ArcPointer, MutOpaquePointer, UnsafePointer, alloc
 
 @fieldwise_init
 struct TUResourceUsageItem(Copyable, Movable, Writable):
+    """One resource-usage counter reported by libclang for a translation unit."""
+
     var kind: c_uint
     var kind_name: String
     var amount: c_ulong
 
 
 struct TargetInfo(Movable, Writable):
+    """Owning wrapper around `CXTargetInfo` for a translation unit."""
+
     var _raw: CXTargetInfo
 
     def __init__(out self, raw: CXTargetInfo) raises:
+        """Take ownership of a non-null raw target-info handle."""
         if not raw:
             raise Error("TargetInfo: libclang returned null target info")
         self._raw = raw
@@ -84,11 +89,13 @@ struct TargetInfo(Movable, Writable):
             clang_TargetInfo_dispose(self._raw)
 
     def triple(ref self) raises -> String:
+        """Return the target triple string for the translation unit."""
         var cs = _CXStringStorage()
         clang_TargetInfo_getTriple(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def pointer_width(ref self) -> Int:
+        """Return the target pointer width in bits."""
         return Int(clang_TargetInfo_getPointerWidth(self._raw))
 
     def write_to(self, mut writer: Some[Writer]):
@@ -105,10 +112,13 @@ struct TargetInfo(Movable, Writable):
 
 
 struct TUResourceUsage(Movable, Sized, Writable):
+    """Owning wrapper around libclang translation-unit resource usage data."""
+
     var _raw: UnsafePointer[CXTUResourceUsage, MutAnyOrigin]
     var _owns: Bool
 
     def __init__(out self, raw: CXTUResourceUsage):
+        """Copy resource-usage data returned by libclang into owned storage."""
         self._raw = alloc[CXTUResourceUsage](1)
         self._raw[] = CXTUResourceUsage(
             data=raw.data,
@@ -132,9 +142,11 @@ struct TUResourceUsage(Movable, Sized, Writable):
         self._raw.free()
 
     def __len__(self) -> Int:
+        """Return the number of resource-usage entries."""
         return Int(self._raw[].numEntries)
 
     def __getitem__(ref self, i: Int) raises -> TUResourceUsageItem:
+        """Return resource-usage entry `i`."""
         if i < 0 or i >= Int(self._raw[].numEntries):
             raise Error("TUResourceUsage index out of range")
         if not self._raw[].entries:
@@ -153,12 +165,14 @@ struct TUResourceUsage(Movable, Sized, Writable):
         )
 
     def entries(ref self) raises -> List[TUResourceUsageItem]:
+        """Return all resource-usage entries."""
         var out = List[TUResourceUsageItem]()
         for i in range(Int(self._raw[].numEntries)):
             out.append(self[i])
         return out^
 
     def total(ref self) -> Int:
+        """Return the sum of all reported resource-usage amounts."""
         var total = c_ulong(0)
         if not self._raw[].entries:
             return 0
@@ -177,10 +191,12 @@ struct TUResourceUsage(Movable, Sized, Writable):
 
 
 def target_info_for_tu(raw: CXTranslationUnit) raises -> TargetInfo:
+    """Return target information for a raw translation-unit handle."""
     return TargetInfo(clang_getTranslationUnitTargetInfo(raw))
 
 
 def resource_usage_for_tu(raw: CXTranslationUnit) -> TUResourceUsage:
+    """Return resource-usage data for a raw translation-unit handle."""
     var out = TUResourceUsage(
         CXTUResourceUsage(
             data=Optional[MutOpaquePointer[MutUntrackedOrigin]](),
@@ -210,6 +226,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         index: ArcPointer[IndexState],
         raw: CXTranslationUnit,
     ) raises:
+        """Wrap a non-null raw translation unit and attach shared index state."""
         if not raw:
             raise TranslationUnitLoadError(
                 "TranslationUnit received null CXTranslationUnit"
@@ -228,10 +245,12 @@ struct TranslationUnit(Copyable, Movable, Writable):
         self._spelling = String()
 
     def __init__(out self, *, copy: Self):
+        """Copy the shared translation-unit state wrapper."""
         self._state = copy._state
         self._spelling = copy._spelling
 
     def _raw_handle(self) raises -> CXTranslationUnit:
+        """Return the checked raw translation-unit handle."""
         return self._state[].raw()
 
     def _shared_state(self) -> ArcPointer[TranslationUnitState]:
@@ -248,22 +267,27 @@ struct TranslationUnit(Copyable, Movable, Writable):
         writer.write("TranslationUnit(", self._spelling, ")")
 
     def __len__(self) raises -> Int:
+        """Return the number of diagnostics attached to this translation unit."""
         return Int(clang_getNumDiagnostics(self._raw_handle()))
 
     def spelling(ref self) raises -> String:
+        """Return libclang's spelling for this translation unit."""
         var cs = _CXStringStorage()
         clang_getTranslationUnitSpelling(cs.ptr_for_out(), self._raw_handle())
         return cs.take()
 
     def cursor(ref self) raises -> Cursor:
+        """Return the root cursor for this translation unit."""
         var out = Cursor(tu=self._shared_state())
         clang_getTranslationUnitCursor(out._ptr(), self._raw_handle())
         return out^
 
     def num_diagnostics(ref self) raises -> Int:
+        """Return the number of diagnostics attached to this translation unit."""
         return Int(clang_getNumDiagnostics(self._raw_handle()))
 
     def diagnostic(ref self, index: Int) raises -> Diagnostic:
+        """Return diagnostic `index`."""
         if index < 0 or index >= self.num_diagnostics():
             raise Error("TranslationUnit.diagnostic: index out of range")
         var d = Diagnostic(
@@ -274,18 +298,22 @@ struct TranslationUnit(Copyable, Movable, Writable):
         return d^
 
     def diagnostics(ref self) raises -> DiagnosticSet:
+        """Return all diagnostics as a `DiagnosticSet`."""
         return DiagnosticSet._from_handle(
             self._shared_state(),
             clang_getDiagnosticSetFromTU(self._raw_handle()),
         )
 
     def file(ref self, filename: String) raises -> Optional[File]:
+        """Return the file wrapper for `filename`, or `None` when absent."""
         return File.from_name(self._shared_state(), filename)
 
     def target_info(ref self) raises -> TargetInfo:
+        """Return target information for this translation unit."""
         return target_info_for_tu(self._raw_handle())
 
     def resource_usage(ref self) raises -> TUResourceUsage:
+        """Return libclang resource-usage counters for this translation unit."""
         return resource_usage_for_tu(self._raw_handle())
 
     def location(
@@ -294,6 +322,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         line: Int,
         column: Int,
     ) raises -> SourceLocation:
+        """Return a source location for one-based `line` and `column` in `filename`."""
         if line < 1 or column < 1:
             raise Error(
                 "TranslationUnit.location: line and column must be >= 1",
@@ -311,6 +340,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         filename: String,
         offset: Int,
     ) raises -> SourceLocation:
+        """Return a source location for zero-based byte `offset` in `filename`."""
         if offset < 0:
             raise Error("TranslationUnit.location_for_offset: offset must be >= 0")
 
@@ -336,6 +366,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         start: SourceLocation,
         end: SourceLocation,
     ) raises -> SourceRange:
+        """Return a source range spanning `start` to `end`."""
         return SourceRange.from_locations(start, end)
 
     def extent(
@@ -346,6 +377,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         end_line: Int,
         end_column: Int,
     ) raises -> SourceRange:
+        """Return a source range from two one-based line and column positions."""
         var start = self.location(filename, start_line, start_column)
         var end = self.location(filename, end_line, end_column)
         return SourceRange.from_locations(start, end)
@@ -356,6 +388,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         start_offset: Int,
         end_offset: Int,
     ) raises -> SourceRange:
+        """Return a source range from two zero-based byte offsets."""
         if start_offset < 0 or end_offset < 0:
             raise Error(
                 "TranslationUnit.extent_from_offsets: offsets must be >= 0",
@@ -365,9 +398,11 @@ struct TranslationUnit(Copyable, Movable, Writable):
         return SourceRange.from_locations(start, end)
 
     def tokens(ref self, extent: SourceRange) raises -> TokenGroup:
+        """Tokenize `extent` and return the owned token buffer."""
         return TokenGroup(tu=self._shared_state(), extent=extent)
 
     def cursor_for_location(ref self, ref loc: SourceLocation) raises -> Cursor:
+        """Return the most specific cursor at `loc`."""
         var out = Cursor(tu=self._shared_state())
         clang_getCursor(out._ptr(), self._raw_handle(), loc._ptr())
         return out^
@@ -377,6 +412,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         filename: String,
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
+        """Save this translation unit to `filename`."""
         var opts = options
         if opts == TranslationUnitFlags.NONE:
             opts = TranslationUnitFlags(clang_defaultSaveOptions(self._raw_handle()))
@@ -397,6 +433,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
+        """Reparse this translation unit, invalidating stale derived wrappers."""
         var opts = options
         if opts == TranslationUnitFlags.NONE:
             opts = TranslationUnitFlags(clang_defaultReparseOptions(self._raw_handle()))
@@ -419,9 +456,11 @@ struct TranslationUnit(Copyable, Movable, Writable):
         self._state[].bump_generation()
 
     def suspend(ref self) raises -> Bool:
+        """Ask libclang to suspend this translation unit."""
         return Bool(clang_suspendTranslationUnit(self._raw_handle()))
 
     def file_contents(ref self, file: File) raises -> String:
+        """Return the contents libclang has for `file`."""
         var size = size_t(0)
         var size_ptr = UnsafePointer[size_t, MutAnyOrigin](to=size)
         var raw = clang_getFileContents(
@@ -434,12 +473,14 @@ struct TranslationUnit(Copyable, Movable, Writable):
         return String(unsafe_from_utf8_ptr=raw.value())
 
     def file_contents(ref self, filename: String) raises -> String:
+        """Return the contents libclang has for `filename`."""
         var file_opt = self.file(filename)
         if not file_opt:
             raise Error("TranslationUnit.file_contents: unknown filename")
         return self.file_contents(file_opt.value())
 
     def skipped_ranges(ref self, file: File) raises -> List[SourceRange]:
+        """Return skipped preprocessor ranges for `file`."""
         var out = List[SourceRange]()
         var raw_list = clang_getSkippedRanges(self._raw_handle(), file._raw_value())
         if not raw_list:
@@ -451,12 +492,14 @@ struct TranslationUnit(Copyable, Movable, Writable):
         return out^
 
     def skipped_ranges(ref self, filename: String) raises -> List[SourceRange]:
+        """Return skipped preprocessor ranges for `filename`."""
         var file_opt = self.file(filename)
         if not file_opt:
             raise Error("TranslationUnit.skipped_ranges: unknown filename")
         return self.skipped_ranges(file_opt.value())
 
     def all_skipped_ranges(ref self) raises -> List[SourceRange]:
+        """Return skipped preprocessor ranges for the whole translation unit."""
         var out = List[SourceRange]()
         var raw_list = clang_getAllSkippedRanges(self._raw_handle())
         if not raw_list:

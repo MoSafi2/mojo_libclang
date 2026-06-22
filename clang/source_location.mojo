@@ -9,7 +9,7 @@ Important:
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The location becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXSourceLocation *` to the shim, never `CXSourceLocation` by value.
-  """
+"""
 
 from clang._ffi import (
     CXSourceLocation,
@@ -36,7 +36,6 @@ from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
 struct SourceLocation(Copyable, Movable, Writable):
     """A source location borrowed from a `TranslationUnit`.
 
-    ```
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
     """
@@ -133,12 +132,14 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     @staticmethod
     def null(tu: TranslationUnit) raises -> Self:
+        """Return libclang's null source location for `tu`."""
         return Self(tu=tu)
 
     @staticmethod
     def null(
         tu: ArcPointer[TranslationUnitState],
     ) raises -> Self:
+        """Return libclang's null source location for a shared TU state."""
         return Self(tu=tu)
 
     @staticmethod
@@ -159,6 +160,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         line: Int,
         column: Int,
     ) raises -> Self:
+        """Create a location from one-based `line` and `column` in `file`."""
         if line < 1 or column < 1:
             raise Error("SourceLocation.from_position: line and column must be >= 1")
 
@@ -180,6 +182,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         line: Int,
         column: Int,
     ) raises -> Self:
+        """Create a location from one-based `line` and `column` in `file`."""
         if line < 1 or column < 1:
             raise Error("SourceLocation.from_position: line and column must be >= 1")
 
@@ -200,6 +203,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         file: CXFile,
         offset: Int,
     ) raises -> Self:
+        """Create a location from a zero-based byte `offset` in `file`."""
         if offset < 0:
             raise Error("SourceLocation.from_offset: offset must be >= 0")
 
@@ -219,6 +223,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         file: CXFile,
         offset: Int,
     ) raises -> Self:
+        """Create a location from a zero-based byte `offset` in `file`."""
         if offset < 0:
             raise Error("SourceLocation.from_offset: offset must be >= 0")
 
@@ -277,18 +282,22 @@ struct SourceLocation(Copyable, Movable, Writable):
         return Optional[File](f^)
 
     def file_name(ref self) raises -> String:
+        """Return the cached spelling file name, or an empty string for none."""
         self._check_valid()
         return self._file_name
 
     def line(ref self) raises -> Int:
+        """Return the cached one-based spelling line."""
         self._check_valid()
         return Int(self._line)
 
     def column(ref self) raises -> Int:
+        """Return the cached one-based spelling column."""
         self._check_valid()
         return Int(self._column)
 
     def offset(ref self) raises -> Int:
+        """Return the cached zero-based spelling offset."""
         self._check_valid()
         return Int(self._offset)
 
@@ -304,10 +313,12 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._cache_from_ffi()
 
     def is_in_system_header(ref self) raises -> Bool:
+        """Return true when this location is in a system header."""
         self._check_valid()
         return Bool(clang_Location_isInSystemHeader(self._ptr()))
 
     def is_from_main_file(ref self) raises -> Bool:
+        """Return true when this location comes from the main file."""
         self._check_valid()
         return Bool(clang_Location_isFromMainFile(self._ptr()))
 

@@ -91,7 +91,10 @@ struct _CompileCommandsState(Movable):
 
 
 struct CompileCommand(Copyable, Movable, Writable):
-    """One compile command from a compilation database."""
+    """One compile command from a compilation database.
+
+    The command keeps its parent `CompileCommands` collection alive.
+    """
 
     var _commands: ArcPointer[_CompileCommandsState]
     var _raw: CXCompileCommand
@@ -109,19 +112,23 @@ struct CompileCommand(Copyable, Movable, Writable):
         self._raw = copy._raw
 
     def directory(ref self) raises -> String:
+        """Return the command working directory."""
         var cs = _CXStringStorage()
         clang_CompileCommand_getDirectory(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def filename(ref self) raises -> String:
+        """Return the source file this command builds."""
         var cs = _CXStringStorage()
         clang_CompileCommand_getFilename(cs.ptr_for_out(), self._raw)
         return cs.take()
 
     def num_args(ref self) -> Int:
+        """Return the number of command-line arguments."""
         return Int(clang_CompileCommand_getNumArgs(self._raw))
 
     def arg(ref self, i: Int) raises -> String:
+        """Return argument `i`, raising if `i` is out of range."""
         if i < 0 or i >= self.num_args():
             raise Error("CompileCommand arg index out of range")
         var cs = _CXStringStorage()
@@ -129,6 +136,7 @@ struct CompileCommand(Copyable, Movable, Writable):
         return cs.take()
 
     def arguments(ref self) raises -> List[String]:
+        """Return all command-line arguments."""
         var n = Int(self.num_args())
         var out = List[String]()
         for i in range(n):
@@ -136,9 +144,11 @@ struct CompileCommand(Copyable, Movable, Writable):
         return out^
 
     def num_mapped_sources(ref self) -> Int:
+        """Return the number of mapped source entries."""
         return Int(clang_CompileCommand_getNumMappedSources(self._raw))
 
     def mapped_source_path(ref self, i: Int) raises -> String:
+        """Return mapped source path `i`, raising if `i` is out of range."""
         if i < 0 or i >= self.num_mapped_sources():
             raise Error("CompileCommand mapped source index out of range")
         var cs = _CXStringStorage()
@@ -148,6 +158,7 @@ struct CompileCommand(Copyable, Movable, Writable):
         return cs.take()
 
     def mapped_source_content(ref self, i: Int) raises -> String:
+        """Return mapped source content `i`, raising if `i` is out of range."""
         if i < 0 or i >= self.num_mapped_sources():
             raise Error("CompileCommand mapped source index out of range")
         var cs = _CXStringStorage()
@@ -250,6 +261,7 @@ struct CompilationDatabase(Movable, Writable):
     var _state: ArcPointer[_CompilationDatabaseState]
 
     def __init__(out self, build_dir: String) raises:
+        """Load `compile_commands.json` from `build_dir`."""
         var err = InlineArray[CXCompilationDatabase_Error, 1](
             fill=CXCompilationDatabase_Error(c_uint(0))
         )
@@ -271,6 +283,7 @@ struct CompilationDatabase(Movable, Writable):
 
     @staticmethod
     def from_directory(build_dir: String) raises -> Self:
+        """Load a compilation database from `build_dir`."""
         return Self(build_dir)
 
     def _shared_state(self) -> ArcPointer[_CompilationDatabaseState]:
@@ -279,6 +292,7 @@ struct CompilationDatabase(Movable, Writable):
     def get_compile_commands(
         ref self, filename: String
     ) raises -> CompileCommands:
+        """Return compile commands for `filename`."""
         var raw = clang_CompilationDatabase_getCompileCommands(
             self._state[].raw(),
             _borrow_c_string(filename),
@@ -292,6 +306,7 @@ struct CompilationDatabase(Movable, Writable):
         return CompileCommands(self._state, raw)
 
     def get_all_compile_commands(ref self) raises -> CompileCommands:
+        """Return every compile command in the database."""
         var raw = clang_CompilationDatabase_getAllCompileCommands(
             self._state[].raw()
         )

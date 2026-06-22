@@ -8,7 +8,7 @@ Important:
 * `CXFile` is not independently owned by this wrapper.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The file becomes stale after `TranslationUnit.reparse()` if the generation changes.
-  """
+"""
 
 from clang._ffi import (
     CXFile,
@@ -32,7 +32,6 @@ from std.memory import ArcPointer
 struct File(Copyable, Movable, Writable):
     """A `CXFile` borrowed from a `TranslationUnit`.
 
-    ```
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
     """
@@ -101,10 +100,12 @@ struct File(Copyable, Movable, Writable):
 
     @staticmethod
     def null(tu: TranslationUnit) raises -> Self:
+        """Return a null file handle associated with `tu`."""
         return Self(tu=tu, raw=CXFile(None))
 
     @staticmethod
     def null(tu: ArcPointer[TranslationUnitState]) raises -> Self:
+        """Return a null file handle associated with a shared TU state."""
         return Self(tu=tu, raw=CXFile(None))
 
     @staticmethod
@@ -112,6 +113,7 @@ struct File(Copyable, Movable, Writable):
         tu: TranslationUnit,
         handle: CXFile,
     ) raises -> Optional[Self]:
+        """Wrap `handle`, or return `None` if it is a null `CXFile`."""
         if not handle:
             return None
 
@@ -123,6 +125,7 @@ struct File(Copyable, Movable, Writable):
         tu: ArcPointer[TranslationUnitState],
         handle: CXFile,
     ) raises -> Optional[Self]:
+        """Wrap `handle`, or return `None` if it is a null `CXFile`."""
         if not handle:
             return None
 
@@ -134,6 +137,7 @@ struct File(Copyable, Movable, Writable):
         tu: TranslationUnit,
         filename: String,
     ) raises -> Optional[Self]:
+        """Look up `filename` in `tu`, returning `None` when absent."""
         var tu_state = tu._shared_state()
         if not tu_state[].alive:
             raise Error("File.from_name: TranslationUnit used after disposal")
@@ -154,6 +158,7 @@ struct File(Copyable, Movable, Writable):
         tu: ArcPointer[TranslationUnitState],
         filename: String,
     ) raises -> Optional[Self]:
+        """Look up `filename` in a shared TU state, returning `None` when absent."""
         if not tu[].alive:
             raise Error("File.from_name: TranslationUnit used after disposal")
 
@@ -172,6 +177,7 @@ struct File(Copyable, Movable, Writable):
         writer.write("File(", self._name, ")")
 
     def name(mut self) raises -> String:
+        """Return libclang's file name, caching it after the first lookup."""
         self._check_valid()
 
         if not self._name:
@@ -180,10 +186,12 @@ struct File(Copyable, Movable, Writable):
         return self._name
 
     def time(ref self) raises -> time_t:
+        """Return libclang's modification time for this file."""
         self._check_valid()
         return clang_getFileTime(self._raw)
 
     def real_path(ref self) raises -> String:
+        """Return the real path name reported by libclang."""
         self._check_valid()
 
         var cs = _CXStringStorage()
@@ -191,6 +199,7 @@ struct File(Copyable, Movable, Writable):
         return cs.take()
 
     def is_multiple_include_guarded(ref self) raises -> Bool:
+        """Return true if libclang sees this file as include-guarded."""
         self._check_valid()
         return Bool(
             clang_isFileMultipleIncludeGuarded(

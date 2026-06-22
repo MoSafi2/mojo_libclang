@@ -9,7 +9,7 @@ Important:
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The range becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXSourceRange *` to the shim, never `CXSourceRange` by value.
-  """
+"""
 
 from clang._ffi import (
     CXSourceLocation,
@@ -33,7 +33,6 @@ from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
 struct SourceRange(Copyable, Movable, Writable):
     """A `[begin, end)` source range borrowed from a `TranslationUnit`.
 
-    ```
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
     """
@@ -91,12 +90,14 @@ struct SourceRange(Copyable, Movable, Writable):
 
     @staticmethod
     def null(tu: TranslationUnit) raises -> Self:
+        """Return libclang's null source range for `tu`."""
         return Self(tu=tu)
 
     @staticmethod
     def null(
         tu: ArcPointer[TranslationUnitState],
     ) raises -> Self:
+        """Return libclang's null source range for a shared TU state."""
         return Self(tu=tu)
 
     @staticmethod
@@ -104,6 +105,7 @@ struct SourceRange(Copyable, Movable, Writable):
         start: SourceLocation,
         end: SourceLocation,
     ) raises -> Self:
+        """Create a range from two locations in the same translation unit."""
         var start_copy = start.copy()
         var end_copy = end.copy()
 
@@ -147,6 +149,7 @@ struct SourceRange(Copyable, Movable, Writable):
         tu: ArcPointer[TranslationUnitState],
         raw: CXSourceRange,
     ) raises -> Self:
+        """Create a range from a copied raw `CXSourceRange` value."""
         var out = Self(tu=tu)
         out._raw = InlineArray[CXSourceRange, 1](fill=raw)
         var start = _zero_source_location()
@@ -168,14 +171,17 @@ struct SourceRange(Copyable, Movable, Writable):
         return out^
 
     def start(ref self) raises -> SourceLocation:
+        """Return a copy of the range start location."""
         self._check_valid()
         return self._start.copy()
 
     def end(ref self) raises -> SourceLocation:
+        """Return a copy of the range end location."""
         self._check_valid()
         return self._end.copy()
 
     def is_null(ref self) raises -> Bool:
+        """Return true when this is libclang's null source range."""
         self._check_valid()
         return Bool(clang_Range_isNull(self._ptr()))
 

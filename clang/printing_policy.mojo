@@ -26,6 +26,7 @@ struct PrintingPolicy(Movable, Writable):
     var _raw: CXPrintingPolicy
 
     def __init__(out self, ref cursor: Cursor) raises:
+        """Create a printing policy for `cursor`."""
         cursor._check_valid()
         self._raw = clang_getCursorPrintingPolicy(cursor._ptr())
         if not self._raw:
@@ -49,6 +50,7 @@ struct PrintingPolicy(Movable, Writable):
 
     @staticmethod
     def create(ref cursor: Cursor) raises -> Self:
+        """Create a printing policy for `cursor`."""
         return Self(cursor)
 
     def __del__(deinit self):
@@ -56,6 +58,7 @@ struct PrintingPolicy(Movable, Writable):
             clang_PrintingPolicy_dispose(self._raw)
 
     def property(ref self, property: PrintingPolicyProperty) -> Int:
+        """Return the integer value of a printing policy property."""
         return Int(
             clang_PrintingPolicy_getProperty(self._raw, property.as_c_uint())
         )
@@ -65,6 +68,7 @@ struct PrintingPolicy(Movable, Writable):
         property: PrintingPolicyProperty,
         value: Int,
     ) raises:
+        """Set a printing policy property to a non-negative integer value."""
         if value < 0:
             raise Error("PrintingPolicy.set_property: value must be >= 0")
         clang_PrintingPolicy_setProperty(

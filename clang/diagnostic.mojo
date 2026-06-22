@@ -19,7 +19,7 @@ Ownership notes:
 * Diagnostic sets returned from `clang_getDiagnosticSetFromTU()` are owned.
 * Diagnostic sets returned from `clang_getChildDiagnostics()` are borrowed and
   should not be disposed.
-  """
+"""
 
 from clang._ffi import (
     CXDiagnostic,
@@ -72,7 +72,6 @@ struct FixIt(Copyable, Movable, Writable):
 struct Diagnostic(Movable, Writable):
     """Owning wrapper around `CXDiagnostic`.
 
-    ```
     The diagnostic keeps its originating translation unit alive so that
     locations, ranges, and fix-its can safely create TU-borrowed wrappers.
     """
@@ -89,6 +88,7 @@ struct Diagnostic(Movable, Writable):
         raw: CXDiagnostic,
         owns: Bool = True,
     ) raises:
+        """Wrap a diagnostic tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = raw
@@ -104,6 +104,7 @@ struct Diagnostic(Movable, Writable):
         raw: CXDiagnostic,
         owns: Bool = True,
     ) raises:
+        """Wrap a diagnostic tied to a shared translation-unit state."""
         self._tu = tu
         self._generation = tu[].generation
         self._raw = raw
@@ -164,10 +165,12 @@ struct Diagnostic(Movable, Writable):
         writer.write("Diagnostic(", self._formatted, ")")
 
     def severity(ref self) raises -> DiagnosticSeverity:
+        """Return the diagnostic severity."""
         self._check_valid()
         return DiagnosticSeverity(clang_getDiagnosticSeverity(self._raw))
 
     def spelling(ref self) raises -> String:
+        """Return the diagnostic spelling text."""
         self._check_valid()
 
         var cs = _CXStringStorage()
@@ -175,6 +178,7 @@ struct Diagnostic(Movable, Writable):
         return cs.take()
 
     def location(ref self) raises -> SourceLocation:
+        """Return the primary source location for this diagnostic."""
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
@@ -183,10 +187,12 @@ struct Diagnostic(Movable, Writable):
         return out^
 
     def category_number(ref self) raises -> Int:
+        """Return the libclang numeric category for this diagnostic."""
         self._check_valid()
         return Int(clang_getDiagnosticCategory(self._raw))
 
     def category_name(ref self) raises -> String:
+        """Return the category name for this diagnostic."""
         self._check_valid()
 
         var cs = _CXStringStorage()
@@ -194,6 +200,7 @@ struct Diagnostic(Movable, Writable):
         return cs.take()
 
     def option(ref self) raises -> String:
+        """Return the warning option associated with this diagnostic."""
         self._check_valid()
 
         var option = _CXStringStorage()
@@ -212,6 +219,7 @@ struct Diagnostic(Movable, Writable):
         return option.take()
 
     def disable_option(ref self) raises -> String:
+        """Return the option that disables this diagnostic."""
         self._check_valid()
 
         var option = _CXStringStorage()
@@ -230,10 +238,12 @@ struct Diagnostic(Movable, Writable):
         return disable.take()
 
     def num_ranges(ref self) raises -> Int:
+        """Return the number of source ranges attached to this diagnostic."""
         self._check_valid()
         return Int(clang_getDiagnosticNumRanges(self._raw))
 
     def range(ref self, i: Int) raises -> SourceRange:
+        """Return source range `i` for this diagnostic."""
         self._check_valid()
 
         if i < 0 or i >= self.num_ranges():
@@ -244,10 +254,12 @@ struct Diagnostic(Movable, Writable):
         return out^
 
     def num_fixits(ref self) raises -> Int:
+        """Return the number of fix-it suggestions."""
         self._check_valid()
         return Int(clang_getDiagnosticNumFixIts(self._raw))
 
     def fixit(ref self, i: Int) raises -> FixIt:
+        """Return fix-it suggestion `i`."""
         self._check_valid()
 
         if i < 0 or i >= self.num_fixits():
@@ -266,6 +278,7 @@ struct Diagnostic(Movable, Writable):
         return FixIt(range=range_out^, value=cs.take())
 
     def children(ref self) raises -> DiagnosticSet:
+        """Return child diagnostics attached to this diagnostic."""
         self._check_valid()
 
         # The child diagnostic set is borrowed from this diagnostic according
@@ -280,6 +293,7 @@ struct Diagnostic(Movable, Writable):
         ref self,
         options: DiagnosticDisplayOptions = DiagnosticDisplayOptions.DEFAULT,
     ) raises -> String:
+        """Format this diagnostic with the requested display options."""
         self._check_valid()
 
         var opts = options
@@ -292,6 +306,7 @@ struct Diagnostic(Movable, Writable):
         return cs.take()
 
     def formatted(mut self) raises -> String:
+        """Return the cached default formatted diagnostic string."""
         self._check_valid()
 
         if not self._formatted:
@@ -343,7 +358,6 @@ struct DiagnosticSetIterator[
 struct DiagnosticSet(Movable, Sized, Writable, Iterable):
     """Wrapper around `CXDiagnosticSet`.
 
-    ```
     A `DiagnosticSet` may either own the raw diagnostic set or borrow it,
     depending on where the set came from.
     """
@@ -364,6 +378,7 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
         raw: CXDiagnosticSet,
         owns: Bool = True,
     ) raises:
+        """Wrap a diagnostic set tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = raw
@@ -380,6 +395,7 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
         raw: CXDiagnosticSet,
         owns: Bool = True,
     ) raises:
+        """Wrap a diagnostic set tied to a shared translation-unit state."""
         self._tu = tu
         self._generation = tu[].generation
         self._raw = raw
@@ -412,9 +428,11 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
         writer.write("DiagnosticSet(count=", self._count, ")")
 
     def __len__(self) -> Int:
+        """Return the number of diagnostics in this set."""
         return self._count
 
     def __getitem__(ref self, i: Int) raises -> Diagnostic:
+        """Return diagnostic `i` from this set."""
         self._check_valid()
 
         if i < 0 or i >= Int(clang_getNumDiagnosticsInSet(self._raw)):

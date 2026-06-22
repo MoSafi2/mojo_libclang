@@ -43,7 +43,6 @@ from std.memory import ArcPointer, UnsafePointer
 struct Token(Copyable, Movable, Writable):
     """A single token copied out of a `TokenGroup`.
 
-    ```
     The token keeps its owning translation unit alive through
     `ArcPointer[TranslationUnitState]`.
     """
@@ -59,6 +58,7 @@ struct Token(Copyable, Movable, Writable):
         tu: TranslationUnit,
         raw: CXToken,
     ) raises:
+        """Create a token wrapper from a copied raw token tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._raw = InlineArray[CXToken, 1](fill=raw)
@@ -71,6 +71,7 @@ struct Token(Copyable, Movable, Writable):
         tu: ArcPointer[TranslationUnitState],
         raw: CXToken,
     ) raises:
+        """Create a token wrapper from a copied raw token."""
         self._tu = tu
         self._generation = tu[].generation
         self._raw = InlineArray[CXToken, 1](fill=raw)
@@ -142,14 +143,17 @@ struct Token(Copyable, Movable, Writable):
         )
 
     def kind(ref self) raises -> TokenKind:
+        """Return the cached token kind."""
         self._check_valid()
         return self._kind
 
     def spelling(ref self) raises -> String:
+        """Return the cached token spelling."""
         self._check_valid()
         return self._spelling
 
     def location(ref self) raises -> SourceLocation:
+        """Return the spelling location of this token."""
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
@@ -162,6 +166,7 @@ struct Token(Copyable, Movable, Writable):
         return out^
 
     def extent(ref self) raises -> SourceRange:
+        """Return the source extent covered by this token."""
         self._check_valid()
 
         var out = SourceRange(tu=self._tu)
@@ -173,6 +178,7 @@ struct Token(Copyable, Movable, Writable):
         return out^
 
     def cursor(ref self) raises -> Cursor:
+        """Return the cursor annotation associated with this token."""
         self._check_valid()
 
         var out = Cursor(tu=self._tu)
@@ -222,7 +228,6 @@ struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](
 struct TokenGroup(Iterable, Movable, Sized, Writable):
     """Owns the buffer returned by `clang_tokenize`.
 
-    ```
     The group keeps the translation unit alive while the token buffer exists.
     Returned `Token` values copy individual `CXToken` values, so they do not
     dangle when the group is destroyed.
@@ -242,6 +247,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
         tu: TranslationUnit,
         extent: SourceRange,
     ) raises:
+        """Tokenize `extent` in `tu` and take ownership of the token buffer."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
         self._tokens = None
@@ -303,6 +309,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
         tu: ArcPointer[TranslationUnitState],
         extent: SourceRange,
     ) raises:
+        """Tokenize `extent` in a shared translation-unit state."""
         self._tu = tu
         self._generation = tu[].generation
         self._tokens = None
@@ -382,12 +389,14 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
                 pass
 
     def __len__(self) -> Int:
+        """Return the number of tokens in this group."""
         return Int(self._count)
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("TokenGroup(count=", Int(self._count), ")")
 
     def __getitem__(self, i: Int) raises -> Token:
+        """Return token `i`."""
         self._check_valid()
 
         if i < 0 or i >= Int(self._count):

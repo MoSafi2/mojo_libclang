@@ -51,6 +51,12 @@ from std.memory import ArcPointer, UnsafePointer, alloc
 
 @fieldwise_init
 struct UnsavedFile(Copyable, Movable, Writable):
+    """In-memory source content supplied to parse or reparse calls.
+
+    `filename` must match the path libclang sees on the command line, and
+    `contents` is the full replacement text for that file.
+    """
+
     var filename: String
     var contents: String
 
@@ -66,6 +72,8 @@ struct UnsavedFile(Copyable, Movable, Writable):
 
 @fieldwise_init
 struct VersionTriple(Copyable, Movable, Writable):
+    """Major/minor/subminor version triple reported by libclang."""
+
     var major: Int
     var minor: Int
     var subminor: Int
@@ -73,6 +81,8 @@ struct VersionTriple(Copyable, Movable, Writable):
 
 @fieldwise_init
 struct PlatformAvailability(Copyable, Movable, Writable):
+    """Availability metadata for one platform on a declaration cursor."""
+
     var platform: String
     var introduced: VersionTriple
     var deprecated: VersionTriple

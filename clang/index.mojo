@@ -52,6 +52,7 @@ struct Index(Copyable, Movable, Writable):
         exclude_decls: Bool = False,
         display_diagnostics: Bool = False,
     ) raises:
+        """Create a libclang index with Python-binding compatible options."""
         var raw = clang_createIndex(
             c_int(1 if exclude_decls else 0),
             c_int(1 if display_diagnostics else 0),
@@ -74,10 +75,12 @@ struct Index(Copyable, Movable, Writable):
         exclude_decls: Bool = False,
         display_diagnostics: Bool = False,
     ) raises -> Self:
+        """Create an `Index` with the default libclang constructor."""
         return Self(exclude_decls, display_diagnostics)
 
     @staticmethod
     def create_with_options(raw_options: CXIndexOptions) raises -> Self:
+        """Create an `Index` from a raw `CXIndexOptions` value."""
         var options = raw_options.copy()
         var raw = clang_createIndexWithOptions(
             rebind[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]](
@@ -106,14 +109,17 @@ struct Index(Copyable, Movable, Writable):
         return self._state[].raw()
 
     def set_global_options(ref self, options: Int) raises:
+        """Set libclang global options for this index."""
         if options < 0:
             raise Error("Index.set_global_options: options must be >= 0")
         clang_CXIndex_setGlobalOptions(self._raw_handle(), c_uint(options))
 
     def global_options(ref self) raises -> Int:
+        """Return libclang global options for this index."""
         return Int(clang_CXIndex_getGlobalOptions(self._raw_handle()))
 
     def set_invocation_emission_path(ref self, path: String) raises:
+        """Set the directory used for libclang invocation emission files."""
         clang_CXIndex_setInvocationEmissionPathOption(
             self._raw_handle(),
             _borrow_c_string(path),
