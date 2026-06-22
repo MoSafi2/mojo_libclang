@@ -45,3 +45,16 @@ rattler-build = ">=0.67.0,<0.68"
 
 [pypi-dependencies]
 mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "1aa815c210a4435cc5fc9e940f701ff0a902b945" }
+
+[feature.docs.dependencies]
+nodejs = ">=25.7.0,<26"
+
+[feature.docs.pypi-dependencies]
+pymodo = ">=0.11.12,<0.12"
+
+[feature.docs.tasks]
+docs = "modo build && cd docs/site && npm ci && node scripts/add-frontmatter.mjs && npm run build"
+docs-serve = "modo build && cd docs/site && npm ci && node scripts/add-frontmatter.mjs && npm run dev"
+
+[environments]
+docs = ["default", "docs"]

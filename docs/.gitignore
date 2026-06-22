@@ -1,0 +1,5 @@
+/src/
+/site/src/content/docs/api/
+/site/dist/
+/site/node_modules/
+/site/.astro/

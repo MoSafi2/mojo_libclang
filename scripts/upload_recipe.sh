@@ -13,7 +13,7 @@ if [[ ${#packages[@]} -eq 0 ]]; then
 fi
 
 if [[ ${#packages[@]} -eq 0 ]]; then
-  echo "error: no .conda packages found; run 'rtk pixi run build-recipe' first" >&2
+  echo "error: no .conda packages found; run 'pixi run build-recipe' first" >&2
   exit 2
 fi
 

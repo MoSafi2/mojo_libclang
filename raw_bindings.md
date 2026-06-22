@@ -5,7 +5,7 @@ Mojo module, `clang/_ffi.mojo`, plus a matching C ABI normalization shim. The
 generator is deterministic and is run through Pixi:
 
 ```bash
-rtk pixi run generate
+pixi run generate
 ```
 
 The important change is that `mojo-bindgen` is now treated as a library
@@ -90,14 +90,14 @@ the parsed headers and linked runtime come from the same LLVM release family.
 Refresh the local Pixi environment with:
 
 ```bash
-rtk pixi install
+pixi install
 ```
 
 The default generate path uses the installed Pixi headers and library directly,
 without saving intermediate IR files:
 
 ```bash
-rtk pixi run generate
+pixi run generate
 ```
 
 ## Generated Surface
@@ -283,7 +283,7 @@ fastest way to catch accidental layout drift in the generated low-level module.
 Run:
 
 ```bash
-rtk pixi run generate
+pixi run generate
 ```
 
 That command now validates the generated raw FFI and the layout test module in
@@ -294,7 +294,7 @@ the same pass.
 The repository includes a probe runner at `test/raw_ffi_probe.mojo`:
 
 ```bash
-rtk pixi run raw-ffi-probe
+pixi run raw-ffi-probe
 ```
 
 This is not a narrow unit test. It exercises the normalized raw boundary

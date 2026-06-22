@@ -54,7 +54,7 @@ for fuller workflows.
 ## Setup
 
 ```bash
-rtk pixi install
+pixi install
 ```
 
 Pixi pins `clangdev` and `libclang` to LLVM 18.x. Headers and runtime library
@@ -70,7 +70,7 @@ from clang.cindex import Index, UnsavedFile
 ```
 
 For local install and packaging, use Pixi's Mojo backend from `pixi.toml`.
-`rtk pixi install` sets up dev env, and `rtk pixi run generate` refreshes raw
+`pixi install` sets up dev env, and `pixi run generate` refreshes raw
 FFI + shim outputs.
 
 The staged Modular Community recipe lives under
@@ -81,7 +81,7 @@ not define a publish/upload task.
 To mirror the recipe's install layout locally without publishing, run:
 
 ```bash
-rtk pixi run build-package
+pixi run build-package
 ```
 
 This writes the package-style prefix to `dist/libclang_mojo-prefix/`.
@@ -90,15 +90,15 @@ To build the staged `rattler-build` recipe as a real conda package for your own
 prefix.dev channel, run:
 
 ```bash
-PREFIX_CHANNEL=your-channel rtk pixi run render-recipe
-PREFIX_CHANNEL=your-channel rtk pixi run build-recipe
+PREFIX_CHANNEL=your-channel pixi run render-recipe
+PREFIX_CHANNEL=your-channel pixi run build-recipe
 ```
 
 `PREFIX_CHANNEL` is optional for local builds unless the recipe needs packages
 from your channel. Upload is explicit and guarded:
 
 ```bash
-PREFIX_CHANNEL=your-channel rtk pixi run upload-recipe
+PREFIX_CHANNEL=your-channel pixi run upload-recipe
 ```
 
 The upload task only uploads existing `.conda` artifacts from `dist/conda/`; it
@@ -106,7 +106,7 @@ does not build or publish unless you run it yourself. For non-interactive auth,
 set `PREFIX_API_KEY` in the environment:
 
 ```bash
-PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... rtk pixi run upload-recipe
+PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... pixi run upload-recipe
 ```
 
 ## Run Examples Or Tests
@@ -115,15 +115,15 @@ The Mojo code links through the local generated shim in `shim/` and the Pixi
 `libclang` runtime:
 
 ```bash
-rtk pixi run run-test examples/parse_header_example.mojo
-rtk pixi run run-test examples/header_inspector.mojo
-rtk pixi run run-test test/test_translation_unit.mojo
+pixi run run-test examples/parse_header_example.mojo
+pixi run run-test examples/header_inspector.mojo
+pixi run run-test test/test_translation_unit.mojo
 ```
 
 For build-only checks:
 
 ```bash
-rtk pixi run build-test test/test_ffi.mojo
+pixi run build-test test/test_ffi.mojo
 ```
 
 ## Repository Layout
@@ -143,7 +143,7 @@ Most users should not need this unless updating LLVM/libclang coverage or
 changing ABI handling:
 
 ```bash
-rtk pixi run generate
+pixi run generate
 ```
 
 Generation updates only files needed to run the project:
