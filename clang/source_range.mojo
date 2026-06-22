@@ -1,0 +1,225 @@
+"""`SourceRange` — a wrapper around `CXSourceRange`.
+
+A `SourceRange` is a copied `CXSourceRange` value plus an ARC keepalive
+reference to the owning `TranslationUnitState`.
+
+Important:
+
+* The raw `CXSourceRange` value is stored in `InlineArray[CXSourceRange, 1]`.
+* The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
+* The range becomes stale after `TranslationUnit.reparse()` if the generation changes.
+* Every FFI call passes `CXSourceRange *` to the shim, never `CXSourceRange` by value.
+  """
+
+from clang._ffi import (
+    CXSourceLocation,
+    CXSourceRange,
+    clang_getNullRange,
+    clang_getRange,
+    clang_getRangeStart,
+    clang_getRangeEnd,
+    clang_Range_isNull,
+    clang_equalRanges,
+    c_uint,
+)
+
+from clang.source_location import SourceLocation, _zero_source_location
+from clang.state import TranslationUnitState
+
+from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
+
+
+@fieldwise_init
+struct SourceRange(Copyable, Movable, Writable):
+    """A `[begin, end)` source range borrowed from a `TranslationUnit`.
+
+    ```
+    This object keeps the underlying translation unit alive by storing
+    `ArcPointer[TranslationUnitState]`.
+    """
+
+    var _tu: ArcPointer[TranslationUnitState]
+    var _generation: Int
+    var _raw: InlineArray[CXSourceRange, 1]
+    var _start: SourceLocation
+    var _end: SourceLocation
+
+    def __init__(out self, tu: TranslationUnit) raises:
+        self._tu = tu._shared_state()
+        self._generation = self._tu[].generation
+        self._raw = InlineArray[CXSourceRange, 1](
+            fill=_zero_source_range(),
+        )
+        self._start = SourceLocation.null(self._tu)
+        self._end = SourceLocation.null(self._tu)
+
+        clang_getNullRange(self._ptr())
+
+    def __init__(
+        out self,
+        tu: ArcPointer[TranslationUnitState],
+    ) raises:
+        self._tu = tu
+        self._generation = tu[].generation
+        self._raw = InlineArray[CXSourceRange, 1](
+            fill=_zero_source_range(),
+        )
+        self._start = SourceLocation.null(tu)
+        self._end = SourceLocation.null(tu)
+
+        clang_getNullRange(self._ptr())
+
+    def _check_valid(self) raises:
+        if not self._tu[].alive:
+            raise Error("SourceRange used after TranslationUnit disposal")
+
+        if self._generation != self._tu[].generation:
+            raise Error("SourceRange used after TranslationUnit.reparse()")
+
+    def _ptr(ref self) -> UnsafePointer[CXSourceRange, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
+            self._raw.unsafe_ptr(),
+        )
+
+    def _raw_value(ref self) raises -> CXSourceRange:
+        """Return a copied raw ``CXSourceRange`` value."""
+        self._check_valid()
+        return self._raw[0].copy()
+
+    def write_to(self, mut writer: Some[Writer]):
+        writer.write("SourceRange(", self._start, ", ", self._end, ")")
+
+    @staticmethod
+    def null(tu: TranslationUnit) raises -> Self:
+        return Self(tu=tu)
+
+    @staticmethod
+    def null(
+        tu: ArcPointer[TranslationUnitState],
+    ) raises -> Self:
+        return Self(tu=tu)
+
+    @staticmethod
+    def from_locations(
+        start: SourceLocation,
+        end: SourceLocation,
+    ) raises -> Self:
+        var start_copy = start.copy()
+        var end_copy = end.copy()
+
+        start_copy._check_valid()
+        end_copy._check_valid()
+
+        if start_copy._generation != end_copy._generation:
+            raise Error(
+                (
+                    "SourceRange.from_locations: start and end have different "
+                    "TranslationUnit generations"
+                ),
+            )
+
+        if start_copy._tu[].raw() != end_copy._tu[].raw():
+            raise Error(
+                (
+                    "SourceRange.from_locations: start and end belong to "
+                    "different TranslationUnits"
+                ),
+            )
+
+        var out = Self(tu=start_copy._tu)
+
+        clang_getRange(
+            out._ptr(),
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
+                start_copy._raw.unsafe_ptr(),
+            ),
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
+                end_copy._raw.unsafe_ptr(),
+            ),
+        )
+
+        out._start = start_copy.copy()
+        out._end = end_copy.copy()
+        return out^
+
+    @staticmethod
+    def from_raw(
+        tu: ArcPointer[TranslationUnitState],
+        raw: CXSourceRange,
+    ) raises -> Self:
+        var out = Self(tu=tu)
+        out._raw = InlineArray[CXSourceRange, 1](fill=raw)
+        var start = _zero_source_location()
+        var end = _zero_source_location()
+        clang_getRangeStart(
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
+                UnsafePointer[CXSourceLocation, MutAnyOrigin](to=start)
+            ),
+            out._ptr(),
+        )
+        clang_getRangeEnd(
+            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
+                UnsafePointer[CXSourceLocation, MutAnyOrigin](to=end)
+            ),
+            out._ptr(),
+        )
+        out._start = SourceLocation.from_raw(tu, start)
+        out._end = SourceLocation.from_raw(tu, end)
+        return out^
+
+    def start(ref self) raises -> SourceLocation:
+        self._check_valid()
+        return self._start.copy()
+
+    def end(ref self) raises -> SourceLocation:
+        self._check_valid()
+        return self._end.copy()
+
+    def is_null(ref self) raises -> Bool:
+        self._check_valid()
+        return Bool(clang_Range_isNull(self._ptr()))
+
+    def __eq__(ref self, ref other: SourceRange) raises -> Bool:
+        self._check_valid()
+        other._check_valid()
+
+        if self._generation != other._generation:
+            return False
+
+        if self._tu[].raw() != other._tu[].raw():
+            return False
+
+        return Bool(
+            clang_equalRanges(
+                self._ptr(),
+                rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
+                    other._raw.unsafe_ptr(),
+                ),
+            ),
+        )
+
+    def __ne__(ref self, ref other: SourceRange) raises -> Bool:
+        return not self.__eq__(other)
+
+    def __contains__(ref self, ref other: SourceLocation) raises -> Bool:
+        """Return true if ``other`` lies inside this range (inclusive)."""
+        self._check_valid()
+        other._check_valid()
+
+        if self._generation != other._generation:
+            return False
+
+        if self._tu[].raw() != other._tu[].raw():
+            return False
+
+        return self._start <= other and other <= self._end
+
+
+def _zero_source_range() -> CXSourceRange:
+    return CXSourceRange(
+        ptr_data=InlineArray[
+            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
+        ](fill=None),
+        begin_int_data=c_uint(0),
+        end_int_data=c_uint(0),
+    )

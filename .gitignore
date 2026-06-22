@@ -3,12 +3,15 @@
 !.pixi/config.toml
 
 # generated shim
-build/libclang_mojo_shim.so
-build/_ffi_layout_tests
-build/libclang.so.*
+shim/libclang_mojo_shim.so
 
 # planning documents
 plans/
+example.mojo
+opencode.json
+.agents
+skills-lock.json
+dist/*
 .agents
 *.mojo
 skills-lock.json

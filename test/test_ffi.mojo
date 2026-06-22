@@ -1,4 +1,4 @@
-from src._ffi import (
+from clang._ffi import (
     CXChildVisitResult,
     CXChildVisit_Continue,
     CXClientData,
@@ -78,8 +78,10 @@ def _check(condition: Bool, message: String) raises:
         raise Error(message)
 
 
-def _as_c_string(text: String) -> UnsafePointer[c_char, ImmutExternalOrigin]:
-    return rebind[UnsafePointer[c_char, ImmutExternalOrigin]](text.unsafe_ptr())
+def _as_c_string(text: String) -> UnsafePointer[c_char, ImmutUntrackedOrigin]:
+    return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+        text.unsafe_ptr()
+    )
 
 
 def _cxstring_zero() -> CXString:
@@ -94,12 +96,12 @@ def _alloc_cxstring() -> UnsafePointer[CXString, MutAnyOrigin]:
 
 def _cxstring_ptr(
     storage: UnsafePointer[CXString, MutAnyOrigin],
-) -> UnsafePointer[CXString, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXString, MutExternalOrigin]](storage)
+) -> UnsafePointer[CXString, MutUntrackedOrigin]:
+    return rebind[UnsafePointer[CXString, MutUntrackedOrigin]](storage)
 
 
 def _take_cxstring(
-    ptr: UnsafePointer[CXString, MutExternalOrigin]
+    ptr: UnsafePointer[CXString, MutUntrackedOrigin]
 ) raises -> String:
     var c_string = clang_getCString(ptr)
     if not c_string:
@@ -113,7 +115,7 @@ def _take_cxstring(
 def _source_location_zero() -> CXSourceLocation:
     return CXSourceLocation(
         ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
         ](fill=None),
         int_data=c_uint(0),
     )
@@ -121,8 +123,8 @@ def _source_location_zero() -> CXSourceLocation:
 
 def _source_location_ptr(
     mut storage: InlineArray[CXSourceLocation, 1],
-) -> UnsafePointer[CXSourceLocation, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXSourceLocation, MutExternalOrigin]](
+) -> UnsafePointer[CXSourceLocation, MutUntrackedOrigin]:
+    return rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
         storage.unsafe_ptr(),
     )
 
@@ -130,7 +132,7 @@ def _source_location_ptr(
 def _source_range_zero() -> CXSourceRange:
     return CXSourceRange(
         ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 2
+            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
         ](fill=None),
         begin_int_data=c_uint(0),
         end_int_data=c_uint(0),
@@ -139,17 +141,17 @@ def _source_range_zero() -> CXSourceRange:
 
 def _source_range_ptr(
     mut storage: InlineArray[CXSourceRange, 1],
-) -> UnsafePointer[CXSourceRange, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXSourceRange, MutExternalOrigin]](
+) -> UnsafePointer[CXSourceRange, MutUntrackedOrigin]:
+    return rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
         storage.unsafe_ptr(),
     )
 
 
 def _cursor_zero() -> CXCursor:
     return CXCursor(
-        kind=CXCursorKind(c_uint(0)),
+        kind=CXCursorKind(0),
         xdata=c_int(0),
-        data=InlineArray[Optional[ImmutOpaquePointer[ImmutExternalOrigin]], 3](
+        data=InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 3](
             fill=None
         ),
     )
@@ -157,16 +159,16 @@ def _cursor_zero() -> CXCursor:
 
 def _cursor_ptr(
     mut storage: InlineArray[CXCursor, 1],
-) -> UnsafePointer[CXCursor, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXCursor, MutExternalOrigin]](
+) -> UnsafePointer[CXCursor, MutUntrackedOrigin]:
+    return rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](
         storage.unsafe_ptr()
     )
 
 
 def _type_zero() -> CXType:
     return CXType(
-        kind=CXTypeKind(c_uint(0)),
-        data=InlineArray[Optional[MutOpaquePointer[MutExternalOrigin]], 2](
+        kind=CXTypeKind(0),
+        data=InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2](
             fill=None
         ),
     )
@@ -174,8 +176,8 @@ def _type_zero() -> CXType:
 
 def _type_ptr(
     mut storage: InlineArray[CXType, 1],
-) -> UnsafePointer[CXType, MutExternalOrigin]:
-    return rebind[UnsafePointer[CXType, MutExternalOrigin]](
+) -> UnsafePointer[CXType, MutUntrackedOrigin]:
+    return rebind[UnsafePointer[CXType, MutUntrackedOrigin]](
         storage.unsafe_ptr()
     )
 
@@ -205,7 +207,6 @@ def test_version_string() raises:
     _check(text.byte_length() > 0, "clang version string was empty")
 
 
-
 def test_null_aggregates() raises:
     var loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
     var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
@@ -227,7 +228,6 @@ def test_null_aggregates() raises:
         clang_getCursorKind(_cursor_ptr(cursor)) == CXCursor_FirstInvalid,
         "null cursor kind was not CXCursor_FirstInvalid",
     )
-
 
 
 def test_parse_file_and_strings() raises:
@@ -330,16 +330,16 @@ def test_locations_ranges_and_tokens() raises:
         )
         clang_getSpellingLocation(
             _source_location_ptr(start),
-            rebind[UnsafePointer[CXFile, MutExternalOrigin]](
+            rebind[UnsafePointer[CXFile, MutUntrackedOrigin]](
                 spelling_file.unsafe_ptr()
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 spelling_line.unsafe_ptr()
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 spelling_column.unsafe_ptr()
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 spelling_offset.unsafe_ptr()
             ),
         )
@@ -347,7 +347,7 @@ def test_locations_ranges_and_tokens() raises:
         _check(spelling_column[0] == 1, "spelling column mismatch")
 
         var token_storage = InlineArray[
-            Optional[UnsafePointer[CXToken, MutExternalOrigin]], 1
+            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
         ](fill=None)
         var token_count = InlineArray[c_uint, 1](fill=c_uint(0))
         clang_tokenize(
@@ -355,13 +355,13 @@ def test_locations_ranges_and_tokens() raises:
             _source_range_ptr(range),
             rebind[
                 UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutExternalOrigin]],
-                    MutExternalOrigin,
+                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                    MutUntrackedOrigin,
                 ]
             ](
                 token_storage.unsafe_ptr(),
             ),
-            rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                 token_count.unsafe_ptr()
             ),
         )
@@ -538,7 +538,7 @@ def test_unsaved_parse() raises:
         _as_c_string(filename),
         None,
         0,
-        rebind[UnsafePointer[CXUnsavedFile, MutExternalOrigin]](unsaved),
+        rebind[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]](unsaved),
         1,
         CXTranslationUnit_None,
     )
@@ -560,13 +560,13 @@ def test_unsaved_parse() raises:
 
 
 def _visit_child_callback(
-    cursor: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
-    parent: Optional[UnsafePointer[CXCursor, MutExternalOrigin]],
+    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
+    parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
     if not client_data:
         return CXChildVisit_Continue
-    var count = rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+    var count = rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
         client_data.value()
     )
     count[] = count[] + 1
@@ -588,9 +588,9 @@ def test_visit_children() raises:
         var result = clang_visitChildren(
             _cursor_ptr(tu_cursor),
             _visit_child_callback,
-            Optional[UnsafePointer[NoneType, MutExternalOrigin]](
-                rebind[UnsafePointer[NoneType, MutExternalOrigin]](
-                    rebind[UnsafePointer[c_uint, MutExternalOrigin]](
+            Optional[UnsafePointer[NoneType, MutUntrackedOrigin]](
+                rebind[UnsafePointer[NoneType, MutUntrackedOrigin]](
+                    rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
                         count.unsafe_ptr()
                     ),
                 ),

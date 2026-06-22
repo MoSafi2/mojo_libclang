@@ -1,7 +1,7 @@
 # Raw libclang Mojo Bindings Notes
 
 This repository now generates the raw libclang FFI as a normalized low-level
-Mojo module, `src/_ffi.mojo`, plus a matching C ABI normalization shim. The
+Mojo module, `clang/_ffi.mojo`, plus a matching C ABI normalization shim. The
 generator is deterministic and is run through Pixi:
 
 ```bash
@@ -11,9 +11,9 @@ rtk pixi run generate
 The important change is that `mojo-bindgen` is now treated as a library
 component inside `scripts/generate_libclang_bindings.py`, not as a code
 emitter whose output is hand-patched after the fact. The generator consumes the
-bindgen CIR, rewrites it where libclang needs ABI normalization, emits the raw
-Mojo FFI, emits the C shim, and builds layout tests as part of the same
-pipeline.
+bindgen CIR, passes it through the reusable ABI shim rewriter in
+`scripts/abi_shim_rewriter.py`, emits the raw Mojo FFI, emits the C shim, and
+builds layout tests as part of the same pipeline.
 
 ## Why This Exists
 
@@ -47,18 +47,58 @@ That is the boundary the higher-level API can rely on.
 
 1. Parse the libclang headers through `mojo-bindgen`.
 2. Run the CIR normalization and analysis passes.
-3. Rewrite the CIR so any aggregate-by-value signature is normalized into a
-   pointer or out-parameter form.
-4. Emit the raw Mojo FFI to `src/_ffi.mojo`.
-5. Emit the rewritten CIR to `build/_ffi.ir.json` and the pristine normalized
-   CIR to `build/_ffi.original.ir.json`.
-6. Emit the C shim header and implementation to
+3. Rewrite the CIR so discovered aggregate-by-value signatures are normalized
+   into a pointer or out-parameter form.
+4. Emit the raw Mojo FFI to `clang/_ffi.mojo`.
+5. Emit the C shim header and implementation to
    `shim/libclang_mojo_shim.h` and `shim/libclang_mojo_shim.c`.
-7. Build the shim shared library.
-8. Build the generated layout test module at `test/_ffi_layout_tests.mojo`.
+6. Build the shim shared library at `shim/libclang_mojo_shim.so`.
+7. Build the generated layout test module at `test/_ffi_layout_tests.mojo`.
 
 The generated FFI layout tests are part of the generator, not a separate
-hand-maintained fixture.
+hand-maintained fixture. The verification binary is built in a temporary
+directory, not under the repo.
+
+The ABI rewrite logic is split into two layers:
+
+- `scripts/abi_shim_rewriter.py` contains the generic CIR scan, aggregate
+  discovery, pointer/out-parameter signature rewrite, C type rendering, dynamic
+  symbol resolver emission, and callback trampoline generation.
+- `scripts/generate_libclang_bindings.py` keeps libclang-specific policy:
+  clang-c header discovery, declaration filtering, include lists, libclang
+  runtime lookup, shim compilation, shim installation, and layout-test
+  orchestration.
+
+The generic rewriter discovers aggregates from the selected API surface instead
+of using a libclang-only allowlist. Any struct that crosses a kept function or
+callback boundary by value is normalized. This includes `CXTUResourceUsage`,
+whose raw functions now use the same out-parameter/pointer pattern as the other
+aggregate handles.
+
+By default the generator now parses the `clang-c` headers installed in the
+active Pixi environment, falling back to `.pixi/envs/default/include/clang-c`
+when `CONDA_PREFIX` is not set. That keeps generation tied to the repo's pinned
+`clangdev` package instead of whichever LLVM headers happen to be installed on
+the host. Set `LIBCLANG_HEADERS_DIR` only when you intentionally want to
+override the Pixi-provided headers.
+
+## Header/Runtime Version Matching
+
+The Pixi environment pins both `clangdev` and `libclang` to the 18.x line so
+the parsed headers and linked runtime come from the same LLVM release family.
+
+Refresh the local Pixi environment with:
+
+```bash
+rtk pixi install
+```
+
+The default generate path uses the installed Pixi headers and library directly,
+without saving intermediate IR files:
+
+```bash
+rtk pixi run generate
+```
 
 ## Generated Surface
 
@@ -94,11 +134,13 @@ That includes:
 - aggregate returns
 - aggregate parameters
 - callback trampolines
+- callback-bearing structs with a single context pointer and aggregate-bearing
+  function pointer field
 - helper surfaces for location, range, cursor, type, and token workflows
 
 ## How Higher-Level API Code Should Be Written
 
-Higher-level wrappers should be written on top of `src/_ffi.mojo`, not on top of
+Higher-level wrappers should be written on top of `clang/_ffi.mojo`, not on top of
 raw libclang signatures and not on top of ad hoc manual patches.
 
 Use this pattern:
@@ -124,6 +166,10 @@ Higher-level wrappers should also:
 
 - convert `CXString` to `String` as soon as possible and dispose the raw string
   immediately
+- use the shared string helpers in `clang/common.mojo` for all
+  Mojo-to-C and C-to-Mojo string movement
+- use the optional `CXString` path only for APIs that can return a null
+  sentinel; empty strings should stay empty, not become `None`
 - keep pointer ownership clear, especially for borrowed values from a
   translation unit
 - hide callback trampolines behind wrapper methods rather than exposing raw
@@ -134,6 +180,21 @@ Higher-level wrappers should also:
 Do not flatten C arrays in higher-level code just to make a wrapper easier to
 write. The raw aggregate should remain a faithful low-level representation, and
 the wrapper should adapt around it.
+
+## String Model
+
+There are three string paths, and they are intentionally different:
+
+- Mojo `String` to libclang C string: use `_borrow_c_string(text)` for
+  immediate calls when the string only needs to stay alive for the duration of
+  the libclang invocation. Use `_alloc_c_string(text)` plus `_c_string(...)`
+  when you need owned storage.
+- libclang `CXString` to Mojo `String`: use `_CXStringStorage` plus either
+  `take()` for normal string-returning APIs or `take_optional()` for APIs that
+  use a null `CXString` sentinel.
+- borrowed `const char *` from existing owned storage: use `_borrow_c_string_unsafe`
+  only when the pointed-to bytes are already owned and known to stay alive for
+  the duration of the call.
 
 ## Lessons Learned From `SourceLocation` And `SourceRange`
 
@@ -190,6 +251,20 @@ Current status:
   it through the usual location helpers, so those methods are not part of the
   supported surface yet.
 
+## Additional Wrapper Stability Notes
+
+Recent high-level wrapper expansion exposed one more unstable surface:
+
+- `TranslationUnit.target_info()` currently compiles, but calling
+  `clang_TargetInfo_getTriple()` crashed at runtime in this checkout.
+- Treat `TargetInfo` the same way as the unstable token location paths: do not
+  consider it part of the supported high-level API until a dedicated runtime
+  probe shows it is stable.
+- Keep the rest of the added stable wrapper surfaces enabled: resource usage,
+  skipped ranges, macro preprocessing cursors, cursor evaluation, comment/name
+  ranges, cursor sets, and direct type field visitation all passed runtime
+  tests in this repo.
+
 ## What Not To Do
 
 - Do not reintroduce direct libclang signatures into Mojo FFI when they pass or
@@ -237,13 +312,38 @@ directly and checks that the new approach actually works for:
 
 The generated or probe-related files currently in use are:
 
-- `src/_ffi.mojo`
+- `clang/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
-- `build/_ffi.ir.json`
-- `build/_ffi.original.ir.json`
 - `shim/libclang_mojo_shim.h`
 - `shim/libclang_mojo_shim.c`
+- `shim/libclang_mojo_shim.so`
 - `test/raw_ffi_probe.mojo`
+
+## Packaging Notes
+
+The conda package name is `libclang_mojo`, but the installed Mojo package name
+is `clang`. This preserves the user-facing import shape:
+
+```mojo
+from clang.cindex import Index, UnsavedFile
+```
+
+The generated raw ABI surface remains internal at `clang._ffi`. Do not move the
+raw generated `clang_*` functions into `clang.cindex`; add public, Python-like
+wrappers there instead.
+
+The Modular Community submission path is a PR to
+`modular/modular-community`, not direct upload from this repository. The staged
+recipe lives in `packaging/modular-community/libclang_mojo/` and installs:
+
+- `$PREFIX/lib/mojo/clang.mojoc`
+- `$PREFIX/lib/libclang_mojo_shim.so` on Linux
+- `$PREFIX/lib/libclang_mojo_shim.dylib` on macOS
+
+Current supported publish platforms are `linux-64`, `linux-aarch64`, and
+`osx-arm64`, matching the community repository matrix and available
+`mojo-compiler` packages. `osx-64` remains blocked until Modular provides a
+matching `mojo-compiler` package and the community build matrix accepts it.
 
 These are all produced from the generator pipeline and should be updated by
 changing the generator, not by hand-editing the generated output.

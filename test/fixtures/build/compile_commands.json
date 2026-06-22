@@ -1,0 +1,7 @@
+[
+  {
+    "directory": "/tmp",
+    "command": "clang -c test/fixtures/type_test_fixture.c -o test.o",
+    "file": "test/fixtures/type_test_fixture.c"
+  }
+]
