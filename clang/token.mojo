@@ -10,6 +10,17 @@ translation unit.
 
 The working surface here is token kind, spelling, and cursor annotation.
 Token location/extent queries remain disabled until their wrappers are stable.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    for token in tu.cursor().tokens():
+        print(token.kind(), token.spelling())
+```
 """
 
 from clang._ffi import (
@@ -45,6 +56,13 @@ struct Token(Copyable, Movable, Writable):
 
     The token keeps its owning translation unit alive through
     `ArcPointer[TranslationUnitState]`.
+
+    Example:
+
+    ```mojo
+    var token = cursor.tokens()[0]
+    print(token.kind(), token.spelling())
+    ```
     """
 
     var _tu: ArcPointer[TranslationUnitState]
@@ -231,6 +249,13 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
     The group keeps the translation unit alive while the token buffer exists.
     Returned `Token` values copy individual `CXToken` values, so they do not
     dangle when the group is destroyed.
+
+    Example:
+
+    ```mojo
+    var tokens = cursor.tokens()
+    print(len(tokens))
+    ```
     """
 
     comptime IteratorType[

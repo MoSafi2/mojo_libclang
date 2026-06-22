@@ -19,6 +19,17 @@ Ownership notes:
 * Diagnostic sets returned from `clang_getDiagnosticSetFromTU()` are owned.
 * Diagnostic sets returned from `clang_getChildDiagnostics()` are borrowed and
   should not be disposed.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture_invalid.c")
+    for diag in tu.diagnostics():
+        print(diag.severity(), diag.formatted())
+```
 """
 
 from clang._ffi import (
@@ -74,6 +85,14 @@ struct Diagnostic(Movable, Writable):
 
     The diagnostic keeps its originating translation unit alive so that
     locations, ranges, and fix-its can safely create TU-borrowed wrappers.
+
+    Example:
+
+    ```mojo
+    var diag = tu.diagnostic(0)
+    print(diag.spelling())
+    print(diag.location())
+    ```
     """
 
     var _tu: ArcPointer[TranslationUnitState]

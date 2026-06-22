@@ -9,6 +9,17 @@ Important:
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The range becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXSourceRange *` to the shim, never `CXSourceRange` by value.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    var extent = tu.cursor().extent()
+    print(extent.start(), extent.end())
+```
 """
 
 from clang._ffi import (
@@ -35,6 +46,13 @@ struct SourceRange(Copyable, Movable, Writable):
 
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
+
+    Example:
+
+    ```mojo
+    var extent = cursor.extent()
+    print(extent.start().line(), extent.end().line())
+    ```
     """
 
     var _tu: ArcPointer[TranslationUnitState]

@@ -1,4 +1,16 @@
-"""`TranslationUnit` — shared ARC handle for a `CXTranslationUnit`."""
+"""`TranslationUnit` — shared ARC handle for a `CXTranslationUnit`.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    print(tu.spelling())
+    print(tu.cursor().kind())
+```
+"""
 
 from clang._ffi import (
     CXTranslationUnit,
@@ -216,6 +228,14 @@ struct TranslationUnit(Copyable, Movable, Writable):
     The actual libclang handle is owned by `TranslationUnitState`.
     All derived objects should hold `ArcPointer[TranslationUnitState]`,
     not a raw `CXTranslationUnit`.
+
+    Example:
+
+    ```mojo
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    var root = tu.cursor()
+    print(root.spelling())
+    ```
     """
 
     var _state: ArcPointer[TranslationUnitState]

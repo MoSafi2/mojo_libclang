@@ -8,6 +8,18 @@ Important:
 * `CXFile` is not independently owned by this wrapper.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The file becomes stale after `TranslationUnit.reparse()` if the generation changes.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    var file = tu.file("test/fixtures/test_fixture.c")
+    if file:
+        print(file.value().name())
+```
 """
 
 from clang._ffi import (
@@ -34,6 +46,14 @@ struct File(Copyable, Movable, Writable):
 
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
+
+    Example:
+
+    ```mojo
+    var file = tu.file("test/fixtures/test_fixture.c")
+    if file:
+        print(file.value().real_path())
+    ```
     """
 
     var _tu: ArcPointer[TranslationUnitState]

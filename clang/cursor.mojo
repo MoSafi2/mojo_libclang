@@ -8,6 +8,18 @@ Important:
 - `Cursor` keeps the owning TranslationUnit alive through ArcPointer.
 - `Cursor` becomes stale after TranslationUnit.reparse() if generation changes.
 - Every FFI call passes `CXCursor *` to the shim, never `CXCursor` by value.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    var cursor = tu.cursor()
+    print(cursor.kind())
+    print(cursor.children())
+```
 """
 
 from clang._ffi import (
@@ -300,6 +312,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     The raw `CXCursor` is copied by value into `_raw`.
     The owning `CXTranslationUnit` is kept alive by `_tu`.
+
+    Example:
+
+    ```mojo
+    var root = tu.cursor()
+    for child in root:
+        print(child.kind(), child.spelling())
+    ```
     """
 
     comptime IteratorType[
@@ -1534,7 +1554,6 @@ def _visit_trampoline(
 def collect_children(parent: Cursor) raises -> List[Cursor]:
     """Collect the immediate children of `parent`.
 
-    ```
     The returned cursors keep the same translation-unit state as `parent`.
     """
     var p = parent.copy()

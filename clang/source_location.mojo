@@ -9,6 +9,17 @@ Important:
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The location becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXSourceLocation *` to the shim, never `CXSourceLocation` by value.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    var loc = tu.location("test/fixtures/test_fixture.c", 1, 1)
+    print(loc.file_name(), loc.line(), loc.column())
+```
 """
 
 from clang._ffi import (
@@ -38,6 +49,13 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
+
+    Example:
+
+    ```mojo
+    var loc = cursor.location()
+    print(loc.file_name(), loc.offset())
+    ```
     """
 
     var _tu: ArcPointer[TranslationUnitState]

@@ -1,4 +1,16 @@
-"""`Index` — shared owner handle for a `CXIndex` and parser of translation units."""
+"""`Index` — shared owner handle for a `CXIndex` and parser of translation units.
+
+Typical usage:
+
+```mojo
+from clang.cindex import Index
+
+def main() raises:
+    var index = Index()
+    var tu = index.parse("test/fixtures/test_fixture.c")
+    print(tu.spelling())
+```
+"""
 
 from clang._ffi import (
     CXIndex,
@@ -35,12 +47,19 @@ from std.memory import UnsafePointer, ArcPointer
 struct Index(Copyable, Movable, Writable):
     """Shared owner handle for a `CXIndex`.
 
-    ```
     The actual `CXIndex` is owned by `IndexState`, which is held behind
     `ArcPointer[IndexState]`.
 
     Translation units produced by this index receive a copy of `_state`, so
     the index cannot be disposed before the translation units created from it.
+
+    Example:
+
+    ```mojo
+    var index = Index()
+    var tu = index.parse("test/fixtures/test_fixture.c")
+    print(len(tu))
+    ```
     """
 
     var _state: ArcPointer[IndexState]

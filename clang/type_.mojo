@@ -9,6 +9,17 @@ Important:
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The type becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXType *` to the shim, never `CXType` by value.
+
+Typical usage:
+
+```mojo
+from clang.cindex import TranslationUnit
+
+def main() raises:
+    var tu = TranslationUnit.from_source("test/fixtures/test_fixture.c")
+    var typ = tu.cursor().type()
+    print(typ.kind(), typ.spelling())
+```
 """
 
 from clang._ffi import (
@@ -88,6 +99,14 @@ struct Type(Copyable, Movable, Writable):
 
     This object keeps the underlying translation unit alive by storing
     `ArcPointer[TranslationUnitState]`.
+
+    Example:
+
+    ```mojo
+    var typ = cursor.type()
+    print(typ.spelling())
+    print(typ.canonical().spelling())
+    ```
     """
 
     var _tu: ArcPointer[TranslationUnitState]
