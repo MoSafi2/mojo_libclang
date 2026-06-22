@@ -9,3 +9,6 @@ build/libclang.so.*
 
 # planning documents
 plans/
+.agents
+*.mojo
+skills-lock.json
