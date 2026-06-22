@@ -38,6 +38,7 @@ python = ">=3.14.5,<3.15"
 mojo = ">=1.0.0b2,<2"
 clangdev = "18.*"
 libclang = "18.*"
+rattler-build = ">=0.67.0,<0.68"
 
 [pypi-dependencies]
 mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "1aa815c210a4435cc5fc9e940f701ff0a902b945" }
