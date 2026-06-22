@@ -12,3 +12,6 @@ opencode.json
 .agents
 skills-lock.json
 dist/*
+.agents
+*.mojo
+skills-lock.json
