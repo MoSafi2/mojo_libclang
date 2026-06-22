@@ -24,4 +24,4 @@ else
     -Wl,-rpath,"${lib_dir}"
 fi
 
-mojo package clang -o "${prefix}/lib/mojo/clang.mojopkg"
+mojo precompile clang -o "${prefix}/lib/mojo/clang.mojoc"
