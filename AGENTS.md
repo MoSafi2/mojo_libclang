@@ -97,12 +97,6 @@ unless explicitly requested.
   libclang function signature, keep the alias but not unrelated constants,
   function-like macro comments, functions, globals, or layout tests.
 
-## Documentation
-
-- `raw_bindings.md` is the project note for current generator limitations,
-  downstream manual fixes, and upstream `mojo-bindgen` issues.
-- Update `raw_bindings.md` whenever the generated ABI patch strategy changes.
-
 ## Git Hygiene
 
 - The worktree may contain generated artifacts. Do not delete or revert user

@@ -1,152 +1,162 @@
 # mojo_libclang
 
-High-level Mojo bindings for LLVM `libclang`.
+Professional Mojo bindings for LLVM `libclang`.
 
-Goal: make libclang usable from Mojo for practical source-code tooling, similar
-to Python's `clang.cindex` bindings. Use it to parse C/C++ headers, inspect
-translation units, walk AST cursors, read diagnostics, query types, tokenize
-source ranges, and build small code-analysis tools without writing C FFI calls
-by hand.
+`mojo_libclang` provides a practical, Python `clang.cindex`-style API for
+source-code tooling in Mojo. Use it to parse C and C++ translation units,
+inspect AST cursors, read diagnostics, query types, tokenize source ranges, and
+build analyzers without hand-writing libclang FFI calls.
 
-## What You Can Do
+## Capabilities
 
-- Create `Index` and `TranslationUnit` values
-- Parse files or in-memory unsaved files
-- Read diagnostics with formatted messages
-- Walk cursor trees with normal Mojo iteration
-- Inspect cursor kind, spelling, location, extent, semantic parent, and type
-- Query type spelling, canonical types, pointee types, result types, and fields
-- Work with source locations, source ranges, files, tokens, and skipped ranges
-- Use compilation databases for real projects
-- Use rewriter and printing-policy helpers where libclang exposes them
+- Parse C and C++ source files with libclang.
+- Walk AST cursors with Mojo iteration.
+- Inspect cursor spelling, kind, location, extent, parents, and type.
+- Read diagnostics with formatted messages.
+- Query canonical types, pointee types, result types, fields, and declarations.
+- Work with source locations, source ranges, files, tokens, skipped ranges, and
+  compilation databases.
+- Use focused helpers for rewriters, modules, printing policies, and selected
+  advanced libclang workflows.
 
-## Example Shape
+Most user code should import from `clang.cindex`:
 
 ```mojo
-from clang.cindex import Index, UnsavedFile
+from clang.cindex import Index
+```
+
+## Install On A Fresh System
+
+Install Pixi:
+
+```bash
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+
+Create a new Mojo project and add the package channels:
+
+```bash
+pixi init clang-demo
+cd clang-demo
+pixi workspace channel add conda-forge https://conda.modular.com/max https://repo.prefix.dev/modular-community
+```
+
+Add `mojo_libclang` after the `libclang_mojo` package has been published to one
+of the configured channels:
+
+```bash
+pixi add mojo libclang_mojo
+```
+
+Create `math_api.h`:
+
+```c
+typedef struct Point { int x; int y; } Point;
+int add(int a, int b);
+```
+
+Create `main.mojo`:
+
+```mojo
+from clang.cindex import CursorKind, Index
+
 
 def main() raises:
     var index = Index.create()
-    var header = UnsavedFile(
-        "/virtual/example.h",
-        """
-        typedef struct Point { int x; int y; } Point;
-        int add(int a, int b);
-        """,
-    )
-
-    var tu = index.parse(
-        "/virtual/example.h",
-        args=List[String]("-x", "c", "-std=c11"),
-        unsaved_files=List[UnsavedFile](header),
-    )
+    var tu = index.parse("math_api.h")
 
     for diagnostic in tu.diagnostics():
         print(diagnostic.format())
 
     for cursor in tu.cursor():
-        print(cursor.kind(), ": ", cursor.spelling(), sep="")
+        if cursor.kind() == CursorKind.FUNCTION_DECL:
+            print("function: ", cursor.spelling(), sep="")
+        elif cursor.kind() == CursorKind.TYPEDEF_DECL:
+            print("typedef: ", cursor.spelling(), sep="")
 ```
 
-See `examples/parse_header_example.mojo` and `examples/header_inspector.mojo`
-for fuller workflows.
-
-## Setup
+Run it:
 
 ```bash
+pixi run mojo run -I "$CONDA_PREFIX/lib/mojo" main.mojo
+```
+
+The package installs the Mojo module as `clang` and ships the libclang shim in
+the Pixi prefix. If your shell does not expose `CONDA_PREFIX`, use the Pixi
+environment prefix for the `-I` path.
+
+## Developing From Source
+
+Clone this repository and install the development environment:
+
+```bash
+git clone https://github.com/MoSafi2/mojo_libclang.git
+cd mojo_libclang
 pixi install
 ```
 
-Pixi pins `clangdev` and `libclang` to LLVM 18.x. Headers and runtime library
-come from the Pixi environment, not from vendored headers.
-
-## Pixi Packaging
-
-This repo builds the conda package `libclang_mojo`, which installs the Mojo
-package `clang` so downstream Mojo code can use:
-
-```mojo
-from clang.cindex import Index, UnsavedFile
-```
-
-For local install and packaging, use Pixi's Mojo backend from `pixi.toml`.
-`pixi install` sets up dev env, and `pixi run generate` refreshes raw
-FFI + shim outputs.
-
-The staged Modular Community recipe lives under
-`packaging/modular-community/libclang_mojo/`. It is intended to be copied into a
-fork of `modular/modular-community` for a PR; this repository intentionally does
-not define a publish/upload task.
-
-To mirror the recipe's install layout locally without publishing, run:
+Run the wrapper test suite through the local shim:
 
 ```bash
-pixi run build-package
-```
-
-This writes the package-style prefix to `dist/libclang_mojo-prefix/`.
-
-To build the staged `rattler-build` recipe as a real conda package for your own
-prefix.dev channel, run:
-
-```bash
-PREFIX_CHANNEL=your-channel pixi run render-recipe
-PREFIX_CHANNEL=your-channel pixi run build-recipe
-```
-
-`PREFIX_CHANNEL` is optional for local builds unless the recipe needs packages
-from your channel. Upload is explicit and guarded:
-
-```bash
-PREFIX_CHANNEL=your-channel pixi run upload-recipe
-```
-
-The upload task only uploads existing `.conda` artifacts from `dist/conda/`; it
-does not build or publish unless you run it yourself. For non-interactive auth,
-set `PREFIX_API_KEY` in the environment:
-
-```bash
-PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... pixi run upload-recipe
-```
-
-## Run Examples Or Tests
-
-The Mojo code links through the local generated shim in `shim/` and the Pixi
-`libclang` runtime:
-
-```bash
-pixi run run-test examples/parse_header_example.mojo
-pixi run run-test examples/header_inspector.mojo
 pixi run run-test test/test_translation_unit.mojo
 ```
 
 For build-only checks:
 
 ```bash
-pixi run build-test test/test_ffi.mojo
+pixi run build-test test/_ffi_layout_tests.mojo
+```
+
+## Packaging
+
+This repository builds the conda package `libclang_mojo`, which installs the
+Mojo package `clang` for downstream imports:
+
+```mojo
+from clang.cindex import Index
+```
+
+The staged Modular Community recipe lives in
+`packaging/modular-community/libclang_mojo/`. To mirror the recipe install
+layout locally:
+
+```bash
+pixi run build-package
+```
+
+To build the staged recipe for a prefix.dev channel:
+
+```bash
+PREFIX_CHANNEL=your-channel pixi run render-recipe
+PREFIX_CHANNEL=your-channel pixi run build-recipe
+```
+
+Upload is explicit and only uploads existing `.conda` artifacts from
+`dist/conda/`:
+
+```bash
+PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... pixi run upload-recipe
 ```
 
 ## Repository Layout
 
-- `clang/`: high-level Mojo API
-- `clang/_ffi.mojo`: low-level generated boundary used by wrappers
-- `examples/`: practical header parsing and inspection examples
-- `test/`: wrapper tests and generated layout test source
-- `shim/`: generated C shim source/header and local shim shared library
-- `scripts/generate_libclang_bindings.py`: binding/shim generator
-- `packaging/modular-community/libclang_mojo/`: PR-ready community recipe staging
-- `raw_bindings.md`: implementation notes for ABI and wrapper details
+- `clang/`: public high-level Mojo API and internal low-level FFI module.
+- `examples/`: practical header parsing and inspection examples.
+- `test/`: wrapper tests and generated layout tests.
+- `shim/`: generated C shim source/header and local shim shared library.
+- `scripts/generate_libclang_bindings.py`: binding and shim generator.
+- `packaging/modular-community/libclang_mojo/`: package recipe staging.
 
 ## Regenerate Low-Level Bindings
 
-Most users should not need this unless updating LLVM/libclang coverage or
-changing ABI handling:
+Most users should not need this. Regenerate only when updating LLVM/libclang
+coverage or changing ABI handling:
 
 ```bash
 pixi run generate
 ```
 
-Generation updates only files needed to run the project:
+Generation updates:
 
 - `clang/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
@@ -154,13 +164,5 @@ Generation updates only files needed to run the project:
 - `shim/libclang_mojo_shim.c`
 - `shim/libclang_mojo_shim.so`
 
-Generated IR is not saved by default. `build/` is not used.
-
-## Development Notes
-
-- Prefer high-level wrappers in `clang/` over direct `_ffi` usage.
-- Keep wrapper APIs close to practical `clang.cindex` workflows.
-- Keep raw generated functions in `clang._ffi`; do not make `clang.cindex` a
-  dump of all raw `clang_*` symbols.
-- Do not vendor `clang-c` headers; use Pixi `clangdev` headers.
-- Do not edit generated low-level files without updating generator logic.
+Do not edit generated low-level files by hand without updating the generator or
+the deterministic patch flow.

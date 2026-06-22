@@ -1,37 +1,54 @@
 ---
 title: Examples
-description: Small libclang workflows from Mojo.
+description: Practical libclang workflows from Mojo.
 ---
 
 # Examples
 
-Parse an in-memory C header and walk the translation unit:
+## Parse A Header
+
+Create `image_api.h`:
+
+```c
+typedef struct Image {
+    int width;
+    int height;
+    unsigned char* pixels;
+} Image;
+
+Image* image_open(const char* path);
+void image_free(Image* image);
+```
+
+This example parses the header, reports diagnostics, and prints top-level
+declarations.
 
 ```mojo
-from clang.cindex import Index, UnsavedFile
+from clang.cindex import CursorKind, Index
+
 
 def main() raises:
     var index = Index.create()
-    var header = UnsavedFile(
-        "/virtual/example.h",
-        """
-        typedef struct Point { int x; int y; } Point;
-        int add(int a, int b);
-        """,
-    )
-
-    var tu = index.parse(
-        "/virtual/example.h",
-        args=List[String]("-x", "c", "-std=c11"),
-        unsaved_files=List[UnsavedFile](header),
-    )
+    var tu = index.parse("image_api.h")
 
     for diagnostic in tu.diagnostics():
         print(diagnostic.format())
 
     for cursor in tu.cursor():
-        print(cursor.kind(), ": ", cursor.spelling(), sep="")
+        if cursor.kind() == CursorKind.STRUCT_DECL:
+            print("struct: ", cursor.spelling(), sep="")
+        elif cursor.kind() == CursorKind.FUNCTION_DECL:
+            print("function: ", cursor.spelling(), sep="")
 ```
 
-See `examples/parse_header_example.mojo` and
-`examples/header_inspector.mojo` for complete workflows.
+When using the packaged install, run it with:
+
+```bash
+pixi run mojo run -I "$CONDA_PREFIX/lib/mojo" main.mojo
+```
+
+When working from this repository, use the local shim task:
+
+```bash
+pixi run run-test test/test_translation_unit.mojo
+```

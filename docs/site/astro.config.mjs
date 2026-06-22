@@ -16,7 +16,6 @@ export default defineConfig({
             { label: 'Overview', link: '/' },
             { label: 'Setup', link: '/setup/' },
             { label: 'Examples', link: '/examples/' },
-            { label: 'Raw Bindings', link: '/raw-bindings/' },
           ],
         },
         { label: 'API Reference', autogenerate: { directory: 'api' } },
