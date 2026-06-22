@@ -336,7 +336,7 @@ The Modular Community submission path is a PR to
 `modular/modular-community`, not direct upload from this repository. The staged
 recipe lives in `packaging/modular-community/libclang_mojo/` and installs:
 
-- `$PREFIX/lib/mojo/clang.mojopkg`
+- `$PREFIX/lib/mojo/clang.mojoc`
 - `$PREFIX/lib/libclang_mojo_shim.so` on Linux
 - `$PREFIX/lib/libclang_mojo_shim.dylib` on macOS
 

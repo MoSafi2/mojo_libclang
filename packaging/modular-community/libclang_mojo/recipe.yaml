@@ -36,7 +36,7 @@ build:
             -L"${PREFIX}/lib" -lclang \
             -Wl,-rpath,"${PREFIX}/lib"
         fi
-        mojo package clang -o "${PREFIX}/lib/mojo/clang.mojopkg"
+        mojo precompile clang -o "${PREFIX}/lib/mojo/clang.mojoc"
 
 requirements:
   build:

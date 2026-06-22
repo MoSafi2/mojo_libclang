@@ -81,10 +81,33 @@ not define a publish/upload task.
 To mirror the recipe's install layout locally without publishing, run:
 
 ```bash
-rtk pixi run build-package-layout
+rtk pixi run build-package
 ```
 
 This writes the package-style prefix to `dist/libclang_mojo-prefix/`.
+
+To build the staged `rattler-build` recipe as a real conda package for your own
+prefix.dev channel, run:
+
+```bash
+PREFIX_CHANNEL=your-channel rtk pixi run render-recipe
+PREFIX_CHANNEL=your-channel rtk pixi run build-recipe
+```
+
+`PREFIX_CHANNEL` is optional for local builds unless the recipe needs packages
+from your channel. Upload is explicit and guarded:
+
+```bash
+PREFIX_CHANNEL=your-channel rtk pixi run upload-recipe
+```
+
+The upload task only uploads existing `.conda` artifacts from `dist/conda/`; it
+does not build or publish unless you run it yourself. For non-interactive auth,
+set `PREFIX_API_KEY` in the environment:
+
+```bash
+PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... rtk pixi run upload-recipe
+```
 
 ## Run Examples Or Tests
 
