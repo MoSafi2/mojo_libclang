@@ -62,7 +62,8 @@ come from the Pixi environment, not from vendored headers.
 
 ## Pixi Packaging
 
-This repo also builds as Mojo package `clang` so downstream Mojo code can use:
+This repo builds the conda package `libclang_mojo`, which installs the Mojo
+package `clang` so downstream Mojo code can use:
 
 ```mojo
 from clang.cindex import Index, UnsavedFile
@@ -71,6 +72,19 @@ from clang.cindex import Index, UnsavedFile
 For local install and packaging, use Pixi's Mojo backend from `pixi.toml`.
 `rtk pixi install` sets up dev env, and `rtk pixi run generate` refreshes raw
 FFI + shim outputs.
+
+The staged Modular Community recipe lives under
+`packaging/modular-community/libclang_mojo/`. It is intended to be copied into a
+fork of `modular/modular-community` for a PR; this repository intentionally does
+not define a publish/upload task.
+
+To mirror the recipe's install layout locally without publishing, run:
+
+```bash
+rtk pixi run build-package-layout
+```
+
+This writes the package-style prefix to `dist/libclang_mojo-prefix/`.
 
 ## Run Examples Or Tests
 
@@ -97,6 +111,7 @@ rtk pixi run build-test test/test_ffi.mojo
 - `test/`: wrapper tests and generated layout test source
 - `shim/`: generated C shim source/header and local shim shared library
 - `scripts/generate_libclang_bindings.py`: binding/shim generator
+- `packaging/modular-community/libclang_mojo/`: PR-ready community recipe staging
 - `raw_bindings.md`: implementation notes for ABI and wrapper details
 
 ## Regenerate Low-Level Bindings
@@ -122,5 +137,7 @@ Generated IR is not saved by default. `build/` is not used.
 
 - Prefer high-level wrappers in `clang/` over direct `_ffi` usage.
 - Keep wrapper APIs close to practical `clang.cindex` workflows.
+- Keep raw generated functions in `clang._ffi`; do not make `clang.cindex` a
+  dump of all raw `clang_*` symbols.
 - Do not vendor `clang-c` headers; use Pixi `clangdev` headers.
 - Do not edit generated low-level files without updating generator logic.

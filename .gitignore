@@ -11,3 +11,4 @@ example.mojo
 opencode.json
 .agents
 skills-lock.json
+dist/*

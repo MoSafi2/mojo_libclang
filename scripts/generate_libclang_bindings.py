@@ -60,7 +60,9 @@ from mojo_bindgen.parsing.parser import _default_system_compile_args
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "clang" / "_ffi.mojo"
 DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
-DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / "libclang_mojo_shim.so"
+DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / (
+    "libclang_mojo_shim.dylib" if sys.platform == "darwin" else "libclang_mojo_shim.so"
+)
 DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
 DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
 
@@ -216,7 +218,7 @@ def libclang_shim_config() -> ABIShimConfig:
         runtime_symbol_subject="libclang",
         runtime_path_macro="MOJO_LIBCLANG_RUNTIME_PATH",
         windows_runtime_library_names=("libclang.dll",),
-        posix_runtime_library_names=("libclang.so", "libclang.so.1"),
+        posix_runtime_library_names=("libclang.so", "libclang.so.1", "libclang.dylib"),
         keep_decl=keep_libclang_decl,
     )
 
@@ -431,10 +433,13 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
     cc = shutil.which("cc")
     if cc is None:
         raise SystemExit("error: C compiler not found; required to build libclang shim")
+    if sys.platform == "darwin":
+        shared_args = ["-dynamiclib"]
+    else:
+        shared_args = ["-shared", "-fPIC"]
     cmd = [
         cc,
-        "-shared",
-        "-fPIC",
+        *shared_args,
         "-I",
         str(include_root),
         "-I",

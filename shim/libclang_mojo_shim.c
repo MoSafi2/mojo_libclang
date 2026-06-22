@@ -45,6 +45,9 @@ static void *mojo_libclang_handle(void) {
         if (libclang_handle == NULL) {
             libclang_handle = dlopen("libclang.so.1", RTLD_LAZY | RTLD_LOCAL);
         }
+        if (libclang_handle == NULL) {
+            libclang_handle = dlopen("libclang.dylib", RTLD_LAZY | RTLD_LOCAL);
+        }
         initialized = 1;
     }
     return libclang_handle;

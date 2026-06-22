@@ -319,5 +319,31 @@ The generated or probe-related files currently in use are:
 - `shim/libclang_mojo_shim.so`
 - `test/raw_ffi_probe.mojo`
 
+## Packaging Notes
+
+The conda package name is `libclang_mojo`, but the installed Mojo package name
+is `clang`. This preserves the user-facing import shape:
+
+```mojo
+from clang.cindex import Index, UnsavedFile
+```
+
+The generated raw ABI surface remains internal at `clang._ffi`. Do not move the
+raw generated `clang_*` functions into `clang.cindex`; add public, Python-like
+wrappers there instead.
+
+The Modular Community submission path is a PR to
+`modular/modular-community`, not direct upload from this repository. The staged
+recipe lives in `packaging/modular-community/libclang_mojo/` and installs:
+
+- `$PREFIX/lib/mojo/clang.mojopkg`
+- `$PREFIX/lib/libclang_mojo_shim.so` on Linux
+- `$PREFIX/lib/libclang_mojo_shim.dylib` on macOS
+
+Current supported publish platforms are `linux-64`, `linux-aarch64`, and
+`osx-arm64`, matching the community repository matrix and available
+`mojo-compiler` packages. `osx-64` remains blocked until Modular provides a
+matching `mojo-compiler` package and the community build matrix accepts it.
+
 These are all produced from the generator pipeline and should be updated by
 changing the generator, not by hand-editing the generated output.
