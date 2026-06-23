@@ -334,7 +334,7 @@ def _is_cursor_kind_extra_decl(value: c_uint) -> Bool:
     return value >= c_uint(600) and value <= c_uint(604)
 
 
-struct CursorKind(Equatable, ImplicitlyCopyable, Writable):
+struct CursorKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXCursorKind``.
 
     The wrapped ``c_uint`` matches the C ABI so the value can be passed
@@ -599,7 +599,7 @@ struct CursorKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TypeKind(Equatable, ImplicitlyCopyable, Writable):
+struct TypeKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTypeKind``."""
 
     var _value: c_uint
@@ -768,7 +768,7 @@ struct TypeKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TypeNullabilityKind(Equatable, ImplicitlyCopyable, Writable):
+struct TypeNullabilityKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Nullability qualifier for Objective-C and related type spellings."""
 
     var _value: c_uint
@@ -795,7 +795,7 @@ struct TypeNullabilityKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TokenKind(Equatable, ImplicitlyCopyable, Writable):
+struct TokenKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTokenKind``."""
 
     var _value: c_uint
@@ -822,7 +822,7 @@ struct TokenKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct LinkageKind(Equatable, ImplicitlyCopyable, Writable):
+struct LinkageKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXLinkageKind``."""
 
     var _value: c_uint
@@ -849,7 +849,7 @@ struct LinkageKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct AvailabilityKind(Equatable, ImplicitlyCopyable, Writable):
+struct AvailabilityKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXAvailabilityKind``."""
 
     var _value: c_uint
@@ -875,7 +875,7 @@ struct AvailabilityKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct AccessSpecifier(Equatable, ImplicitlyCopyable, Writable):
+struct AccessSpecifier(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CX_CXXAccessSpecifier``."""
 
     var _value: c_uint
@@ -901,7 +901,7 @@ struct AccessSpecifier(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct StorageClass(Equatable, ImplicitlyCopyable, Writable):
+struct StorageClass(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CX_StorageClass``."""
 
     var _value: c_uint
@@ -931,7 +931,7 @@ struct StorageClass(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TLSKind(Equatable, ImplicitlyCopyable, Writable):
+struct TLSKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTLSKind``."""
 
     var _value: c_uint
@@ -956,7 +956,7 @@ struct TLSKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct LanguageKind(Equatable, ImplicitlyCopyable, Writable):
+struct LanguageKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXLanguageKind``."""
 
     var _value: c_uint
@@ -982,7 +982,7 @@ struct LanguageKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct RefQualifierKind(Equatable, ImplicitlyCopyable, Writable):
+struct RefQualifierKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXRefQualifierKind``."""
 
     var _value: c_uint
@@ -1007,7 +1007,7 @@ struct RefQualifierKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TemplateArgumentKind(Equatable, ImplicitlyCopyable, Writable):
+struct TemplateArgumentKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXTemplateArgumentKind``."""
 
     var _value: c_uint
@@ -1039,7 +1039,7 @@ struct TemplateArgumentKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct CallingConv(Equatable, ImplicitlyCopyable, Writable):
+struct CallingConv(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXCallingConv``."""
 
     var _value: c_uint
@@ -1132,7 +1132,7 @@ struct CallingConv(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct Choice(Equatable, ImplicitlyCopyable, Writable):
+struct Choice(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Tri-state option policy used by newer libclang index options."""
 
     var _value: c_uint
@@ -1157,7 +1157,7 @@ struct Choice(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct GlobalOptFlags(Equatable, ImplicitlyCopyable, Writable):
+struct GlobalOptFlags(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Bit flags used by deprecated index-global-options APIs."""
 
     var _value: c_uint
@@ -1195,7 +1195,7 @@ struct GlobalOptFlags(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct ChildVisitResult(Equatable, ImplicitlyCopyable, Writable):
+struct ChildVisitResult(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXChildVisitResult``."""
 
     var _value: c_uint
@@ -1220,7 +1220,7 @@ struct ChildVisitResult(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct VisitorResult(Equatable, ImplicitlyCopyable, Writable):
+struct VisitorResult(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Visitor continuation result used by field/base/method visitors."""
 
     var _value: c_uint
@@ -1244,7 +1244,7 @@ struct VisitorResult(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct DiagnosticSeverity(Equatable, ImplicitlyCopyable, Writable):
+struct DiagnosticSeverity(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXDiagnosticSeverity``."""
 
     var _value: c_uint
@@ -1271,7 +1271,7 @@ struct DiagnosticSeverity(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct ErrorCode(Equatable, ImplicitlyCopyable, Writable):
+struct ErrorCode(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Return code from ``clang_parseTranslationUnit2`` etc."""
 
     var _value: c_uint
@@ -1298,7 +1298,7 @@ struct ErrorCode(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct Result(Equatable, ImplicitlyCopyable, Writable):
+struct Result(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Small status enum returned by reference/include visitor entry points."""
 
     var _value: c_uint
@@ -1323,7 +1323,7 @@ struct Result(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct SaveError(Equatable, ImplicitlyCopyable, Writable):
+struct SaveError(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Return code from ``clang_saveTranslationUnit``."""
 
     var _value: c_uint
@@ -1349,7 +1349,7 @@ struct SaveError(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TranslationUnitFlags(Equatable, ImplicitlyCopyable, Writable):
+struct TranslationUnitFlags(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Bit flags for ``TranslationUnit`` creation / reparse options.
 
     Supports ``contains()`` and ``|`` for composing options.
@@ -1415,7 +1415,7 @@ struct TranslationUnitFlags(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct DiagnosticDisplayOptions(Equatable, ImplicitlyCopyable, Writable):
+struct DiagnosticDisplayOptions(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Bit flags for ``clang_formatDiagnostic`` options."""
 
     var _value: c_uint
@@ -1450,7 +1450,7 @@ struct DiagnosticDisplayOptions(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct TypeLayoutError(Equatable, ImplicitlyCopyable, Writable):
+struct TypeLayoutError(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Signed error code from ``clang_Type_getSizeOf`` etc."""
 
     var _value: Int
@@ -1478,7 +1478,7 @@ struct TypeLayoutError(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct VisibilityKind(Equatable, ImplicitlyCopyable, Writable):
+struct VisibilityKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Visibility of a cursor/declaration."""
 
     var _value: c_uint
@@ -1504,7 +1504,7 @@ struct VisibilityKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct ExceptionSpecificationKind(Equatable, ImplicitlyCopyable, Writable):
+struct ExceptionSpecificationKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Exception specification kind on a function type."""
 
     var _value: c_uint
@@ -1544,7 +1544,7 @@ struct ExceptionSpecificationKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct CodeCompleteFlags(Equatable, ImplicitlyCopyable, Writable):
+struct CodeCompleteFlags(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """Bit flags for code-completion options."""
 
     var _value: c_uint
@@ -1579,7 +1579,7 @@ struct CodeCompleteFlags(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct BinaryOperator(Equatable, ImplicitlyCopyable, Writable):
+struct BinaryOperator(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXBinaryOperatorKind``."""
 
     var _value: c_uint
@@ -1645,7 +1645,7 @@ struct BinaryOperator(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct UnaryOperator(Equatable, ImplicitlyCopyable, Writable):
+struct UnaryOperator(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXUnaryOperatorKind``."""
 
     var _value: c_uint
@@ -1688,7 +1688,7 @@ struct UnaryOperator(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct CompletionChunkKind(Equatable, ImplicitlyCopyable, Writable):
+struct CompletionChunkKind(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXCompletionChunkKind``."""
 
     var _value: c_uint
@@ -1734,7 +1734,7 @@ struct CompletionChunkKind(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct CompilationDatabaseErrorCode(Equatable, ImplicitlyCopyable, Writable):
+struct CompilationDatabaseErrorCode(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXCompilationDatabase_Error``."""
 
     var _value: c_uint
@@ -1760,7 +1760,7 @@ struct CompilationDatabaseErrorCode(Equatable, ImplicitlyCopyable, Writable):
 # ---------------------------------------------------------------------------
 
 
-struct PrintingPolicyProperty(Equatable, ImplicitlyCopyable, Writable):
+struct PrintingPolicyProperty(ImplicitlyDestructible, Hashable, Equatable, ImplicitlyCopyable, Writable):
     """High-level wrapper around ``CXPrintingPolicyProperty``."""
 
     var _value: c_uint
