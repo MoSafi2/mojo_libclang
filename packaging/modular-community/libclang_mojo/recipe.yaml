@@ -66,6 +66,7 @@ tests:
 about:
   homepage: https://github.com/MoSafi2/mojo_libclang
   license: MIT
+  license_file: LICENSE
   summary: High-level Mojo bindings for LLVM libclang
   repository: https://github.com/MoSafi2/mojo_libclang
 
