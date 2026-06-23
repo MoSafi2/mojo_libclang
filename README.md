@@ -1,8 +1,8 @@
-# mojo_libclang
+# libclang_mojo
 
 High-level Mojo bindings for LLVM `libclang`.
 
-`mojo_libclang` provides a Python `clang.cindex`-style API for source-code tooling in Mojo.
+`libclang_mojo` provides a Python `clang.cindex`-style API for source-code tooling in Mojo.
 
 ## Highlights
 
