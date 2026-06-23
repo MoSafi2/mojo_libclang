@@ -18,33 +18,45 @@ name = "clang"
 path = "clang"
 
 [package.host-dependencies]
+clangdev = "18.*"
+libclang = "18.*"
 mojo-compiler = "=1.0.0b2"
 
 [package.build-dependencies]
 mojo-compiler = "=1.0.0b2"
 
 [package.run-dependencies]
+libclang = "18.*"
 mojo-compiler = "=1.0.0b2"
 
+[dependencies]
+mojo = ">=1.0.0b2,<2"
+libclang = "18.*"
+
 [tasks]
+run-test = "env LD_LIBRARY_PATH=$PWD/shim:$CONDA_PREFIX/lib:$LD_LIBRARY_PATH mojo run -I . -Xlinker -L$PWD/shim -Xlinker -lclang_mojo_shim"
+build-test = "env LD_LIBRARY_PATH=$PWD/shim:$CONDA_PREFIX/lib:$LD_LIBRARY_PATH mojo build -I . -Xlinker -L$PWD/shim -Xlinker -lclang_mojo_shim"
+
+[feature.dev.dependencies]
+python = ">=3.14.5,<3.15"
+clangdev = "18.*"
+c-compiler = "*"
+
+[feature.dev.pypi-dependencies]
+mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "1aa815c210a4435cc5fc9e940f701ff0a902b945" }
+
+[feature.dev.tasks]
 generate = "python scripts/generate_libclang_bindings.py"
 generate-libclang = "python scripts/generate_libclang_bindings.py"
 build-package = "bash scripts/build_package_layout.sh dist/libclang_mojo-prefix"
+
+[feature.package.dependencies]
+rattler-build = ">=0.67.0,<0.68"
+
+[feature.package.tasks]
 render-recipe = "bash scripts/build_recipe.sh --render-only"
 build-recipe = "bash scripts/build_recipe.sh"
 upload-recipe = "bash scripts/upload_recipe.sh"
-run-test = "env LD_LIBRARY_PATH=$PWD/shim:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo run -I . -Xlinker -L$PWD/shim -Xlinker -lclang_mojo_shim"
-build-test = "env LD_LIBRARY_PATH=$PWD/shim:$PWD/.pixi/envs/default/lib:$LD_LIBRARY_PATH mojo build -I . -Xlinker -L$PWD/shim -Xlinker -lclang_mojo_shim"
-
-[dependencies]
-python = ">=3.14.5,<3.15"
-mojo = ">=1.0.0b2,<2"
-clangdev = "18.*"
-libclang = "18.*"
-rattler-build = ">=0.67.0,<0.68"
-
-[pypi-dependencies]
-mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "1aa815c210a4435cc5fc9e940f701ff0a902b945" }
 
 [feature.docs.dependencies]
 nodejs = ">=25.7.0,<26"
@@ -57,4 +69,8 @@ docs = "modo build && cd docs/site && npm ci && node scripts/add-frontmatter.mjs
 docs-serve = "modo build && cd docs/site && npm ci && node scripts/add-frontmatter.mjs && npm run dev"
 
 [environments]
-docs = ["default", "docs"]
+default = ["dev"]
+runtime = []
+dev = ["dev"]
+package = ["dev", "package"]
+docs = ["docs"]

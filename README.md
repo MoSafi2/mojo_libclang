@@ -1,63 +1,27 @@
 # mojo_libclang
 
-Professional Mojo bindings for LLVM `libclang`.
+High-level Mojo bindings for LLVM `libclang`.
 
-`mojo_libclang` provides a practical, Python `clang.cindex`-style API for
-source-code tooling in Mojo. Use it to parse C and C++ translation units,
-inspect AST cursors, read diagnostics, query types, tokenize source ranges, and
-build analyzers without hand-writing libclang FFI calls.
+`mojo_libclang` provides a Python `clang.cindex`-style API for source-code tooling in Mojo.
 
-## Capabilities
+## Highlights
 
+- Exposes most of `libclang` API for `C`, `C++`, and some `obj-C`
 - Parse C and C++ source files with libclang.
-- Walk AST cursors with Mojo iteration.
 - Inspect cursor spelling, kind, location, extent, parents, and type.
 - Read diagnostics with formatted messages.
 - Query canonical types, pointee types, result types, fields, and declarations.
-- Work with source locations, source ranges, files, tokens, skipped ranges, and
-  compilation databases.
-- Use focused helpers for rewriters, modules, printing policies, and selected
-  advanced libclang workflows.
 
-Most user code should import from `clang.cindex`:
-
-```mojo
-from clang.cindex import Index
-```
-
-## Install On A Fresh System
-
-Install Pixi:
-
-```bash
-curl -fsSL https://pixi.sh/install.sh | sh
-```
-
-Create a new Mojo project and add the package channels:
-
-```bash
-pixi init clang-demo
-cd clang-demo
-pixi workspace channel add conda-forge https://conda.modular.com/max https://repo.prefix.dev/modular-community
-```
-
-Add `mojo_libclang` after the `libclang_mojo` package has been published to one
-of the configured channels:
-
-```bash
-pixi add mojo libclang_mojo
-```
-
-Create `math_api.h`:
+## Example
 
 ```c
+//math_api.h
 typedef struct Point { int x; int y; } Point;
 int add(int a, int b);
 ```
 
-Create `main.mojo`:
-
 ```mojo
+# main.mojo
 from clang.cindex import CursorKind, Index
 
 
@@ -75,15 +39,29 @@ def main() raises:
             print("typedef: ", cursor.spelling(), sep="")
 ```
 
-Run it:
-
 ```bash
-pixi run mojo run -I "$CONDA_PREFIX/lib/mojo" main.mojo
+pixi run mojo run main.mojo
 ```
 
-The package installs the Mojo module as `clang` and ships the libclang shim in
-the Pixi prefix. If your shell does not expose `CONDA_PREFIX`, use the Pixi
-environment prefix for the `-I` path.
+## Installation
+
+Install Pixi:
+
+```bash
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+
+Create a new Mojo project and add the package channels:
+
+```bash
+pixi init clang-demo
+cd clang-demo
+pixi workspace channel add conda-forge https://conda.modular.com/max https://repo.prefix.dev/modular-community
+```
+
+```bash
+pixi add mojo libclang_mojo
+```
 
 ## Developing From Source
 
@@ -92,68 +70,28 @@ Clone this repository and install the development environment:
 ```bash
 git clone https://github.com/MoSafi2/mojo_libclang.git
 cd mojo_libclang
-pixi install
+pixi install -e dev
 ```
 
 Run the wrapper test suite through the local shim:
 
 ```bash
-pixi run run-test test/test_translation_unit.mojo
+pixi run -e dev run-test test/test_translation_unit.mojo
 ```
 
 For build-only checks:
 
 ```bash
-pixi run build-test test/_ffi_layout_tests.mojo
+pixi run -e dev build-test test/_ffi_layout_tests.mojo
 ```
 
-## Packaging
+### Regenerate Low-Level Bindings
 
-This repository builds the conda package `libclang_mojo`, which installs the
-Mojo package `clang` for downstream imports:
-
-```mojo
-from clang.cindex import Index
-```
-
-The staged Modular Community recipe lives in
-`packaging/modular-community/libclang_mojo/`. To mirror the recipe install
-layout locally:
-
-```bash
-pixi run build-package
-```
-
-To build the staged recipe for a prefix.dev channel:
-
-```bash
-PREFIX_CHANNEL=your-channel pixi run render-recipe
-PREFIX_CHANNEL=your-channel pixi run build-recipe
-```
-
-Upload is explicit and only uploads existing `.conda` artifacts from
-`dist/conda/`:
-
-```bash
-PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... pixi run upload-recipe
-```
-
-## Repository Layout
-
-- `clang/`: public high-level Mojo API and internal low-level FFI module.
-- `examples/`: practical header parsing and inspection examples.
-- `test/`: wrapper tests and generated layout tests.
-- `shim/`: generated C shim source/header and local shim shared library.
-- `scripts/generate_libclang_bindings.py`: binding and shim generator.
-- `packaging/modular-community/libclang_mojo/`: package recipe staging.
-
-## Regenerate Low-Level Bindings
-
-Most users should not need this. Regenerate only when updating LLVM/libclang
+Regenerate only when updating LLVM/libclang
 coverage or changing ABI handling:
 
 ```bash
-pixi run generate
+pixi run -e dev generate
 ```
 
 Generation updates:
@@ -164,5 +102,36 @@ Generation updates:
 - `shim/libclang_mojo_shim.c`
 - `shim/libclang_mojo_shim.so`
 
-Do not edit generated low-level files by hand without updating the generator or
-the deterministic patch flow.
+Do not edit generated low-level files by hand, either update the generator or
+add a deterministic patch.
+
+## Packaging
+
+This repository builds the conda package `libclang_mojo`:
+
+```mojo
+from clang.cindex import Index
+```
+
+The staged Modular Community recipe lives in
+`packaging/modular-community/libclang_mojo/`. To mirror the recipe install
+layout locally:
+
+```bash
+pixi run -e dev build-package
+```
+
+To build the staged recipe for a prefix.dev channel:
+
+```bash
+pixi install -e package
+PREFIX_CHANNEL=your-channel pixi run -e package render-recipe
+PREFIX_CHANNEL=your-channel pixi run -e package build-recipe
+```
+
+Upload is explicit and only uploads existing `.conda` artifacts from
+`dist/conda/`:
+
+```bash
+PREFIX_CHANNEL=your-channel PREFIX_API_KEY=... pixi run -e package upload-recipe
+```

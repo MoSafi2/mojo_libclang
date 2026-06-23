@@ -23,7 +23,9 @@ pixi add mojo libclang_mojo
 ```
 
 `libclang_mojo` must be published in one of the configured channels before
-Pixi can resolve it. The package installs the Mojo module as `clang`.
+Pixi can resolve it. The package installs the Mojo module as `clang` and
+depends on the LLVM `libclang` shared library. Users do not need the `clang`
+compiler executable or `clangdev` headers unless they are building from source.
 
 Run a Mojo file that imports `clang.cindex`:
 
@@ -38,19 +40,19 @@ Install the repository environment:
 ```bash
 git clone https://github.com/MoSafi2/mojo_libclang.git
 cd mojo_libclang
-pixi install
+pixi install -e dev
 ```
 
 Run the wrapper tests through the local shim:
 
 ```bash
-pixi run run-test test/test_translation_unit.mojo
+pixi run -e dev run-test test/test_translation_unit.mojo
 ```
 
 For build-only checks:
 
 ```bash
-pixi run build-test test/_ffi_layout_tests.mojo
+pixi run -e dev build-test test/_ffi_layout_tests.mojo
 ```
 
 Build the documentation site locally:
