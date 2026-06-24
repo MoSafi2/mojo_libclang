@@ -8,14 +8,13 @@ foundation those modules use:
     UnsavedFile
 
 - temporary C-call arenas:
-    CStringArray
     UnsavedFileArena
 
 - string handling:
     _borrow_c_string()
     _alloc_c_string()
     _c_string()
-    _CXStringStorage
+    _CXStringStorage (Movable, inline CXString)
     _take_cxstring()
     _take_cxstring_optional()
     _borrow_c_string_unsafe()
@@ -42,7 +41,6 @@ from clang._ffi import (
 from std.collections import List
 from std.ffi import c_char, c_int, c_uint, c_ulong
 from std.memory import ArcPointer, UnsafePointer, alloc
-from std.memory.unsafe_pointer import unsafe_cast
 
 
 # ---------------------------------------------------------------------------
@@ -145,8 +143,7 @@ def _borrow_c_string_unsafe(
     The returned pointer does not own the string data.
 
     The caller must guarantee that `text` stays alive until the C call returns.
-    Prefer `CStringArray` or `UnsavedFileArena` for arrays or persisted C
-    structs.
+    Prefer `UnsavedFileArena` for arrays or persisted C structs.
     """
     return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
         text.unsafe_ptr(),
@@ -208,25 +205,17 @@ def _take_cxstring_optional(
 
 
 def _take_cxstring_value(raw: CXString) raises -> String:
-    var slot = alloc[CXString](1)
-    slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
-    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
-    var out = _take_cxstring(ptr)
-    slot.free()
-    return out
+    var cs = _CXStringStorage(raw=raw)
+    return cs.take()
 
 
 def _take_cxstring_optional_value(raw: CXString) raises -> Optional[String]:
-    var slot = alloc[CXString](1)
-    slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
-    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
-    var out = _take_cxstring_optional(ptr)
-    slot.free()
-    return out
+    var cs = _CXStringStorage(raw=raw)
+    return cs.take_optional()
 
 
-struct _CXStringStorage:
-    """Allocated `CXString` out-param storage.
+struct _CXStringStorage(Movable):
+    """Inline `CXString` wrapper with Mojo `String` conversion.
 
     Usage:
 
@@ -234,142 +223,70 @@ struct _CXStringStorage:
         clang_getCursorSpelling(cs.ptr_for_out(), cursor_ptr)
         var spelling = cs.take()
 
-    `ptr_for_out()` marks the storage as containing a libclang-owned CXString.
-    If `take()` is forgotten, the destructor attempts to dispose it.
+    The `CXString` is stored inline — no heap allocation.  `ptr_for_out()`
+    marks the storage as containing a libclang-owned CXString.  If `take()`
+    is forgotten, the destructor disposes it.
     """
 
-    var _raw: UnsafePointer[CXString, MutUntrackedOrigin]
-    var _owned: UnsafePointer[CXString, MutAnyOrigin]
+    var _value: CXString
     var _has_value: Bool
 
     def __init__(out self):
-        self._owned = alloc[CXString](1)
-        self._owned[] = CXString(data=None, private_flags=c_uint(0))
-        self._raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](
-            self._owned,
-        )
+        self._value = CXString(data=None, private_flags=c_uint(0))
         self._has_value = False
+
+    def __init__(out self, raw: CXString):
+        self._value = CXString(data=raw.data, private_flags=raw.private_flags)
+        self._has_value = True
+
+    @always_inline
+    def _as_ptr(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
+        return rebind[UnsafePointer[CXString, MutUntrackedOrigin]](
+            UnsafePointer[CXString, MutAnyOrigin](to=self._value),
+        )
 
     def ptr_for_out(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
-        """Return pointer for a libclang out-param call.
-
-        This assumes the next C call writes a valid CXString into the storage.
-        Use this method for functions like:
-
-            clang_getCursorSpelling(out, cursor)
-            clang_getFileName(out, file)
-        """
         self._has_value = True
-        return self._raw
+        return self._as_ptr()
 
     def ptr(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
-        """Return the raw pointer without changing ownership state.
-
-        Prefer `ptr_for_out()` for libclang functions that write a CXString.
-        """
-        return self._raw
+        return self._as_ptr()
 
     def take(mut self) raises -> String:
-        """Consume the stored CXString and return an owned Mojo `String`."""
         if not self._has_value:
             return String("")
-
         self._has_value = False
-        return _take_cxstring(self._raw)
+        var ptr = self._as_ptr()
+        return _take_cxstring(ptr)
 
     def _take_unchecked(mut self) -> String:
-        """Consume the stored CXString without propagating raises.
-
-        Used by hot iterator paths that have already validated the TU state.
-        """
         if not self._has_value:
             return String("")
-
         self._has_value = False
-        var c_string = clang_getCString(self._raw)
+        var ptr = self._as_ptr()
+        var c_string = clang_getCString(ptr)
         if not c_string:
-            clang_disposeString(self._raw)
+            clang_disposeString(ptr)
             return String("")
-
         var value = String(unsafe_from_utf8_ptr=c_string.value())
-        clang_disposeString(self._raw)
+        clang_disposeString(ptr)
         return value
 
     def take_optional(mut self) raises -> Optional[String]:
-        """Consume the stored CXString and preserve null-vs-empty."""
         if not self._has_value:
             return None
-
         self._has_value = False
-        return _take_cxstring_optional(self._raw)
+        var ptr = self._as_ptr()
+        return _take_cxstring_optional(ptr)
 
     def __del__(deinit self):
         if self._has_value:
-            clang_disposeString(self._raw)
-
-        self._owned.free()
+            clang_disposeString(self._as_ptr())
 
 
 # ---------------------------------------------------------------------------
 # Temporary arenas for synchronous libclang calls
 # ---------------------------------------------------------------------------
-struct CStringArray(Movable):
-    """Owns C strings and a `const char*[]` slot array."""
-
-    var _strings: List[UnsafePointer[c_char, MutAnyOrigin]]
-    var _slots: Optional[
-        UnsafePointer[
-            UnsafePointer[c_char, ImmutUntrackedOrigin],
-            MutAnyOrigin,
-        ]
-    ]
-    var _count: c_int
-
-    def __init__(out self, args: List[String]) raises:
-        self._strings = List[UnsafePointer[c_char, MutAnyOrigin]]()
-        self._count = c_int(len(args))
-        self._slots = None
-
-        if len(args) == 0:
-            return
-
-        var raw = alloc[
-            UnsafePointer[c_char, ImmutUntrackedOrigin]
-        ](len(args))
-        self._slots = raw
-
-        for i in range(len(args)):
-            var s = _alloc_c_string(args[i])
-            self._strings.append(s)
-            raw[i] = _c_string(s)
-
-    def ptr(
-        self,
-    ) -> Optional[
-        UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            ImmutUntrackedOrigin,
-        ]
-    ]:
-        if not self._slots:
-            return None
-
-        return unsafe_cast[
-            Type=Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            origin=ImmutUntrackedOrigin,
-        ](self._slots)
-
-    def count(self) -> c_int:
-        return self._count
-
-    def __del__(deinit self):
-        for i in range(len(self._strings)):
-            self._strings[i].free()
-
-        if self._slots:
-            self._slots.value().free()
-
-
 struct UnsavedFileArena(Movable):
     """Owns C strings and a `CXUnsavedFile[]` array."""
 
