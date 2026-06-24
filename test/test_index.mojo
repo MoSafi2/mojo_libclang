@@ -65,29 +65,25 @@ def test_parse_valid_file() raises:
     _check(tu.spelling().byte_length() > 0, "TU should have non-empty spelling")
 
 
-# test_parse_with_args crashes in this libclang env (null ptr in CStringArray);
-# tracked as environment-specific, not a binding bug.
-# def test_parse_with_args() raises:
-#     var index = Index.create()
-#     var args = List[String]()
-#     args.append("-std=c99")
-#     var tu = index.parse(FIXTURE_PATH, args=args)
-#     _check(tu.spelling().byte_length() > 0, "TU with args should have spelling")
+def test_parse_with_args() raises:
+    var index = Index.create()
+    var args = List[String]()
+    args.append("-std=c99")
+    var tu = index.parse(FIXTURE_PATH, args=args)
+    _check(tu.spelling().byte_length() > 0, "TU with args should have spelling")
 
 
-# test_parse_with_multiple_args crashes in this libclang env (null ptr in
-# CStringArray); tracked as environment-specific.
-# def test_parse_with_multiple_args() raises:
-#     var index = Index.create()
-#     var args = List[String]()
-#     args.append("-std=c99")
-#     args.append("-pedantic")
-#     args.append("-Wall")
-#     var tu = index.parse(FIXTURE_PATH, args=args)
-#     _check(
-#         tu.spelling().byte_length() > 0,
-#         "TU with multiple args should have spelling",
-#     )
+def test_parse_with_multiple_args() raises:
+    var index = Index.create()
+    var args = List[String]()
+    args.append("-std=c99")
+    args.append("-pedantic")
+    args.append("-Wall")
+    var tu = index.parse(FIXTURE_PATH, args=args)
+    _check(
+        tu.spelling().byte_length() > 0,
+        "TU with multiple args should have spelling",
+    )
 
 
 # test_parse_with_unsaved_file crashes in this libclang env (null filename ptr

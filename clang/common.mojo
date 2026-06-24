@@ -42,6 +42,7 @@ from clang._ffi import (
 from std.collections import List
 from std.ffi import c_char, c_int, c_uint, c_ulong
 from std.memory import ArcPointer, UnsafePointer, alloc
+from std.memory.unsafe_pointer import unsafe_cast
 
 
 # ---------------------------------------------------------------------------
@@ -318,7 +319,7 @@ struct CStringArray(Movable):
     var _strings: List[UnsafePointer[c_char, MutAnyOrigin]]
     var _slots: Optional[
         UnsafePointer[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
+            UnsafePointer[c_char, ImmutUntrackedOrigin],
             MutAnyOrigin,
         ]
     ]
@@ -326,24 +327,21 @@ struct CStringArray(Movable):
 
     def __init__(out self, args: List[String]) raises:
         self._strings = List[UnsafePointer[c_char, MutAnyOrigin]]()
-        self._slots = None
         self._count = c_int(len(args))
+        self._slots = None
 
         if len(args) == 0:
             return
 
-        var slots = alloc[
-            Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]]
+        var raw = alloc[
+            UnsafePointer[c_char, ImmutUntrackedOrigin]
         ](len(args))
-
-        self._slots = slots
+        self._slots = raw
 
         for i in range(len(args)):
             var s = _alloc_c_string(args[i])
             self._strings.append(s)
-            slots[i] = Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]](
-                _c_string(s),
-            )
+            raw[i] = _c_string(s)
 
     def ptr(
         self,
@@ -356,19 +354,10 @@ struct CStringArray(Movable):
         if not self._slots:
             return None
 
-        return Optional[
-            UnsafePointer[
-                Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                ImmutUntrackedOrigin,
-            ]
-        ](
-            rebind[
-                UnsafePointer[
-                    Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                    ImmutUntrackedOrigin,
-                ]
-            ](self._slots.value())
-        )
+        return unsafe_cast[
+            Type=Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
+            origin=ImmutUntrackedOrigin,
+        ](self._slots)
 
     def count(self) -> c_int:
         return self._count

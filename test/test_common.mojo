@@ -143,6 +143,74 @@ def test_cstring_array_empty() raises:
     _check(Int(arena.count()) == 0, "empty CStringArray count should be 0")
 
 
+def _cstring_array_readback(arena: CStringArray) -> List[String]:
+    var result = List[String]()
+    var count = Int(arena.count())
+    if count == 0:
+        return result^
+
+    var slots = arena.ptr().value()
+    for i in range(count):
+        var opt = slots[i]
+        if opt:
+            result.append(String(unsafe_from_utf8_ptr=opt.value()))
+        else:
+            result.append(String(""))
+    return result^
+
+
+def _check_cstring_content(args: List[String]) raises:
+    var arena = CStringArray(args)
+    var readback = _cstring_array_readback(arena)
+    assert_equal(len(readback), len(args))
+    for i in range(len(args)):
+        assert_equal(readback[i], args[i], "arg " + String(i))
+
+
+def test_cstring_array_content_0_args() raises:
+    _check_cstring_content(List[String]())
+
+
+def test_cstring_array_content_1_arg() raises:
+    var args = List[String]()
+    args.append("-std=c99")
+    _check_cstring_content(args)
+
+
+def test_cstring_array_content_2_args() raises:
+    var args = List[String]()
+    args.append("-std=c99")
+    args.append("-Wall")
+    _check_cstring_content(args)
+
+
+def test_cstring_array_content_3_args() raises:
+    var args = List[String]()
+    args.append("-std=c99")
+    args.append("-Wall")
+    args.append("-Werror")
+    _check_cstring_content(args)
+
+
+def test_cstring_array_content_4_args() raises:
+    var args = List[String]()
+    args.append("-std=c99")
+    args.append("-Wall")
+    args.append("-Werror")
+    args.append("-pedantic")
+    _check_cstring_content(args)
+
+
+def test_cstring_array_content_5_args() raises:
+    var args = List[String]()
+    args.append("-std=c99")
+    args.append("-Wall")
+    args.append("-Werror")
+    args.append("-pedantic")
+    args.append("-O2")
+    _check_cstring_content(args)
+
+
 def test_unsaved_file_arena() raises:
     var files = List[UnsavedFile]()
     files.append(UnsavedFile(filename="a.c", contents="int a;"))

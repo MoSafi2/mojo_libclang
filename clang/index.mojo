@@ -12,6 +12,8 @@ def main() raises:
 ```
 """
 
+from std.ffi import c_char
+
 from clang._ffi import (
     CXIndex,
     CXIndexOptions,
@@ -32,16 +34,19 @@ from clang.enums import ErrorCode, TranslationUnitFlags
 
 from clang.common import (
     UnsavedFile,
-    CStringArray,
     UnsavedFileArena,
     _borrow_c_string,
+    _alloc_c_string,
+    _c_string,
 )
 
 from clang.errors import TranslationUnitLoadError
 from clang.state import IndexState
 from clang.translation_unit import TranslationUnit
 
-from std.memory import UnsafePointer, ArcPointer
+from std.collections import List
+from std.memory import UnsafePointer, ArcPointer, alloc
+from std.memory.unsafe_pointer import unsafe_cast
 
 
 struct Index(Copyable, Movable, Writable):
@@ -166,28 +171,71 @@ struct Index(Copyable, Movable, Writable):
     ) raises -> TranslationUnit:
         """Parse a source file into a `TranslationUnit`.
 
-        `CStringArray` and `UnsavedFileArena` keep command-line argument
-        strings and unsaved-file strings alive until the libclang call returns.
+        `UnsavedFileArena` keeps unsaved-file strings alive until the call
+        returns. argv strings and slot buffer are allocated and freed inline.
+
+        Note: Manual argv build avoids a Mojo compiler bug where
+        Optional[UnsafePointer[...]] values produced across a function
+        boundary are corrupted when passed to _bindgen_function wrappers
+        with many parameters.
         """
-        var arg_arena = CStringArray(args)
         var unsaved_arena = UnsavedFileArena(unsaved_files)
+
+        var n = len(args)
+        var c_strings = List[UnsafePointer[c_char, MutAnyOrigin]]()
+        var argv_buf: Optional[
+            UnsafePointer[
+                UnsafePointer[c_char, ImmutUntrackedOrigin],
+                MutAnyOrigin,
+            ]
+        ] = None
+        if n > 0:
+            var raw = alloc[
+                UnsafePointer[c_char, ImmutUntrackedOrigin]
+            ](n)
+            argv_buf = raw
+            for i in range(n):
+                var s = _alloc_c_string(args[i])
+                c_strings.append(s)
+                raw[i] = _c_string(s)
 
         var out_tu: CXTranslationUnit = CXTranslationUnit()
         var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
             to=out_tu,
         )
+
+        var c_path = _borrow_c_string(path)
+        var arg_ptr: Optional[
+            UnsafePointer[
+                Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
+                ImmutUntrackedOrigin,
+            ]
+        ] = unsafe_cast[
+            Type=Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
+            origin=ImmutUntrackedOrigin,
+        ](argv_buf)
+        var arg_count = c_int(n)
+        var unsaved_ptr = unsaved_arena.ptr()
+        var unsaved_count = unsaved_arena.count()
+        var raw_opts = options.as_c_uint()
+        var out_raw = rebind[
+            UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]
+        ](out_ptr)
         var raw_err = clang_parseTranslationUnit2(
             self._raw_handle(),
-            _borrow_c_string(path),
-            arg_arena.ptr(),
-            arg_arena.count(),
-            unsaved_arena.ptr(),
-            unsaved_arena.count(),
-            options.as_c_uint(),
-            rebind[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]](
-                out_ptr,
-            ),
+            c_path,
+            arg_ptr,
+            arg_count,
+            unsaved_ptr,
+            unsaved_count,
+            raw_opts,
+            out_raw,
         )
+
+        for i in range(len(c_strings)):
+            c_strings[i].free()
+        if n > 0:
+            argv_buf.value().free()
 
         var err = ErrorCode(raw_err)
         if err != ErrorCode.SUCCESS:
