@@ -26,7 +26,7 @@ struct IndexState(Movable):
             raise Error("IndexState used after disposal")
         return self._raw
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self.alive:
             if self._raw:
                 clang_disposeIndex(self._raw)
@@ -70,7 +70,8 @@ struct TranslationUnitState(Movable):
     def bump_generation(mut self):
         self.generation += 1
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self.alive:
             if self._raw:
                 clang_disposeTranslationUnit(self._raw)
+        _ = self._index

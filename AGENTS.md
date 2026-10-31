@@ -3,18 +3,18 @@
 This repository generates raw Mojo FFI bindings for LLVM libclang with
 `mojo-bindgen`.
 
-## Command Wrapper
+## Commands
 
-- Run shell commands through `rtk`.
+- Run shell commands directly.
 - Prefer Pixi tasks over direct tool invocation.
 
 ## Main Commands
 
-- Generate bindings: `rtk pixi run generate`
-- Equivalent generate task: `rtk pixi run generate-libclang`
-- Build the local package-style install layout: `rtk pixi run build-package-layout`
-- Verify layout bindings: `rtk pixi run build-test test/_ffi_layout_tests.mojo`
-- Run wrapper tests with `rtk pixi run run-test <test-file>`.
+- Generate bindings: `pixi run generate`
+- Equivalent generate task: `pixi run generate-libclang`
+- Build the local package-style install layout: `pixi run build-package-layout`
+- Verify layout bindings: `pixi run build-test test/_ffi_layout_tests.mojo`
+- Run wrapper tests with `pixi run run-test <test-file>`.
 - A direct build of `clang/_ffi.mojo` is expected to fail with
   `module does not contain a 'main' function`; this file is a library-style raw
   binding module.
@@ -73,11 +73,11 @@ The second patch removes spurious FFI generated from transitive system headers:
 
 Keep primitive aliases required by libclang APIs, such as `time_t`.
 
-If generated output changes and the patch no longer applies, `rtk pixi run
+If generated output changes and the patch no longer applies, `pixi run
 generate` should fail during `git apply --check`. Do not bypass that failure
 unless intentionally inspecting pristine output.
 
-Use `LIBCLANG_APPLY_PATCHES=0 rtk pixi run generate` only to inspect pristine
+Use `LIBCLANG_APPLY_PATCHES=0 pixi run generate` only to inspect pristine
 `mojo-bindgen` output. Do not commit pristine output as the final binding state
 unless explicitly requested.
 
@@ -102,4 +102,4 @@ unless explicitly requested.
 - The worktree may contain generated artifacts. Do not delete or revert user
   changes unless explicitly requested.
 - When changing generated bindings, prefer updating the generator and patch
-  files, then rerun `rtk pixi run generate`.
+  files, then rerun `pixi run generate`.

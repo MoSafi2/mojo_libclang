@@ -36,21 +36,25 @@ def test_printing_policy_create() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
     var raw = c._raw_value()
-    var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
+    var ptr = UnsafePointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     _ = policy
+    _ = raw
+    _ = c
 
 
 def test_printing_policy_get_and_set_property() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
     var raw = c._raw_value()
-    var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
+    var ptr = UnsafePointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
+    _ = raw
+    _ = c
     var original = policy.property(PrintingPolicyProperty.SUPPRESS_SCOPE)
     policy.set_property(PrintingPolicyProperty.SUPPRESS_SCOPE, original + 1)
     var updated = policy.property(PrintingPolicyProperty.SUPPRESS_SCOPE)
@@ -64,12 +68,21 @@ def test_printing_policy_write_to() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
     var raw = c._raw_value()
-    var ptr = UnsafePointer[CXCursor, MutAnyOrigin](to=raw)
+    var ptr = UnsafePointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
     var policy = PrintingPolicy(
         rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
+    _ = raw
+    _ = c
     var s = String(policy)
     assert_true(s.byte_length() > 0, "write_to should produce output")
+
+
+def test_printing_policy_from_owner() raises:
+    var tu = _parse()
+    var cursor = _find_function(tu, "add")
+    var policy = PrintingPolicy(cursor)
+    _ = policy
 
 
 def main() raises:

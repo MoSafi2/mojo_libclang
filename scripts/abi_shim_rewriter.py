@@ -28,6 +28,7 @@ from mojo_bindgen.ir import (
     PointerMutability,
     PointerOrigin,
     QualifiedType,
+    Qualifiers,
     Struct,
     StructRef,
     Type,
@@ -47,6 +48,7 @@ class RewrittenUnit:
     unit: Unit
     header_text: str
     source_text: str
+    nonnull_params: dict[str, tuple[int, ...]]
 
 
 def _keep_all(_: Decl) -> bool:
@@ -452,10 +454,10 @@ class ABITypeRewriter:
             params=signature.params,
         )
 
-    def rewrite_param_type(self, typ: Type) -> Type:
+    def rewrite_param_type(self, typ: Type, *, nullable: bool = False) -> Type:
         rewritten = self.rewrite_type(typ)
         if self.aggregate_name(rewritten) is not None:
-            return self._ptr_to(rewritten, mut=False)
+            return self._ptr_to(rewritten, mut=False, nullable=nullable)
         return rewritten
 
     def rewrite_type(self, typ: Type) -> Type:
@@ -479,6 +481,7 @@ class ABITypeRewriter:
             typ.ret,
             typ.params,
             out_template=_synthetic_param(),
+            aggregate_nullable=True,
         )
         return replace(typ, ret=signature.ret, params=signature.params)
 
@@ -488,9 +491,10 @@ class ABITypeRewriter:
         params: list[Any],
         *,
         out_template: Any,
+        aggregate_nullable: bool = False,
     ) -> RewrittenSignature:
         rewritten_params = [
-            replace(param, type=self.rewrite_param_type(param.type))
+            replace(param, type=self.rewrite_param_type(param.type, nullable=aggregate_nullable))
             for param in params
         ]
         rewritten_ret = self.rewrite_type(ret)
@@ -498,7 +502,7 @@ class ABITypeRewriter:
             out_param = replace(
                 out_template,
                 name="out",
-                type=self._ptr_to(rewritten_ret, mut=True),
+                type=self._ptr_to(rewritten_ret, mut=True, nullable=aggregate_nullable),
                 doc=None,
             )
             return RewrittenSignature(
@@ -519,14 +523,14 @@ class ABITypeRewriter:
     def shim_symbol(self, link_name: str) -> str:
         return self.config.shim_symbol_prefix + link_name
 
-    def _ptr_to(self, typ: Type, *, mut: bool) -> Pointer:
+    def _ptr_to(self, typ: Type, *, mut: bool, nullable: bool) -> Pointer:
         return Pointer(
-            pointee=typ,
+            pointee=typ if mut else QualifiedType(typ, Qualifiers(is_const=True)),
             size_bytes=self.unit.target_abi.pointer_size_bytes,
             align_bytes=self.unit.target_abi.pointer_align_bytes,
             mutability=PointerMutability.MUT if mut else PointerMutability.IMMUT,
             origin=PointerOrigin.EXTERNAL,
-            nullable=True,
+            nullable=nullable,
         )
 
 
@@ -1102,6 +1106,18 @@ class ABIShimRewriter:
             unit=unit,
             header_text=renderer.render_header(functions),
             source_text=renderer.render_source(functions),
+            nonnull_params={
+                type_rewriter.shim_symbol(fn.link_name): tuple(
+                    ([0] if type_rewriter.aggregate_name(fn.ret) is not None else [])
+                    + [
+                        index + (type_rewriter.aggregate_name(fn.ret) is not None)
+                        for index, param in enumerate(fn.params)
+                        if type_rewriter.aggregate_name(param.type) is not None
+                    ]
+                )
+                for fn in analysis.kept_decls
+                if isinstance(fn, Function)
+            },
         )
 
 

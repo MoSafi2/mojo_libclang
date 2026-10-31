@@ -5,7 +5,7 @@ owning `TranslationUnitState`.
 
 Important:
 
-* The raw `CXType` value is stored in `InlineArray[CXType, 1]`.
+* The raw `CXType` value is stored in `Array[CXType, 1]`.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The type becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXType *` to the shim, never `CXType` by value.
@@ -21,6 +21,11 @@ def main() raises:
     print(typ.kind(), typ.spelling())
 ```
 """
+
+import clang.translation_unit as tu_module
+import clang.cursor as cursor_types
+import clang.enums as enums_types
+
 
 from clang._ffi import (
     CXCursor,
@@ -111,27 +116,27 @@ struct Type(Copyable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: InlineArray[CXType, 1]
+    var _raw: Array[CXType, 1]
     var _spelling: String
 
-    def __init__(out self, tu: TranslationUnit) raises:
+    def __init__(out self, tu: tu_module.TranslationUnit) raises:
         """Create a null type tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = InlineArray[CXType, 1](
+        self._raw = Array[CXType, 1](
             fill=_zero_type(),
         )
         self._spelling = String()
 
     def __init__(
         out self,
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         raw: CXType,
     ) raises:
         """Create a type wrapper from a copied raw type tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = InlineArray[CXType, 1](fill=raw)
+        self._raw = Array[CXType, 1](fill=raw)
         self._spelling = String()
 
     def __init__(
@@ -141,7 +146,7 @@ struct Type(Copyable, Movable, Writable):
         """Create a null type tied to a shared translation-unit state."""
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXType, 1](
+        self._raw = Array[CXType, 1](
             fill=_zero_type(),
         )
         self._spelling = String()
@@ -154,7 +159,7 @@ struct Type(Copyable, Movable, Writable):
         """Create a type wrapper from a copied raw type."""
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXType, 1](fill=raw)
+        self._raw = Array[CXType, 1](fill=raw)
         self._spelling = String()
 
     def _check_valid(self) raises:
@@ -316,7 +321,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return out^
 
-    def declaration(ref self) raises -> Optional[Cursor]:
+    def declaration(ref self) raises -> Optional[cursor_types.Cursor]:
         """Return the declaration cursor for this type, if any."""
         from clang.cursor import Cursor
 
@@ -328,7 +333,7 @@ struct Type(Copyable, Movable, Writable):
         if out.is_null():
             return None
 
-        return Optional[Cursor](out^)
+        return Optional[cursor_types.Cursor](out^)
 
     def named_type(ref self) raises -> Type:
         """Return the named type underlying a typedef or elaborated type."""
@@ -405,7 +410,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return Int(clang_Type_getSizeOf(self._ptr()))
 
-    def translation_unit(ref self) raises -> TranslationUnit:
+    def translation_unit(ref self) raises -> tu_module.TranslationUnit:
         """Return the TranslationUnit to which this type belongs."""
         from clang.translation_unit import TranslationUnit
 
@@ -419,7 +424,7 @@ struct Type(Copyable, Movable, Writable):
 
     def exception_specification_kind(
         ref self,
-    ) raises -> ExceptionSpecificationKind:
+    ) raises -> enums_types.ExceptionSpecificationKind:
         """Return the exception-specification kind for a function type."""
         self._check_valid()
         return ExceptionSpecificationKind(
@@ -488,29 +493,29 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
         return Bool(clang_Type_isTransparentTagTypedef(self._ptr()))
 
-    def fields(ref self) raises -> List[Cursor]:
+    def fields(ref self) raises -> List[cursor_types.Cursor]:
         """Return field declaration cursors for this record type."""
         from clang.cursor import Cursor
 
         self._check_valid()
         var collector_box = alloc[_TypeFieldCollector](1)
-        collector_box.init_pointee_move(
+        collector_box.unsafe_write(
             _TypeFieldCollector(
                 tu=self._tu,
-                out=List[Cursor](),
+                out=List[cursor_types.Cursor](),
             )
         )
         var client_data = CXClientData(
-            rebind[MutOpaquePointer[MutUntrackedOrigin]](
+            rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
                 rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                    rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box)
+                    rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](collector_box)
                 )
             )
         )
         _ = clang_Type_visitFields(
             self._ptr(), _field_visitor_trampoline, client_data
         )
-        var out = List[Cursor]()
+        var out = List[cursor_types.Cursor]()
         for i in range(len(collector_box[].out)):
             out.append(collector_box[].out[i].copy())
         collector_box.free()
@@ -526,15 +531,15 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
-    def objc_protocol_decls(ref self) raises -> List[Cursor]:
+    def objc_protocol_decls(ref self) raises -> List[cursor_types.Cursor]:
         """Return Objective-C protocol declaration cursors referenced by this type."""
         from clang.cursor import Cursor
 
         self._check_valid()
-        var out = List[Cursor]()
+        var out = List[cursor_types.Cursor]()
         var count = clang_Type_getNumObjCProtocolRefs(self._ptr())
         for i in range(Int(count)):
-            var cursor = Cursor(tu=self._tu)
+            var cursor = cursor_types.Cursor(tu=self._tu)
             clang_Type_getObjCProtocolDecl(
                 cursor._ptr(), self._ptr(), c_uint(i)
             )
@@ -574,7 +579,7 @@ struct Type(Copyable, Movable, Writable):
 def _zero_type() -> CXType:
     return CXType(
         kind=CXTypeKind(c_uint(0)),
-        data=InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2](
+        data=Array[Optional[OpaquePointer[mut=True, MutUntrackedOrigin]], 2](
             fill=None
         ),
     )
@@ -583,7 +588,7 @@ def _zero_type() -> CXType:
 @fieldwise_init
 struct _TypeFieldCollector(Movable):
     var tu: ArcPointer[TranslationUnitState]
-    var out: List[Cursor]
+    var out: List[cursor_types.Cursor]
 
 
 def _field_visitor_trampoline(
@@ -593,15 +598,15 @@ def _field_visitor_trampoline(
     if not cursor_ptr:
         return CXVisit_Continue
 
-    var collector = rebind[UnsafePointer[_TypeFieldCollector, MutAnyOrigin]](
-        rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+    var collector = rebind[UnsafePointer[_TypeFieldCollector, MutUntrackedOrigin]](
+        rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
             rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
                 client_data.value()
             )
         )
     )
 
-    var cursor = Cursor(tu=collector[].tu, raw=cursor_ptr.value()[].copy())
+    var cursor = cursor_types.Cursor(tu=collector[].tu, raw=cursor_ptr.value()[].copy())
     collector[].out.append(cursor^)
 
     return CXVisit_Continue

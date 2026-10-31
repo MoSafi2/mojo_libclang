@@ -78,8 +78,8 @@ def _check(condition: Bool, message: String) raises:
         raise Error(message)
 
 
-def _as_c_string(text: String) -> UnsafePointer[c_char, ImmutUntrackedOrigin]:
-    return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+def _as_c_string(text: String) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
+    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](
         text.unsafe_ptr()
     )
 
@@ -88,14 +88,14 @@ def _cxstring_zero() -> CXString:
     return CXString(data=None, private_flags=c_uint(0))
 
 
-def _alloc_cxstring() -> UnsafePointer[CXString, MutAnyOrigin]:
+def _alloc_cxstring() -> UnsafePointer[CXString, MutUntrackedOrigin]:
     var storage = alloc[CXString](1)
     storage[] = _cxstring_zero()
     return storage
 
 
 def _cxstring_ptr(
-    storage: UnsafePointer[CXString, MutAnyOrigin],
+    storage: UnsafePointer[CXString, MutUntrackedOrigin],
 ) -> UnsafePointer[CXString, MutUntrackedOrigin]:
     return rebind[UnsafePointer[CXString, MutUntrackedOrigin]](storage)
 
@@ -114,25 +114,23 @@ def _take_cxstring(
 
 def _source_location_zero() -> CXSourceLocation:
     return CXSourceLocation(
-        ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
+        ptr_data=Array[
+            Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2
         ](fill=None),
         int_data=c_uint(0),
     )
 
 
 def _source_location_ptr(
-    mut storage: InlineArray[CXSourceLocation, 1],
-) -> UnsafePointer[CXSourceLocation, MutUntrackedOrigin]:
-    return rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-        storage.unsafe_ptr(),
-    )
+    mut storage: Array[CXSourceLocation, 1],
+) -> Pointer[CXSourceLocation, origin_of(storage)]:
+    return Pointer(to=storage[0])
 
 
 def _source_range_zero() -> CXSourceRange:
     return CXSourceRange(
-        ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
+        ptr_data=Array[
+            Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2
         ](fill=None),
         begin_int_data=c_uint(0),
         end_int_data=c_uint(0),
@@ -140,46 +138,40 @@ def _source_range_zero() -> CXSourceRange:
 
 
 def _source_range_ptr(
-    mut storage: InlineArray[CXSourceRange, 1],
-) -> UnsafePointer[CXSourceRange, MutUntrackedOrigin]:
-    return rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
-        storage.unsafe_ptr(),
-    )
+    mut storage: Array[CXSourceRange, 1],
+) -> Pointer[CXSourceRange, origin_of(storage)]:
+    return Pointer(to=storage[0])
 
 
 def _cursor_zero() -> CXCursor:
     return CXCursor(
         kind=CXCursorKind(0),
         xdata=c_int(0),
-        data=InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 3](
+        data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 3](
             fill=None
         ),
     )
 
 
 def _cursor_ptr(
-    mut storage: InlineArray[CXCursor, 1],
-) -> UnsafePointer[CXCursor, MutUntrackedOrigin]:
-    return rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](
-        storage.unsafe_ptr()
-    )
+    mut storage: Array[CXCursor, 1],
+) -> Pointer[CXCursor, origin_of(storage)]:
+    return Pointer(to=storage[0])
 
 
 def _type_zero() -> CXType:
     return CXType(
         kind=CXTypeKind(0),
-        data=InlineArray[Optional[MutOpaquePointer[MutUntrackedOrigin]], 2](
+        data=Array[Optional[OpaquePointer[mut=True, MutUntrackedOrigin]], 2](
             fill=None
         ),
     )
 
 
 def _type_ptr(
-    mut storage: InlineArray[CXType, 1],
-) -> UnsafePointer[CXType, MutUntrackedOrigin]:
-    return rebind[UnsafePointer[CXType, MutUntrackedOrigin]](
-        storage.unsafe_ptr()
-    )
+    mut storage: Array[CXType, 1],
+) -> Pointer[CXType, origin_of(storage)]:
+    return Pointer(to=storage[0])
 
 
 def _parse_file(
@@ -208,9 +200,9 @@ def test_version_string() raises:
 
 
 def test_null_aggregates() raises:
-    var loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
-    var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
-    var cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
+    var loc = Array[CXSourceLocation, 1](fill=_source_location_zero())
+    var range = Array[CXSourceRange, 1](fill=_source_range_zero())
+    var cursor = Array[CXCursor, 1](fill=_cursor_zero())
 
     clang_getNullLocation(_source_location_ptr(loc))
     clang_getNullRange(_source_range_ptr(range))
@@ -270,9 +262,9 @@ def test_cursor_lookup_type_and_spelling() raises:
         if not file:
             raise Error("clang_getFile returned null")
 
-        var loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
-        var cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
-        var typ = InlineArray[CXType, 1](fill=_type_zero())
+        var loc = Array[CXSourceLocation, 1](fill=_source_location_zero())
+        var cursor = Array[CXCursor, 1](fill=_cursor_zero())
+        var typ = Array[CXType, 1](fill=_type_zero())
         var cursor_name = _alloc_cxstring()
         var type_name = _alloc_cxstring()
 
@@ -311,15 +303,15 @@ def test_locations_ranges_and_tokens() raises:
         if not file:
             raise Error("clang_getFile returned null")
 
-        var start = InlineArray[CXSourceLocation, 1](
+        var start = Array[CXSourceLocation, 1](
             fill=_source_location_zero()
         )
-        var end = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
-        var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
-        var spelling_file = InlineArray[CXFile, 1](fill=None)
-        var spelling_line = InlineArray[c_uint, 1](fill=c_uint(0))
-        var spelling_column = InlineArray[c_uint, 1](fill=c_uint(0))
-        var spelling_offset = InlineArray[c_uint, 1](fill=c_uint(0))
+        var end = Array[CXSourceLocation, 1](fill=_source_location_zero())
+        var range = Array[CXSourceRange, 1](fill=_source_range_zero())
+        var spelling_file = Array[CXFile, 1](fill=None)
+        var spelling_line = Array[c_uint, 1](fill=c_uint(0))
+        var spelling_column = Array[c_uint, 1](fill=c_uint(0))
+        var spelling_offset = Array[c_uint, 1](fill=c_uint(0))
 
         clang_getLocation(_source_location_ptr(start), tu, file, 1, 1)
         clang_getLocation(_source_location_ptr(end), tu, file, 1, 23)
@@ -330,40 +322,23 @@ def test_locations_ranges_and_tokens() raises:
         )
         clang_getSpellingLocation(
             _source_location_ptr(start),
-            rebind[UnsafePointer[CXFile, MutUntrackedOrigin]](
-                spelling_file.unsafe_ptr()
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                spelling_line.unsafe_ptr()
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                spelling_column.unsafe_ptr()
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                spelling_offset.unsafe_ptr()
-            ),
+            Pointer(to=spelling_file[0]).unsafe_origin_cast[MutUntrackedOrigin](),
+            Pointer(to=spelling_line[0]).unsafe_origin_cast[MutUntrackedOrigin](),
+            Pointer(to=spelling_column[0]).unsafe_origin_cast[MutUntrackedOrigin](),
+            Pointer(to=spelling_offset[0]).unsafe_origin_cast[MutUntrackedOrigin](),
         )
         _check(spelling_line[0] == 1, "spelling line mismatch")
         _check(spelling_column[0] == 1, "spelling column mismatch")
 
-        var token_storage = InlineArray[
+        var token_storage = Array[
             Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
         ](fill=None)
-        var token_count = InlineArray[c_uint, 1](fill=c_uint(0))
+        var token_count = Array[c_uint, 1](fill=c_uint(0))
         clang_tokenize(
             tu,
             _source_range_ptr(range),
-            rebind[
-                UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
-                    MutUntrackedOrigin,
-                ]
-            ](
-                token_storage.unsafe_ptr(),
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                token_count.unsafe_ptr()
-            ),
+            Pointer(to=token_storage[0]).unsafe_origin_cast[MutUntrackedOrigin](),
+            Pointer(to=token_count[0]).unsafe_origin_cast[MutUntrackedOrigin](),
         )
         _check(token_count[0] > 0, "clang_tokenize returned zero tokens")
         if not token_storage[0]:
@@ -372,10 +347,10 @@ def test_locations_ranges_and_tokens() raises:
         try:
             var first = token_storage[0].value()
             var token_text = _alloc_cxstring()
-            var token_loc = InlineArray[CXSourceLocation, 1](
+            var token_loc = Array[CXSourceLocation, 1](
                 fill=_source_location_zero()
             )
-            var token_extent = InlineArray[CXSourceRange, 1](
+            var token_extent = Array[CXSourceRange, 1](
                 fill=_source_range_zero()
             )
             var token_kind = clang_getTokenKind(first)
@@ -406,18 +381,18 @@ def test_equality() raises:
         if not file:
             raise Error("clang_getFile returned null")
 
-        var loc = InlineArray[CXSourceLocation, 1](fill=_source_location_zero())
-        var null_loc = InlineArray[CXSourceLocation, 1](
+        var loc = Array[CXSourceLocation, 1](fill=_source_location_zero())
+        var null_loc = Array[CXSourceLocation, 1](
             fill=_source_location_zero()
         )
-        var range = InlineArray[CXSourceRange, 1](fill=_source_range_zero())
-        var null_range = InlineArray[CXSourceRange, 1](
+        var range = Array[CXSourceRange, 1](fill=_source_range_zero())
+        var null_range = Array[CXSourceRange, 1](
             fill=_source_range_zero()
         )
-        var cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
-        var null_cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
-        var typ = InlineArray[CXType, 1](fill=_type_zero())
-        var invalid_type = InlineArray[CXType, 1](fill=_type_zero())
+        var cursor = Array[CXCursor, 1](fill=_cursor_zero())
+        var null_cursor = Array[CXCursor, 1](fill=_cursor_zero())
+        var typ = Array[CXType, 1](fill=_type_zero())
+        var invalid_type = Array[CXType, 1](fill=_type_zero())
 
         clang_getLocation(_source_location_ptr(loc), tu, file, 1, 5)
         clang_getNullLocation(_source_location_ptr(null_loc))
@@ -560,8 +535,8 @@ def test_unsaved_parse() raises:
 
 
 def _visit_child_callback(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
+    cursor: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
+    parent: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
     if not client_data:
@@ -582,8 +557,8 @@ def test_visit_children() raises:
     var path = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var tu = _parse_file(index, path)
     try:
-        var tu_cursor = InlineArray[CXCursor, 1](fill=_cursor_zero())
-        var count = InlineArray[c_uint, 1](fill=c_uint(0))
+        var tu_cursor = Array[CXCursor, 1](fill=_cursor_zero())
+        var count = Array[c_uint, 1](fill=c_uint(0))
         clang_getTranslationUnitCursor(_cursor_ptr(tu_cursor), tu)
         var result = clang_visitChildren(
             _cursor_ptr(tu_cursor),
@@ -591,7 +566,7 @@ def test_visit_children() raises:
             Optional[UnsafePointer[NoneType, MutUntrackedOrigin]](
                 rebind[UnsafePointer[NoneType, MutUntrackedOrigin]](
                     rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                        count.unsafe_ptr()
+                        Pointer(to=count[0]).unsafe_origin_cast[MutUntrackedOrigin]()
                     ),
                 ),
             ),

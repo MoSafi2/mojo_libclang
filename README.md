@@ -43,6 +43,13 @@ def main() raises:
 pixi run mojo run main.mojo
 ```
 
+## Compatibility
+
+This checkout targets Mojo 1.2.0 and libclang 18. Rebuild compiled Mojo modules
+with that toolchain; compiled packages are not interchangeable across compiler
+versions. The raw FFI and layout checks are regenerated with mojo-bindgen at
+`ad2ae77898a738ac88d7d4b9b4d87ca96e874790`.
+
 ## Installation
 
 Install Pixi:

@@ -13,7 +13,7 @@ This module follows the new lifetime model:
 Ownership notes:
 
 * Diagnostics returned directly from `clang_getDiagnostic()` are owned by
-  `Diagnostic` and disposed in `__del__`.
+  `Diagnostic` and disposed in `__deinit__`.
 * Diagnostics returned by `clang_getDiagnosticInSet()` are wrapped as owned
   diagnostics here.
 * Diagnostic sets returned from `clang_getDiagnosticSetFromTU()` are owned.
@@ -31,6 +31,9 @@ def main() raises:
         print(diag.severity(), diag.formatted())
 ```
 """
+
+import clang.translation_unit as tu_module
+
 
 from clang._ffi import (
     CXDiagnostic,
@@ -103,7 +106,7 @@ struct Diagnostic(Movable, Writable):
 
     def __init__(
         out self,
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         raw: CXDiagnostic,
         owns: Bool = True,
     ) raises:
@@ -333,10 +336,11 @@ struct Diagnostic(Movable, Writable):
 
         return self._formatted
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._owns:
             if self._raw:
                 clang_disposeDiagnostic(self._raw)
+        _ = self._tu  # The raw diagnostics borrow this owner through disposal.
 
 
 struct DiagnosticSetIterator[
@@ -393,7 +397,7 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
 
     def __init__(
         out self,
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         raw: CXDiagnosticSet,
         owns: Bool = True,
     ) raises:
@@ -466,7 +470,8 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
     def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:
         return DiagnosticSetIterator[origin_of(self)](self)
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._owns:
             if self._raw:
                 clang_disposeDiagnosticSet(self._raw)
+        _ = self._tu  # The raw diagnostics borrow this owner through disposal.

@@ -22,6 +22,9 @@ def main() raises:
 ```
 """
 
+import clang.translation_unit as tu_module
+
+
 from clang._ffi import (
     CXFile,
     clang_getFile,
@@ -63,7 +66,7 @@ struct File(Copyable, Movable, Writable):
 
     def __init__(
         out self,
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         raw: CXFile,
     ) raises:
         self._tu = tu._shared_state()
@@ -119,7 +122,7 @@ struct File(Copyable, Movable, Writable):
             self._name = cs.take()
 
     @staticmethod
-    def null(tu: TranslationUnit) raises -> Self:
+    def null(tu: tu_module.TranslationUnit) raises -> Self:
         """Return a null file handle associated with `tu`."""
         return Self(tu=tu, raw=CXFile(None))
 
@@ -130,7 +133,7 @@ struct File(Copyable, Movable, Writable):
 
     @staticmethod
     def from_handle(
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         handle: CXFile,
     ) raises -> Optional[Self]:
         """Wrap `handle`, or return `None` if it is a null `CXFile`."""
@@ -154,13 +157,13 @@ struct File(Copyable, Movable, Writable):
 
     @staticmethod
     def from_name(
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         filename: String,
     ) raises -> Optional[Self]:
         """Look up `filename` in `tu`, returning `None` when absent."""
         var tu_state = tu._shared_state()
         if not tu_state[].alive:
-            raise Error("File.from_name: TranslationUnit used after disposal")
+            raise Error("File.from_name: tu_module.TranslationUnit used after disposal")
 
         var handle = clang_getFile(
             tu_state[].raw(),
@@ -180,7 +183,7 @@ struct File(Copyable, Movable, Writable):
     ) raises -> Optional[Self]:
         """Look up `filename` in a shared TU state, returning `None` when absent."""
         if not tu[].alive:
-            raise Error("File.from_name: TranslationUnit used after disposal")
+            raise Error("File.from_name: tu_module.TranslationUnit used after disposal")
 
         var handle = clang_getFile(
             tu[].raw(),

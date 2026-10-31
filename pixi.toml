@@ -20,17 +20,17 @@ path = "clang"
 [package.host-dependencies]
 clangdev = "18.*"
 libclang = "18.*"
-mojo-compiler = "=1.0.0b2"
+mojo-compiler = "=1.2.0"
 
 [package.build-dependencies]
-mojo-compiler = "=1.0.0b2"
+mojo-compiler = "=1.2.0"
 
 [package.run-dependencies]
 libclang = "18.*"
-mojo-compiler = "=1.0.0b2"
+mojo-compiler = "=1.2.0"
 
 [dependencies]
-mojo = ">=1.0.0b2,<2"
+mojo = "=1.2.0"
 libclang = "18.*"
 
 [tasks]
@@ -40,15 +40,17 @@ build-test = "env LD_LIBRARY_PATH=$PWD/shim:$CONDA_PREFIX/lib:$LD_LIBRARY_PATH m
 [feature.dev.dependencies]
 python = ">=3.14.5,<3.15"
 clangdev = "18.*"
-c-compiler = "*"
 
 [feature.dev.pypi-dependencies]
-mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "1aa815c210a4435cc5fc9e940f701ff0a902b945" }
+mojo-bindgen = { git = "git+https://github.com/MoSafi2/mojo_bindgen", rev = "ad2ae77898a738ac88d7d4b9b4d87ca96e874790" }
 
 [feature.dev.tasks]
 generate = "python scripts/generate_libclang_bindings.py"
 generate-libclang = "python scripts/generate_libclang_bindings.py"
+build-shim = "python scripts/build_shim.py"
 build-package = "bash scripts/build_package_layout.sh dist/libclang_mojo-prefix"
+build-package-layout = "bash scripts/build_package_layout.sh dist/libclang_mojo-prefix"
+test = { cmd = "python scripts/run_tests.py", depends-on = ["build-shim"] }
 
 [feature.package.dependencies]
 rattler-build = ">=0.67.0,<0.68"

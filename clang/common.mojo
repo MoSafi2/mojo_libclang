@@ -137,7 +137,7 @@ def _dispose_platform_availabilities(
 
 def _borrow_c_string_unsafe(
     text: String,
-) -> UnsafePointer[c_char, ImmutUntrackedOrigin]:
+) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
     """Borrow a null-terminated C string pointer from a Mojo `String`.
 
     The returned pointer does not own the string data.
@@ -145,14 +145,14 @@ def _borrow_c_string_unsafe(
     The caller must guarantee that `text` stays alive until the C call returns.
     Prefer `UnsavedFileArena` for arrays or persisted C structs.
     """
-    return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](
         text.unsafe_ptr(),
     )
 
 
 def _borrow_c_string(
     text: String,
-) -> UnsafePointer[c_char, ImmutUntrackedOrigin]:
+) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
     """Borrow a null-terminated C string pointer from a Mojo `String`.
 
     The returned pointer does not own the string data. The string may be
@@ -161,7 +161,7 @@ def _borrow_c_string(
     """
     var mutable_text = text
     var c_string = mutable_text.as_c_string_slice()
-    return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](
         c_string.unsafe_ptr()
     )
 
@@ -242,8 +242,7 @@ struct _CXStringStorage(Movable):
     @always_inline
     def _as_ptr(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
         return rebind[UnsafePointer[CXString, MutUntrackedOrigin]](
-            UnsafePointer[CXString, MutAnyOrigin](to=self._value),
-        )
+            UnsafePointer(to=self._value)).unsafe_origin_cast[MutUntrackedOrigin]()
 
     def ptr_for_out(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
         self._has_value = True
@@ -279,7 +278,7 @@ struct _CXStringStorage(Movable):
         var ptr = self._as_ptr()
         return _take_cxstring_optional(ptr)
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._has_value:
             clang_disposeString(self._as_ptr())
 
@@ -290,14 +289,14 @@ struct _CXStringStorage(Movable):
 struct UnsavedFileArena(Movable):
     """Owns C strings and a `CXUnsavedFile[]` array."""
 
-    var _filenames: List[UnsafePointer[c_char, MutAnyOrigin]]
-    var _contents: List[UnsafePointer[c_char, MutAnyOrigin]]
-    var _slots: Optional[UnsafePointer[CXUnsavedFile, MutAnyOrigin]]
+    var _filenames: List[UnsafePointer[c_char, MutUntrackedOrigin]]
+    var _contents: List[UnsafePointer[c_char, MutUntrackedOrigin]]
+    var _slots: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]]
     var _count: c_uint
 
     def __init__(out self, files: List[UnsavedFile]) raises:
-        self._filenames = List[UnsafePointer[c_char, MutAnyOrigin]]()
-        self._contents = List[UnsafePointer[c_char, MutAnyOrigin]]()
+        self._filenames = List[UnsafePointer[c_char, MutUntrackedOrigin]]()
+        self._contents = List[UnsafePointer[c_char, MutUntrackedOrigin]]()
         self._slots = None
         self._count = c_uint(len(files))
 
@@ -315,10 +314,10 @@ struct UnsavedFileArena(Movable):
             self._contents.append(contents)
 
             slots[i] = CXUnsavedFile(
-                Filename=Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+                Filename=Optional[UnsafePointer[c_char, ImmUntrackedOrigin]](
                     _c_string(filename),
                 ),
-                Contents=Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]](
+                Contents=Optional[UnsafePointer[c_char, ImmUntrackedOrigin]](
                     _c_string(contents),
                 ),
                 Length=c_ulong(files[i].contents.byte_length()),
@@ -339,7 +338,7 @@ struct UnsavedFileArena(Movable):
     def count(self) -> c_uint:
         return self._count
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         for i in range(len(self._filenames)):
             self._filenames[i].free()
 
@@ -355,7 +354,7 @@ struct UnsavedFileArena(Movable):
 # ---------------------------------------------------------------------------
 
 
-def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutAnyOrigin]:
+def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutUntrackedOrigin]:
     """Allocate a null-terminated C string.
 
     Caller owns the returned pointer and must free it.
@@ -371,7 +370,7 @@ def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutAnyOrigin]:
 
 
 def _c_string(
-    ptr: UnsafePointer[c_char, MutAnyOrigin],
-) -> UnsafePointer[c_char, ImmutUntrackedOrigin]:
+    ptr: UnsafePointer[c_char, MutUntrackedOrigin],
+) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
     """View an owned mutable C string pointer as const char* for C APIs."""
-    return rebind[UnsafePointer[c_char, ImmutUntrackedOrigin]](ptr)
+    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](ptr)

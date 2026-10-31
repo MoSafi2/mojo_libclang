@@ -107,9 +107,8 @@ struct Index(Copyable, Movable, Writable):
         """Create an `Index` from a raw `CXIndexOptions` value."""
         var options = raw_options.copy()
         var raw = clang_createIndexWithOptions(
-            rebind[UnsafePointer[CXIndexOptions, ImmutUntrackedOrigin]](
-                UnsafePointer[CXIndexOptions, MutAnyOrigin](to=options)
-            )
+            rebind[UnsafePointer[CXIndexOptions, ImmUntrackedOrigin]](
+                UnsafePointer(to=options)).unsafe_origin_cast[MutUntrackedOrigin]()
         )
         if not raw:
             raise Error(
@@ -182,16 +181,16 @@ struct Index(Copyable, Movable, Writable):
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
         var n = len(args)
-        var c_strings = List[UnsafePointer[c_char, MutAnyOrigin]]()
+        var c_strings = List[UnsafePointer[c_char, MutUntrackedOrigin]]()
         var argv_buf: Optional[
             UnsafePointer[
-                UnsafePointer[c_char, ImmutUntrackedOrigin],
-                MutAnyOrigin,
+                UnsafePointer[c_char, ImmUntrackedOrigin],
+                MutUntrackedOrigin,
             ]
         ] = None
         if n > 0:
             var raw = alloc[
-                UnsafePointer[c_char, ImmutUntrackedOrigin]
+                UnsafePointer[c_char, ImmUntrackedOrigin]
             ](n)
             argv_buf = raw
             for i in range(n):
@@ -200,19 +199,17 @@ struct Index(Copyable, Movable, Writable):
                 raw[i] = _c_string(s)
 
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
-            to=out_tu,
-        )
+        var out_ptr = UnsafePointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
 
         var c_path = _borrow_c_string(path)
         var arg_ptr: Optional[
             UnsafePointer[
-                Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-                ImmutUntrackedOrigin,
+                Optional[UnsafePointer[c_char, ImmUntrackedOrigin]],
+                ImmUntrackedOrigin,
             ]
         ] = unsafe_cast[
-            Type=Optional[UnsafePointer[c_char, ImmutUntrackedOrigin]],
-            origin=ImmutUntrackedOrigin,
+            Type=Optional[UnsafePointer[c_char, ImmUntrackedOrigin]],
+            origin=ImmUntrackedOrigin,
         ](argv_buf)
         var arg_count = c_int(n)
         var unsaved_ptr = unsaved_arena.ptr()
@@ -248,9 +245,7 @@ struct Index(Copyable, Movable, Writable):
     def read(ref self, path: String) raises -> TranslationUnit:
         """Read a serialized AST file into a `TranslationUnit`."""
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer[CXTranslationUnit, MutAnyOrigin](
-            to=out_tu,
-        )
+        var out_ptr = UnsafePointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
 
         var err = ErrorCode(
             clang_createTranslationUnit2(

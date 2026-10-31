@@ -22,7 +22,7 @@ def test_version_info() raises:
         info.runtime_clang_version.byte_length() > 0,
         "runtime clang version should be non-empty",
     )
-    assert_equal(info.mojo_compiler_constraint, "=1.0.0b2")
+    assert_equal(info.mojo_compiler_constraint, "=1.2.0")
 
 
 def test_version_prints() raises:

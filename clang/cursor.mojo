@@ -22,6 +22,17 @@ def main() raises:
 ```
 """
 
+import clang.translation_unit as tu_module
+import clang.file as file_types
+import clang.source_location as source_location_types
+import clang.source_range as source_range_types
+import clang.token as token_types
+import clang.enums as enums_types
+
+
+from clang.type_ import Type
+
+
 from clang._ffi import (
     CXCursor,
     CXCursorKind,
@@ -217,14 +228,13 @@ from clang.translation_unit import (
     TranslationUnitState,
 )
 
-from std.collections import InlineArray, List
+from std.collections import Array, List
 from std.iter import Iterable, Iterator, StopIteration
 from std.memory import (
     ArcPointer,
     UnsafePointer,
     alloc,
-    ImmutOpaquePointer,
-    MutOpaquePointer,
+    OpaquePointer,
 )
 
 
@@ -239,7 +249,7 @@ struct EvalResult(Movable, Writable):
             raise Error("EvalResult: libclang returned null")
         self._raw = raw
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_EvalResult_dispose(self._raw)
 
@@ -289,7 +299,7 @@ struct CursorSet(Movable, Writable):
         if not self._raw:
             raise Error("CursorSet: clang_createCXCursorSet returned null")
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_disposeCXCursorSet(self._raw)
 
@@ -328,21 +338,21 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: InlineArray[CXCursor, 1]
+    var _raw: Array[CXCursor, 1]
 
-    def __init__(out self, tu: TranslationUnit) raises:
+    def __init__(out self, tu: tu_module.TranslationUnit) raises:
         """Create a null cursor tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = InlineArray[CXCursor, 1](
+        self._raw = Array[CXCursor, 1](
             fill=_zero_cursor(),
         )
         clang_getNullCursor(self._ptr())
 
-    def __init__(out self, tu: TranslationUnit, raw: CXCursor):
+    def __init__(out self, tu: tu_module.TranslationUnit, raw: CXCursor):
         self._tu = tu._shared_state()
         self._generation = tu._shared_state()[].generation
-        self._raw = InlineArray[CXCursor, 1](fill=raw)
+        self._raw = Array[CXCursor, 1](fill=raw)
 
     def __init__(
         out self,
@@ -351,7 +361,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Create a null cursor tied to a translation unit."""
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXCursor, 1](
+        self._raw = Array[CXCursor, 1](
             fill=_zero_cursor(),
         )
 
@@ -365,10 +375,10 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Create a cursor from a copied raw `CXCursor` value."""
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXCursor, 1](fill=raw)
+        self._raw = Array[CXCursor, 1](fill=raw)
 
     @staticmethod
-    def null(tu: TranslationUnit) raises -> Self:
+    def null(tu: tu_module.TranslationUnit) raises -> Self:
         return Self(tu=tu)
 
     @staticmethod
@@ -394,14 +404,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             self._raw.unsafe_ptr(),
         )
 
-    def _const_ptr(self) -> UnsafePointer[CXCursor, ImmutUntrackedOrigin]:
+    def _const_ptr(self) -> UnsafePointer[CXCursor, ImmUntrackedOrigin]:
         """Immutable pointer to raw cursor storage.
 
         Use this if your shim signatures distinguish const input pointers.
         If your generated `_ffi.mojo` currently expects MutUntrackedOrigin for
         all pointers, keep using `_ptr()`.
         """
-        return rebind[UnsafePointer[CXCursor, ImmutUntrackedOrigin]](
+        return rebind[UnsafePointer[CXCursor, ImmUntrackedOrigin]](
             self._raw.unsafe_ptr(),
         )
 
@@ -426,7 +436,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         return self._raw[0].copy()
 
-    def translation_unit(self) raises -> TranslationUnit:
+    def translation_unit(self) raises -> tu_module.TranslationUnit:
         """Return the TranslationUnit to which this cursor belongs."""
         from clang.translation_unit import TranslationUnit
 
@@ -638,7 +648,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         var language_cs = _CXStringStorage()
         var defined_in_cs = _CXStringStorage()
-        var is_generated: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](
+        var is_generated: Array[c_uint, 1] = Array[c_uint, 1](
             fill=c_uint(0)
         )
         var result = Bool(
@@ -807,14 +817,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def overridden_cursors(ref self) raises -> List[Cursor]:
         """Return overridden method cursors for this cursor."""
         self._check_valid()
-        var overridden_slot: InlineArray[
+        var overridden_slot: Array[
             Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], 1
-        ] = InlineArray[
+        ] = Array[
             Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], 1
         ](
             fill=None
         )
-        var num_slot: InlineArray[c_uint, 1] = InlineArray[c_uint, 1](
+        var num_slot: Array[c_uint, 1] = Array[c_uint, 1](
             fill=c_uint(0)
         )
 
@@ -947,7 +957,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             out.append(self.argument(i))
         return out^
 
-    def tokens(ref self) raises -> TokenGroup:
+    def tokens(ref self) raises -> token_types.TokenGroup:
         """Tokenize this cursor's source extent."""
         from clang.token import TokenGroup
 
@@ -974,7 +984,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_Cursor_getRawCommentText(cs.ptr_for_out(), self._ptr())
         return cs.take_optional()
 
-    def comment_range(ref self) raises -> SourceRange:
+    def comment_range(ref self) raises -> source_range_types.SourceRange:
         """Return the source range covering the documentation comment."""
         from clang.source_range import SourceRange
 
@@ -987,7 +997,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         ref self,
         piece_index: c_uint = c_uint(0),
         options: c_uint = c_uint(0),
-    ) raises -> SourceRange:
+    ) raises -> source_range_types.SourceRange:
         """Return the source range for a spelling-name piece."""
         from clang.source_range import SourceRange
 
@@ -1005,7 +1015,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         ref self,
         name_flags: c_uint = c_uint(0),
         piece_index: c_uint = c_uint(0),
-    ) raises -> SourceRange:
+    ) raises -> source_range_types.SourceRange:
         """Return the source range for a reference-name piece."""
         from clang.source_range import SourceRange
 
@@ -1057,10 +1067,10 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def cursor_exception_specification_kind(
         ref self,
-    ) raises -> ExceptionSpecificationKind:
+    ) raises -> enums_types.ExceptionSpecificationKind:
         """Return the exception-specification kind for this cursor."""
         self._check_valid()
-        return ExceptionSpecificationKind(
+        return enums_types.ExceptionSpecificationKind(
             c_uint(clang_getCursorExceptionSpecificationType(self._ptr()))
         )
 
@@ -1299,7 +1309,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             self._tu, self._ptr(), c_uint(index), False
         ).expr.copy()
 
-    def included_file(ref self) raises -> Optional[File]:
+    def included_file(ref self) raises -> Optional[file_types.File]:
         """Return the included file for an inclusion directive cursor, if any."""
         from clang.file import File
 
@@ -1308,7 +1318,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if not raw:
             return None
         var f = File(tu=self._tu, raw=raw)
-        return Optional[File](f^)
+        return Optional[file_types.File](f^)
 
     def module(ref self) raises -> Optional[Module]:
         """Return the module associated with this cursor, if any."""
@@ -1328,10 +1338,8 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         var always_deprecated = c_int(0)
         var always_unavailable = c_int(0)
-        var dep_ptr = UnsafePointer[c_int, MutAnyOrigin](to=always_deprecated)
-        var unavail_ptr = UnsafePointer[c_int, MutAnyOrigin](
-            to=always_unavailable
-        )
+        var dep_ptr = UnsafePointer(to=always_deprecated).unsafe_origin_cast[MutUntrackedOrigin]()
+        var unavail_ptr = UnsafePointer(to=always_unavailable).unsafe_origin_cast[MutUntrackedOrigin]()
         var dep_message = _CXStringStorage()
         var unavail_message = _CXStringStorage()
         var avail = alloc[CXPlatformAvailability](8)
@@ -1382,7 +1390,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_getCursorResultType(out._ptr(), self._ptr())
         return out^
 
-    def location(ref self) raises -> SourceLocation:
+    def location(ref self) raises -> source_location_types.SourceLocation:
         """Return the primary source location of this cursor."""
         from clang.source_location import SourceLocation
 
@@ -1393,7 +1401,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         out.refresh()
         return out^
 
-    def extent(ref self) raises -> SourceRange:
+    def extent(ref self) raises -> source_range_types.SourceRange:
         """Return the full source extent of this cursor."""
         from clang.source_range import SourceRange
 
@@ -1420,7 +1428,7 @@ struct CursorChildrenIterator(Iterator, Movable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _parent_raw: InlineArray[CXCursor, 1]
+    var _parent_raw: Array[CXCursor, 1]
     var _children: List[Cursor]
     var _index: Int
     var _buffered: Bool
@@ -1428,7 +1436,7 @@ struct CursorChildrenIterator(Iterator, Movable):
     def __init__(out self, ref cursor: Cursor):
         self._tu = cursor._tu
         self._generation = cursor._generation
-        self._parent_raw = InlineArray[CXCursor, 1](fill=cursor._raw[0].copy())
+        self._parent_raw = Array[CXCursor, 1](fill=cursor._raw[0].copy())
         self._children = List[Cursor]()
         self._index = 0
         self._buffered = False
@@ -1507,7 +1515,7 @@ def _zero_cursor() -> CXCursor:
     return CXCursor(
         kind=CXCursorKind(c_uint(0)),
         xdata=c_int(0),
-        data=InlineArray[Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 3](
+        data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 3](
             fill=None
         ),
     )
@@ -1518,23 +1526,23 @@ comptime MAX_CHILDREN = 4096
 
 @fieldwise_init
 struct _Collector(Movable):
-    var buffer: UnsafePointer[CXCursor, MutAnyOrigin]
+    var buffer: UnsafePointer[CXCursor, MutUntrackedOrigin]
     var count: Int
     var capacity: Int
     var truncated: Bool
 
 
 def _visit_trampoline(
-    cursor: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
-    parent: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
+    cursor: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
+    parent: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
     if not cursor:
         return CXChildVisit_Continue
 
     var opaque = client_data.value()
-    var collector = rebind[UnsafePointer[_Collector, MutAnyOrigin]](
-        rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+    var collector = rebind[UnsafePointer[_Collector, MutUntrackedOrigin]](
+        rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
             rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](opaque),
         ),
     )
@@ -1570,9 +1578,9 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
     )
 
     var client_data = CXClientData(
-        rebind[MutOpaquePointer[MutUntrackedOrigin]](
+        rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
             rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box),
+                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](collector_box),
             ),
         ),
     )
@@ -1631,9 +1639,9 @@ def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
     )
 
     var client_data = CXClientData(
-        rebind[MutOpaquePointer[MutUntrackedOrigin]](
+        rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
             rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                rebind[UnsafePointer[UInt8, MutAnyOrigin]](collector_box),
+                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](collector_box),
             ),
         ),
     )

@@ -12,6 +12,9 @@ def main() raises:
 ```
 """
 
+import clang.index as index_module
+
+
 from clang._ffi import (
     CXTranslationUnit,
     CXCodeCompleteResults,
@@ -96,7 +99,7 @@ struct TargetInfo(Movable, Writable):
             raise Error("TargetInfo: libclang returned null target info")
         self._raw = raw
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_TargetInfo_dispose(self._raw)
 
@@ -126,7 +129,7 @@ struct TargetInfo(Movable, Writable):
 struct TUResourceUsage(Movable, Sized, Writable):
     """Owning wrapper around libclang translation-unit resource usage data."""
 
-    var _raw: UnsafePointer[CXTUResourceUsage, MutAnyOrigin]
+    var _raw: UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]
     var _owns: Bool
 
     def __init__(out self, raw: CXTUResourceUsage):
@@ -144,7 +147,7 @@ struct TUResourceUsage(Movable, Sized, Writable):
             self._raw
         )
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._owns:
             clang_disposeCXTUResourceUsage(
                 rebind[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]](
@@ -211,7 +214,7 @@ def resource_usage_for_tu(raw: CXTranslationUnit) -> TUResourceUsage:
     """Return resource-usage data for a raw translation-unit handle."""
     var out = TUResourceUsage(
         CXTUResourceUsage(
-            data=Optional[MutOpaquePointer[MutUntrackedOrigin]](),
+            data=Optional[OpaquePointer[mut=True, MutUntrackedOrigin]](),
             numEntries=c_uint(0),
             entries=Optional[
                 UnsafePointer[CXTUResourceUsageEntry, MutUntrackedOrigin]
@@ -482,7 +485,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def file_contents(ref self, file: File) raises -> String:
         """Return the contents libclang has for `file`."""
         var size = size_t(0)
-        var size_ptr = UnsafePointer[size_t, MutAnyOrigin](to=size)
+        var size_ptr = UnsafePointer(to=size).unsafe_origin_cast[MutUntrackedOrigin]()
         var raw = clang_getFileContents(
             self._raw_handle(),
             file._raw_value(),
@@ -540,7 +543,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         args: List[String] = List[String](),
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
-        index: Optional[Index] = None,
+        index: Optional[index_module.Index] = None,
     ) raises -> TranslationUnit:
         """Parse a source file into a ``TranslationUnit``.
 
@@ -560,7 +563,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
     @staticmethod
     def from_ast_file(
         filename: String,
-        index: Optional[Index] = None,
+        index: Optional[index_module.Index] = None,
     ) raises -> TranslationUnit:
         """Load a serialized AST file into a ``TranslationUnit``."""
         from clang.index import Index
@@ -580,7 +583,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def includes(ref self) raises -> List[FileInclusion]:
         """Return all inclusion relationships in this translation unit."""
         var collector_box = alloc[_InclusionCollector](1)
-        collector_box.init_pointee_move(
+        collector_box.unsafe_write(
             _InclusionCollector(
                 tu=self._state,
                 out=List[FileInclusion](),
@@ -588,9 +591,9 @@ struct TranslationUnit(Copyable, Movable, Writable):
         )
 
         var client_data = CXClientData(
-            rebind[MutOpaquePointer[MutUntrackedOrigin]](
+            rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
                 rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                    rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+                    rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
                         collector_box,
                     )
                 )
@@ -631,8 +634,8 @@ def _inclusion_visitor_trampoline(
         return
 
     var opaque = client_data.value()
-    var collector = rebind[UnsafePointer[_InclusionCollector, MutAnyOrigin]](
-        rebind[UnsafePointer[UInt8, MutAnyOrigin]](
+    var collector = rebind[UnsafePointer[_InclusionCollector, MutUntrackedOrigin]](
+        rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
             rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](opaque),
         ),
     )

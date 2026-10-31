@@ -53,7 +53,7 @@ struct PrintingPolicy(Movable, Writable):
         """Create a printing policy for `cursor`."""
         return Self(cursor)
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_PrintingPolicy_dispose(self._raw)
 

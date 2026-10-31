@@ -5,7 +5,7 @@ reference to the owning `TranslationUnitState`.
 
 Important:
 
-* The raw `CXSourceLocation` value is stored in `InlineArray[CXSourceLocation, 1]`.
+* The raw `CXSourceLocation` value is stored in `Array[CXSourceLocation, 1]`.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The location becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXSourceLocation *` to the shim, never `CXSourceLocation` by value.
@@ -21,6 +21,9 @@ def main() raises:
     print(loc.file_name(), loc.line(), loc.column())
 ```
 """
+
+import clang.translation_unit as tu_module
+
 
 from clang._ffi import (
     CXSourceLocation,
@@ -40,7 +43,7 @@ from clang.common import _CXStringStorage
 from clang.state import TranslationUnitState
 from clang.file import File
 
-from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
+from std.memory import ArcPointer, UnsafePointer, OpaquePointer
 
 
 @fieldwise_init
@@ -60,17 +63,17 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: InlineArray[CXSourceLocation, 1]
+    var _raw: Array[CXSourceLocation, 1]
     var _file: CXFile
     var _line: c_uint
     var _column: c_uint
     var _offset: c_uint
     var _file_name: String
 
-    def __init__(out self, tu: TranslationUnit) raises:
+    def __init__(out self, tu: tu_module.TranslationUnit) raises:
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = InlineArray[CXSourceLocation, 1](
+        self._raw = Array[CXSourceLocation, 1](
             fill=_zero_source_location(),
         )
         self._file = CXFile(None)
@@ -87,7 +90,7 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises:
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXSourceLocation, 1](
+        self._raw = Array[CXSourceLocation, 1](
             fill=_zero_source_location(),
         )
         self._file = CXFile(None)
@@ -149,7 +152,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         writer.write(")")
 
     @staticmethod
-    def null(tu: TranslationUnit) raises -> Self:
+    def null(tu: tu_module.TranslationUnit) raises -> Self:
         """Return libclang's null source location for `tu`."""
         return Self(tu=tu)
 
@@ -173,7 +176,7 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     @staticmethod
     def from_position(
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         file: CXFile,
         line: Int,
         column: Int,
@@ -217,7 +220,7 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     @staticmethod
     def from_offset(
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         file: CXFile,
         offset: Int,
     ) raises -> Self:
@@ -260,10 +263,10 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises -> Tuple[CXFile, c_uint, c_uint, c_uint]:
         self._check_valid()
 
-        var file_out = InlineArray[CXFile, 1](fill=CXFile(None))
-        var line_out = InlineArray[c_uint, 1](fill=c_uint(0))
-        var col_out = InlineArray[c_uint, 1](fill=c_uint(0))
-        var off_out = InlineArray[c_uint, 1](fill=c_uint(0))
+        var file_out = Array[CXFile, 1](fill=CXFile(None))
+        var line_out = Array[c_uint, 1](fill=c_uint(0))
+        var col_out = Array[c_uint, 1](fill=c_uint(0))
+        var off_out = Array[c_uint, 1](fill=c_uint(0))
 
         clang_getSpellingLocation(
             self._ptr(),
@@ -379,8 +382,6 @@ struct SourceLocation(Copyable, Movable, Writable):
 
 def _zero_source_location() -> CXSourceLocation:
     return CXSourceLocation(
-        ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
-        ](fill=None),
+        ptr_data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2](fill=None),
         int_data=c_uint(0),
     )

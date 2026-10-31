@@ -50,7 +50,7 @@ struct _CompilationDatabaseState(Movable):
     def raw(self) -> CXCompilationDatabase:
         return self._raw
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_CompilationDatabase_dispose(self._raw)
 
@@ -80,7 +80,7 @@ struct _CompileCommandsState(Movable):
     def count(self) -> c_uint:
         return self._count
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_CompileCommands_dispose(self._raw)
 
@@ -262,7 +262,7 @@ struct CompilationDatabase(Movable, Writable):
 
     def __init__(out self, build_dir: String) raises:
         """Load `compile_commands.json` from `build_dir`."""
-        var err = InlineArray[CXCompilationDatabase_Error, 1](
+        var err = Array[CXCompilationDatabase_Error, 1](
             fill=CXCompilationDatabase_Error(c_uint(0))
         )
 

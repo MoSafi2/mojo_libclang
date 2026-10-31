@@ -5,7 +5,7 @@ reference to the owning `TranslationUnitState`.
 
 Important:
 
-* The raw `CXSourceRange` value is stored in `InlineArray[CXSourceRange, 1]`.
+* The raw `CXSourceRange` value is stored in `Array[CXSourceRange, 1]`.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The range becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * Every FFI call passes `CXSourceRange *` to the shim, never `CXSourceRange` by value.
@@ -22,6 +22,9 @@ def main() raises:
 ```
 """
 
+import clang.translation_unit as tu_module
+
+
 from clang._ffi import (
     CXSourceLocation,
     CXSourceRange,
@@ -37,7 +40,7 @@ from clang._ffi import (
 from clang.source_location import SourceLocation, _zero_source_location
 from clang.state import TranslationUnitState
 
-from std.memory import ArcPointer, UnsafePointer, ImmutOpaquePointer
+from std.memory import ArcPointer, UnsafePointer, OpaquePointer
 
 
 @fieldwise_init
@@ -57,14 +60,14 @@ struct SourceRange(Copyable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: InlineArray[CXSourceRange, 1]
+    var _raw: Array[CXSourceRange, 1]
     var _start: SourceLocation
     var _end: SourceLocation
 
-    def __init__(out self, tu: TranslationUnit) raises:
+    def __init__(out self, tu: tu_module.TranslationUnit) raises:
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = InlineArray[CXSourceRange, 1](
+        self._raw = Array[CXSourceRange, 1](
             fill=_zero_source_range(),
         )
         self._start = SourceLocation.null(self._tu)
@@ -78,7 +81,7 @@ struct SourceRange(Copyable, Movable, Writable):
     ) raises:
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXSourceRange, 1](
+        self._raw = Array[CXSourceRange, 1](
             fill=_zero_source_range(),
         )
         self._start = SourceLocation.null(tu)
@@ -107,7 +110,7 @@ struct SourceRange(Copyable, Movable, Writable):
         writer.write("SourceRange(", self._start, ", ", self._end, ")")
 
     @staticmethod
-    def null(tu: TranslationUnit) raises -> Self:
+    def null(tu: tu_module.TranslationUnit) raises -> Self:
         """Return libclang's null source range for `tu`."""
         return Self(tu=tu)
 
@@ -169,19 +172,17 @@ struct SourceRange(Copyable, Movable, Writable):
     ) raises -> Self:
         """Create a range from a copied raw `CXSourceRange` value."""
         var out = Self(tu=tu)
-        out._raw = InlineArray[CXSourceRange, 1](fill=raw)
+        out._raw = Array[CXSourceRange, 1](fill=raw)
         var start = _zero_source_location()
         var end = _zero_source_location()
         clang_getRangeStart(
             rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                UnsafePointer[CXSourceLocation, MutAnyOrigin](to=start)
-            ),
+                UnsafePointer(to=start)).unsafe_origin_cast[MutUntrackedOrigin](),
             out._ptr(),
         )
         clang_getRangeEnd(
             rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                UnsafePointer[CXSourceLocation, MutAnyOrigin](to=end)
-            ),
+                UnsafePointer(to=end)).unsafe_origin_cast[MutUntrackedOrigin](),
             out._ptr(),
         )
         out._start = SourceLocation.from_raw(tu, start)
@@ -241,9 +242,7 @@ struct SourceRange(Copyable, Movable, Writable):
 
 def _zero_source_range() -> CXSourceRange:
     return CXSourceRange(
-        ptr_data=InlineArray[
-            Optional[ImmutOpaquePointer[ImmutUntrackedOrigin]], 2
-        ](fill=None),
+        ptr_data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2](fill=None),
         begin_int_data=c_uint(0),
         end_int_data=c_uint(0),
     )

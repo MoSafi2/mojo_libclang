@@ -1,10 +1,10 @@
 """`Token` and `TokenGroup` — tokenization output.
 
 `TokenGroup` owns the buffer returned by `clang_tokenize` and disposes it in
-`__del__`.
+`__deinit__`.
 
 Returned `Token` values do not borrow pointers into that buffer. Each `Token`
-owns a copied `CXToken` value in `InlineArray[CXToken, 1]`, plus an
+owns a copied `CXToken` value in `Array[CXToken, 1]`, plus an
 `ArcPointer[TranslationUnitState]` keepalive reference to the originating
 translation unit.
 
@@ -22,6 +22,9 @@ def main() raises:
         print(token.kind(), token.spelling())
 ```
 """
+
+import clang.translation_unit as tu_module
+
 
 from clang._ffi import (
     CXToken,
@@ -67,19 +70,19 @@ struct Token(Copyable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: InlineArray[CXToken, 1]
+    var _raw: Array[CXToken, 1]
     var _spelling: String
     var _kind: TokenKind
 
     def __init__(
         out self,
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         raw: CXToken,
     ) raises:
         """Create a token wrapper from a copied raw token tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = InlineArray[CXToken, 1](fill=raw)
+        self._raw = Array[CXToken, 1](fill=raw)
         self._spelling = String()
         self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi()
@@ -92,7 +95,7 @@ struct Token(Copyable, Movable, Writable):
         """Create a token wrapper from a copied raw token."""
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXToken, 1](fill=raw)
+        self._raw = Array[CXToken, 1](fill=raw)
         self._spelling = String()
         self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi()
@@ -110,7 +113,7 @@ struct Token(Copyable, Movable, Writable):
         """
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = InlineArray[CXToken, 1](fill=raw)
+        self._raw = Array[CXToken, 1](fill=raw)
         self._spelling = String()
         self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi_unchecked()
@@ -269,7 +272,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
 
     def __init__(
         out self,
-        tu: TranslationUnit,
+        tu: tu_module.TranslationUnit,
         extent: SourceRange,
     ) raises:
         """Tokenize `extent` in `tu` and take ownership of the token buffer."""
@@ -299,11 +302,11 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
                 ),
             )
 
-        var token_storage = InlineArray[
+        var token_storage = Array[
             Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
         ](fill=Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]())
 
-        var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
+        var count_storage = Array[c_uint, 1](fill=c_uint(0))
 
         clang_tokenize(
             self._tu_raw(),
@@ -361,11 +364,11 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
                 ),
             )
 
-        var token_storage = InlineArray[
+        var token_storage = Array[
             Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
         ](fill=Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]())
 
-        var count_storage = InlineArray[c_uint, 1](fill=c_uint(0))
+        var count_storage = Array[c_uint, 1](fill=c_uint(0))
 
         clang_tokenize(
             self._tu_raw(),
@@ -402,7 +405,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._tokens:
             try:
                 clang_disposeTokens(

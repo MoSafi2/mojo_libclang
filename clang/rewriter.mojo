@@ -3,6 +3,11 @@
 Mirrors the Python ``Rewriter`` class built on top of ``CXRewriter``.
 """
 
+import clang.translation_unit as translation_unit_types
+import clang.source_location as source_location_types
+import clang.source_range as source_range_types
+
+
 from clang._ffi import (
     CXRewriter,
     CXSourceLocation,
@@ -35,7 +40,7 @@ struct Rewriter(Movable, Writable):
     var _generation: Int
     var _raw: CXRewriter
 
-    def __init__(out self, tu: TranslationUnit) raises:
+    def __init__(out self, tu: translation_unit_types.TranslationUnit) raises:
         """Create a rewriter for `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
@@ -63,13 +68,14 @@ struct Rewriter(Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("Rewriter used after TranslationUnit.reparse()")
 
-    def __del__(deinit self):
+    def __deinit__(deinit self):
         if self._raw:
             clang_CXRewriter_dispose(self._raw)
+        _ = self._tu
 
     def insert_text_before(
         ref self,
-        loc: SourceLocation,
+        loc: source_location_types.SourceLocation,
         text: String,
     ) raises:
         """Insert `text` before `loc`."""
@@ -85,7 +91,7 @@ struct Rewriter(Movable, Writable):
 
     def replace_text(
         ref self,
-        extent: SourceRange,
+        extent: source_range_types.SourceRange,
         replacement: String,
     ) raises:
         """Replace `extent` with `replacement`."""
@@ -99,7 +105,7 @@ struct Rewriter(Movable, Writable):
             _borrow_c_string(replacement),
         )
 
-    def remove_text(ref self, extent: SourceRange) raises:
+    def remove_text(ref self, extent: source_range_types.SourceRange) raises:
         """Remove the text covered by `extent`."""
         self._check_valid()
         var extent_copy = extent.copy()

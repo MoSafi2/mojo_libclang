@@ -46,6 +46,7 @@ from mojo_bindgen.ir import (
     Decl,
     Enum,
     Function,
+    FunctionDecl,
     GlobalVar,
     MacroDecl,
     Struct,
@@ -143,10 +144,18 @@ def main() -> int:
     install_shim_for_loader(shim_out)
 
     analysis = orchestrator.analyze_with_artifacts(rewritten.unit)
+    # The upstream C pointer mapper conservatively makes every pointer nullable.
+    # Our synthetic aggregate pointers are always dereferenced by the shim.
+    for decl in analysis.mojo_module.decls:
+        if isinstance(decl, FunctionDecl):
+            for index in rewritten.nonnull_params.get(decl.link_name, ()):
+                decl.params[index].type.nullable = False
     mojo_source = render_mojo_module(
         analysis.mojo_module,
         MojoIRPrintOptions(module_comment=True, emit_doc_comments=False),
     )
+    mojo_source = preserve_argument_origins(mojo_source)
+    mojo_source = mojo_source.replace(str(primary), "clang-c/Index.h")
     layout_source = render_layout_test_module(
         normalized_unit=analysis.normalized_unit,
         mojo_module=analysis.mojo_module,
@@ -194,6 +203,39 @@ def parse_unit(primary: Path, headers: list[Path], include_root: Path) -> Unit:
         clang_macro_fallback=True,
     )
     return BindgenOrchestrator(options).parse()
+
+
+def preserve_argument_origins(source: str) -> str:
+    """Keep Mojo storage alive through non-null aggregate shim parameters.
+
+    The shim unconditionally dereferences these pointers. Their origins must
+    describe the actual caller storage, rather than pretend it is C-owned.
+    Nullable C pointers and returned/embedded pointers retain the raw C ABI.
+    """
+    lines = []
+    for line in source.splitlines(keepends=True):
+        if line.startswith("def clang_"):
+            arguments, separator, result = line.partition(") ->")
+            parameters = []
+
+            def infer_origin(match: re.Match[str]) -> str:
+                original = match.group(2)
+                name = f"_origin{len(parameters)}"
+                bound = "MutOrigin" if original.startswith("Mut") else "ImmOrigin"
+                parameters.append(f"{name}: {bound}")
+                return match.group(1) + name + "]"
+
+            arguments = re.sub(
+                r"(\w+: Pointer\[\w+, )(MutUntrackedOrigin|ImmUntrackedOrigin)\]",
+                infer_origin,
+                arguments,
+            )
+            if parameters:
+                name, rest = arguments.split("(", 1)
+                arguments = name + "[" + ", ".join(parameters) + ", //](" + rest
+            line = arguments + separator + result
+        lines.append(line)
+    return "".join(lines)
 
 
 def layout_import_module(mojo_out: Path) -> str:
@@ -480,7 +522,7 @@ def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) ->
             [
                 "-L",
                 str(library_path.parent),
-                f"-l:{library_path.name}",
+                str(library_path),
                 "-Wl,-rpath," + str(library_path.parent),
             ]
         )
