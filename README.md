@@ -50,7 +50,7 @@ Choose a source revision matching your compiler:
 | Source | Mojo | Purpose |
 | --- | --- | --- |
 | `v0.2.0` / `codex/mojo-1.2` | `1.2.0` | Stable release / stable maintenance |
-| `master` | Exact nightly pinned in its manifest and lockfile | Nightly development |
+| `v0.3.0-dev.20261031` / `master` | `1.3.0.dev2026103105` | Nightly prerelease / nightly development |
 
 Both tracks use libclang 18. Rebuild compiled Mojo modules with the selected
 toolchain; compiled packages are not interchangeable across compiler versions.
@@ -85,7 +85,7 @@ and makes the matching native shim available. It runs from your program's
 directory, so relative source/header paths resolve there. The program can use
 `from clang.cindex import Index` as in the example above.
 
-For nightly, clone `master` instead and follow the same commands. Pin a published
+For the tested nightly, clone `v0.3.0-dev.20261031` instead and follow the same commands. Pin a published
 nightly prerelease tag rather than `master` when you need a reproducible consumer.
 GitHub releases provide source archives; this repository does not publish binary
 downloads or conda packages as part of these releases.

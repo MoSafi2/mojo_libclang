@@ -14,7 +14,7 @@ def _check(cond: Bool, msg: String = "") raises:
 
 def test_version_info() raises:
     var info = version_info()
-    assert_equal(info.libclang_mojo_version, "0.2.0")
+    assert_equal(info.libclang_mojo_version, "0.3.0.dev20261031")
     assert_equal(info.generated_cindex_version_major, Int(CINDEX_VERSION_MAJOR))
     assert_equal(info.generated_cindex_version_minor, Int(CINDEX_VERSION_MINOR))
     assert_equal(info.generated_cindex_version, Int(CINDEX_VERSION))
@@ -22,7 +22,7 @@ def test_version_info() raises:
         info.runtime_clang_version.byte_length() > 0,
         "runtime clang version should be non-empty",
     )
-    assert_equal(info.mojo_compiler_constraint, "=1.2.0")
+    assert_equal(info.mojo_compiler_constraint, "=1.3.0.dev2026103105")
 
 
 def test_version_prints() raises:

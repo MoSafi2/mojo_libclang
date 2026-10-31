@@ -5,7 +5,7 @@ from clang.common import (
         )
 from clang.source_range import SourceRange
 from clang.cursor import Cursor
-from clang.translation_unit import TranslationUnit
+from clang.translation_unit import TranslationUnit, TUResourceUsage
 
 from clang.source_location import SourceLocation
 from clang.file_inclusion import FileInclusion
@@ -331,6 +331,19 @@ def test_resource_usage() raises:
     var usage = tu.resource_usage()
     _check(len(usage) > 0, "resource usage should have entries")
     _check(Int(usage.total()) > 0, "resource usage total should be positive")
+
+
+def _resource_usage_outside_tu_scope() raises -> TUResourceUsage:
+    var tu = _parse_fixture()
+    return tu.resource_usage()
+
+
+def test_resource_usage_moves_and_outlives_translation_unit() raises:
+    var usage = _resource_usage_outside_tu_scope()
+    _check(len(usage) > 0, "moved resource usage should retain its entries")
+    var entries = usage.entries()
+    assert_equal(len(entries), len(usage))
+    _check(usage.total() > 0, "resource usage should survive its TU owner")
 
 
 def main() raises:

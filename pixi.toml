@@ -1,17 +1,17 @@
 [workspace]
 authors = ["MoSafi2 <mohamed.mabrouk@rwth-aachen.de>"]
-channels = ["conda-forge", "https://conda.modular.com/max", "https://repo.prefix.dev/modular-community"]
+channels = ["conda-forge", "https://conda.modular.com/max-nightly", "https://repo.prefix.dev/modular-community"]
 name = "mojo_libclang"
 platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 preview = ["pixi-build"]
-version = "0.2.0"
+version = "0.3.0.dev20261031"
 
 [package]
 name = "libclang_mojo"
-version = "0.2.0"
+version = "0.3.0.dev20261031"
 
 [package.build]
-backend = { name = "pixi-build-mojo", version = "0.*", channels = ["conda-forge", "https://conda.modular.com/max"] }
+backend = { name = "pixi-build-mojo", version = "0.*", channels = ["conda-forge", "https://conda.modular.com/max-nightly"] }
 
 [package.build.config.pkg]
 name = "clang"
@@ -20,17 +20,17 @@ path = "clang"
 [package.host-dependencies]
 clangdev = "18.*"
 libclang = "18.*"
-mojo-compiler = "=1.2.0"
+mojo-compiler = "=1.3.0.dev2026103105"
 
 [package.build-dependencies]
-mojo-compiler = "=1.2.0"
+mojo-compiler = "=1.3.0.dev2026103105"
 
 [package.run-dependencies]
 libclang = "18.*"
-mojo-compiler = "=1.2.0"
+mojo-compiler = "=1.3.0.dev2026103105"
 
 [dependencies]
-mojo = "=1.2.0"
+mojo = "=1.3.0.dev2026103105"
 libclang = "18.*"
 
 [tasks]

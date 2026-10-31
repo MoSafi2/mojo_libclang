@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0-dev.20261031 - 2026-10-31
+
+- Pin Mojo nightly 1.3.0.dev2026103105 from the Modular nightly channel.
+- Store translation-unit resource usage inline and borrow it with a tracked pointer, removing a heap allocation and redundant ownership flag.
+- Keep the stable Mojo 1.2 release at v0.2.0 and codex/mojo-1.2.
+- Use conda-compatible package version 0.3.0.dev20261031 for the nightly source release.
+
 ## 0.2.0 - 2026-10-31
 
 - Target Mojo 1.2.0 exactly with libclang 18.

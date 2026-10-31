@@ -9,7 +9,7 @@ cmd=(
   --recipe "${recipe}"
   --output-dir "${output_dir}"
   --channel conda-forge
-  --channel https://conda.modular.com/max
+  --channel https://conda.modular.com/max-nightly
 )
 
 if [[ -n "${PREFIX_CHANNEL:-}" ]]; then

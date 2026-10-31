@@ -130,45 +130,30 @@ struct TargetInfo(Movable, Writable):
 struct TUResourceUsage(Movable, Sized, Writable):
     """Owning wrapper around libclang translation-unit resource usage data."""
 
-    var _raw: Pointer[CXTUResourceUsage, MutUntrackedOrigin]
-    var _owns: Bool
+    var _raw: CXTUResourceUsage
 
     def __init__(out self, raw: CXTUResourceUsage):
-        """Copy resource-usage data returned by libclang into owned storage."""
-        self._raw = unsafe_alloc[CXTUResourceUsage](1)
-        self._raw[] = CXTUResourceUsage(
-            data=raw.data,
-            numEntries=raw.numEntries,
-            entries=raw.entries,
-        )
-        self._owns = True
+        """Take ownership of libclang's resource data in inline typed storage."""
+        self._raw = raw.copy()
 
-    def _ptr(ref self) -> Pointer[CXTUResourceUsage, MutUntrackedOrigin]:
-        return rebind[Pointer[CXTUResourceUsage, MutUntrackedOrigin]](
-            self._raw
-        )
+    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXTUResourceUsage, origin]:
+        return Pointer(to=self._raw).unsafe_origin_cast[origin]()
 
     def __deinit__(deinit self):
-        if self._owns:
-            clang_disposeCXTUResourceUsage(
-                rebind[Pointer[CXTUResourceUsage, MutUntrackedOrigin]](
-                    self._raw
-                )
-            )
-        self._raw.unsafe_free()
+        clang_disposeCXTUResourceUsage(self._ptr())
 
     def __len__(self) -> Int:
         """Return the number of resource-usage entries."""
-        return Int(self._raw[].numEntries)
+        return Int(self._raw.numEntries)
 
     def __getitem__(ref self, i: Int) raises -> TUResourceUsageItem:
         """Return resource-usage entry `i`."""
-        if i < 0 or i >= Int(self._raw[].numEntries):
+        if i < 0 or i >= Int(self._raw.numEntries):
             raise Error("TUResourceUsage index out of range")
-        if not self._raw[].entries:
+        if not self._raw.entries:
             raise Error("TUResourceUsage has no entry buffer")
 
-        var raw = self._raw[].entries.value().unsafe_offset(i)[]
+        var raw = self._raw.entries.value().unsafe_offset(i)[]
         var name_ptr = clang_getTUResourceUsageName(raw.kind)
         var name = String("")
         if name_ptr:
@@ -183,23 +168,23 @@ struct TUResourceUsage(Movable, Sized, Writable):
     def entries(ref self) raises -> List[TUResourceUsageItem]:
         """Return all resource-usage entries."""
         var out = List[TUResourceUsageItem]()
-        for i in range(Int(self._raw[].numEntries)):
+        for i in range(Int(self._raw.numEntries)):
             out.append(self[i])
         return out^
 
     def total(ref self) -> Int:
         """Return the sum of all reported resource-usage amounts."""
         var total = c_ulong(0)
-        if not self._raw[].entries:
+        if not self._raw.entries:
             return 0
-        for i in range(Int(self._raw[].numEntries)):
-            total += self._raw[].entries.value().unsafe_offset(i)[].amount
+        for i in range(Int(self._raw.numEntries)):
+            total += self._raw.entries.value().unsafe_offset(i)[].amount
         return Int(total)
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
             "TUResourceUsage(count=",
-            Int(self._raw[].numEntries),
+            Int(self._raw.numEntries),
             ", total=",
             self.total(),
             ")",
