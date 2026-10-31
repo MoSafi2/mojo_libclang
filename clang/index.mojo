@@ -45,7 +45,8 @@ from clang.state import IndexState
 from clang.translation_unit import TranslationUnit
 
 from std.collections import List
-from std.memory import UnsafePointer, ArcPointer, alloc
+from std.memory.alloc import unsafe_alloc
+from std.memory import Pointer, ArcPointer
 from std.memory.unsafe_pointer import unsafe_cast
 
 
@@ -107,8 +108,8 @@ struct Index(Copyable, Movable, Writable):
         """Create an `Index` from a raw `CXIndexOptions` value."""
         var options = raw_options.copy()
         var raw = clang_createIndexWithOptions(
-            rebind[UnsafePointer[CXIndexOptions, ImmUntrackedOrigin]](
-                UnsafePointer(to=options)).unsafe_origin_cast[MutUntrackedOrigin]()
+            rebind[Pointer[CXIndexOptions, ImmUntrackedOrigin]](
+                Pointer(to=options)).unsafe_origin_cast[MutUntrackedOrigin]()
         )
         if not raw:
             raise Error(
@@ -141,7 +142,7 @@ struct Index(Copyable, Movable, Writable):
         """Return libclang global options for this index."""
         return Int(clang_CXIndex_getGlobalOptions(self._raw_handle()))
 
-    def set_invocation_emission_path(ref self, path: String) raises:
+    def set_invocation_emission_path(ref self, var path: String) raises:
         """Set the directory used for libclang invocation emission files."""
         clang_CXIndex_setInvocationEmissionPathOption(
             self._raw_handle(),
@@ -163,7 +164,7 @@ struct Index(Copyable, Movable, Writable):
 
     def parse(
         ref self,
-        path: String,
+        var path: String,
         args: List[String] = List[String](),
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
@@ -174,41 +175,41 @@ struct Index(Copyable, Movable, Writable):
         returns. argv strings and slot buffer are allocated and freed inline.
 
         Note: Manual argv build avoids a Mojo compiler bug where
-        Optional[UnsafePointer[...]] values produced across a function
+        Optional[Pointer[...]] values produced across a function
         boundary are corrupted when passed to _bindgen_function wrappers
         with many parameters.
         """
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
         var n = len(args)
-        var c_strings = List[UnsafePointer[c_char, MutUntrackedOrigin]]()
+        var c_strings = List[Pointer[c_char, MutUntrackedOrigin]]()
         var argv_buf: Optional[
-            UnsafePointer[
-                UnsafePointer[c_char, ImmUntrackedOrigin],
+            Pointer[
+                Pointer[c_char, ImmUntrackedOrigin],
                 MutUntrackedOrigin,
             ]
         ] = None
         if n > 0:
-            var raw = alloc[
-                UnsafePointer[c_char, ImmUntrackedOrigin]
+            var raw = unsafe_alloc[
+                Pointer[c_char, ImmUntrackedOrigin]
             ](n)
             argv_buf = raw
             for i in range(n):
                 var s = _alloc_c_string(args[i])
                 c_strings.append(s)
-                raw[i] = _c_string(s)
+                raw[unsafe_offset=i] = _c_string(s)
 
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
+        var out_ptr = Pointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
 
         var c_path = _borrow_c_string(path)
         var arg_ptr: Optional[
-            UnsafePointer[
-                Optional[UnsafePointer[c_char, ImmUntrackedOrigin]],
+            Pointer[
+                Optional[Pointer[c_char, ImmUntrackedOrigin]],
                 ImmUntrackedOrigin,
             ]
         ] = unsafe_cast[
-            Type=Optional[UnsafePointer[c_char, ImmUntrackedOrigin]],
+            Type=Optional[Pointer[c_char, ImmUntrackedOrigin]],
             origin=ImmUntrackedOrigin,
         ](argv_buf)
         var arg_count = c_int(n)
@@ -216,7 +217,7 @@ struct Index(Copyable, Movable, Writable):
         var unsaved_count = unsaved_arena.count()
         var raw_opts = options.as_c_uint()
         var out_raw = rebind[
-            UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]
+            Pointer[CXTranslationUnit, MutUntrackedOrigin]
         ](out_ptr)
         var raw_err = clang_parseTranslationUnit2(
             self._raw_handle(),
@@ -230,9 +231,9 @@ struct Index(Copyable, Movable, Writable):
         )
 
         for i in range(len(c_strings)):
-            c_strings[i].free()
+            c_strings[i].unsafe_free()
         if n > 0:
-            argv_buf.value().free()
+            argv_buf.value().unsafe_free()
 
         var err = ErrorCode(raw_err)
         if err != ErrorCode.SUCCESS:
@@ -242,16 +243,16 @@ struct Index(Copyable, Movable, Writable):
 
         return TranslationUnit(self._shared_state(), out_tu)
 
-    def read(ref self, path: String) raises -> TranslationUnit:
+    def read(ref self, var path: String) raises -> TranslationUnit:
         """Read a serialized AST file into a `TranslationUnit`."""
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = UnsafePointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
+        var out_ptr = Pointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
 
         var err = ErrorCode(
             clang_createTranslationUnit2(
                 self._raw_handle(),
                 _borrow_c_string(path),
-                rebind[UnsafePointer[CXTranslationUnit, MutUntrackedOrigin]](
+                rebind[Pointer[CXTranslationUnit, MutUntrackedOrigin]](
                     out_ptr,
                 ),
             )

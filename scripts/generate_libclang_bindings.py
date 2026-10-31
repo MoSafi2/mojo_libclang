@@ -206,34 +206,44 @@ def parse_unit(primary: Path, headers: list[Path], include_root: Path) -> Unit:
 
 
 def preserve_argument_origins(source: str) -> str:
-    """Keep Mojo storage alive through non-null aggregate shim parameters.
+    """Infer origins of argument pointers, preserving caller storage lifetimes.
 
-    The shim unconditionally dereferences these pointers. Their origins must
-    describe the actual caller storage, rather than pretend it is C-owned.
-    Nullable C pointers and returned/embedded pointers retain the raw C ABI.
+    C-owned return values, pointees of pointer-to-pointer outputs, and struct
+    fields retain untracked origins. Each outer argument gets its own origin.
     """
     lines = []
     for line in source.splitlines(keepends=True):
         if line.startswith("def clang_"):
-            arguments, separator, result = line.partition(") ->")
+            signature, separator, result = line.partition(") ->")
+            name, arguments = signature.split("(", 1)
+            parts = []
+            begin = depth = 0
+            for index, char in enumerate(arguments):
+                if char == "[":
+                    depth += 1
+                elif char == "]":
+                    depth -= 1
+                elif char == "," and depth == 0:
+                    parts.append(arguments[begin:index].strip())
+                    begin = index + 1
+            parts.append(arguments[begin:].strip())
             parameters = []
-
-            def infer_origin(match: re.Match[str]) -> str:
-                original = match.group(2)
-                name = f"_origin{len(parameters)}"
+            for index, part in enumerate(parts):
+                arg_name, colon, typ = part.partition(": ")
+                if not typ.startswith(("Pointer[", "Optional[Pointer[", "OpaquePointer[", "Optional[OpaquePointer[")):
+                    continue
+                match = re.search(r"(MutUntrackedOrigin|ImmUntrackedOrigin)(\]+)$", typ)
+                if match is None:
+                    continue
+                original = match.group(1)
+                origin = f"_origin{len(parameters)}"
                 bound = "MutOrigin" if original.startswith("Mut") else "ImmOrigin"
-                parameters.append(f"{name}: {bound}")
-                return match.group(1) + name + "]"
-
-            arguments = re.sub(
-                r"(\w+: Pointer\[\w+, )(MutUntrackedOrigin|ImmUntrackedOrigin)\]",
-                infer_origin,
-                arguments,
-            )
+                parameters.append(f"{origin}: {bound} = {original}")
+                typ = typ[:match.start(1)] + origin + typ[match.end(1):]
+                parts[index] = arg_name + colon + typ
             if parameters:
-                name, rest = arguments.split("(", 1)
-                arguments = name + "[" + ", ".join(parameters) + ", //](" + rest
-            line = arguments + separator + result
+                name += "[" + ", ".join(parameters) + ", //]"
+            line = name + "(" + ", ".join(parts) + separator + result
         lines.append(line)
     return "".join(lines)
 

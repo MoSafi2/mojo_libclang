@@ -1,0 +1,46 @@
+name: Validate source release
+
+on:
+  push:
+    branches: [master, codex/mojo-1.2]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-64
+            runner: ubuntu-24.04
+            regeneration_args: ""
+          - platform: linux-aarch64
+            runner: ubuntu-24.04-arm
+            regeneration_args: --platform-local
+          - platform: osx-arm64
+            runner: macos-14
+            regeneration_args: --platform-local
+    steps:
+      - uses: actions/checkout@v5
+      - uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.80.0
+          cache: true
+          environments: dev
+      - name: Install locked toolchain
+        run: pixi install --locked -e dev
+      - name: Test checked-in source
+        run: pixi run --locked -e dev test
+      - name: Verify deterministic generation twice
+        run: pixi run --locked -e dev check-generated ${{ matrix.regeneration_args }}
+      - name: Build package layout
+        run: pixi run --locked -e dev build-package-layout
+      - name: Test external package consumer
+        run: pixi run --locked -e dev check-consumer

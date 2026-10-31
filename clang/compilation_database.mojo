@@ -31,7 +31,7 @@ from clang.enums import CompilationDatabaseErrorCode
 from clang.errors import CompilationDatabaseError
 
 from std.iter import Iterable, Iterator, StopIteration
-from std.memory import ArcPointer, UnsafePointer, alloc
+from std.memory import ArcPointer, Pointer
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +260,7 @@ struct CompilationDatabase(Movable, Writable):
 
     var _state: ArcPointer[_CompilationDatabaseState]
 
-    def __init__(out self, build_dir: String) raises:
+    def __init__(out self, var build_dir: String) raises:
         """Load `compile_commands.json` from `build_dir`."""
         var err = Array[CXCompilationDatabase_Error, 1](
             fill=CXCompilationDatabase_Error(c_uint(0))
@@ -269,7 +269,7 @@ struct CompilationDatabase(Movable, Writable):
         var raw = clang_CompilationDatabase_fromDirectory(
             _borrow_c_string(build_dir),
             rebind[
-                UnsafePointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
+                Pointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
             ](err.unsafe_ptr()),
         )
 
@@ -282,7 +282,7 @@ struct CompilationDatabase(Movable, Writable):
         self._state = ArcPointer(_CompilationDatabaseState(raw))
 
     @staticmethod
-    def from_directory(build_dir: String) raises -> Self:
+    def from_directory(var build_dir: String) raises -> Self:
         """Load a compilation database from `build_dir`."""
         return Self(build_dir)
 
@@ -290,7 +290,7 @@ struct CompilationDatabase(Movable, Writable):
         return self._state
 
     def get_compile_commands(
-        ref self, filename: String
+        ref self, var filename: String
     ) raises -> CompileCommands:
         """Return compile commands for `filename`."""
         var raw = clang_CompilationDatabase_getCompileCommands(

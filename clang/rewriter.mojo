@@ -26,7 +26,7 @@ from clang.state import TranslationUnitState
 from clang.source_location import SourceLocation
 from clang.source_range import SourceRange
 
-from std.memory import ArcPointer, UnsafePointer
+from std.memory import ArcPointer, Pointer
 
 
 struct Rewriter(Movable, Writable):
@@ -76,32 +76,28 @@ struct Rewriter(Movable, Writable):
     def insert_text_before(
         ref self,
         loc: source_location_types.SourceLocation,
-        text: String,
+        var text: String,
     ) raises:
         """Insert `text` before `loc`."""
         self._check_valid()
         var loc_copy = loc.copy()
         clang_CXRewriter_insertTextBefore(
             self._raw,
-            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                loc_copy._raw.unsafe_ptr()
-            ),
+            loc_copy._ptr(),
             _borrow_c_string(text),
         )
 
     def replace_text(
         ref self,
         extent: source_range_types.SourceRange,
-        replacement: String,
+        var replacement: String,
     ) raises:
         """Replace `extent` with `replacement`."""
         self._check_valid()
         var extent_copy = extent.copy()
         clang_CXRewriter_replaceText(
             self._raw,
-            rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
-                extent_copy._raw.unsafe_ptr()
-            ),
+            extent_copy._ptr(),
             _borrow_c_string(replacement),
         )
 
@@ -111,9 +107,7 @@ struct Rewriter(Movable, Writable):
         var extent_copy = extent.copy()
         clang_CXRewriter_removeText(
             self._raw,
-            rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
-                extent_copy._raw.unsafe_ptr()
-            ),
+            extent_copy._ptr(),
         )
 
     def overwrite_changed_files(ref self) raises -> Int:

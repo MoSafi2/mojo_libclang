@@ -95,7 +95,8 @@ from clang.common import _CXStringStorage, _borrow_c_string
 from clang.printing_policy import PrintingPolicy
 from clang.state import TranslationUnitState
 
-from std.memory import ArcPointer, UnsafePointer, MutOpaquePointer, alloc
+from std.memory.alloc import unsafe_alloc
+from std.memory import ArcPointer, Pointer
 
 
 @fieldwise_init
@@ -169,10 +170,8 @@ struct Type(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("Type used after TranslationUnit.reparse()")
 
-    def _ptr(ref self) -> UnsafePointer[CXType, MutUntrackedOrigin]:
-        return rebind[UnsafePointer[CXType, MutUntrackedOrigin]](
-            self._raw.unsafe_ptr(),
-        )
+    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXType, origin]:
+        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
 
     def _cache_spelling(mut self) raises:
         self._check_valid()
@@ -380,7 +379,7 @@ struct Type(Copyable, Movable, Writable):
         out._cache_spelling()
         return Optional[Type](out^)
 
-    def offset(ref self, fieldname: String) raises -> Int:
+    def offset(ref self, var fieldname: String) raises -> Int:
         """Return field offset in bits.
 
         Wraps ``clang_Type_getOffsetOf``.
@@ -498,7 +497,7 @@ struct Type(Copyable, Movable, Writable):
         from clang.cursor import Cursor
 
         self._check_valid()
-        var collector_box = alloc[_TypeFieldCollector](1)
+        var collector_box = unsafe_alloc[_TypeFieldCollector](1)
         collector_box.unsafe_write(
             _TypeFieldCollector(
                 tu=self._tu,
@@ -507,8 +506,8 @@ struct Type(Copyable, Movable, Writable):
         )
         var client_data = CXClientData(
             rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
-                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                    rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](collector_box)
+                rebind[Pointer[UInt8, MutUntrackedOrigin]](
+                    rebind[Pointer[UInt8, MutUntrackedOrigin]](collector_box)
                 )
             )
         )
@@ -518,7 +517,7 @@ struct Type(Copyable, Movable, Writable):
         var out = List[cursor_types.Cursor]()
         for i in range(len(collector_box[].out)):
             out.append(collector_box[].out[i].copy())
-        collector_box.free()
+        collector_box.unsafe_free()
         return out^
 
     def objc_object_base_type(ref self) raises -> Optional[Type]:
@@ -592,15 +591,15 @@ struct _TypeFieldCollector(Movable):
 
 
 def _field_visitor_trampoline(
-    cursor_ptr: Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
+    cursor_ptr: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> c_uint:
     if not cursor_ptr:
         return CXVisit_Continue
 
-    var collector = rebind[UnsafePointer[_TypeFieldCollector, MutUntrackedOrigin]](
-        rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
+    var collector = rebind[Pointer[_TypeFieldCollector, MutUntrackedOrigin]](
+        rebind[Pointer[UInt8, MutUntrackedOrigin]](
+            rebind[Pointer[UInt8, MutUntrackedOrigin]](
                 client_data.value()
             )
         )

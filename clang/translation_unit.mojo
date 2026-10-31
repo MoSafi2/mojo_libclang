@@ -76,7 +76,8 @@ from clang.token import TokenGroup
 from clang.diagnostic import Diagnostic, DiagnosticSet
 from clang.file_inclusion import FileInclusion
 
-from std.memory import ArcPointer, MutOpaquePointer, UnsafePointer, alloc
+from std.memory.alloc import unsafe_alloc
+from std.memory import ArcPointer, Pointer
 
 
 @fieldwise_init
@@ -129,12 +130,12 @@ struct TargetInfo(Movable, Writable):
 struct TUResourceUsage(Movable, Sized, Writable):
     """Owning wrapper around libclang translation-unit resource usage data."""
 
-    var _raw: UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]
+    var _raw: Pointer[CXTUResourceUsage, MutUntrackedOrigin]
     var _owns: Bool
 
     def __init__(out self, raw: CXTUResourceUsage):
         """Copy resource-usage data returned by libclang into owned storage."""
-        self._raw = alloc[CXTUResourceUsage](1)
+        self._raw = unsafe_alloc[CXTUResourceUsage](1)
         self._raw[] = CXTUResourceUsage(
             data=raw.data,
             numEntries=raw.numEntries,
@@ -142,19 +143,19 @@ struct TUResourceUsage(Movable, Sized, Writable):
         )
         self._owns = True
 
-    def _ptr(ref self) -> UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]:
-        return rebind[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]](
+    def _ptr(ref self) -> Pointer[CXTUResourceUsage, MutUntrackedOrigin]:
+        return rebind[Pointer[CXTUResourceUsage, MutUntrackedOrigin]](
             self._raw
         )
 
     def __deinit__(deinit self):
         if self._owns:
             clang_disposeCXTUResourceUsage(
-                rebind[UnsafePointer[CXTUResourceUsage, MutUntrackedOrigin]](
+                rebind[Pointer[CXTUResourceUsage, MutUntrackedOrigin]](
                     self._raw
                 )
             )
-        self._raw.free()
+        self._raw.unsafe_free()
 
     def __len__(self) -> Int:
         """Return the number of resource-usage entries."""
@@ -167,7 +168,7 @@ struct TUResourceUsage(Movable, Sized, Writable):
         if not self._raw[].entries:
             raise Error("TUResourceUsage has no entry buffer")
 
-        var raw = (self._raw[].entries.value() + i)[]
+        var raw = self._raw[].entries.value().unsafe_offset(i)[]
         var name_ptr = clang_getTUResourceUsageName(raw.kind)
         var name = String("")
         if name_ptr:
@@ -192,7 +193,7 @@ struct TUResourceUsage(Movable, Sized, Writable):
         if not self._raw[].entries:
             return 0
         for i in range(Int(self._raw[].numEntries)):
-            total += (self._raw[].entries.value() + i)[].amount
+            total += self._raw[].entries.value().unsafe_offset(i)[].amount
         return Int(total)
 
     def write_to(self, mut writer: Some[Writer]):
@@ -217,7 +218,7 @@ def resource_usage_for_tu(raw: CXTranslationUnit) -> TUResourceUsage:
             data=Optional[OpaquePointer[mut=True, MutUntrackedOrigin]](),
             numEntries=c_uint(0),
             entries=Optional[
-                UnsafePointer[CXTUResourceUsageEntry, MutUntrackedOrigin]
+                Pointer[CXTUResourceUsageEntry, MutUntrackedOrigin]
             ](),
         )
     )
@@ -327,7 +328,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
             clang_getDiagnosticSetFromTU(self._raw_handle()),
         )
 
-    def file(ref self, filename: String) raises -> Optional[File]:
+    def file(ref self, var filename: String) raises -> Optional[File]:
         """Return the file wrapper for `filename`, or `None` when absent."""
         return File.from_name(self._shared_state(), filename)
 
@@ -341,7 +342,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def location(
         ref self,
-        filename: String,
+        var filename: String,
         line: Int,
         column: Int,
     ) raises -> SourceLocation:
@@ -360,7 +361,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def location_for_offset(
         ref self,
-        filename: String,
+        var filename: String,
         offset: Int,
     ) raises -> SourceLocation:
         """Return a source location for zero-based byte `offset` in `filename`."""
@@ -373,7 +374,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
             offset,
         )
 
-    def _get_file_handle(ref self, filename: String) raises -> CXFile:
+    def _get_file_handle(ref self, var filename: String) raises -> CXFile:
         var file_handle = clang_getFile(
             self._raw_handle(),
             _borrow_c_string(filename),
@@ -385,7 +386,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def extent(
         ref self,
-        filename: String,
+        var filename: String,
         start: SourceLocation,
         end: SourceLocation,
     ) raises -> SourceRange:
@@ -394,7 +395,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def extent(
         ref self,
-        filename: String,
+        var filename: String,
         start_line: Int,
         start_column: Int,
         end_line: Int,
@@ -407,7 +408,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def extent_from_offsets(
         ref self,
-        filename: String,
+        var filename: String,
         start_offset: Int,
         end_offset: Int,
     ) raises -> SourceRange:
@@ -432,7 +433,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def save(
         ref self,
-        filename: String,
+        var filename: String,
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
     ) raises:
         """Save this translation unit to `filename`."""
@@ -485,17 +486,17 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def file_contents(ref self, file: File) raises -> String:
         """Return the contents libclang has for `file`."""
         var size = size_t(0)
-        var size_ptr = UnsafePointer(to=size).unsafe_origin_cast[MutUntrackedOrigin]()
+        var size_ptr = Pointer(to=size).unsafe_origin_cast[MutUntrackedOrigin]()
         var raw = clang_getFileContents(
             self._raw_handle(),
             file._raw_value(),
-            rebind[UnsafePointer[size_t, MutUntrackedOrigin]](size_ptr),
+            rebind[Pointer[size_t, MutUntrackedOrigin]](size_ptr),
         )
         if not raw:
             return String("")
         return String(unsafe_from_utf8_ptr=raw.value())
 
-    def file_contents(ref self, filename: String) raises -> String:
+    def file_contents(ref self, var filename: String) raises -> String:
         """Return the contents libclang has for `filename`."""
         var file_opt = self.file(filename)
         if not file_opt:
@@ -509,12 +510,12 @@ struct TranslationUnit(Copyable, Movable, Writable):
         if not raw_list:
             return out^
         for i in range(Int(raw_list.value()[].count)):
-            var raw = (raw_list.value()[].ranges.value() + i)[].copy()
+            var raw = raw_list.value()[].ranges.value().unsafe_offset(i)[].copy()
             out.append(SourceRange.from_raw(self._shared_state(), raw))
         clang_disposeSourceRangeList(raw_list.value())
         return out^
 
-    def skipped_ranges(ref self, filename: String) raises -> List[SourceRange]:
+    def skipped_ranges(ref self, var filename: String) raises -> List[SourceRange]:
         """Return skipped preprocessor ranges for `filename`."""
         var file_opt = self.file(filename)
         if not file_opt:
@@ -528,7 +529,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         if not raw_list:
             return out^
         for i in range(Int(raw_list.value()[].count)):
-            var raw = (raw_list.value()[].ranges.value() + i)[].copy()
+            var raw = raw_list.value()[].ranges.value().unsafe_offset(i)[].copy()
             out.append(SourceRange.from_raw(self._shared_state(), raw))
         clang_disposeSourceRangeList(raw_list.value())
         return out^
@@ -539,7 +540,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     @staticmethod
     def from_source(
-        filename: String,
+        var filename: String,
         args: List[String] = List[String](),
         unsaved_files: List[UnsavedFile] = List[UnsavedFile](),
         options: TranslationUnitFlags = TranslationUnitFlags.NONE,
@@ -562,7 +563,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     @staticmethod
     def from_ast_file(
-        filename: String,
+        var filename: String,
         index: Optional[index_module.Index] = None,
     ) raises -> TranslationUnit:
         """Load a serialized AST file into a ``TranslationUnit``."""
@@ -582,7 +583,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def includes(ref self) raises -> List[FileInclusion]:
         """Return all inclusion relationships in this translation unit."""
-        var collector_box = alloc[_InclusionCollector](1)
+        var collector_box = unsafe_alloc[_InclusionCollector](1)
         collector_box.unsafe_write(
             _InclusionCollector(
                 tu=self._state,
@@ -592,8 +593,8 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
         var client_data = CXClientData(
             rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
-                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                    rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
+                rebind[Pointer[UInt8, MutUntrackedOrigin]](
+                    rebind[Pointer[UInt8, MutUntrackedOrigin]](
                         collector_box,
                     )
                 )
@@ -609,7 +610,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
         var out = List[FileInclusion]()
         for i in range(len(collector_box[].out)):
             out.append(collector_box[].out[i].copy())
-        collector_box.free()
+        collector_box.unsafe_free()
         return out^
 
 
@@ -622,7 +623,7 @@ struct _InclusionCollector(Movable):
 def _inclusion_visitor_trampoline(
     included_file: CXFile,
     inclusion_stack: Optional[
-        UnsafePointer[CXSourceLocation, MutUntrackedOrigin]
+        Pointer[CXSourceLocation, MutUntrackedOrigin]
     ],
     include_len: c_uint,
     client_data: CXClientData,
@@ -634,15 +635,15 @@ def _inclusion_visitor_trampoline(
         return
 
     var opaque = client_data.value()
-    var collector = rebind[UnsafePointer[_InclusionCollector, MutUntrackedOrigin]](
-        rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](opaque),
+    var collector = rebind[Pointer[_InclusionCollector, MutUntrackedOrigin]](
+        rebind[Pointer[UInt8, MutUntrackedOrigin]](
+            rebind[Pointer[UInt8, MutUntrackedOrigin]](opaque),
         ),
     )
 
     try:
         var source_loc_raw = (
-            inclusion_stack.value() + Int(include_len) - 1
+            inclusion_stack.value().unsafe_offset(Int(include_len) - 1)
         )[].copy()
         var source_loc = SourceLocation.from_raw(collector[].tu, source_loc_raw)
 

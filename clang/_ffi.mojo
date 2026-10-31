@@ -2235,7 +2235,7 @@ struct CXComment(RegisterPassable, Copyable, Movable):
 struct CXAPISetImpl(Copyable, Movable):
     pass
 
-def clang_getCString[_origin0: ImmOrigin, //](string: Pointer[CXString, _origin0]) -> Optional[Pointer[c_char, ImmUntrackedOrigin]]:
+def clang_getCString[_origin0: ImmOrigin = ImmUntrackedOrigin, //](string: Pointer[CXString, _origin0]) -> Optional[Pointer[c_char, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[c_char, ImmUntrackedOrigin]]]("mojo_clang_getCString")
@@ -2243,7 +2243,7 @@ def clang_getCString[_origin0: ImmOrigin, //](string: Pointer[CXString, _origin0
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCString' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeString[_origin0: ImmOrigin, //](string: Pointer[CXString, _origin0]) -> None:
+def clang_disposeString[_origin0: ImmOrigin = ImmUntrackedOrigin, //](string: Pointer[CXString, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeString")
@@ -2251,7 +2251,7 @@ def clang_disposeString[_origin0: ImmOrigin, //](string: Pointer[CXString, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeString' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeStringSet(set: Optional[Pointer[CXStringSet, MutUntrackedOrigin]]) -> None:
+def clang_disposeStringSet[_origin0: MutOrigin = MutUntrackedOrigin, //](set: Optional[Pointer[CXStringSet, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeStringSet")
@@ -2275,7 +2275,7 @@ def clang_VirtualFileOverlay_create(options: c_uint) -> CXVirtualFileOverlay:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_VirtualFileOverlay_create' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_VirtualFileOverlay_addFileMapping(a0: CXVirtualFileOverlay, virtualPath: Optional[Pointer[c_char, ImmUntrackedOrigin]], realPath: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXErrorCode:
+def clang_VirtualFileOverlay_addFileMapping[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](a0: CXVirtualFileOverlay, virtualPath: Optional[Pointer[c_char, _origin0]], realPath: Optional[Pointer[c_char, _origin1]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_VirtualFileOverlay_addFileMapping")
@@ -2291,7 +2291,7 @@ def clang_VirtualFileOverlay_setCaseSensitivity(a0: CXVirtualFileOverlay, caseSe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_VirtualFileOverlay_setCaseSensitivity' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_VirtualFileOverlay_writeToBuffer(a0: CXVirtualFileOverlay, options: c_uint, out_buffer_ptr: Optional[Pointer[Optional[Pointer[c_char, MutUntrackedOrigin]], MutUntrackedOrigin]], out_buffer_size: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> CXErrorCode:
+def clang_VirtualFileOverlay_writeToBuffer[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](a0: CXVirtualFileOverlay, options: c_uint, out_buffer_ptr: Optional[Pointer[Optional[Pointer[c_char, MutUntrackedOrigin]], _origin0]], out_buffer_size: Optional[Pointer[c_uint, _origin1]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_VirtualFileOverlay_writeToBuffer")
@@ -2299,7 +2299,7 @@ def clang_VirtualFileOverlay_writeToBuffer(a0: CXVirtualFileOverlay, options: c_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_VirtualFileOverlay_writeToBuffer' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_free(buffer: Optional[OpaquePointer[mut=True, MutUntrackedOrigin]]) -> None:
+def clang_free[_origin0: MutOrigin = MutUntrackedOrigin, //](buffer: Optional[OpaquePointer[mut=True, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_free")
@@ -2323,7 +2323,7 @@ def clang_ModuleMapDescriptor_create(options: c_uint) -> CXModuleMapDescriptor:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ModuleMapDescriptor_create' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ModuleMapDescriptor_setFrameworkModuleName(a0: CXModuleMapDescriptor, name: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXErrorCode:
+def clang_ModuleMapDescriptor_setFrameworkModuleName[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: CXModuleMapDescriptor, name: Optional[Pointer[c_char, _origin0]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_ModuleMapDescriptor_setFrameworkModuleName")
@@ -2331,7 +2331,7 @@ def clang_ModuleMapDescriptor_setFrameworkModuleName(a0: CXModuleMapDescriptor, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ModuleMapDescriptor_setFrameworkModuleName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ModuleMapDescriptor_setUmbrellaHeader(a0: CXModuleMapDescriptor, name: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXErrorCode:
+def clang_ModuleMapDescriptor_setUmbrellaHeader[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: CXModuleMapDescriptor, name: Optional[Pointer[c_char, _origin0]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_ModuleMapDescriptor_setUmbrellaHeader")
@@ -2339,7 +2339,7 @@ def clang_ModuleMapDescriptor_setUmbrellaHeader(a0: CXModuleMapDescriptor, name:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ModuleMapDescriptor_setUmbrellaHeader' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ModuleMapDescriptor_writeToBuffer(a0: CXModuleMapDescriptor, options: c_uint, out_buffer_ptr: Optional[Pointer[Optional[Pointer[c_char, MutUntrackedOrigin]], MutUntrackedOrigin]], out_buffer_size: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> CXErrorCode:
+def clang_ModuleMapDescriptor_writeToBuffer[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](a0: CXModuleMapDescriptor, options: c_uint, out_buffer_ptr: Optional[Pointer[Optional[Pointer[c_char, MutUntrackedOrigin]], _origin0]], out_buffer_size: Optional[Pointer[c_uint, _origin1]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_ModuleMapDescriptor_writeToBuffer")
@@ -2355,7 +2355,7 @@ def clang_ModuleMapDescriptor_dispose(a0: CXModuleMapDescriptor) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ModuleMapDescriptor_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFileName[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], SFile: CXFile) -> None:
+def clang_getFileName[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], SFile: CXFile) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getFileName")
@@ -2371,7 +2371,7 @@ def clang_getFileTime(SFile: CXFile) -> time_t:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getFileTime' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFileUniqueID(file: CXFile, outID: Optional[Pointer[CXFileUniqueID, MutUntrackedOrigin]]) -> c_int:
+def clang_getFileUniqueID[_origin0: MutOrigin = MutUntrackedOrigin, //](file: CXFile, outID: Optional[Pointer[CXFileUniqueID, _origin0]]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_getFileUniqueID")
@@ -2387,7 +2387,7 @@ def clang_File_isEqual(file1: CXFile, file2: CXFile) -> c_int:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_File_isEqual' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_File_tryGetRealPathName[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], file: CXFile) -> None:
+def clang_File_tryGetRealPathName[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], file: CXFile) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_File_tryGetRealPathName")
@@ -2395,7 +2395,7 @@ def clang_File_tryGetRealPathName[_origin0: MutOrigin, //](out_: Pointer[CXStrin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_File_tryGetRealPathName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNullLocation[_origin0: MutOrigin, //](out_: Pointer[CXSourceLocation, _origin0]) -> None:
+def clang_getNullLocation[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getNullLocation")
@@ -2403,7 +2403,7 @@ def clang_getNullLocation[_origin0: MutOrigin, //](out_: Pointer[CXSourceLocatio
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNullLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_equalLocations[_origin0: ImmOrigin, _origin1: ImmOrigin, //](loc1: Pointer[CXSourceLocation, _origin0], loc2: Pointer[CXSourceLocation, _origin1]) -> c_uint:
+def clang_equalLocations[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](loc1: Pointer[CXSourceLocation, _origin0], loc2: Pointer[CXSourceLocation, _origin1]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_equalLocations")
@@ -2411,7 +2411,7 @@ def clang_equalLocations[_origin0: ImmOrigin, _origin1: ImmOrigin, //](loc1: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_equalLocations' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Location_isInSystemHeader[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0]) -> c_int:
+def clang_Location_isInSystemHeader[_origin0: ImmOrigin = ImmUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Location_isInSystemHeader")
@@ -2419,7 +2419,7 @@ def clang_Location_isInSystemHeader[_origin0: ImmOrigin, //](location: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Location_isInSystemHeader' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Location_isFromMainFile[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0]) -> c_int:
+def clang_Location_isFromMainFile[_origin0: ImmOrigin = ImmUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Location_isFromMainFile")
@@ -2427,7 +2427,7 @@ def clang_Location_isFromMainFile[_origin0: ImmOrigin, //](location: Pointer[CXS
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Location_isFromMainFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNullRange[_origin0: MutOrigin, //](out_: Pointer[CXSourceRange, _origin0]) -> None:
+def clang_getNullRange[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getNullRange")
@@ -2435,7 +2435,7 @@ def clang_getNullRange[_origin0: MutOrigin, //](out_: Pointer[CXSourceRange, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNullRange' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getRange[_origin0: MutOrigin, _origin1: ImmOrigin, _origin2: ImmOrigin, //](out_: Pointer[CXSourceRange, _origin0], begin: Pointer[CXSourceLocation, _origin1], end: Pointer[CXSourceLocation, _origin2]) -> None:
+def clang_getRange[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], begin: Pointer[CXSourceLocation, _origin1], end: Pointer[CXSourceLocation, _origin2]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getRange")
@@ -2443,7 +2443,7 @@ def clang_getRange[_origin0: MutOrigin, _origin1: ImmOrigin, _origin2: ImmOrigin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getRange' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_equalRanges[_origin0: ImmOrigin, _origin1: ImmOrigin, //](range1: Pointer[CXSourceRange, _origin0], range2: Pointer[CXSourceRange, _origin1]) -> c_uint:
+def clang_equalRanges[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](range1: Pointer[CXSourceRange, _origin0], range2: Pointer[CXSourceRange, _origin1]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_equalRanges")
@@ -2451,7 +2451,7 @@ def clang_equalRanges[_origin0: ImmOrigin, _origin1: ImmOrigin, //](range1: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_equalRanges' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Range_isNull[_origin0: ImmOrigin, //](range: Pointer[CXSourceRange, _origin0]) -> c_int:
+def clang_Range_isNull[_origin0: ImmOrigin = ImmUntrackedOrigin, //](range: Pointer[CXSourceRange, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Range_isNull")
@@ -2459,7 +2459,7 @@ def clang_Range_isNull[_origin0: ImmOrigin, //](range: Pointer[CXSourceRange, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Range_isNull' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getExpansionLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, MutUntrackedOrigin]], line: Optional[Pointer[c_uint, MutUntrackedOrigin]], column: Optional[Pointer[c_uint, MutUntrackedOrigin]], offset: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getExpansionLocation[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, _origin1]], line: Optional[Pointer[c_uint, _origin2]], column: Optional[Pointer[c_uint, _origin3]], offset: Optional[Pointer[c_uint, _origin4]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getExpansionLocation")
@@ -2467,7 +2467,7 @@ def clang_getExpansionLocation[_origin0: ImmOrigin, //](location: Pointer[CXSour
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getExpansionLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getPresumedLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0], filename: Optional[Pointer[CXString, MutUntrackedOrigin]], line: Optional[Pointer[c_uint, MutUntrackedOrigin]], column: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getPresumedLocation[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0], filename: Optional[Pointer[CXString, _origin1]], line: Optional[Pointer[c_uint, _origin2]], column: Optional[Pointer[c_uint, _origin3]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getPresumedLocation")
@@ -2475,7 +2475,7 @@ def clang_getPresumedLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourc
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getPresumedLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getInstantiationLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, MutUntrackedOrigin]], line: Optional[Pointer[c_uint, MutUntrackedOrigin]], column: Optional[Pointer[c_uint, MutUntrackedOrigin]], offset: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getInstantiationLocation[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, _origin1]], line: Optional[Pointer[c_uint, _origin2]], column: Optional[Pointer[c_uint, _origin3]], offset: Optional[Pointer[c_uint, _origin4]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getInstantiationLocation")
@@ -2483,7 +2483,7 @@ def clang_getInstantiationLocation[_origin0: ImmOrigin, //](location: Pointer[CX
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getInstantiationLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getSpellingLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, MutUntrackedOrigin]], line: Optional[Pointer[c_uint, MutUntrackedOrigin]], column: Optional[Pointer[c_uint, MutUntrackedOrigin]], offset: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getSpellingLocation[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, _origin1]], line: Optional[Pointer[c_uint, _origin2]], column: Optional[Pointer[c_uint, _origin3]], offset: Optional[Pointer[c_uint, _origin4]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getSpellingLocation")
@@ -2491,7 +2491,7 @@ def clang_getSpellingLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourc
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getSpellingLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFileLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, MutUntrackedOrigin]], line: Optional[Pointer[c_uint, MutUntrackedOrigin]], column: Optional[Pointer[c_uint, MutUntrackedOrigin]], offset: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getFileLocation[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, //](location: Pointer[CXSourceLocation, _origin0], file: Optional[Pointer[CXFile, _origin1]], line: Optional[Pointer[c_uint, _origin2]], column: Optional[Pointer[c_uint, _origin3]], offset: Optional[Pointer[c_uint, _origin4]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getFileLocation")
@@ -2499,7 +2499,7 @@ def clang_getFileLocation[_origin0: ImmOrigin, //](location: Pointer[CXSourceLoc
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getFileLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getRangeStart[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceLocation, _origin0], range: Pointer[CXSourceRange, _origin1]) -> None:
+def clang_getRangeStart[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], range: Pointer[CXSourceRange, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getRangeStart")
@@ -2507,7 +2507,7 @@ def clang_getRangeStart[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getRangeStart' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getRangeEnd[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceLocation, _origin0], range: Pointer[CXSourceRange, _origin1]) -> None:
+def clang_getRangeEnd[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], range: Pointer[CXSourceRange, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getRangeEnd")
@@ -2515,7 +2515,7 @@ def clang_getRangeEnd[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getRangeEnd' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeSourceRangeList(ranges: Optional[Pointer[CXSourceRangeList, MutUntrackedOrigin]]) -> None:
+def clang_disposeSourceRangeList[_origin0: MutOrigin = MutUntrackedOrigin, //](ranges: Optional[Pointer[CXSourceRangeList, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeSourceRangeList")
@@ -2539,7 +2539,7 @@ def clang_getDiagnosticInSet(Diags: CXDiagnosticSet, Index: c_uint) -> CXDiagnos
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticInSet' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_loadDiagnostics(file: Optional[Pointer[c_char, ImmUntrackedOrigin]], error: Optional[Pointer[CXLoadDiag_Error, MutUntrackedOrigin]], errorString: Optional[Pointer[CXString, MutUntrackedOrigin]]) -> CXDiagnosticSet:
+def clang_loadDiagnostics[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, //](file: Optional[Pointer[c_char, _origin0]], error: Optional[Pointer[CXLoadDiag_Error, _origin1]], errorString: Optional[Pointer[CXString, _origin2]]) -> CXDiagnosticSet:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXDiagnosticSet]("mojo_clang_loadDiagnostics")
@@ -2571,7 +2571,7 @@ def clang_disposeDiagnostic(Diagnostic: CXDiagnostic) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeDiagnostic' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_formatDiagnostic[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Diagnostic: CXDiagnostic, Options: c_uint) -> None:
+def clang_formatDiagnostic[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Diagnostic: CXDiagnostic, Options: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_formatDiagnostic")
@@ -2595,7 +2595,7 @@ def clang_getDiagnosticSeverity(a0: CXDiagnostic) -> CXDiagnosticSeverity:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticSeverity' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticLocation[_origin0: MutOrigin, //](out_: Pointer[CXSourceLocation, _origin0], a1: CXDiagnostic) -> None:
+def clang_getDiagnosticLocation[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], a1: CXDiagnostic) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticLocation")
@@ -2603,7 +2603,7 @@ def clang_getDiagnosticLocation[_origin0: MutOrigin, //](out_: Pointer[CXSourceL
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXDiagnostic) -> None:
+def clang_getDiagnosticSpelling[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXDiagnostic) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticSpelling")
@@ -2611,7 +2611,7 @@ def clang_getDiagnosticSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticOption[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Diag: CXDiagnostic, Disable: Optional[Pointer[CXString, MutUntrackedOrigin]]) -> None:
+def clang_getDiagnosticOption[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Diag: CXDiagnostic, Disable: Optional[Pointer[CXString, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticOption")
@@ -2627,7 +2627,7 @@ def clang_getDiagnosticCategory(a0: CXDiagnostic) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticCategory' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticCategoryName[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Category: c_uint) -> None:
+def clang_getDiagnosticCategoryName[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Category: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticCategoryName")
@@ -2635,7 +2635,7 @@ def clang_getDiagnosticCategoryName[_origin0: MutOrigin, //](out_: Pointer[CXStr
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticCategoryName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticCategoryText[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXDiagnostic) -> None:
+def clang_getDiagnosticCategoryText[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXDiagnostic) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticCategoryText")
@@ -2651,7 +2651,7 @@ def clang_getDiagnosticNumRanges(a0: CXDiagnostic) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticNumRanges' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticRange[_origin0: MutOrigin, //](out_: Pointer[CXSourceRange, _origin0], Diagnostic: CXDiagnostic, Range: c_uint) -> None:
+def clang_getDiagnosticRange[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], Diagnostic: CXDiagnostic, Range: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticRange")
@@ -2667,7 +2667,7 @@ def clang_getDiagnosticNumFixIts(Diagnostic: CXDiagnostic) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticNumFixIts' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDiagnosticFixIt[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Diagnostic: CXDiagnostic, FixIt: c_uint, ReplacementRange: Optional[Pointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+def clang_getDiagnosticFixIt[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Diagnostic: CXDiagnostic, FixIt: c_uint, ReplacementRange: Optional[Pointer[CXSourceRange, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDiagnosticFixIt")
@@ -2691,7 +2691,7 @@ def clang_disposeIndex(index: CXIndex) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeIndex' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_createIndexWithOptions(options: Optional[Pointer[CXIndexOptions, ImmUntrackedOrigin]]) -> CXIndex:
+def clang_createIndexWithOptions[_origin0: ImmOrigin = ImmUntrackedOrigin, //](options: Optional[Pointer[CXIndexOptions, _origin0]]) -> CXIndex:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXIndex]("mojo_clang_createIndexWithOptions")
@@ -2715,7 +2715,7 @@ def clang_CXIndex_getGlobalOptions(a0: CXIndex) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXIndex_getGlobalOptions' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXIndex_setInvocationEmissionPathOption(a0: CXIndex, Path: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> None:
+def clang_CXIndex_setInvocationEmissionPathOption[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: CXIndex, Path: Optional[Pointer[c_char, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CXIndex_setInvocationEmissionPathOption")
@@ -2731,7 +2731,7 @@ def clang_isFileMultipleIncludeGuarded(tu: CXTranslationUnit, file: CXFile) -> c
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isFileMultipleIncludeGuarded' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFile(tu: CXTranslationUnit, file_name: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXFile:
+def clang_getFile[_origin0: ImmOrigin = ImmUntrackedOrigin, //](tu: CXTranslationUnit, file_name: Optional[Pointer[c_char, _origin0]]) -> CXFile:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXFile]("mojo_clang_getFile")
@@ -2739,7 +2739,7 @@ def clang_getFile(tu: CXTranslationUnit, file_name: Optional[Pointer[c_char, Imm
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFileContents(tu: CXTranslationUnit, file: CXFile, size: Optional[Pointer[size_t, MutUntrackedOrigin]]) -> Optional[Pointer[c_char, ImmUntrackedOrigin]]:
+def clang_getFileContents[_origin0: MutOrigin = MutUntrackedOrigin, //](tu: CXTranslationUnit, file: CXFile, size: Optional[Pointer[size_t, _origin0]]) -> Optional[Pointer[c_char, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[c_char, ImmUntrackedOrigin]]]("mojo_clang_getFileContents")
@@ -2747,7 +2747,7 @@ def clang_getFileContents(tu: CXTranslationUnit, file: CXFile, size: Optional[Po
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getFileContents' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getLocation[_origin0: MutOrigin, //](out_: Pointer[CXSourceLocation, _origin0], tu: CXTranslationUnit, file: CXFile, line: c_uint, column: c_uint) -> None:
+def clang_getLocation[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], tu: CXTranslationUnit, file: CXFile, line: c_uint, column: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getLocation")
@@ -2755,7 +2755,7 @@ def clang_getLocation[_origin0: MutOrigin, //](out_: Pointer[CXSourceLocation, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getLocationForOffset[_origin0: MutOrigin, //](out_: Pointer[CXSourceLocation, _origin0], tu: CXTranslationUnit, file: CXFile, offset: c_uint) -> None:
+def clang_getLocationForOffset[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], tu: CXTranslationUnit, file: CXFile, offset: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getLocationForOffset")
@@ -2803,7 +2803,7 @@ def clang_getDiagnosticSetFromTU(Unit: CXTranslationUnit) -> CXDiagnosticSet:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDiagnosticSetFromTU' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTranslationUnitSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], CTUnit: CXTranslationUnit) -> None:
+def clang_getTranslationUnitSpelling[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], CTUnit: CXTranslationUnit) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTranslationUnitSpelling")
@@ -2811,7 +2811,7 @@ def clang_getTranslationUnitSpelling[_origin0: MutOrigin, //](out_: Pointer[CXSt
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTranslationUnitSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_createTranslationUnitFromSourceFile(CIdx: CXIndex, source_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], num_clang_command_line_args: c_int, clang_command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]], num_unsaved_files: c_uint, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]]) -> CXTranslationUnit:
+def clang_createTranslationUnitFromSourceFile[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, //](CIdx: CXIndex, source_filename: Optional[Pointer[c_char, _origin0]], num_clang_command_line_args: c_int, clang_command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin1]], num_unsaved_files: c_uint, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin2]]) -> CXTranslationUnit:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTranslationUnit]("mojo_clang_createTranslationUnitFromSourceFile")
@@ -2819,7 +2819,7 @@ def clang_createTranslationUnitFromSourceFile(CIdx: CXIndex, source_filename: Op
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_createTranslationUnitFromSourceFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_createTranslationUnit(CIdx: CXIndex, ast_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXTranslationUnit:
+def clang_createTranslationUnit[_origin0: ImmOrigin = ImmUntrackedOrigin, //](CIdx: CXIndex, ast_filename: Optional[Pointer[c_char, _origin0]]) -> CXTranslationUnit:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTranslationUnit]("mojo_clang_createTranslationUnit")
@@ -2827,7 +2827,7 @@ def clang_createTranslationUnit(CIdx: CXIndex, ast_filename: Optional[Pointer[c_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_createTranslationUnit' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_createTranslationUnit2(CIdx: CXIndex, ast_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], out_TU: Optional[Pointer[CXTranslationUnit, MutUntrackedOrigin]]) -> CXErrorCode:
+def clang_createTranslationUnit2[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](CIdx: CXIndex, ast_filename: Optional[Pointer[c_char, _origin0]], out_TU: Optional[Pointer[CXTranslationUnit, _origin1]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_createTranslationUnit2")
@@ -2843,7 +2843,7 @@ def clang_defaultEditingTranslationUnitOptions() -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_defaultEditingTranslationUnitOptions' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_parseTranslationUnit(CIdx: CXIndex, source_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint) -> CXTranslationUnit:
+def clang_parseTranslationUnit[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, //](CIdx: CXIndex, source_filename: Optional[Pointer[c_char, _origin0]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin1]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin2]], num_unsaved_files: c_uint, options: c_uint) -> CXTranslationUnit:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTranslationUnit]("mojo_clang_parseTranslationUnit")
@@ -2851,7 +2851,7 @@ def clang_parseTranslationUnit(CIdx: CXIndex, source_filename: Optional[Pointer[
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_parseTranslationUnit' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_parseTranslationUnit2(CIdx: CXIndex, source_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, MutUntrackedOrigin]]) -> CXErrorCode:
+def clang_parseTranslationUnit2[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, //](CIdx: CXIndex, source_filename: Optional[Pointer[c_char, _origin0]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin1]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin2]], num_unsaved_files: c_uint, options: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, _origin3]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_parseTranslationUnit2")
@@ -2859,7 +2859,7 @@ def clang_parseTranslationUnit2(CIdx: CXIndex, source_filename: Optional[Pointer
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_parseTranslationUnit2' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_parseTranslationUnit2FullArgv(CIdx: CXIndex, source_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, MutUntrackedOrigin]]) -> CXErrorCode:
+def clang_parseTranslationUnit2FullArgv[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, //](CIdx: CXIndex, source_filename: Optional[Pointer[c_char, _origin0]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin1]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin2]], num_unsaved_files: c_uint, options: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, _origin3]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_parseTranslationUnit2FullArgv")
@@ -2875,7 +2875,7 @@ def clang_defaultSaveOptions(TU: CXTranslationUnit) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_defaultSaveOptions' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_saveTranslationUnit(TU: CXTranslationUnit, FileName: Optional[Pointer[c_char, ImmUntrackedOrigin]], options: c_uint) -> c_int:
+def clang_saveTranslationUnit[_origin0: ImmOrigin = ImmUntrackedOrigin, //](TU: CXTranslationUnit, FileName: Optional[Pointer[c_char, _origin0]], options: c_uint) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_saveTranslationUnit")
@@ -2907,7 +2907,7 @@ def clang_defaultReparseOptions(TU: CXTranslationUnit) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_defaultReparseOptions' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_reparseTranslationUnit(TU: CXTranslationUnit, num_unsaved_files: c_uint, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], options: c_uint) -> c_int:
+def clang_reparseTranslationUnit[_origin0: MutOrigin = MutUntrackedOrigin, //](TU: CXTranslationUnit, num_unsaved_files: c_uint, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin0]], options: c_uint) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_reparseTranslationUnit")
@@ -2923,7 +2923,7 @@ def clang_getTUResourceUsageName(kind: CXTUResourceUsageKind) -> Optional[Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTUResourceUsageName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCXTUResourceUsage[_origin0: MutOrigin, //](out_: Pointer[CXTUResourceUsage, _origin0], TU: CXTranslationUnit) -> None:
+def clang_getCXTUResourceUsage[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXTUResourceUsage, _origin0], TU: CXTranslationUnit) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCXTUResourceUsage")
@@ -2931,7 +2931,7 @@ def clang_getCXTUResourceUsage[_origin0: MutOrigin, //](out_: Pointer[CXTUResour
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCXTUResourceUsage' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeCXTUResourceUsage[_origin0: ImmOrigin, //](usage: Pointer[CXTUResourceUsage, _origin0]) -> None:
+def clang_disposeCXTUResourceUsage[_origin0: ImmOrigin = ImmUntrackedOrigin, //](usage: Pointer[CXTUResourceUsage, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeCXTUResourceUsage")
@@ -2955,7 +2955,7 @@ def clang_TargetInfo_dispose(Info: CXTargetInfo) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TargetInfo_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_TargetInfo_getTriple[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Info: CXTargetInfo) -> None:
+def clang_TargetInfo_getTriple[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Info: CXTargetInfo) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_TargetInfo_getTriple")
@@ -2971,7 +2971,7 @@ def clang_TargetInfo_getPointerWidth(Info: CXTargetInfo) -> c_int:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TargetInfo_getPointerWidth' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNullCursor[_origin0: MutOrigin, //](out_: Pointer[CXCursor, _origin0]) -> None:
+def clang_getNullCursor[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getNullCursor")
@@ -2979,7 +2979,7 @@ def clang_getNullCursor[_origin0: MutOrigin, //](out_: Pointer[CXCursor, _origin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNullCursor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTranslationUnitCursor[_origin0: MutOrigin, //](out_: Pointer[CXCursor, _origin0], a1: CXTranslationUnit) -> None:
+def clang_getTranslationUnitCursor[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], a1: CXTranslationUnit) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTranslationUnitCursor")
@@ -2987,7 +2987,7 @@ def clang_getTranslationUnitCursor[_origin0: MutOrigin, //](out_: Pointer[CXCurs
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTranslationUnitCursor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_equalCursors[_origin0: ImmOrigin, _origin1: ImmOrigin, //](a0: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> c_uint:
+def clang_equalCursors[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_equalCursors")
@@ -2995,7 +2995,7 @@ def clang_equalCursors[_origin0: ImmOrigin, _origin1: ImmOrigin, //](a0: Pointer
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_equalCursors' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isNull[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_isNull[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_isNull")
@@ -3003,7 +3003,7 @@ def clang_Cursor_isNull[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isNull' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_hashCursor[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_hashCursor[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_hashCursor")
@@ -3011,7 +3011,7 @@ def clang_hashCursor[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_hashCursor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorKind[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CXCursorKind:
+def clang_getCursorKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CXCursorKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCursorKind]("mojo_clang_getCursorKind")
@@ -3027,7 +3027,7 @@ def clang_isDeclaration(a0: CXCursorKind) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isDeclaration' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isInvalidDeclaration[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_isInvalidDeclaration[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isInvalidDeclaration")
@@ -3067,7 +3067,7 @@ def clang_isAttribute(a0: CXCursorKind) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isAttribute' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_hasAttrs[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_hasAttrs[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_hasAttrs")
@@ -3107,7 +3107,7 @@ def clang_isUnexposed(a0: CXCursorKind) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isUnexposed' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorLinkage[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXLinkageKind:
+def clang_getCursorLinkage[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXLinkageKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXLinkageKind]("mojo_clang_getCursorLinkage")
@@ -3115,7 +3115,7 @@ def clang_getCursorLinkage[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorLinkage' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorVisibility[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXVisibilityKind:
+def clang_getCursorVisibility[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXVisibilityKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXVisibilityKind]("mojo_clang_getCursorVisibility")
@@ -3123,7 +3123,7 @@ def clang_getCursorVisibility[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorVisibility' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorAvailability[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXAvailabilityKind:
+def clang_getCursorAvailability[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXAvailabilityKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXAvailabilityKind]("mojo_clang_getCursorAvailability")
@@ -3131,7 +3131,7 @@ def clang_getCursorAvailability[_origin0: ImmOrigin, //](cursor: Pointer[CXCurso
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorAvailability' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorPlatformAvailability[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0], always_deprecated: Optional[Pointer[c_int, MutUntrackedOrigin]], deprecated_message: Optional[Pointer[CXString, MutUntrackedOrigin]], always_unavailable: Optional[Pointer[c_int, MutUntrackedOrigin]], unavailable_message: Optional[Pointer[CXString, MutUntrackedOrigin]], availability: Optional[Pointer[CXPlatformAvailability, MutUntrackedOrigin]], availability_size: c_int) -> c_int:
+def clang_getCursorPlatformAvailability[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, _origin5: MutOrigin = MutUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0], always_deprecated: Optional[Pointer[c_int, _origin1]], deprecated_message: Optional[Pointer[CXString, _origin2]], always_unavailable: Optional[Pointer[c_int, _origin3]], unavailable_message: Optional[Pointer[CXString, _origin4]], availability: Optional[Pointer[CXPlatformAvailability, _origin5]], availability_size: c_int) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_getCursorPlatformAvailability")
@@ -3139,7 +3139,7 @@ def clang_getCursorPlatformAvailability[_origin0: ImmOrigin, //](cursor: Pointer
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorPlatformAvailability' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeCXPlatformAvailability(availability: Optional[Pointer[CXPlatformAvailability, MutUntrackedOrigin]]) -> None:
+def clang_disposeCXPlatformAvailability[_origin0: MutOrigin = MutUntrackedOrigin, //](availability: Optional[Pointer[CXPlatformAvailability, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeCXPlatformAvailability")
@@ -3147,7 +3147,7 @@ def clang_disposeCXPlatformAvailability(availability: Optional[Pointer[CXPlatfor
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeCXPlatformAvailability' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getVarDeclInitializer[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getVarDeclInitializer[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getVarDeclInitializer")
@@ -3155,7 +3155,7 @@ def clang_Cursor_getVarDeclInitializer[_origin0: MutOrigin, _origin1: ImmOrigin,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getVarDeclInitializer' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_hasVarDeclGlobalStorage[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_hasVarDeclGlobalStorage[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_hasVarDeclGlobalStorage")
@@ -3163,7 +3163,7 @@ def clang_Cursor_hasVarDeclGlobalStorage[_origin0: ImmOrigin, //](cursor: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_hasVarDeclGlobalStorage' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_hasVarDeclExternalStorage[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_hasVarDeclExternalStorage[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_hasVarDeclExternalStorage")
@@ -3171,7 +3171,7 @@ def clang_Cursor_hasVarDeclExternalStorage[_origin0: ImmOrigin, //](cursor: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_hasVarDeclExternalStorage' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorLanguage[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXLanguageKind:
+def clang_getCursorLanguage[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXLanguageKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXLanguageKind]("mojo_clang_getCursorLanguage")
@@ -3179,7 +3179,7 @@ def clang_getCursorLanguage[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorLanguage' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorTLSKind[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXTLSKind:
+def clang_getCursorTLSKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXTLSKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTLSKind]("mojo_clang_getCursorTLSKind")
@@ -3187,7 +3187,7 @@ def clang_getCursorTLSKind[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorTLSKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getTranslationUnit[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CXTranslationUnit:
+def clang_Cursor_getTranslationUnit[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CXTranslationUnit:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTranslationUnit]("mojo_clang_Cursor_getTranslationUnit")
@@ -3211,7 +3211,7 @@ def clang_disposeCXCursorSet(cset: CXCursorSet) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeCXCursorSet' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXCursorSet_contains[_origin0: ImmOrigin, //](cset: CXCursorSet, cursor: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXCursorSet_contains[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cset: CXCursorSet, cursor: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXCursorSet_contains")
@@ -3219,7 +3219,7 @@ def clang_CXCursorSet_contains[_origin0: ImmOrigin, //](cset: CXCursorSet, curso
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXCursorSet_contains' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXCursorSet_insert[_origin0: ImmOrigin, //](cset: CXCursorSet, cursor: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXCursorSet_insert[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cset: CXCursorSet, cursor: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXCursorSet_insert")
@@ -3227,7 +3227,7 @@ def clang_CXCursorSet_insert[_origin0: ImmOrigin, //](cset: CXCursorSet, cursor:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXCursorSet_insert' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorSemanticParent[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorSemanticParent[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorSemanticParent")
@@ -3235,7 +3235,7 @@ def clang_getCursorSemanticParent[_origin0: MutOrigin, _origin1: ImmOrigin, //](
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorSemanticParent' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorLexicalParent[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorLexicalParent[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorLexicalParent")
@@ -3243,7 +3243,7 @@ def clang_getCursorLexicalParent[_origin0: MutOrigin, _origin1: ImmOrigin, //](o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorLexicalParent' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getOverriddenCursors[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0], overridden: Optional[Pointer[Optional[Pointer[CXCursor, MutUntrackedOrigin]], MutUntrackedOrigin]], num_overridden: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getOverriddenCursors[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0], overridden: Optional[Pointer[Optional[Pointer[CXCursor, MutUntrackedOrigin]], _origin1]], num_overridden: Optional[Pointer[c_uint, _origin2]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getOverriddenCursors")
@@ -3251,7 +3251,7 @@ def clang_getOverriddenCursors[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getOverriddenCursors' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeOverriddenCursors(overridden: Optional[Pointer[CXCursor, MutUntrackedOrigin]]) -> None:
+def clang_disposeOverriddenCursors[_origin0: MutOrigin = MutUntrackedOrigin, //](overridden: Optional[Pointer[CXCursor, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeOverriddenCursors")
@@ -3259,7 +3259,7 @@ def clang_disposeOverriddenCursors(overridden: Optional[Pointer[CXCursor, MutUnt
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeOverriddenCursors' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getIncludedFile[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXFile:
+def clang_getIncludedFile[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXFile:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXFile]("mojo_clang_getIncludedFile")
@@ -3267,7 +3267,7 @@ def clang_getIncludedFile[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getIncludedFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursor[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], a1: CXTranslationUnit, a2: Pointer[CXSourceLocation, _origin1]) -> None:
+def clang_getCursor[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], a1: CXTranslationUnit, a2: Pointer[CXSourceLocation, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursor")
@@ -3275,7 +3275,7 @@ def clang_getCursor[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorLocation[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceLocation, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorLocation[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorLocation")
@@ -3283,7 +3283,7 @@ def clang_getCursorLocation[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorExtent[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceRange, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorExtent[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorExtent")
@@ -3291,7 +3291,7 @@ def clang_getCursorExtent[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Po
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorExtent' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorType")
@@ -3299,7 +3299,7 @@ def clang_getCursorType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTypeSpelling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], CT: Pointer[CXType, _origin1]) -> None:
+def clang_getTypeSpelling[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], CT: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTypeSpelling")
@@ -3307,7 +3307,7 @@ def clang_getTypeSpelling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Po
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTypeSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTypedefDeclUnderlyingType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_getTypedefDeclUnderlyingType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTypedefDeclUnderlyingType")
@@ -3315,7 +3315,7 @@ def clang_getTypedefDeclUnderlyingType[_origin0: MutOrigin, _origin1: ImmOrigin,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTypedefDeclUnderlyingType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getEnumDeclIntegerType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_getEnumDeclIntegerType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getEnumDeclIntegerType")
@@ -3323,7 +3323,7 @@ def clang_getEnumDeclIntegerType[_origin0: MutOrigin, _origin1: ImmOrigin, //](o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getEnumDeclIntegerType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getEnumConstantDeclValue[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_long_long:
+def clang_getEnumConstantDeclValue[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_getEnumConstantDeclValue")
@@ -3331,7 +3331,7 @@ def clang_getEnumConstantDeclValue[_origin0: ImmOrigin, //](C: Pointer[CXCursor,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getEnumConstantDeclValue' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getEnumConstantDeclUnsignedValue[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_ulong_long:
+def clang_getEnumConstantDeclUnsignedValue[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_ulong_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_ulong_long]("mojo_clang_getEnumConstantDeclUnsignedValue")
@@ -3339,7 +3339,7 @@ def clang_getEnumConstantDeclUnsignedValue[_origin0: ImmOrigin, //](C: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getEnumConstantDeclUnsignedValue' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isBitField[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isBitField[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isBitField")
@@ -3347,7 +3347,7 @@ def clang_Cursor_isBitField[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isBitField' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFieldDeclBitWidth[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_getFieldDeclBitWidth[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_getFieldDeclBitWidth")
@@ -3355,7 +3355,7 @@ def clang_getFieldDeclBitWidth[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getFieldDeclBitWidth' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getNumArguments[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_getNumArguments[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_getNumArguments")
@@ -3363,7 +3363,7 @@ def clang_Cursor_getNumArguments[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getNumArguments' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getArgument[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], C: Pointer[CXCursor, _origin1], i: c_uint) -> None:
+def clang_Cursor_getArgument[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], C: Pointer[CXCursor, _origin1], i: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getArgument")
@@ -3371,7 +3371,7 @@ def clang_Cursor_getArgument[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getArgument' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getNumTemplateArguments[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_getNumTemplateArguments[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_getNumTemplateArguments")
@@ -3379,7 +3379,7 @@ def clang_Cursor_getNumTemplateArguments[_origin0: ImmOrigin, //](C: Pointer[CXC
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getNumTemplateArguments' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getTemplateArgumentKind[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0], I: c_uint) -> CXTemplateArgumentKind:
+def clang_Cursor_getTemplateArgumentKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0], I: c_uint) -> CXTemplateArgumentKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTemplateArgumentKind]("mojo_clang_Cursor_getTemplateArgumentKind")
@@ -3387,7 +3387,7 @@ def clang_Cursor_getTemplateArgumentKind[_origin0: ImmOrigin, //](C: Pointer[CXC
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getTemplateArgumentKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getTemplateArgumentType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1], I: c_uint) -> None:
+def clang_Cursor_getTemplateArgumentType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1], I: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getTemplateArgumentType")
@@ -3395,7 +3395,7 @@ def clang_Cursor_getTemplateArgumentType[_origin0: MutOrigin, _origin1: ImmOrigi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getTemplateArgumentType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getTemplateArgumentValue[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0], I: c_uint) -> c_long_long:
+def clang_Cursor_getTemplateArgumentValue[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0], I: c_uint) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_Cursor_getTemplateArgumentValue")
@@ -3403,7 +3403,7 @@ def clang_Cursor_getTemplateArgumentValue[_origin0: ImmOrigin, //](C: Pointer[CX
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getTemplateArgumentValue' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getTemplateArgumentUnsignedValue[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0], I: c_uint) -> c_ulong_long:
+def clang_Cursor_getTemplateArgumentUnsignedValue[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0], I: c_uint) -> c_ulong_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_ulong_long]("mojo_clang_Cursor_getTemplateArgumentUnsignedValue")
@@ -3411,7 +3411,7 @@ def clang_Cursor_getTemplateArgumentUnsignedValue[_origin0: ImmOrigin, //](C: Po
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getTemplateArgumentUnsignedValue' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_equalTypes[_origin0: ImmOrigin, _origin1: ImmOrigin, //](A: Pointer[CXType, _origin0], B: Pointer[CXType, _origin1]) -> c_uint:
+def clang_equalTypes[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](A: Pointer[CXType, _origin0], B: Pointer[CXType, _origin1]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_equalTypes")
@@ -3419,7 +3419,7 @@ def clang_equalTypes[_origin0: ImmOrigin, _origin1: ImmOrigin, //](A: Pointer[CX
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_equalTypes' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCanonicalType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_getCanonicalType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCanonicalType")
@@ -3427,7 +3427,7 @@ def clang_getCanonicalType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: P
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCanonicalType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isConstQualifiedType[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_isConstQualifiedType[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isConstQualifiedType")
@@ -3435,7 +3435,7 @@ def clang_isConstQualifiedType[_origin0: ImmOrigin, //](T: Pointer[CXType, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isConstQualifiedType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isMacroFunctionLike[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isMacroFunctionLike[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isMacroFunctionLike")
@@ -3443,7 +3443,7 @@ def clang_Cursor_isMacroFunctionLike[_origin0: ImmOrigin, //](C: Pointer[CXCurso
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isMacroFunctionLike' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isMacroBuiltin[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isMacroBuiltin[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isMacroBuiltin")
@@ -3451,7 +3451,7 @@ def clang_Cursor_isMacroBuiltin[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isMacroBuiltin' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isFunctionInlined[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isFunctionInlined[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isFunctionInlined")
@@ -3459,7 +3459,7 @@ def clang_Cursor_isFunctionInlined[_origin0: ImmOrigin, //](C: Pointer[CXCursor,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isFunctionInlined' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isVolatileQualifiedType[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_isVolatileQualifiedType[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isVolatileQualifiedType")
@@ -3467,7 +3467,7 @@ def clang_isVolatileQualifiedType[_origin0: ImmOrigin, //](T: Pointer[CXType, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isVolatileQualifiedType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isRestrictQualifiedType[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_isRestrictQualifiedType[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isRestrictQualifiedType")
@@ -3475,7 +3475,7 @@ def clang_isRestrictQualifiedType[_origin0: ImmOrigin, //](T: Pointer[CXType, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isRestrictQualifiedType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getAddressSpace[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_getAddressSpace[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_getAddressSpace")
@@ -3483,7 +3483,7 @@ def clang_getAddressSpace[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0])
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getAddressSpace' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTypedefName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], CT: Pointer[CXType, _origin1]) -> None:
+def clang_getTypedefName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], CT: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTypedefName")
@@ -3491,7 +3491,7 @@ def clang_getTypedefName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTypedefName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getPointeeType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_getPointeeType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getPointeeType")
@@ -3499,7 +3499,7 @@ def clang_getPointeeType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getPointeeType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getUnqualifiedType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], CT: Pointer[CXType, _origin1]) -> None:
+def clang_getUnqualifiedType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], CT: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getUnqualifiedType")
@@ -3507,7 +3507,7 @@ def clang_getUnqualifiedType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getUnqualifiedType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNonReferenceType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], CT: Pointer[CXType, _origin1]) -> None:
+def clang_getNonReferenceType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], CT: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getNonReferenceType")
@@ -3515,7 +3515,7 @@ def clang_getNonReferenceType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNonReferenceType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTypeDeclaration[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_getTypeDeclaration[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTypeDeclaration")
@@ -3523,7 +3523,7 @@ def clang_getTypeDeclaration[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTypeDeclaration' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDeclObjCTypeEncoding[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_getDeclObjCTypeEncoding[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDeclObjCTypeEncoding")
@@ -3531,7 +3531,7 @@ def clang_getDeclObjCTypeEncoding[_origin0: MutOrigin, _origin1: ImmOrigin, //](
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getDeclObjCTypeEncoding' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getObjCEncoding[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], type: Pointer[CXType, _origin1]) -> None:
+def clang_Type_getObjCEncoding[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], type: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getObjCEncoding")
@@ -3539,7 +3539,7 @@ def clang_Type_getObjCEncoding[_origin0: MutOrigin, _origin1: ImmOrigin, //](out
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getObjCEncoding' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTypeKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], K: CXTypeKind) -> None:
+def clang_getTypeKindSpelling[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], K: CXTypeKind) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTypeKindSpelling")
@@ -3547,7 +3547,7 @@ def clang_getTypeKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTypeKindSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getFunctionTypeCallingConv[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> CXCallingConv:
+def clang_getFunctionTypeCallingConv[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> CXCallingConv:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCallingConv]("mojo_clang_getFunctionTypeCallingConv")
@@ -3555,7 +3555,7 @@ def clang_getFunctionTypeCallingConv[_origin0: ImmOrigin, //](T: Pointer[CXType,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getFunctionTypeCallingConv' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getResultType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_getResultType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getResultType")
@@ -3563,7 +3563,7 @@ def clang_getResultType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getResultType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getExceptionSpecificationType[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_int:
+def clang_getExceptionSpecificationType[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_getExceptionSpecificationType")
@@ -3571,7 +3571,7 @@ def clang_getExceptionSpecificationType[_origin0: ImmOrigin, //](T: Pointer[CXTy
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getExceptionSpecificationType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNumArgTypes[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_int:
+def clang_getNumArgTypes[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_getNumArgTypes")
@@ -3579,7 +3579,7 @@ def clang_getNumArgTypes[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNumArgTypes' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getArgType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
+def clang_getArgType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getArgType")
@@ -3587,7 +3587,7 @@ def clang_getArgType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getArgType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getObjCObjectBaseType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_Type_getObjCObjectBaseType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getObjCObjectBaseType")
@@ -3595,7 +3595,7 @@ def clang_Type_getObjCObjectBaseType[_origin0: MutOrigin, _origin1: ImmOrigin, /
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getObjCObjectBaseType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getNumObjCProtocolRefs[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_Type_getNumObjCProtocolRefs[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Type_getNumObjCProtocolRefs")
@@ -3603,7 +3603,7 @@ def clang_Type_getNumObjCProtocolRefs[_origin0: ImmOrigin, //](T: Pointer[CXType
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getNumObjCProtocolRefs' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getObjCProtocolDecl[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
+def clang_Type_getObjCProtocolDecl[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getObjCProtocolDecl")
@@ -3611,7 +3611,7 @@ def clang_Type_getObjCProtocolDecl[_origin0: MutOrigin, _origin1: ImmOrigin, //]
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getObjCProtocolDecl' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getNumObjCTypeArgs[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_Type_getNumObjCTypeArgs[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Type_getNumObjCTypeArgs")
@@ -3619,7 +3619,7 @@ def clang_Type_getNumObjCTypeArgs[_origin0: ImmOrigin, //](T: Pointer[CXType, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getNumObjCTypeArgs' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getObjCTypeArg[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
+def clang_Type_getObjCTypeArg[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getObjCTypeArg")
@@ -3627,7 +3627,7 @@ def clang_Type_getObjCTypeArg[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getObjCTypeArg' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isFunctionTypeVariadic[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_isFunctionTypeVariadic[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isFunctionTypeVariadic")
@@ -3635,7 +3635,7 @@ def clang_isFunctionTypeVariadic[_origin0: ImmOrigin, //](T: Pointer[CXType, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isFunctionTypeVariadic' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorResultType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorResultType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorResultType")
@@ -3643,7 +3643,7 @@ def clang_getCursorResultType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorResultType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorExceptionSpecificationType[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_getCursorExceptionSpecificationType[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_getCursorExceptionSpecificationType")
@@ -3651,7 +3651,7 @@ def clang_getCursorExceptionSpecificationType[_origin0: ImmOrigin, //](C: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorExceptionSpecificationType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isPODType[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_isPODType[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isPODType")
@@ -3659,7 +3659,7 @@ def clang_isPODType[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isPODType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getElementType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_getElementType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getElementType")
@@ -3667,7 +3667,7 @@ def clang_getElementType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getElementType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNumElements[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
+def clang_getNumElements[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_getNumElements")
@@ -3675,7 +3675,7 @@ def clang_getNumElements[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNumElements' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getArrayElementType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_getArrayElementType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getArrayElementType")
@@ -3683,7 +3683,7 @@ def clang_getArrayElementType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getArrayElementType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getArraySize[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
+def clang_getArraySize[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_getArraySize")
@@ -3691,7 +3691,7 @@ def clang_getArraySize[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) ->
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getArraySize' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getNamedType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_Type_getNamedType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getNamedType")
@@ -3699,7 +3699,7 @@ def clang_Type_getNamedType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getNamedType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_isTransparentTagTypedef[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
+def clang_Type_isTransparentTagTypedef[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Type_isTransparentTagTypedef")
@@ -3707,7 +3707,7 @@ def clang_Type_isTransparentTagTypedef[_origin0: ImmOrigin, //](T: Pointer[CXTyp
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_isTransparentTagTypedef' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getNullability[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> CXTypeNullabilityKind:
+def clang_Type_getNullability[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> CXTypeNullabilityKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTypeNullabilityKind]("mojo_clang_Type_getNullability")
@@ -3715,7 +3715,7 @@ def clang_Type_getNullability[_origin0: ImmOrigin, //](T: Pointer[CXType, _origi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getNullability' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getAlignOf[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
+def clang_Type_getAlignOf[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_Type_getAlignOf")
@@ -3723,7 +3723,7 @@ def clang_Type_getAlignOf[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0])
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getAlignOf' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getClassType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_Type_getClassType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getClassType")
@@ -3731,7 +3731,7 @@ def clang_Type_getClassType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getClassType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getSizeOf[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
+def clang_Type_getSizeOf[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_Type_getSizeOf")
@@ -3739,7 +3739,7 @@ def clang_Type_getSizeOf[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getSizeOf' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getOffsetOf[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0], S: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> c_long_long:
+def clang_Type_getOffsetOf[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0], S: Optional[Pointer[c_char, _origin1]]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_Type_getOffsetOf")
@@ -3747,7 +3747,7 @@ def clang_Type_getOffsetOf[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getOffsetOf' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getModifiedType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
+def clang_Type_getModifiedType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getModifiedType")
@@ -3755,7 +3755,7 @@ def clang_Type_getModifiedType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getModifiedType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getValueType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], CT: Pointer[CXType, _origin1]) -> None:
+def clang_Type_getValueType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], CT: Pointer[CXType, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getValueType")
@@ -3763,7 +3763,7 @@ def clang_Type_getValueType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getValueType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getOffsetOfField[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_long_long:
+def clang_Cursor_getOffsetOfField[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_long_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_long_long]("mojo_clang_Cursor_getOffsetOfField")
@@ -3771,7 +3771,7 @@ def clang_Cursor_getOffsetOfField[_origin0: ImmOrigin, //](C: Pointer[CXCursor, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getOffsetOfField' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isAnonymous[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isAnonymous[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isAnonymous")
@@ -3779,7 +3779,7 @@ def clang_Cursor_isAnonymous[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isAnonymous' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isAnonymousRecordDecl[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isAnonymousRecordDecl[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isAnonymousRecordDecl")
@@ -3787,7 +3787,7 @@ def clang_Cursor_isAnonymousRecordDecl[_origin0: ImmOrigin, //](C: Pointer[CXCur
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isAnonymousRecordDecl' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isInlineNamespace[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isInlineNamespace[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isInlineNamespace")
@@ -3795,7 +3795,7 @@ def clang_Cursor_isInlineNamespace[_origin0: ImmOrigin, //](C: Pointer[CXCursor,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isInlineNamespace' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getNumTemplateArguments[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> c_int:
+def clang_Type_getNumTemplateArguments[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Type_getNumTemplateArguments")
@@ -3803,7 +3803,7 @@ def clang_Type_getNumTemplateArguments[_origin0: ImmOrigin, //](T: Pointer[CXTyp
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getNumTemplateArguments' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getTemplateArgumentAsType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
+def clang_Type_getTemplateArgumentAsType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], T: Pointer[CXType, _origin1], i: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Type_getTemplateArgumentAsType")
@@ -3811,7 +3811,7 @@ def clang_Type_getTemplateArgumentAsType[_origin0: MutOrigin, _origin1: ImmOrigi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getTemplateArgumentAsType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_getCXXRefQualifier[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]) -> CXRefQualifierKind:
+def clang_Type_getCXXRefQualifier[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0]) -> CXRefQualifierKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXRefQualifierKind]("mojo_clang_Type_getCXXRefQualifier")
@@ -3819,7 +3819,7 @@ def clang_Type_getCXXRefQualifier[_origin0: ImmOrigin, //](T: Pointer[CXType, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_getCXXRefQualifier' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isVirtualBase[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_isVirtualBase[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isVirtualBase")
@@ -3827,7 +3827,7 @@ def clang_isVirtualBase[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isVirtualBase' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCXXAccessSpecifier[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CX_CXXAccessSpecifier:
+def clang_getCXXAccessSpecifier[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CX_CXXAccessSpecifier:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CX_CXXAccessSpecifier]("mojo_clang_getCXXAccessSpecifier")
@@ -3835,7 +3835,7 @@ def clang_getCXXAccessSpecifier[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCXXAccessSpecifier' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getStorageClass[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CX_StorageClass:
+def clang_Cursor_getStorageClass[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CX_StorageClass:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CX_StorageClass]("mojo_clang_Cursor_getStorageClass")
@@ -3843,7 +3843,7 @@ def clang_Cursor_getStorageClass[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getStorageClass' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getNumOverloadedDecls[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_getNumOverloadedDecls[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_getNumOverloadedDecls")
@@ -3851,7 +3851,7 @@ def clang_getNumOverloadedDecls[_origin0: ImmOrigin, //](cursor: Pointer[CXCurso
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getNumOverloadedDecls' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getOverloadedDecl[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1], index: c_uint) -> None:
+def clang_getOverloadedDecl[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], cursor: Pointer[CXCursor, _origin1], index: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getOverloadedDecl")
@@ -3859,7 +3859,7 @@ def clang_getOverloadedDecl[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getOverloadedDecl' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getIBOutletCollectionType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getIBOutletCollectionType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getIBOutletCollectionType")
@@ -3867,7 +3867,7 @@ def clang_getIBOutletCollectionType[_origin0: MutOrigin, _origin1: ImmOrigin, //
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getIBOutletCollectionType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_visitChildren[_origin0: ImmOrigin, //](parent: Pointer[CXCursor, _origin0], visitor: CXCursorVisitor, client_data: CXClientData) -> c_uint:
+def clang_visitChildren[_origin0: ImmOrigin = ImmUntrackedOrigin, //](parent: Pointer[CXCursor, _origin0], visitor: CXCursorVisitor, client_data: CXClientData) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_visitChildren")
@@ -3875,7 +3875,7 @@ def clang_visitChildren[_origin0: ImmOrigin, //](parent: Pointer[CXCursor, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_visitChildren' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_visitChildrenWithBlock[_origin0: ImmOrigin, //](parent: Pointer[CXCursor, _origin0], block: CXCursorVisitorBlock) -> c_uint:
+def clang_visitChildrenWithBlock[_origin0: ImmOrigin = ImmUntrackedOrigin, //](parent: Pointer[CXCursor, _origin0], block: CXCursorVisitorBlock) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_visitChildrenWithBlock")
@@ -3883,7 +3883,7 @@ def clang_visitChildrenWithBlock[_origin0: ImmOrigin, //](parent: Pointer[CXCurs
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_visitChildrenWithBlock' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorUSR[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorUSR[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorUSR")
@@ -3891,7 +3891,7 @@ def clang_getCursorUSR[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Point
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorUSR' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_constructUSR_ObjCClass[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], class_name: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> None:
+def clang_constructUSR_ObjCClass[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], class_name: Optional[Pointer[c_char, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_constructUSR_ObjCClass")
@@ -3899,7 +3899,7 @@ def clang_constructUSR_ObjCClass[_origin0: MutOrigin, //](out_: Pointer[CXString
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_constructUSR_ObjCClass' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_constructUSR_ObjCCategory[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], class_name: Optional[Pointer[c_char, ImmUntrackedOrigin]], category_name: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> None:
+def clang_constructUSR_ObjCCategory[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], class_name: Optional[Pointer[c_char, _origin1]], category_name: Optional[Pointer[c_char, _origin2]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_constructUSR_ObjCCategory")
@@ -3907,7 +3907,7 @@ def clang_constructUSR_ObjCCategory[_origin0: MutOrigin, //](out_: Pointer[CXStr
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_constructUSR_ObjCCategory' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_constructUSR_ObjCProtocol[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], protocol_name: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> None:
+def clang_constructUSR_ObjCProtocol[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], protocol_name: Optional[Pointer[c_char, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_constructUSR_ObjCProtocol")
@@ -3915,7 +3915,7 @@ def clang_constructUSR_ObjCProtocol[_origin0: MutOrigin, //](out_: Pointer[CXStr
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_constructUSR_ObjCProtocol' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_constructUSR_ObjCIvar[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], name: Optional[Pointer[c_char, ImmUntrackedOrigin]], classUSR: Pointer[CXString, _origin1]) -> None:
+def clang_constructUSR_ObjCIvar[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], name: Optional[Pointer[c_char, _origin1]], classUSR: Pointer[CXString, _origin2]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_constructUSR_ObjCIvar")
@@ -3923,7 +3923,7 @@ def clang_constructUSR_ObjCIvar[_origin0: MutOrigin, _origin1: ImmOrigin, //](ou
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_constructUSR_ObjCIvar' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_constructUSR_ObjCMethod[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], name: Optional[Pointer[c_char, ImmUntrackedOrigin]], isInstanceMethod: c_uint, classUSR: Pointer[CXString, _origin1]) -> None:
+def clang_constructUSR_ObjCMethod[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], name: Optional[Pointer[c_char, _origin1]], isInstanceMethod: c_uint, classUSR: Pointer[CXString, _origin2]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_constructUSR_ObjCMethod")
@@ -3931,7 +3931,7 @@ def clang_constructUSR_ObjCMethod[_origin0: MutOrigin, _origin1: ImmOrigin, //](
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_constructUSR_ObjCMethod' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_constructUSR_ObjCProperty[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], property: Optional[Pointer[c_char, ImmUntrackedOrigin]], classUSR: Pointer[CXString, _origin1]) -> None:
+def clang_constructUSR_ObjCProperty[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], property: Optional[Pointer[c_char, _origin1]], classUSR: Pointer[CXString, _origin2]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_constructUSR_ObjCProperty")
@@ -3939,7 +3939,7 @@ def clang_constructUSR_ObjCProperty[_origin0: MutOrigin, _origin1: ImmOrigin, //
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_constructUSR_ObjCProperty' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorSpelling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorSpelling[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorSpelling")
@@ -3947,7 +3947,7 @@ def clang_getCursorSpelling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getSpellingNameRange[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceRange, _origin0], a1: Pointer[CXCursor, _origin1], pieceIndex: c_uint, options: c_uint) -> None:
+def clang_Cursor_getSpellingNameRange[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], a1: Pointer[CXCursor, _origin1], pieceIndex: c_uint, options: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getSpellingNameRange")
@@ -3971,7 +3971,7 @@ def clang_PrintingPolicy_setProperty(Policy: CXPrintingPolicy, Property: CXPrint
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_PrintingPolicy_setProperty' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorPrintingPolicy[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CXPrintingPolicy:
+def clang_getCursorPrintingPolicy[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> CXPrintingPolicy:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXPrintingPolicy]("mojo_clang_getCursorPrintingPolicy")
@@ -3987,7 +3987,7 @@ def clang_PrintingPolicy_dispose(Policy: CXPrintingPolicy) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_PrintingPolicy_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorPrettyPrinted[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Cursor: Pointer[CXCursor, _origin1], Policy: CXPrintingPolicy) -> None:
+def clang_getCursorPrettyPrinted[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Cursor: Pointer[CXCursor, _origin1], Policy: CXPrintingPolicy) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorPrettyPrinted")
@@ -3995,7 +3995,7 @@ def clang_getCursorPrettyPrinted[_origin0: MutOrigin, _origin1: ImmOrigin, //](o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorPrettyPrinted' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorDisplayName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorDisplayName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorDisplayName")
@@ -4003,7 +4003,7 @@ def clang_getCursorDisplayName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorDisplayName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorReferenced[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorReferenced[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorReferenced")
@@ -4011,7 +4011,7 @@ def clang_getCursorReferenced[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorReferenced' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorDefinition[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCursorDefinition[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorDefinition")
@@ -4019,7 +4019,7 @@ def clang_getCursorDefinition[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorDefinition' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_isCursorDefinition[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_isCursorDefinition[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_isCursorDefinition")
@@ -4027,7 +4027,7 @@ def clang_isCursorDefinition[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _ori
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_isCursorDefinition' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCanonicalCursor[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_getCanonicalCursor[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCanonicalCursor")
@@ -4035,7 +4035,7 @@ def clang_getCanonicalCursor[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCanonicalCursor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getObjCSelectorIndex[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_getObjCSelectorIndex[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_getObjCSelectorIndex")
@@ -4043,7 +4043,7 @@ def clang_Cursor_getObjCSelectorIndex[_origin0: ImmOrigin, //](a0: Pointer[CXCur
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getObjCSelectorIndex' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isDynamicCall[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
+def clang_Cursor_isDynamicCall[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_Cursor_isDynamicCall")
@@ -4051,7 +4051,7 @@ def clang_Cursor_isDynamicCall[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isDynamicCall' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getReceiverType[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getReceiverType[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXType, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getReceiverType")
@@ -4059,7 +4059,7 @@ def clang_Cursor_getReceiverType[_origin0: MutOrigin, _origin1: ImmOrigin, //](o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getReceiverType' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getObjCPropertyAttributes[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0], reserved: c_uint) -> c_uint:
+def clang_Cursor_getObjCPropertyAttributes[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0], reserved: c_uint) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_getObjCPropertyAttributes")
@@ -4067,7 +4067,7 @@ def clang_Cursor_getObjCPropertyAttributes[_origin0: ImmOrigin, //](C: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getObjCPropertyAttributes' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getObjCPropertyGetterName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getObjCPropertyGetterName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getObjCPropertyGetterName")
@@ -4075,7 +4075,7 @@ def clang_Cursor_getObjCPropertyGetterName[_origin0: MutOrigin, _origin1: ImmOri
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getObjCPropertyGetterName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getObjCPropertySetterName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getObjCPropertySetterName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getObjCPropertySetterName")
@@ -4083,7 +4083,7 @@ def clang_Cursor_getObjCPropertySetterName[_origin0: MutOrigin, _origin1: ImmOri
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getObjCPropertySetterName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getObjCDeclQualifiers[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_getObjCDeclQualifiers[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_getObjCDeclQualifiers")
@@ -4091,7 +4091,7 @@ def clang_Cursor_getObjCDeclQualifiers[_origin0: ImmOrigin, //](C: Pointer[CXCur
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getObjCDeclQualifiers' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isObjCOptional[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isObjCOptional[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isObjCOptional")
@@ -4099,7 +4099,7 @@ def clang_Cursor_isObjCOptional[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isObjCOptional' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isVariadic[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_Cursor_isVariadic[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isVariadic")
@@ -4107,7 +4107,7 @@ def clang_Cursor_isVariadic[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isVariadic' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_isExternalSymbol[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0], language: Optional[Pointer[CXString, MutUntrackedOrigin]], definedIn: Optional[Pointer[CXString, MutUntrackedOrigin]], isGenerated: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> c_uint:
+def clang_Cursor_isExternalSymbol[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, //](C: Pointer[CXCursor, _origin0], language: Optional[Pointer[CXString, _origin1]], definedIn: Optional[Pointer[CXString, _origin2]], isGenerated: Optional[Pointer[c_uint, _origin3]]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Cursor_isExternalSymbol")
@@ -4115,7 +4115,7 @@ def clang_Cursor_isExternalSymbol[_origin0: ImmOrigin, //](C: Pointer[CXCursor, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_isExternalSymbol' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getCommentRange[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceRange, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getCommentRange[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getCommentRange")
@@ -4123,7 +4123,7 @@ def clang_Cursor_getCommentRange[_origin0: MutOrigin, _origin1: ImmOrigin, //](o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getCommentRange' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getRawCommentText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getRawCommentText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getRawCommentText")
@@ -4131,7 +4131,7 @@ def clang_Cursor_getRawCommentText[_origin0: MutOrigin, _origin1: ImmOrigin, //]
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getRawCommentText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getBriefCommentText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getBriefCommentText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getBriefCommentText")
@@ -4139,7 +4139,7 @@ def clang_Cursor_getBriefCommentText[_origin0: MutOrigin, _origin1: ImmOrigin, /
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getBriefCommentText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getMangling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getMangling[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getMangling")
@@ -4147,7 +4147,7 @@ def clang_Cursor_getMangling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getMangling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getCXXManglings[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> Optional[Pointer[CXStringSet, MutUntrackedOrigin]]:
+def clang_Cursor_getCXXManglings[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> Optional[Pointer[CXStringSet, MutUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXStringSet, MutUntrackedOrigin]]]("mojo_clang_Cursor_getCXXManglings")
@@ -4155,7 +4155,7 @@ def clang_Cursor_getCXXManglings[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getCXXManglings' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getObjCManglings[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0]) -> Optional[Pointer[CXStringSet, MutUntrackedOrigin]]:
+def clang_Cursor_getObjCManglings[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0]) -> Optional[Pointer[CXStringSet, MutUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXStringSet, MutUntrackedOrigin]]]("mojo_clang_Cursor_getObjCManglings")
@@ -4163,7 +4163,7 @@ def clang_Cursor_getObjCManglings[_origin0: ImmOrigin, //](a0: Pointer[CXCursor,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getObjCManglings' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getModule[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> CXModule:
+def clang_Cursor_getModule[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> CXModule:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXModule]("mojo_clang_Cursor_getModule")
@@ -4195,7 +4195,7 @@ def clang_Module_getParent(Module: CXModule) -> CXModule:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Module_getParent' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Module_getName[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Module: CXModule) -> None:
+def clang_Module_getName[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Module: CXModule) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Module_getName")
@@ -4203,7 +4203,7 @@ def clang_Module_getName[_origin0: MutOrigin, //](out_: Pointer[CXString, _origi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Module_getName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Module_getFullName[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Module: CXModule) -> None:
+def clang_Module_getFullName[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Module: CXModule) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Module_getFullName")
@@ -4235,7 +4235,7 @@ def clang_Module_getTopLevelHeader(a0: CXTranslationUnit, Module: CXModule, Inde
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Module_getTopLevelHeader' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXConstructor_isConvertingConstructor[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXConstructor_isConvertingConstructor[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXConstructor_isConvertingConstructor")
@@ -4243,7 +4243,7 @@ def clang_CXXConstructor_isConvertingConstructor[_origin0: ImmOrigin, //](C: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXConstructor_isConvertingConstructor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXConstructor_isCopyConstructor[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXConstructor_isCopyConstructor[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXConstructor_isCopyConstructor")
@@ -4251,7 +4251,7 @@ def clang_CXXConstructor_isCopyConstructor[_origin0: ImmOrigin, //](C: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXConstructor_isCopyConstructor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXConstructor_isDefaultConstructor[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXConstructor_isDefaultConstructor[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXConstructor_isDefaultConstructor")
@@ -4259,7 +4259,7 @@ def clang_CXXConstructor_isDefaultConstructor[_origin0: ImmOrigin, //](C: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXConstructor_isDefaultConstructor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXConstructor_isMoveConstructor[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXConstructor_isMoveConstructor[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXConstructor_isMoveConstructor")
@@ -4267,7 +4267,7 @@ def clang_CXXConstructor_isMoveConstructor[_origin0: ImmOrigin, //](C: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXConstructor_isMoveConstructor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXField_isMutable[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXField_isMutable[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXField_isMutable")
@@ -4275,7 +4275,7 @@ def clang_CXXField_isMutable[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXField_isMutable' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isDefaulted[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isDefaulted[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isDefaulted")
@@ -4283,7 +4283,7 @@ def clang_CXXMethod_isDefaulted[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isDefaulted' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isDeleted[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isDeleted[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isDeleted")
@@ -4291,7 +4291,7 @@ def clang_CXXMethod_isDeleted[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _ori
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isDeleted' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isPureVirtual[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isPureVirtual[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isPureVirtual")
@@ -4299,7 +4299,7 @@ def clang_CXXMethod_isPureVirtual[_origin0: ImmOrigin, //](C: Pointer[CXCursor, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isPureVirtual' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isStatic[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isStatic[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isStatic")
@@ -4307,7 +4307,7 @@ def clang_CXXMethod_isStatic[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _orig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isStatic' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isVirtual[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isVirtual[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isVirtual")
@@ -4315,7 +4315,7 @@ def clang_CXXMethod_isVirtual[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _ori
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isVirtual' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isCopyAssignmentOperator[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isCopyAssignmentOperator[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isCopyAssignmentOperator")
@@ -4323,7 +4323,7 @@ def clang_CXXMethod_isCopyAssignmentOperator[_origin0: ImmOrigin, //](C: Pointer
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isCopyAssignmentOperator' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isMoveAssignmentOperator[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isMoveAssignmentOperator[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isMoveAssignmentOperator")
@@ -4331,7 +4331,7 @@ def clang_CXXMethod_isMoveAssignmentOperator[_origin0: ImmOrigin, //](C: Pointer
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isMoveAssignmentOperator' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isExplicit[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isExplicit[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isExplicit")
@@ -4339,7 +4339,7 @@ def clang_CXXMethod_isExplicit[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isExplicit' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXRecord_isAbstract[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXRecord_isAbstract[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXRecord_isAbstract")
@@ -4347,7 +4347,7 @@ def clang_CXXRecord_isAbstract[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _or
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXRecord_isAbstract' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_EnumDecl_isScoped[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_EnumDecl_isScoped[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_EnumDecl_isScoped")
@@ -4355,7 +4355,7 @@ def clang_EnumDecl_isScoped[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_EnumDecl_isScoped' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXXMethod_isConst[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
+def clang_CXXMethod_isConst[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_CXXMethod_isConst")
@@ -4363,7 +4363,7 @@ def clang_CXXMethod_isConst[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXXMethod_isConst' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTemplateCursorKind[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> CXCursorKind:
+def clang_getTemplateCursorKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> CXCursorKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCursorKind]("mojo_clang_getTemplateCursorKind")
@@ -4371,7 +4371,7 @@ def clang_getTemplateCursorKind[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _o
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTemplateCursorKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getSpecializedCursorTemplate[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXCursor, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_getSpecializedCursorTemplate[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXCursor, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getSpecializedCursorTemplate")
@@ -4379,7 +4379,7 @@ def clang_getSpecializedCursorTemplate[_origin0: MutOrigin, _origin1: ImmOrigin,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getSpecializedCursorTemplate' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorReferenceNameRange[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceRange, _origin0], C: Pointer[CXCursor, _origin1], NameFlags: c_uint, PieceIndex: c_uint) -> None:
+def clang_getCursorReferenceNameRange[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], C: Pointer[CXCursor, _origin1], NameFlags: c_uint, PieceIndex: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorReferenceNameRange")
@@ -4387,7 +4387,7 @@ def clang_getCursorReferenceNameRange[_origin0: MutOrigin, _origin1: ImmOrigin, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorReferenceNameRange' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getToken[_origin0: ImmOrigin, //](TU: CXTranslationUnit, Location: Pointer[CXSourceLocation, _origin0]) -> Optional[Pointer[CXToken, MutUntrackedOrigin]]:
+def clang_getToken[_origin0: ImmOrigin = ImmUntrackedOrigin, //](TU: CXTranslationUnit, Location: Pointer[CXSourceLocation, _origin0]) -> Optional[Pointer[CXToken, MutUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXToken, MutUntrackedOrigin]]]("mojo_clang_getToken")
@@ -4395,7 +4395,7 @@ def clang_getToken[_origin0: ImmOrigin, //](TU: CXTranslationUnit, Location: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getToken' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTokenKind[_origin0: ImmOrigin, //](a0: Pointer[CXToken, _origin0]) -> CXTokenKind:
+def clang_getTokenKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXToken, _origin0]) -> CXTokenKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXTokenKind]("mojo_clang_getTokenKind")
@@ -4403,7 +4403,7 @@ def clang_getTokenKind[_origin0: ImmOrigin, //](a0: Pointer[CXToken, _origin0]) 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTokenKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTokenSpelling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], a1: CXTranslationUnit, a2: Pointer[CXToken, _origin1]) -> None:
+def clang_getTokenSpelling[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXTranslationUnit, a2: Pointer[CXToken, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTokenSpelling")
@@ -4411,7 +4411,7 @@ def clang_getTokenSpelling[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: P
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTokenSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTokenLocation[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceLocation, _origin0], a1: CXTranslationUnit, a2: Pointer[CXToken, _origin1]) -> None:
+def clang_getTokenLocation[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], a1: CXTranslationUnit, a2: Pointer[CXToken, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTokenLocation")
@@ -4419,7 +4419,7 @@ def clang_getTokenLocation[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: P
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTokenLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getTokenExtent[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceRange, _origin0], a1: CXTranslationUnit, a2: Pointer[CXToken, _origin1]) -> None:
+def clang_getTokenExtent[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceRange, _origin0], a1: CXTranslationUnit, a2: Pointer[CXToken, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getTokenExtent")
@@ -4427,7 +4427,7 @@ def clang_getTokenExtent[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getTokenExtent' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_tokenize[_origin0: ImmOrigin, //](TU: CXTranslationUnit, Range: Pointer[CXSourceRange, _origin0], Tokens: Optional[Pointer[Optional[Pointer[CXToken, MutUntrackedOrigin]], MutUntrackedOrigin]], NumTokens: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_tokenize[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, //](TU: CXTranslationUnit, Range: Pointer[CXSourceRange, _origin0], Tokens: Optional[Pointer[Optional[Pointer[CXToken, MutUntrackedOrigin]], _origin1]], NumTokens: Optional[Pointer[c_uint, _origin2]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_tokenize")
@@ -4435,7 +4435,7 @@ def clang_tokenize[_origin0: ImmOrigin, //](TU: CXTranslationUnit, Range: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_tokenize' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_annotateTokens(TU: CXTranslationUnit, Tokens: Optional[Pointer[CXToken, MutUntrackedOrigin]], NumTokens: c_uint, Cursors: Optional[Pointer[CXCursor, MutUntrackedOrigin]]) -> None:
+def clang_annotateTokens[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](TU: CXTranslationUnit, Tokens: Optional[Pointer[CXToken, _origin0]], NumTokens: c_uint, Cursors: Optional[Pointer[CXCursor, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_annotateTokens")
@@ -4443,7 +4443,7 @@ def clang_annotateTokens(TU: CXTranslationUnit, Tokens: Optional[Pointer[CXToken
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_annotateTokens' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeTokens(TU: CXTranslationUnit, Tokens: Optional[Pointer[CXToken, MutUntrackedOrigin]], NumTokens: c_uint) -> None:
+def clang_disposeTokens[_origin0: MutOrigin = MutUntrackedOrigin, //](TU: CXTranslationUnit, Tokens: Optional[Pointer[CXToken, _origin0]], NumTokens: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeTokens")
@@ -4451,7 +4451,7 @@ def clang_disposeTokens(TU: CXTranslationUnit, Tokens: Optional[Pointer[CXToken,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeTokens' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Kind: CXCursorKind) -> None:
+def clang_getCursorKindSpelling[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Kind: CXCursorKind) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCursorKindSpelling")
@@ -4459,7 +4459,7 @@ def clang_getCursorKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorKindSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getDefinitionSpellingAndExtent[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0], startBuf: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], MutUntrackedOrigin]], endBuf: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], MutUntrackedOrigin]], startLine: Optional[Pointer[c_uint, MutUntrackedOrigin]], startColumn: Optional[Pointer[c_uint, MutUntrackedOrigin]], endLine: Optional[Pointer[c_uint, MutUntrackedOrigin]], endColumn: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_getDefinitionSpellingAndExtent[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, _origin5: MutOrigin = MutUntrackedOrigin, _origin6: MutOrigin = MutUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0], startBuf: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin1]], endBuf: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin2]], startLine: Optional[Pointer[c_uint, _origin3]], startColumn: Optional[Pointer[c_uint, _origin4]], endLine: Optional[Pointer[c_uint, _origin5]], endColumn: Optional[Pointer[c_uint, _origin6]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getDefinitionSpellingAndExtent")
@@ -4475,7 +4475,7 @@ def clang_enableStackTraces() -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_enableStackTraces' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_executeOnThread(fn_: clang_executeOnThread_fn__cb, user_data: Optional[OpaquePointer[mut=True, MutUntrackedOrigin]], stack_size: c_uint) -> None:
+def clang_executeOnThread[_origin0: MutOrigin = MutUntrackedOrigin, //](fn_: clang_executeOnThread_fn__cb, user_data: Optional[OpaquePointer[mut=True, _origin0]], stack_size: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_executeOnThread")
@@ -4491,7 +4491,7 @@ def clang_getCompletionChunkKind(completion_string: CXCompletionString, chunk_nu
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCompletionChunkKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCompletionChunkText[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString, chunk_number: c_uint) -> None:
+def clang_getCompletionChunkText[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString, chunk_number: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCompletionChunkText")
@@ -4539,7 +4539,7 @@ def clang_getCompletionNumAnnotations(completion_string: CXCompletionString) -> 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCompletionNumAnnotations' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCompletionAnnotation[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString, annotation_number: c_uint) -> None:
+def clang_getCompletionAnnotation[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString, annotation_number: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCompletionAnnotation")
@@ -4547,7 +4547,7 @@ def clang_getCompletionAnnotation[_origin0: MutOrigin, //](out_: Pointer[CXStrin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCompletionAnnotation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCompletionParent[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString, kind: Optional[Pointer[CXCursorKind, MutUntrackedOrigin]]) -> None:
+def clang_getCompletionParent[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString, kind: Optional[Pointer[CXCursorKind, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCompletionParent")
@@ -4555,7 +4555,7 @@ def clang_getCompletionParent[_origin0: MutOrigin, //](out_: Pointer[CXString, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCompletionParent' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCompletionBriefComment[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString) -> None:
+def clang_getCompletionBriefComment[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], completion_string: CXCompletionString) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCompletionBriefComment")
@@ -4563,7 +4563,7 @@ def clang_getCompletionBriefComment[_origin0: MutOrigin, //](out_: Pointer[CXStr
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCompletionBriefComment' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorCompletionString[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXCompletionString:
+def clang_getCursorCompletionString[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXCompletionString:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCompletionString]("mojo_clang_getCursorCompletionString")
@@ -4571,7 +4571,7 @@ def clang_getCursorCompletionString[_origin0: ImmOrigin, //](cursor: Pointer[CXC
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorCompletionString' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCompletionNumFixIts(results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]], completion_index: c_uint) -> c_uint:
+def clang_getCompletionNumFixIts[_origin0: MutOrigin = MutUntrackedOrigin, //](results: Optional[Pointer[CXCodeCompleteResults, _origin0]], completion_index: c_uint) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_getCompletionNumFixIts")
@@ -4579,7 +4579,7 @@ def clang_getCompletionNumFixIts(results: Optional[Pointer[CXCodeCompleteResults
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCompletionNumFixIts' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCompletionFixIt[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]], completion_index: c_uint, fixit_index: c_uint, replacement_range: Optional[Pointer[CXSourceRange, MutUntrackedOrigin]]) -> None:
+def clang_getCompletionFixIt[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], results: Optional[Pointer[CXCodeCompleteResults, _origin1]], completion_index: c_uint, fixit_index: c_uint, replacement_range: Optional[Pointer[CXSourceRange, _origin2]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getCompletionFixIt")
@@ -4595,7 +4595,7 @@ def clang_defaultCodeCompleteOptions() -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_defaultCodeCompleteOptions' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteAt(TU: CXTranslationUnit, complete_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], complete_line: c_uint, complete_column: c_uint, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, options: c_uint) -> Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]:
+def clang_codeCompleteAt[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](TU: CXTranslationUnit, complete_filename: Optional[Pointer[c_char, _origin0]], complete_line: c_uint, complete_column: c_uint, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin1]], num_unsaved_files: c_uint, options: c_uint) -> Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]]("mojo_clang_codeCompleteAt")
@@ -4603,7 +4603,7 @@ def clang_codeCompleteAt(TU: CXTranslationUnit, complete_filename: Optional[Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteAt' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_sortCodeCompletionResults(Results: Optional[Pointer[CXCompletionResult, MutUntrackedOrigin]], NumResults: c_uint) -> None:
+def clang_sortCodeCompletionResults[_origin0: MutOrigin = MutUntrackedOrigin, //](Results: Optional[Pointer[CXCompletionResult, _origin0]], NumResults: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_sortCodeCompletionResults")
@@ -4611,7 +4611,7 @@ def clang_sortCodeCompletionResults(Results: Optional[Pointer[CXCompletionResult
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_sortCodeCompletionResults' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_disposeCodeCompleteResults(Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> None:
+def clang_disposeCodeCompleteResults[_origin0: MutOrigin = MutUntrackedOrigin, //](Results: Optional[Pointer[CXCodeCompleteResults, _origin0]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_disposeCodeCompleteResults")
@@ -4619,7 +4619,7 @@ def clang_disposeCodeCompleteResults(Results: Optional[Pointer[CXCodeCompleteRes
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeCodeCompleteResults' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteGetNumDiagnostics(Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> c_uint:
+def clang_codeCompleteGetNumDiagnostics[_origin0: MutOrigin = MutUntrackedOrigin, //](Results: Optional[Pointer[CXCodeCompleteResults, _origin0]]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_codeCompleteGetNumDiagnostics")
@@ -4627,7 +4627,7 @@ def clang_codeCompleteGetNumDiagnostics(Results: Optional[Pointer[CXCodeComplete
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteGetNumDiagnostics' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteGetDiagnostic(Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]], Index: c_uint) -> CXDiagnostic:
+def clang_codeCompleteGetDiagnostic[_origin0: MutOrigin = MutUntrackedOrigin, //](Results: Optional[Pointer[CXCodeCompleteResults, _origin0]], Index: c_uint) -> CXDiagnostic:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXDiagnostic]("mojo_clang_codeCompleteGetDiagnostic")
@@ -4635,7 +4635,7 @@ def clang_codeCompleteGetDiagnostic(Results: Optional[Pointer[CXCodeCompleteResu
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteGetDiagnostic' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteGetContexts(Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> c_ulong_long:
+def clang_codeCompleteGetContexts[_origin0: MutOrigin = MutUntrackedOrigin, //](Results: Optional[Pointer[CXCodeCompleteResults, _origin0]]) -> c_ulong_long:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_ulong_long]("mojo_clang_codeCompleteGetContexts")
@@ -4643,7 +4643,7 @@ def clang_codeCompleteGetContexts(Results: Optional[Pointer[CXCodeCompleteResult
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteGetContexts' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteGetContainerKind(Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]], IsIncomplete: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> CXCursorKind:
+def clang_codeCompleteGetContainerKind[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](Results: Optional[Pointer[CXCodeCompleteResults, _origin0]], IsIncomplete: Optional[Pointer[c_uint, _origin1]]) -> CXCursorKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCursorKind]("mojo_clang_codeCompleteGetContainerKind")
@@ -4651,7 +4651,7 @@ def clang_codeCompleteGetContainerKind(Results: Optional[Pointer[CXCodeCompleteR
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteGetContainerKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteGetContainerUSR[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> None:
+def clang_codeCompleteGetContainerUSR[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Results: Optional[Pointer[CXCodeCompleteResults, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_codeCompleteGetContainerUSR")
@@ -4659,7 +4659,7 @@ def clang_codeCompleteGetContainerUSR[_origin0: MutOrigin, //](out_: Pointer[CXS
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteGetContainerUSR' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_codeCompleteGetObjCSelector[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], Results: Optional[Pointer[CXCodeCompleteResults, MutUntrackedOrigin]]) -> None:
+def clang_codeCompleteGetObjCSelector[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Results: Optional[Pointer[CXCodeCompleteResults, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_codeCompleteGetObjCSelector")
@@ -4667,7 +4667,7 @@ def clang_codeCompleteGetObjCSelector[_origin0: MutOrigin, //](out_: Pointer[CXS
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_codeCompleteGetObjCSelector' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getClangVersion[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0]) -> None:
+def clang_getClangVersion[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getClangVersion")
@@ -4691,7 +4691,7 @@ def clang_getInclusions(tu: CXTranslationUnit, visitor: CXInclusionVisitor, clie
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getInclusions' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_Evaluate[_origin0: ImmOrigin, //](C: Pointer[CXCursor, _origin0]) -> CXEvalResult:
+def clang_Cursor_Evaluate[_origin0: ImmOrigin = ImmUntrackedOrigin, //](C: Pointer[CXCursor, _origin0]) -> CXEvalResult:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXEvalResult]("mojo_clang_Cursor_Evaluate")
@@ -4763,7 +4763,7 @@ def clang_EvalResult_dispose(E: CXEvalResult) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_EvalResult_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getRemappings(path: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXRemapping:
+def clang_getRemappings[_origin0: ImmOrigin = ImmUntrackedOrigin, //](path: Optional[Pointer[c_char, _origin0]]) -> CXRemapping:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXRemapping]("mojo_clang_getRemappings")
@@ -4771,7 +4771,7 @@ def clang_getRemappings(path: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getRemappings' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getRemappingsFromFileList(filePaths: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], MutUntrackedOrigin]], numFiles: c_uint) -> CXRemapping:
+def clang_getRemappingsFromFileList[_origin0: MutOrigin = MutUntrackedOrigin, //](filePaths: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin0]], numFiles: c_uint) -> CXRemapping:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXRemapping]("mojo_clang_getRemappingsFromFileList")
@@ -4787,7 +4787,7 @@ def clang_remap_getNumFiles(a0: CXRemapping) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_remap_getNumFiles' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_remap_getFilenames(a0: CXRemapping, index: c_uint, original: Optional[Pointer[CXString, MutUntrackedOrigin]], transformed: Optional[Pointer[CXString, MutUntrackedOrigin]]) -> None:
+def clang_remap_getFilenames[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](a0: CXRemapping, index: c_uint, original: Optional[Pointer[CXString, _origin0]], transformed: Optional[Pointer[CXString, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_remap_getFilenames")
@@ -4803,7 +4803,7 @@ def clang_remap_dispose(a0: CXRemapping) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_remap_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_findReferencesInFile[_origin0: ImmOrigin, _origin1: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0], file: CXFile, visitor: Pointer[CXCursorAndRangeVisitor, _origin1]) -> CXResult:
+def clang_findReferencesInFile[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0], file: CXFile, visitor: Pointer[CXCursorAndRangeVisitor, _origin1]) -> CXResult:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXResult]("mojo_clang_findReferencesInFile")
@@ -4811,7 +4811,7 @@ def clang_findReferencesInFile[_origin0: ImmOrigin, _origin1: ImmOrigin, //](cur
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_findReferencesInFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_findIncludesInFile[_origin0: ImmOrigin, //](TU: CXTranslationUnit, file: CXFile, visitor: Pointer[CXCursorAndRangeVisitor, _origin0]) -> CXResult:
+def clang_findIncludesInFile[_origin0: ImmOrigin = ImmUntrackedOrigin, //](TU: CXTranslationUnit, file: CXFile, visitor: Pointer[CXCursorAndRangeVisitor, _origin0]) -> CXResult:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXResult]("mojo_clang_findIncludesInFile")
@@ -4819,7 +4819,7 @@ def clang_findIncludesInFile[_origin0: ImmOrigin, //](TU: CXTranslationUnit, fil
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_findIncludesInFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_findReferencesInFileWithBlock[_origin0: ImmOrigin, //](a0: Pointer[CXCursor, _origin0], a1: CXFile, a2: CXCursorAndRangeVisitorBlock) -> CXResult:
+def clang_findReferencesInFileWithBlock[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Pointer[CXCursor, _origin0], a1: CXFile, a2: CXCursorAndRangeVisitorBlock) -> CXResult:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXResult]("mojo_clang_findReferencesInFileWithBlock")
@@ -4843,7 +4843,7 @@ def clang_index_isEntityObjCContainerKind(a0: CXIdxEntityKind) -> c_int:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_isEntityObjCContainerKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getObjCContainerDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxObjCContainerDeclInfo, ImmUntrackedOrigin]]:
+def clang_index_getObjCContainerDeclInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxDeclInfo, _origin0]]) -> Optional[Pointer[CXIdxObjCContainerDeclInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxObjCContainerDeclInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getObjCContainerDeclInfo")
@@ -4851,7 +4851,7 @@ def clang_index_getObjCContainerDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, Imm
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getObjCContainerDeclInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getObjCInterfaceDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxObjCInterfaceDeclInfo, ImmUntrackedOrigin]]:
+def clang_index_getObjCInterfaceDeclInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxDeclInfo, _origin0]]) -> Optional[Pointer[CXIdxObjCInterfaceDeclInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxObjCInterfaceDeclInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getObjCInterfaceDeclInfo")
@@ -4859,7 +4859,7 @@ def clang_index_getObjCInterfaceDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, Imm
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getObjCInterfaceDeclInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getObjCCategoryDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxObjCCategoryDeclInfo, ImmUntrackedOrigin]]:
+def clang_index_getObjCCategoryDeclInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxDeclInfo, _origin0]]) -> Optional[Pointer[CXIdxObjCCategoryDeclInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxObjCCategoryDeclInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getObjCCategoryDeclInfo")
@@ -4867,7 +4867,7 @@ def clang_index_getObjCCategoryDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmU
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getObjCCategoryDeclInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getObjCProtocolRefListInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxObjCProtocolRefListInfo, ImmUntrackedOrigin]]:
+def clang_index_getObjCProtocolRefListInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxDeclInfo, _origin0]]) -> Optional[Pointer[CXIdxObjCProtocolRefListInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxObjCProtocolRefListInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getObjCProtocolRefListInfo")
@@ -4875,7 +4875,7 @@ def clang_index_getObjCProtocolRefListInfo(a0: Optional[Pointer[CXIdxDeclInfo, I
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getObjCProtocolRefListInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getObjCPropertyDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxObjCPropertyDeclInfo, ImmUntrackedOrigin]]:
+def clang_index_getObjCPropertyDeclInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxDeclInfo, _origin0]]) -> Optional[Pointer[CXIdxObjCPropertyDeclInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxObjCPropertyDeclInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getObjCPropertyDeclInfo")
@@ -4883,7 +4883,7 @@ def clang_index_getObjCPropertyDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmU
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getObjCPropertyDeclInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getIBOutletCollectionAttrInfo(a0: Optional[Pointer[CXIdxAttrInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxIBOutletCollectionAttrInfo, ImmUntrackedOrigin]]:
+def clang_index_getIBOutletCollectionAttrInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxAttrInfo, _origin0]]) -> Optional[Pointer[CXIdxIBOutletCollectionAttrInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxIBOutletCollectionAttrInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getIBOutletCollectionAttrInfo")
@@ -4891,7 +4891,7 @@ def clang_index_getIBOutletCollectionAttrInfo(a0: Optional[Pointer[CXIdxAttrInfo
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getIBOutletCollectionAttrInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getCXXClassDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]]) -> Optional[Pointer[CXIdxCXXClassDeclInfo, ImmUntrackedOrigin]]:
+def clang_index_getCXXClassDeclInfo[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxDeclInfo, _origin0]]) -> Optional[Pointer[CXIdxCXXClassDeclInfo, ImmUntrackedOrigin]]:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[Optional[Pointer[CXIdxCXXClassDeclInfo, ImmUntrackedOrigin]]]("mojo_clang_index_getCXXClassDeclInfo")
@@ -4899,7 +4899,7 @@ def clang_index_getCXXClassDeclInfo(a0: Optional[Pointer[CXIdxDeclInfo, ImmUntra
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getCXXClassDeclInfo' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getClientContainer(a0: Optional[Pointer[CXIdxContainerInfo, ImmUntrackedOrigin]]) -> CXIdxClientContainer:
+def clang_index_getClientContainer[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxContainerInfo, _origin0]]) -> CXIdxClientContainer:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXIdxClientContainer]("mojo_clang_index_getClientContainer")
@@ -4907,7 +4907,7 @@ def clang_index_getClientContainer(a0: Optional[Pointer[CXIdxContainerInfo, ImmU
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getClientContainer' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_setClientContainer(a0: Optional[Pointer[CXIdxContainerInfo, ImmUntrackedOrigin]], a1: CXIdxClientContainer) -> None:
+def clang_index_setClientContainer[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxContainerInfo, _origin0]], a1: CXIdxClientContainer) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_index_setClientContainer")
@@ -4915,7 +4915,7 @@ def clang_index_setClientContainer(a0: Optional[Pointer[CXIdxContainerInfo, ImmU
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_setClientContainer' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_getClientEntity(a0: Optional[Pointer[CXIdxEntityInfo, ImmUntrackedOrigin]]) -> CXIdxClientEntity:
+def clang_index_getClientEntity[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxEntityInfo, _origin0]]) -> CXIdxClientEntity:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXIdxClientEntity]("mojo_clang_index_getClientEntity")
@@ -4923,7 +4923,7 @@ def clang_index_getClientEntity(a0: Optional[Pointer[CXIdxEntityInfo, ImmUntrack
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_index_getClientEntity' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_index_setClientEntity(a0: Optional[Pointer[CXIdxEntityInfo, ImmUntrackedOrigin]], a1: CXIdxClientEntity) -> None:
+def clang_index_setClientEntity[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: Optional[Pointer[CXIdxEntityInfo, _origin0]], a1: CXIdxClientEntity) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_index_setClientEntity")
@@ -4947,7 +4947,7 @@ def clang_IndexAction_dispose(a0: CXIndexAction) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_IndexAction_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_indexSourceFile(a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[Pointer[IndexerCallbacks, MutUntrackedOrigin]], index_callbacks_size: c_uint, index_options: c_uint, source_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, MutUntrackedOrigin]], TU_options: c_uint) -> c_int:
+def clang_indexSourceFile[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, //](a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[Pointer[IndexerCallbacks, _origin0]], index_callbacks_size: c_uint, index_options: c_uint, source_filename: Optional[Pointer[c_char, _origin1]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin2]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin3]], num_unsaved_files: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, _origin4]], TU_options: c_uint) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_indexSourceFile")
@@ -4955,7 +4955,7 @@ def clang_indexSourceFile(a0: CXIndexAction, client_data: CXClientData, index_ca
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_indexSourceFile' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_indexSourceFileFullArgv(a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[Pointer[IndexerCallbacks, MutUntrackedOrigin]], index_callbacks_size: c_uint, index_options: c_uint, source_filename: Optional[Pointer[c_char, ImmUntrackedOrigin]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]], num_unsaved_files: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, MutUntrackedOrigin]], TU_options: c_uint) -> c_int:
+def clang_indexSourceFileFullArgv[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, _origin2: ImmOrigin = ImmUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, //](a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[Pointer[IndexerCallbacks, _origin0]], index_callbacks_size: c_uint, index_options: c_uint, source_filename: Optional[Pointer[c_char, _origin1]], command_line_args: Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], _origin2]], num_command_line_args: c_int, unsaved_files: Optional[Pointer[CXUnsavedFile, _origin3]], num_unsaved_files: c_uint, out_TU: Optional[Pointer[CXTranslationUnit, _origin4]], TU_options: c_uint) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_indexSourceFileFullArgv")
@@ -4963,7 +4963,7 @@ def clang_indexSourceFileFullArgv(a0: CXIndexAction, client_data: CXClientData, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_indexSourceFileFullArgv' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_indexTranslationUnit(a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[Pointer[IndexerCallbacks, MutUntrackedOrigin]], index_callbacks_size: c_uint, index_options: c_uint, a5: CXTranslationUnit) -> c_int:
+def clang_indexTranslationUnit[_origin0: MutOrigin = MutUntrackedOrigin, //](a0: CXIndexAction, client_data: CXClientData, index_callbacks: Optional[Pointer[IndexerCallbacks, _origin0]], index_callbacks_size: c_uint, index_options: c_uint, a5: CXTranslationUnit) -> c_int:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_int]("mojo_clang_indexTranslationUnit")
@@ -4971,7 +4971,7 @@ def clang_indexTranslationUnit(a0: CXIndexAction, client_data: CXClientData, ind
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_indexTranslationUnit' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_indexLoc_getFileLocation[_origin0: ImmOrigin, //](loc: Pointer[CXIdxLoc, _origin0], indexFile: Optional[Pointer[CXIdxClientFile, MutUntrackedOrigin]], file: Optional[Pointer[CXFile, MutUntrackedOrigin]], line: Optional[Pointer[c_uint, MutUntrackedOrigin]], column: Optional[Pointer[c_uint, MutUntrackedOrigin]], offset: Optional[Pointer[c_uint, MutUntrackedOrigin]]) -> None:
+def clang_indexLoc_getFileLocation[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, _origin2: MutOrigin = MutUntrackedOrigin, _origin3: MutOrigin = MutUntrackedOrigin, _origin4: MutOrigin = MutUntrackedOrigin, _origin5: MutOrigin = MutUntrackedOrigin, //](loc: Pointer[CXIdxLoc, _origin0], indexFile: Optional[Pointer[CXIdxClientFile, _origin1]], file: Optional[Pointer[CXFile, _origin2]], line: Optional[Pointer[c_uint, _origin3]], column: Optional[Pointer[c_uint, _origin4]], offset: Optional[Pointer[c_uint, _origin5]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_indexLoc_getFileLocation")
@@ -4979,7 +4979,7 @@ def clang_indexLoc_getFileLocation[_origin0: ImmOrigin, //](loc: Pointer[CXIdxLo
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_indexLoc_getFileLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_indexLoc_getCXSourceLocation[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXSourceLocation, _origin0], loc: Pointer[CXIdxLoc, _origin1]) -> None:
+def clang_indexLoc_getCXSourceLocation[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXSourceLocation, _origin0], loc: Pointer[CXIdxLoc, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_indexLoc_getCXSourceLocation")
@@ -4987,7 +4987,7 @@ def clang_indexLoc_getCXSourceLocation[_origin0: MutOrigin, _origin1: ImmOrigin,
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_indexLoc_getCXSourceLocation' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Type_visitFields[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0], visitor: CXFieldVisitor, client_data: CXClientData) -> c_uint:
+def clang_Type_visitFields[_origin0: ImmOrigin = ImmUntrackedOrigin, //](T: Pointer[CXType, _origin0], visitor: CXFieldVisitor, client_data: CXClientData) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Type_visitFields")
@@ -4995,7 +4995,7 @@ def clang_Type_visitFields[_origin0: ImmOrigin, //](T: Pointer[CXType, _origin0]
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Type_visitFields' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getBinaryOperatorKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], kind: CXBinaryOperatorKind) -> None:
+def clang_getBinaryOperatorKindSpelling[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], kind: CXBinaryOperatorKind) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getBinaryOperatorKindSpelling")
@@ -5003,7 +5003,7 @@ def clang_getBinaryOperatorKindSpelling[_origin0: MutOrigin, //](out_: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getBinaryOperatorKindSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorBinaryOperatorKind[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXBinaryOperatorKind:
+def clang_getCursorBinaryOperatorKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXBinaryOperatorKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXBinaryOperatorKind]("mojo_clang_getCursorBinaryOperatorKind")
@@ -5011,7 +5011,7 @@ def clang_getCursorBinaryOperatorKind[_origin0: ImmOrigin, //](cursor: Pointer[C
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorBinaryOperatorKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getUnaryOperatorKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], kind: CXUnaryOperatorKind) -> None:
+def clang_getUnaryOperatorKindSpelling[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], kind: CXUnaryOperatorKind) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getUnaryOperatorKindSpelling")
@@ -5019,7 +5019,7 @@ def clang_getUnaryOperatorKindSpelling[_origin0: MutOrigin, //](out_: Pointer[CX
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getUnaryOperatorKindSpelling' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getCursorUnaryOperatorKind[_origin0: ImmOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXUnaryOperatorKind:
+def clang_getCursorUnaryOperatorKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](cursor: Pointer[CXCursor, _origin0]) -> CXUnaryOperatorKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXUnaryOperatorKind]("mojo_clang_getCursorUnaryOperatorKind")
@@ -5027,7 +5027,7 @@ def clang_getCursorUnaryOperatorKind[_origin0: ImmOrigin, //](cursor: Pointer[CX
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getCursorUnaryOperatorKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Cursor_getParsedComment[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXComment, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
+def clang_Cursor_getParsedComment[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXComment, _origin0], C: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Cursor_getParsedComment")
@@ -5035,7 +5035,7 @@ def clang_Cursor_getParsedComment[_origin0: MutOrigin, _origin1: ImmOrigin, //](
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Cursor_getParsedComment' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Comment_getKind[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> CXCommentKind:
+def clang_Comment_getKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> CXCommentKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCommentKind]("mojo_clang_Comment_getKind")
@@ -5043,7 +5043,7 @@ def clang_Comment_getKind[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Comment_getKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Comment_getNumChildren[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_Comment_getNumChildren[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Comment_getNumChildren")
@@ -5051,7 +5051,7 @@ def clang_Comment_getNumChildren[_origin0: ImmOrigin, //](Comment: Pointer[CXCom
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Comment_getNumChildren' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Comment_getChild[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXComment, _origin0], Comment: Pointer[CXComment, _origin1], ChildIdx: c_uint) -> None:
+def clang_Comment_getChild[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXComment, _origin0], Comment: Pointer[CXComment, _origin1], ChildIdx: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_Comment_getChild")
@@ -5059,7 +5059,7 @@ def clang_Comment_getChild[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: P
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Comment_getChild' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_Comment_isWhitespace[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_Comment_isWhitespace[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_Comment_isWhitespace")
@@ -5067,7 +5067,7 @@ def clang_Comment_isWhitespace[_origin0: ImmOrigin, //](Comment: Pointer[CXComme
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_Comment_isWhitespace' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_InlineContentComment_hasTrailingNewline[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_InlineContentComment_hasTrailingNewline[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_InlineContentComment_hasTrailingNewline")
@@ -5075,7 +5075,7 @@ def clang_InlineContentComment_hasTrailingNewline[_origin0: ImmOrigin, //](Comme
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_InlineContentComment_hasTrailingNewline' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_TextComment_getText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_TextComment_getText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_TextComment_getText")
@@ -5083,7 +5083,7 @@ def clang_TextComment_getText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TextComment_getText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_InlineCommandComment_getCommandName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_InlineCommandComment_getCommandName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_InlineCommandComment_getCommandName")
@@ -5091,7 +5091,7 @@ def clang_InlineCommandComment_getCommandName[_origin0: MutOrigin, _origin1: Imm
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_InlineCommandComment_getCommandName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_InlineCommandComment_getRenderKind[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> CXCommentInlineCommandRenderKind:
+def clang_InlineCommandComment_getRenderKind[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> CXCommentInlineCommandRenderKind:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCommentInlineCommandRenderKind]("mojo_clang_InlineCommandComment_getRenderKind")
@@ -5099,7 +5099,7 @@ def clang_InlineCommandComment_getRenderKind[_origin0: ImmOrigin, //](Comment: P
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_InlineCommandComment_getRenderKind' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_InlineCommandComment_getNumArgs[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_InlineCommandComment_getNumArgs[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_InlineCommandComment_getNumArgs")
@@ -5107,7 +5107,7 @@ def clang_InlineCommandComment_getNumArgs[_origin0: ImmOrigin, //](Comment: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_InlineCommandComment_getNumArgs' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_InlineCommandComment_getArgText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], ArgIdx: c_uint) -> None:
+def clang_InlineCommandComment_getArgText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], ArgIdx: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_InlineCommandComment_getArgText")
@@ -5115,7 +5115,7 @@ def clang_InlineCommandComment_getArgText[_origin0: MutOrigin, _origin1: ImmOrig
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_InlineCommandComment_getArgText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_HTMLTagComment_getTagName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_HTMLTagComment_getTagName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_HTMLTagComment_getTagName")
@@ -5123,7 +5123,7 @@ def clang_HTMLTagComment_getTagName[_origin0: MutOrigin, _origin1: ImmOrigin, //
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_HTMLTagComment_getTagName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_HTMLStartTagComment_isSelfClosing[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_HTMLStartTagComment_isSelfClosing[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_HTMLStartTagComment_isSelfClosing")
@@ -5131,7 +5131,7 @@ def clang_HTMLStartTagComment_isSelfClosing[_origin0: ImmOrigin, //](Comment: Po
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_HTMLStartTagComment_isSelfClosing' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_HTMLStartTag_getNumAttrs[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_HTMLStartTag_getNumAttrs[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_HTMLStartTag_getNumAttrs")
@@ -5139,7 +5139,7 @@ def clang_HTMLStartTag_getNumAttrs[_origin0: ImmOrigin, //](Comment: Pointer[CXC
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_HTMLStartTag_getNumAttrs' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_HTMLStartTag_getAttrName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], AttrIdx: c_uint) -> None:
+def clang_HTMLStartTag_getAttrName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], AttrIdx: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_HTMLStartTag_getAttrName")
@@ -5147,7 +5147,7 @@ def clang_HTMLStartTag_getAttrName[_origin0: MutOrigin, _origin1: ImmOrigin, //]
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_HTMLStartTag_getAttrName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_HTMLStartTag_getAttrValue[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], AttrIdx: c_uint) -> None:
+def clang_HTMLStartTag_getAttrValue[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], AttrIdx: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_HTMLStartTag_getAttrValue")
@@ -5155,7 +5155,7 @@ def clang_HTMLStartTag_getAttrValue[_origin0: MutOrigin, _origin1: ImmOrigin, //
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_HTMLStartTag_getAttrValue' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_BlockCommandComment_getCommandName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_BlockCommandComment_getCommandName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_BlockCommandComment_getCommandName")
@@ -5163,7 +5163,7 @@ def clang_BlockCommandComment_getCommandName[_origin0: MutOrigin, _origin1: ImmO
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_BlockCommandComment_getCommandName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_BlockCommandComment_getNumArgs[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_BlockCommandComment_getNumArgs[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_BlockCommandComment_getNumArgs")
@@ -5171,7 +5171,7 @@ def clang_BlockCommandComment_getNumArgs[_origin0: ImmOrigin, //](Comment: Point
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_BlockCommandComment_getNumArgs' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_BlockCommandComment_getArgText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], ArgIdx: c_uint) -> None:
+def clang_BlockCommandComment_getArgText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1], ArgIdx: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_BlockCommandComment_getArgText")
@@ -5179,7 +5179,7 @@ def clang_BlockCommandComment_getArgText[_origin0: MutOrigin, _origin1: ImmOrigi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_BlockCommandComment_getArgText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_BlockCommandComment_getParagraph[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXComment, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_BlockCommandComment_getParagraph[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXComment, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_BlockCommandComment_getParagraph")
@@ -5187,7 +5187,7 @@ def clang_BlockCommandComment_getParagraph[_origin0: MutOrigin, _origin1: ImmOri
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_BlockCommandComment_getParagraph' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ParamCommandComment_getParamName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_ParamCommandComment_getParamName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_ParamCommandComment_getParamName")
@@ -5195,7 +5195,7 @@ def clang_ParamCommandComment_getParamName[_origin0: MutOrigin, _origin1: ImmOri
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ParamCommandComment_getParamName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ParamCommandComment_isParamIndexValid[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_ParamCommandComment_isParamIndexValid[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_ParamCommandComment_isParamIndexValid")
@@ -5203,7 +5203,7 @@ def clang_ParamCommandComment_isParamIndexValid[_origin0: ImmOrigin, //](Comment
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ParamCommandComment_isParamIndexValid' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ParamCommandComment_getParamIndex[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_ParamCommandComment_getParamIndex[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_ParamCommandComment_getParamIndex")
@@ -5211,7 +5211,7 @@ def clang_ParamCommandComment_getParamIndex[_origin0: ImmOrigin, //](Comment: Po
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ParamCommandComment_getParamIndex' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ParamCommandComment_isDirectionExplicit[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_ParamCommandComment_isDirectionExplicit[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_ParamCommandComment_isDirectionExplicit")
@@ -5219,7 +5219,7 @@ def clang_ParamCommandComment_isDirectionExplicit[_origin0: ImmOrigin, //](Comme
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ParamCommandComment_isDirectionExplicit' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_ParamCommandComment_getDirection[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> CXCommentParamPassDirection:
+def clang_ParamCommandComment_getDirection[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> CXCommentParamPassDirection:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCommentParamPassDirection]("mojo_clang_ParamCommandComment_getDirection")
@@ -5227,7 +5227,7 @@ def clang_ParamCommandComment_getDirection[_origin0: ImmOrigin, //](Comment: Poi
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_ParamCommandComment_getDirection' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_TParamCommandComment_getParamName[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_TParamCommandComment_getParamName[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_TParamCommandComment_getParamName")
@@ -5235,7 +5235,7 @@ def clang_TParamCommandComment_getParamName[_origin0: MutOrigin, _origin1: ImmOr
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TParamCommandComment_getParamName' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_TParamCommandComment_isParamPositionValid[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_TParamCommandComment_isParamPositionValid[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_TParamCommandComment_isParamPositionValid")
@@ -5243,7 +5243,7 @@ def clang_TParamCommandComment_isParamPositionValid[_origin0: ImmOrigin, //](Com
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TParamCommandComment_isParamPositionValid' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_TParamCommandComment_getDepth[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
+def clang_TParamCommandComment_getDepth[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0]) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_TParamCommandComment_getDepth")
@@ -5251,7 +5251,7 @@ def clang_TParamCommandComment_getDepth[_origin0: ImmOrigin, //](Comment: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TParamCommandComment_getDepth' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_TParamCommandComment_getIndex[_origin0: ImmOrigin, //](Comment: Pointer[CXComment, _origin0], Depth: c_uint) -> c_uint:
+def clang_TParamCommandComment_getIndex[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Comment: Pointer[CXComment, _origin0], Depth: c_uint) -> c_uint:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[c_uint]("mojo_clang_TParamCommandComment_getIndex")
@@ -5259,7 +5259,7 @@ def clang_TParamCommandComment_getIndex[_origin0: ImmOrigin, //](Comment: Pointe
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_TParamCommandComment_getIndex' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_VerbatimBlockLineComment_getText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_VerbatimBlockLineComment_getText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_VerbatimBlockLineComment_getText")
@@ -5267,7 +5267,7 @@ def clang_VerbatimBlockLineComment_getText[_origin0: MutOrigin, _origin1: ImmOri
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_VerbatimBlockLineComment_getText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_VerbatimLineComment_getText[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_VerbatimLineComment_getText[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_VerbatimLineComment_getText")
@@ -5275,7 +5275,7 @@ def clang_VerbatimLineComment_getText[_origin0: MutOrigin, _origin1: ImmOrigin, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_VerbatimLineComment_getText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_HTMLTagComment_getAsString[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_HTMLTagComment_getAsString[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_HTMLTagComment_getAsString")
@@ -5283,7 +5283,7 @@ def clang_HTMLTagComment_getAsString[_origin0: MutOrigin, _origin1: ImmOrigin, /
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_HTMLTagComment_getAsString' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_FullComment_getAsHTML[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_FullComment_getAsHTML[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_FullComment_getAsHTML")
@@ -5291,7 +5291,7 @@ def clang_FullComment_getAsHTML[_origin0: MutOrigin, _origin1: ImmOrigin, //](ou
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_FullComment_getAsHTML' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_FullComment_getAsXML[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
+def clang_FullComment_getAsXML[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], Comment: Pointer[CXComment, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_FullComment_getAsXML")
@@ -5299,7 +5299,7 @@ def clang_FullComment_getAsXML[_origin0: MutOrigin, _origin1: ImmOrigin, //](out
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_FullComment_getAsXML' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_createAPISet(tu: CXTranslationUnit, out_api: Optional[Pointer[CXAPISet, MutUntrackedOrigin]]) -> CXErrorCode:
+def clang_createAPISet[_origin0: MutOrigin = MutUntrackedOrigin, //](tu: CXTranslationUnit, out_api: Optional[Pointer[CXAPISet, _origin0]]) -> CXErrorCode:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXErrorCode]("mojo_clang_createAPISet")
@@ -5315,7 +5315,7 @@ def clang_disposeAPISet(api: CXAPISet) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_disposeAPISet' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getSymbolGraphForUSR[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], usr: Optional[Pointer[c_char, ImmUntrackedOrigin]], api: CXAPISet) -> None:
+def clang_getSymbolGraphForUSR[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], usr: Optional[Pointer[c_char, _origin1]], api: CXAPISet) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getSymbolGraphForUSR")
@@ -5323,7 +5323,7 @@ def clang_getSymbolGraphForUSR[_origin0: MutOrigin, //](out_: Pointer[CXString, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getSymbolGraphForUSR' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_getSymbolGraphForCursor[_origin0: MutOrigin, _origin1: ImmOrigin, //](out_: Pointer[CXString, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
+def clang_getSymbolGraphForCursor[_origin0: MutOrigin = MutUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](out_: Pointer[CXString, _origin0], cursor: Pointer[CXCursor, _origin1]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_getSymbolGraphForCursor")
@@ -5331,7 +5331,7 @@ def clang_getSymbolGraphForCursor[_origin0: MutOrigin, _origin1: ImmOrigin, //](
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_getSymbolGraphForCursor' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompilationDatabase_fromDirectory(BuildDir: Optional[Pointer[c_char, ImmUntrackedOrigin]], ErrorCode: Optional[Pointer[CXCompilationDatabase_Error, MutUntrackedOrigin]]) -> CXCompilationDatabase:
+def clang_CompilationDatabase_fromDirectory[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: MutOrigin = MutUntrackedOrigin, //](BuildDir: Optional[Pointer[c_char, _origin0]], ErrorCode: Optional[Pointer[CXCompilationDatabase_Error, _origin1]]) -> CXCompilationDatabase:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCompilationDatabase]("mojo_clang_CompilationDatabase_fromDirectory")
@@ -5347,7 +5347,7 @@ def clang_CompilationDatabase_dispose(a0: CXCompilationDatabase) -> None:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CompilationDatabase_dispose' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompilationDatabase_getCompileCommands(a0: CXCompilationDatabase, CompleteFileName: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> CXCompileCommands:
+def clang_CompilationDatabase_getCompileCommands[_origin0: ImmOrigin = ImmUntrackedOrigin, //](a0: CXCompilationDatabase, CompleteFileName: Optional[Pointer[c_char, _origin0]]) -> CXCompileCommands:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[CXCompileCommands]("mojo_clang_CompilationDatabase_getCompileCommands")
@@ -5387,7 +5387,7 @@ def clang_CompileCommands_getCommand(a0: CXCompileCommands, I: c_uint) -> CXComp
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CompileCommands_getCommand' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompileCommand_getDirectory[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand) -> None:
+def clang_CompileCommand_getDirectory[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CompileCommand_getDirectory")
@@ -5395,7 +5395,7 @@ def clang_CompileCommand_getDirectory[_origin0: MutOrigin, //](out_: Pointer[CXS
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CompileCommand_getDirectory' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompileCommand_getFilename[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand) -> None:
+def clang_CompileCommand_getFilename[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CompileCommand_getFilename")
@@ -5411,7 +5411,7 @@ def clang_CompileCommand_getNumArgs(a0: CXCompileCommand) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CompileCommand_getNumArgs' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompileCommand_getArg[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand, I: c_uint) -> None:
+def clang_CompileCommand_getArg[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand, I: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CompileCommand_getArg")
@@ -5427,7 +5427,7 @@ def clang_CompileCommand_getNumMappedSources(a0: CXCompileCommand) -> c_uint:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CompileCommand_getNumMappedSources' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompileCommand_getMappedSourcePath[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand, I: c_uint) -> None:
+def clang_CompileCommand_getMappedSourcePath[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand, I: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CompileCommand_getMappedSourcePath")
@@ -5435,7 +5435,7 @@ def clang_CompileCommand_getMappedSourcePath[_origin0: MutOrigin, //](out_: Poin
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CompileCommand_getMappedSourcePath' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CompileCommand_getMappedSourceContent[_origin0: MutOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand, I: c_uint) -> None:
+def clang_CompileCommand_getMappedSourceContent[_origin0: MutOrigin = MutUntrackedOrigin, //](out_: Pointer[CXString, _origin0], a1: CXCompileCommand, I: c_uint) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CompileCommand_getMappedSourceContent")
@@ -5451,7 +5451,7 @@ def clang_CXRewriter_create(TU: CXTranslationUnit) -> CXRewriter:
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXRewriter_create' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXRewriter_insertTextBefore[_origin0: ImmOrigin, //](Rew: CXRewriter, Loc: Pointer[CXSourceLocation, _origin0], Insert: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> None:
+def clang_CXRewriter_insertTextBefore[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](Rew: CXRewriter, Loc: Pointer[CXSourceLocation, _origin0], Insert: Optional[Pointer[c_char, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CXRewriter_insertTextBefore")
@@ -5459,7 +5459,7 @@ def clang_CXRewriter_insertTextBefore[_origin0: ImmOrigin, //](Rew: CXRewriter, 
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXRewriter_insertTextBefore' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXRewriter_replaceText[_origin0: ImmOrigin, //](Rew: CXRewriter, ToBeReplaced: Pointer[CXSourceRange, _origin0], Replacement: Optional[Pointer[c_char, ImmUntrackedOrigin]]) -> None:
+def clang_CXRewriter_replaceText[_origin0: ImmOrigin = ImmUntrackedOrigin, _origin1: ImmOrigin = ImmUntrackedOrigin, //](Rew: CXRewriter, ToBeReplaced: Pointer[CXSourceRange, _origin0], Replacement: Optional[Pointer[c_char, _origin1]]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CXRewriter_replaceText")
@@ -5467,7 +5467,7 @@ def clang_CXRewriter_replaceText[_origin0: ImmOrigin, //](Rew: CXRewriter, ToBeR
     except _bindgen_error:
         abort(t"bindgen: failed C function symbol 'mojo_clang_CXRewriter_replaceText' in dynamic library '{_BINDGEN_LIB_NAME}': {_bindgen_error}")
 
-def clang_CXRewriter_removeText[_origin0: ImmOrigin, //](Rew: CXRewriter, ToBeRemoved: Pointer[CXSourceRange, _origin0]) -> None:
+def clang_CXRewriter_removeText[_origin0: ImmOrigin = ImmUntrackedOrigin, //](Rew: CXRewriter, ToBeRemoved: Pointer[CXSourceRange, _origin0]) -> None:
     var _bindgen_owner = _bindgen_dylib()
     try:
         var _bindgen_c_fn = _bindgen_owner[].get_function[NoneType]("mojo_clang_CXRewriter_removeText")

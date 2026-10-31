@@ -17,7 +17,6 @@ foundation those modules use:
     _CXStringStorage (Movable, inline CXString)
     _take_cxstring()
     _take_cxstring_optional()
-    _borrow_c_string_unsafe()
 
 - validation helpers:
     _check_index_alive()
@@ -40,7 +39,8 @@ from clang._ffi import (
 
 from std.collections import List
 from std.ffi import c_char, c_int, c_uint, c_ulong
-from std.memory import ArcPointer, UnsafePointer, alloc
+from std.memory.alloc import unsafe_alloc
+from std.memory import ArcPointer, Pointer
 
 
 # ---------------------------------------------------------------------------
@@ -91,12 +91,12 @@ struct PlatformAvailability(Copyable, Movable, Writable):
 
 
 def _copy_platform_availabilities(
-    raw_items: UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin],
+    raw_items: Pointer[CXPlatformAvailability, MutUntrackedOrigin],
     count: Int,
 ) raises -> List[PlatformAvailability]:
     var out = List[PlatformAvailability]()
     for i in range(count):
-        var raw_ptr = raw_items + i
+        var raw_ptr = raw_items.unsafe_offset(i)
         out.append(
             PlatformAvailability(
                 platform=_take_cxstring_value(raw_ptr[].Platform),
@@ -123,11 +123,11 @@ def _copy_platform_availabilities(
 
 
 def _dispose_platform_availabilities(
-    raw_items: UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin],
+    raw_items: Pointer[CXPlatformAvailability, MutUntrackedOrigin],
     count: Int,
 ):
     for i in range(count):
-        clang_disposeCXPlatformAvailability(raw_items + i)
+        clang_disposeCXPlatformAvailability(raw_items.unsafe_offset(i))
 
 
 # ---------------------------------------------------------------------------
@@ -135,35 +135,18 @@ def _dispose_platform_availabilities(
 # ---------------------------------------------------------------------------
 
 
-def _borrow_c_string_unsafe(
-    text: String,
-) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
-    """Borrow a null-terminated C string pointer from a Mojo `String`.
-
-    The returned pointer does not own the string data.
-
-    The caller must guarantee that `text` stays alive until the C call returns.
-    Prefer `UnsavedFileArena` for arrays or persisted C structs.
-    """
-    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](
-        text.unsafe_ptr(),
-    )
+def _out_ptr[T: AnyType, origin: MutOrigin, //](
+    ref[origin] value: T,
+) -> Optional[Pointer[T, origin]]:
+    """Borrow one typed output slot without discarding its owner origin."""
+    return Optional(Pointer(to=value))
 
 
 def _borrow_c_string(
-    text: String,
-) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
-    """Borrow a null-terminated C string pointer from a Mojo `String`.
-
-    The returned pointer does not own the string data. The string may be
-    mutated to materialize a trailing NUL terminator if it does not already
-    have one.
-    """
-    var mutable_text = text
-    var c_string = mutable_text.as_c_string_slice()
-    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](
-        c_string.unsafe_ptr()
-    )
+    mut text: String,
+) -> Optional[Pointer[c_char, ImmOrigin(origin_of(text))]]:
+    """Borrow a NUL-terminated C string while retaining the caller's owner."""
+    return Optional(text.as_c_string_span().ptr().unsafe_bitcast[c_char]())
 
 
 # ---------------------------------------------------------------------------
@@ -172,36 +155,32 @@ def _borrow_c_string(
 
 
 def _take_cxstring(
-    mut cxstr_ref: UnsafePointer[CXString, MutUntrackedOrigin],
+    cxstr_ref: Pointer[CXString, _],
 ) raises -> String:
     """Copy a `CXString` into an owned Mojo `String` and dispose it.
 
     The input `CXString` is consumed. Public wrapper APIs should return
     `String`, never `CXString`.
     """
-    var value = _take_cxstring_optional(cxstr_ref)
-    if not value:
-        return String("")
-
-    return value.value()
+    if case .Some(value) = _take_cxstring_optional(cxstr_ref):
+        return value
+    return String()
 
 
 def _take_cxstring_optional(
-    mut cxstr_ref: UnsafePointer[CXString, MutUntrackedOrigin],
+    cxstr_ref: Pointer[CXString, _],
 ) raises -> Optional[String]:
     """Copy a `CXString` into `Optional[String]` and dispose it.
 
     Use this for libclang APIs that can return a null `CXString` sentinel.
     Empty strings remain `Some(String(""))`.
     """
-    var c_string = clang_getCString(cxstr_ref)
-    if not c_string:
-        clang_disposeString(cxstr_ref)
+    try:
+        if case .Some(ptr) = clang_getCString(cxstr_ref):
+            return String(unsafe_from_utf8_ptr=ptr)
         return None
-
-    var value = String(unsafe_from_utf8_ptr=c_string.value())
-    clang_disposeString(cxstr_ref)
-    return Optional[String](value)
+    finally:
+        clang_disposeString(cxstr_ref)
 
 
 def _take_cxstring_value(raw: CXString) raises -> String:
@@ -240,15 +219,14 @@ struct _CXStringStorage(Movable):
         self._has_value = True
 
     @always_inline
-    def _as_ptr(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
-        return rebind[UnsafePointer[CXString, MutUntrackedOrigin]](
-            UnsafePointer(to=self._value)).unsafe_origin_cast[MutUntrackedOrigin]()
+    def _as_ptr(mut self) -> Pointer[CXString, origin_of(self)]:
+        return Pointer(to=self._value).unsafe_origin_cast[origin_of(self)]()
 
-    def ptr_for_out(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
+    def ptr_for_out(mut self) -> Pointer[CXString, origin_of(self)]:
         self._has_value = True
         return self._as_ptr()
 
-    def ptr(mut self) -> UnsafePointer[CXString, MutUntrackedOrigin]:
+    def ptr(mut self) -> Pointer[CXString, origin_of(self)]:
         return self._as_ptr()
 
     def take(mut self) raises -> String:
@@ -289,21 +267,21 @@ struct _CXStringStorage(Movable):
 struct UnsavedFileArena(Movable):
     """Owns C strings and a `CXUnsavedFile[]` array."""
 
-    var _filenames: List[UnsafePointer[c_char, MutUntrackedOrigin]]
-    var _contents: List[UnsafePointer[c_char, MutUntrackedOrigin]]
-    var _slots: Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]]
+    var _filenames: List[Pointer[c_char, MutUntrackedOrigin]]
+    var _contents: List[Pointer[c_char, MutUntrackedOrigin]]
+    var _slots: Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]]
     var _count: c_uint
 
     def __init__(out self, files: List[UnsavedFile]) raises:
-        self._filenames = List[UnsafePointer[c_char, MutUntrackedOrigin]]()
-        self._contents = List[UnsafePointer[c_char, MutUntrackedOrigin]]()
+        self._filenames = List[Pointer[c_char, MutUntrackedOrigin]]()
+        self._contents = List[Pointer[c_char, MutUntrackedOrigin]]()
         self._slots = None
         self._count = c_uint(len(files))
 
         if len(files) == 0:
             return
 
-        var slots = alloc[CXUnsavedFile](len(files))
+        var slots = unsafe_alloc[CXUnsavedFile](len(files))
         self._slots = slots
 
         for i in range(len(files)):
@@ -313,40 +291,29 @@ struct UnsavedFileArena(Movable):
             self._filenames.append(filename)
             self._contents.append(contents)
 
-            slots[i] = CXUnsavedFile(
-                Filename=Optional[UnsafePointer[c_char, ImmUntrackedOrigin]](
+            slots[unsafe_offset=i] = CXUnsavedFile(
+                Filename=Optional[Pointer[c_char, ImmUntrackedOrigin]](
                     _c_string(filename),
                 ),
-                Contents=Optional[UnsafePointer[c_char, ImmUntrackedOrigin]](
+                Contents=Optional[Pointer[c_char, ImmUntrackedOrigin]](
                     _c_string(contents),
                 ),
                 Length=c_ulong(files[i].contents.byte_length()),
             )
 
-    def ptr(
-        self,
-    ) -> Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]]:
-        if not self._slots:
-            return None
-
-        return Optional[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]](
-            rebind[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]](
-                self._slots.value(),
-            )
-        )
+    def ptr(self) -> Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]]:
+        return self._slots
 
     def count(self) -> c_uint:
         return self._count
 
     def __deinit__(deinit self):
-        for i in range(len(self._filenames)):
-            self._filenames[i].free()
-
-        for i in range(len(self._contents)):
-            self._contents[i].free()
-
-        if self._slots:
-            self._slots.value().free()
+        for filename in self._filenames:
+            filename.unsafe_free()
+        for contents in self._contents:
+            contents.unsafe_free()
+        if case .Some(slots) = self._slots:
+            slots.unsafe_free()
 
 
 # ---------------------------------------------------------------------------
@@ -354,23 +321,23 @@ struct UnsavedFileArena(Movable):
 # ---------------------------------------------------------------------------
 
 
-def _alloc_c_string(text: String) -> UnsafePointer[c_char, MutUntrackedOrigin]:
+def _alloc_c_string(text: String) -> Pointer[c_char, MutUntrackedOrigin]:
     """Allocate a null-terminated C string.
 
     Caller owns the returned pointer and must free it.
     """
     var bytes = text.as_bytes()
-    var ptr = alloc[c_char](len(bytes) + 1)
+    var ptr = unsafe_alloc[c_char](len(bytes) + 1)
 
     for i in range(len(bytes)):
-        ptr[i] = c_char(bytes[i])
+        ptr[unsafe_offset=i] = c_char(bytes[i])
 
-    ptr[len(bytes)] = c_char(0)
+    ptr[unsafe_offset=len(bytes)] = c_char(0)
     return ptr
 
 
 def _c_string(
-    ptr: UnsafePointer[c_char, MutUntrackedOrigin],
-) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
+    ptr: Pointer[c_char, MutUntrackedOrigin],
+) -> Pointer[c_char, ImmUntrackedOrigin]:
     """View an owned mutable C string pointer as const char* for C APIs."""
-    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](ptr)
+    return rebind[Pointer[c_char, ImmUntrackedOrigin]](ptr)

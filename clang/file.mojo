@@ -158,7 +158,7 @@ struct File(Copyable, Movable, Writable):
     @staticmethod
     def from_name(
         tu: tu_module.TranslationUnit,
-        filename: String,
+        var filename: String,
     ) raises -> Optional[Self]:
         """Look up `filename` in `tu`, returning `None` when absent."""
         var tu_state = tu._shared_state()
@@ -179,7 +179,7 @@ struct File(Copyable, Movable, Writable):
     @staticmethod
     def from_name(
         tu: ArcPointer[TranslationUnitState],
-        filename: String,
+        var filename: String,
     ) raises -> Optional[Self]:
         """Look up `filename` in a shared TU state, returning `None` when absent."""
         if not tu[].alive:

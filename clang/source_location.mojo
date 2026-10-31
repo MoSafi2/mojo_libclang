@@ -43,7 +43,9 @@ from clang.common import _CXStringStorage
 from clang.state import TranslationUnitState
 from clang.file import File
 
-from std.memory import ArcPointer, UnsafePointer, OpaquePointer
+from clang.common import _out_ptr
+
+from std.memory import ArcPointer, Pointer, OpaquePointer
 
 
 @fieldwise_init
@@ -112,10 +114,8 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr(ref self) -> UnsafePointer[CXSourceLocation, MutUntrackedOrigin]:
-        return rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-            self._raw.unsafe_ptr(),
-        )
+    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXSourceLocation, origin]:
+        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
 
     def _raw_value(ref self) raises -> CXSourceLocation:
         """Return a copied raw ``CXSourceLocation`` value."""
@@ -270,18 +270,10 @@ struct SourceLocation(Copyable, Movable, Writable):
 
         clang_getSpellingLocation(
             self._ptr(),
-            rebind[UnsafePointer[CXFile, MutUntrackedOrigin]](
-                file_out.unsafe_ptr(),
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                line_out.unsafe_ptr(),
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                col_out.unsafe_ptr(),
-            ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                off_out.unsafe_ptr(),
-            ),
+            _out_ptr(file_out[0]),
+            _out_ptr(line_out[0]),
+            _out_ptr(col_out[0]),
+            _out_ptr(off_out[0]),
         )
 
         return (file_out[0], line_out[0], col_out[0], off_out[0])

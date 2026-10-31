@@ -51,6 +51,9 @@ build-shim = "python scripts/build_shim.py"
 build-package = "bash scripts/build_package_layout.sh dist/libclang_mojo-prefix"
 build-package-layout = "bash scripts/build_package_layout.sh dist/libclang_mojo-prefix"
 test = { cmd = "python scripts/run_tests.py", depends-on = ["build-shim"] }
+check-generated = "python scripts/check_generated.py"
+check-consumer = { cmd = "python scripts/check_consumer.py", depends-on = ["build-package-layout"] }
+run-consumer = { cmd = "python scripts/check_consumer.py", depends-on = ["build-package-layout"] }
 
 [feature.package.dependencies]
 rattler-build = ">=0.67.0,<0.68"

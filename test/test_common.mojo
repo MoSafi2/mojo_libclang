@@ -12,7 +12,8 @@ from clang.common import (
 from clang._ffi import CXString
 from std.collections import List
 from std.ffi import c_uint, c_int, c_ulong
-from std.memory import UnsafePointer
+from std.memory.alloc import unsafe_alloc
+from std.memory import Pointer
 from std.testing import assert_equal, assert_true, assert_false, TestSuite
 
 
@@ -28,7 +29,7 @@ def test_c_string_non_empty() raises:
     var text = String("hello")
     var buf = _alloc_c_string(text)
     var ptr = _c_string(buf)
-    buf.free()
+    buf.unsafe_free()
     _check(True, "_c_string on non-empty text should succeed")
 
 
@@ -36,7 +37,7 @@ def test_c_string_empty() raises:
     var text = String("")
     var buf = _alloc_c_string(text)
     var ptr = _c_string(buf)
-    buf.free()
+    buf.unsafe_free()
     _check(True, "_c_string on empty text should succeed")
 
 
@@ -45,6 +46,22 @@ def test_borrow_c_string_embedded_nul_allowed() raises:
     var ptr = _borrow_c_string(text)
     _ = ptr
     _check(True, "_borrow_c_string should allow embedded NUL bytes")
+
+
+def test_borrow_c_string_retains_short_and_heap_owners() raises:
+    for value in [String("hello"), String("é") * 2048]:
+        var text = value
+        var borrowed = _borrow_c_string(text)
+        assert_equal(String(unsafe_from_utf8_ptr=borrowed.value()), value)
+        # The borrow has ended; callers can reuse the owning String safely.
+        text += "!"
+        assert_equal(text.byte_length(), value.byte_length() + 1)
+
+
+def test_borrow_c_string_materializes_empty_terminator() raises:
+    var text = String()
+    var borrowed = _borrow_c_string(text)
+    assert_equal(String(unsafe_from_utf8_ptr=borrowed.value()), "")
 
 
 # -- _CXStringStorage ------------------------------------------------------
@@ -89,35 +106,35 @@ def test_cxstring_storage_drop() raises:
 
 
 def test_take_cxstring_null_data_returns_empty() raises:
-    var owned = alloc[CXString](1)
+    var owned = unsafe_alloc[CXString](1)
     owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](owned)
+    var raw = rebind[Pointer[CXString, MutUntrackedOrigin]](owned)
     var s = _take_cxstring(raw)
     assert_equal(
         s,
         String(""),
         "_take_cxstring with null data should return empty string",
     )
-    owned.free()
+    owned.unsafe_free()
 
 
 def test_take_cxstring_disposes_storage() raises:
-    var owned = alloc[CXString](1)
+    var owned = unsafe_alloc[CXString](1)
     owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](owned)
+    var raw = rebind[Pointer[CXString, MutUntrackedOrigin]](owned)
     _ = _take_cxstring(raw)
-    owned.free()
+    owned.unsafe_free()
 
 
 def test_take_cxstring_optional_null_returns_none() raises:
-    var owned = alloc[CXString](1)
+    var owned = unsafe_alloc[CXString](1)
     owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](owned)
+    var raw = rebind[Pointer[CXString, MutUntrackedOrigin]](owned)
     var s = _take_cxstring_optional(raw)
     assert_equal(
         s, None, "_take_cxstring_optional with null data should return None"
     )
-    owned.free()
+    owned.unsafe_free()
 
 
 def test_unsaved_file_write_to() raises:

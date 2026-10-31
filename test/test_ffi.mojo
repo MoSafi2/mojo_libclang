@@ -69,8 +69,12 @@ from clang._ffi import (
     c_uint,
     c_ulong,
 )
-from std.memory import UnsafePointer
+from std.memory.alloc import unsafe_alloc
+from std.memory import Pointer
 from std.testing import assert_equal, assert_true, TestSuite
+from clang.common import _alloc_c_string, _c_string, _out_ptr
+
+comptime _CArgs = Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]]
 
 
 def _check(condition: Bool, message: String) raises:
@@ -78,30 +82,30 @@ def _check(condition: Bool, message: String) raises:
         raise Error(message)
 
 
-def _as_c_string(text: String) -> UnsafePointer[c_char, ImmUntrackedOrigin]:
-    return rebind[UnsafePointer[c_char, ImmUntrackedOrigin]](
-        text.unsafe_ptr()
-    )
+def _as_c_string(
+    mut text: String,
+) -> Optional[Pointer[c_char, ImmOrigin(origin_of(text))]]:
+    return Optional(text.as_c_string_span().ptr().unsafe_bitcast[c_char]())
 
 
 def _cxstring_zero() -> CXString:
     return CXString(data=None, private_flags=c_uint(0))
 
 
-def _alloc_cxstring() -> UnsafePointer[CXString, MutUntrackedOrigin]:
-    var storage = alloc[CXString](1)
+def _alloc_cxstring() -> Pointer[CXString, MutUntrackedOrigin]:
+    var storage = unsafe_alloc[CXString](1)
     storage[] = _cxstring_zero()
     return storage
 
 
 def _cxstring_ptr(
-    storage: UnsafePointer[CXString, MutUntrackedOrigin],
-) -> UnsafePointer[CXString, MutUntrackedOrigin]:
-    return rebind[UnsafePointer[CXString, MutUntrackedOrigin]](storage)
+    storage: Pointer[CXString, MutUntrackedOrigin],
+) -> Pointer[CXString, MutUntrackedOrigin]:
+    return rebind[Pointer[CXString, MutUntrackedOrigin]](storage)
 
 
 def _take_cxstring(
-    ptr: UnsafePointer[CXString, MutUntrackedOrigin]
+    ptr: Pointer[CXString, MutUntrackedOrigin]
 ) raises -> String:
     var c_string = clang_getCString(ptr)
     if not c_string:
@@ -175,14 +179,14 @@ def _type_ptr(
 
 
 def _parse_file(
-    index: CXIndex, path_storage: String
+    index: CXIndex, var path_storage: String
 ) raises -> CXTranslationUnit:
     var tu = clang_parseTranslationUnit(
         index,
         _as_c_string(path_storage),
-        None,
+        _CArgs(None),
         0,
-        None,
+        Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]](None),
         0,
         CXTranslationUnit_None,
     )
@@ -195,7 +199,7 @@ def test_version_string() raises:
     var version = _alloc_cxstring()
     clang_getClangVersion(_cxstring_ptr(version))
     var text = _take_cxstring(_cxstring_ptr(version))
-    version.free()
+    version.unsafe_free()
     _check(text.byte_length() > 0, "clang version string was empty")
 
 
@@ -243,9 +247,9 @@ def test_parse_file_and_strings() raises:
 
         var file_time = clang_getFileTime(file)
         _check(Bool(clang_File_isEqual(file, file)), "file equality failed")
-        file_name.free()
-        real_path.free()
-        tu_spelling.free()
+        file_name.unsafe_free()
+        real_path.unsafe_free()
+        tu_spelling.unsafe_free()
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
@@ -285,8 +289,8 @@ def test_cursor_lookup_type_and_spelling() raises:
 
         clang_disposeString(_cxstring_ptr(cursor_name))
         clang_disposeString(_cxstring_ptr(type_name))
-        cursor_name.free()
-        type_name.free()
+        cursor_name.unsafe_free()
+        type_name.unsafe_free()
     finally:
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
@@ -331,7 +335,7 @@ def test_locations_ranges_and_tokens() raises:
         _check(spelling_column[0] == 1, "spelling column mismatch")
 
         var token_storage = Array[
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
+            Optional[Pointer[CXToken, MutUntrackedOrigin]], 1
         ](fill=None)
         var token_count = Array[c_uint, 1](fill=c_uint(0))
         clang_tokenize(
@@ -362,7 +366,7 @@ def test_locations_ranges_and_tokens() raises:
                 "token extent was null",
             )
             clang_disposeString(_cxstring_ptr(token_text))
-            token_text.free()
+            token_text.unsafe_free()
         finally:
             clang_disposeTokens(tu, token_storage[0].value(), token_count[0])
     finally:
@@ -488,7 +492,7 @@ def test_diagnostics() raises:
             var spelling = _alloc_cxstring()
             clang_getDiagnosticSpelling(_cxstring_ptr(spelling), diagnostic)
             clang_disposeString(_cxstring_ptr(spelling))
-            spelling.free()
+            spelling.unsafe_free()
         finally:
             clang_disposeDiagnostic(diagnostic)
     finally:
@@ -503,21 +507,25 @@ def test_unsaved_parse() raises:
 
     var filename = String("test/fixtures/raw_ffi_probe_fixture.c\00")
     var content = String("int x = 42;")
-    var unsaved = alloc[CXUnsavedFile](1)
-    unsaved[].Filename = _as_c_string(filename)
-    unsaved[].Contents = _as_c_string(content)
+    var filename_buffer = _alloc_c_string(filename)
+    var content_buffer = _alloc_c_string(content)
+    var unsaved = unsafe_alloc[CXUnsavedFile](1)
+    unsaved[].Filename = _c_string(filename_buffer)
+    unsaved[].Contents = _c_string(content_buffer)
     unsaved[].Length = c_ulong(content.byte_length())
 
     var tu = clang_parseTranslationUnit(
         index,
         _as_c_string(filename),
-        None,
+        _CArgs(None),
         0,
-        rebind[UnsafePointer[CXUnsavedFile, MutUntrackedOrigin]](unsaved),
+        rebind[Pointer[CXUnsavedFile, MutUntrackedOrigin]](unsaved),
         1,
         CXTranslationUnit_None,
     )
-    unsaved.free()
+    unsaved.unsafe_free()
+    filename_buffer.unsafe_free()
+    content_buffer.unsafe_free()
     if not tu:
         clang_disposeIndex(index)
         raise Error(
@@ -535,13 +543,13 @@ def test_unsaved_parse() raises:
 
 
 def _visit_child_callback(
-    cursor: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
-    parent: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
+    cursor: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
+    parent: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
     if not client_data:
         return CXChildVisit_Continue
-    var count = rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
+    var count = rebind[Pointer[c_uint, MutUntrackedOrigin]](
         client_data.value()
     )
     count[] = count[] + 1
@@ -563,9 +571,9 @@ def test_visit_children() raises:
         var result = clang_visitChildren(
             _cursor_ptr(tu_cursor),
             _visit_child_callback,
-            Optional[UnsafePointer[NoneType, MutUntrackedOrigin]](
-                rebind[UnsafePointer[NoneType, MutUntrackedOrigin]](
-                    rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
+            Optional[Pointer[NoneType, MutUntrackedOrigin]](
+                rebind[Pointer[NoneType, MutUntrackedOrigin]](
+                    rebind[Pointer[c_uint, MutUntrackedOrigin]](
                         Pointer(to=count[0]).unsafe_origin_cast[MutUntrackedOrigin]()
                     ),
                 ),

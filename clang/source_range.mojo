@@ -40,7 +40,7 @@ from clang._ffi import (
 from clang.source_location import SourceLocation, _zero_source_location
 from clang.state import TranslationUnitState
 
-from std.memory import ArcPointer, UnsafePointer, OpaquePointer
+from std.memory import ArcPointer, Pointer, OpaquePointer
 
 
 @fieldwise_init
@@ -96,10 +96,8 @@ struct SourceRange(Copyable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("SourceRange used after TranslationUnit.reparse()")
 
-    def _ptr(ref self) -> UnsafePointer[CXSourceRange, MutUntrackedOrigin]:
-        return rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
-            self._raw.unsafe_ptr(),
-        )
+    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXSourceRange, origin]:
+        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
 
     def _raw_value(ref self) raises -> CXSourceRange:
         """Return a copied raw ``CXSourceRange`` value."""
@@ -153,12 +151,8 @@ struct SourceRange(Copyable, Movable, Writable):
 
         clang_getRange(
             out._ptr(),
-            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                start_copy._raw.unsafe_ptr(),
-            ),
-            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                end_copy._raw.unsafe_ptr(),
-            ),
+            start_copy._ptr(),
+            end_copy._ptr(),
         )
 
         out._start = start_copy.copy()
@@ -176,13 +170,13 @@ struct SourceRange(Copyable, Movable, Writable):
         var start = _zero_source_location()
         var end = _zero_source_location()
         clang_getRangeStart(
-            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                UnsafePointer(to=start)).unsafe_origin_cast[MutUntrackedOrigin](),
+            rebind[Pointer[CXSourceLocation, MutUntrackedOrigin]](
+                Pointer(to=start)).unsafe_origin_cast[MutUntrackedOrigin](),
             out._ptr(),
         )
         clang_getRangeEnd(
-            rebind[UnsafePointer[CXSourceLocation, MutUntrackedOrigin]](
-                UnsafePointer(to=end)).unsafe_origin_cast[MutUntrackedOrigin](),
+            rebind[Pointer[CXSourceLocation, MutUntrackedOrigin]](
+                Pointer(to=end)).unsafe_origin_cast[MutUntrackedOrigin](),
             out._ptr(),
         )
         out._start = SourceLocation.from_raw(tu, start)
@@ -217,9 +211,7 @@ struct SourceRange(Copyable, Movable, Writable):
         return Bool(
             clang_equalRanges(
                 self._ptr(),
-                rebind[UnsafePointer[CXSourceRange, MutUntrackedOrigin]](
-                    other._raw.unsafe_ptr(),
-                ),
+                other._ptr(),
             ),
         )
 

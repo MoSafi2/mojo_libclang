@@ -7,7 +7,7 @@ from clang.cindex import (
     PrintingPolicyProperty,
 )
 from clang._ffi import CXCursor, CXCursor_FunctionDecl
-from std.memory import UnsafePointer
+from std.memory import Pointer
 from std.testing import assert_true, TestSuite
 
 
@@ -36,9 +36,9 @@ def test_printing_policy_create() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
     var raw = c._raw_value()
-    var ptr = UnsafePointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
+    var ptr = Pointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
     var policy = PrintingPolicy(
-        rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
+        rebind[Pointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     _ = policy
     _ = raw
@@ -49,9 +49,9 @@ def test_printing_policy_get_and_set_property() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
     var raw = c._raw_value()
-    var ptr = UnsafePointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
+    var ptr = Pointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
     var policy = PrintingPolicy(
-        rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
+        rebind[Pointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     _ = raw
     _ = c
@@ -68,9 +68,9 @@ def test_printing_policy_write_to() raises:
     var tu = _parse()
     var c = _find_function(tu, "add")
     var raw = c._raw_value()
-    var ptr = UnsafePointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
+    var ptr = Pointer(to=raw).unsafe_origin_cast[MutUntrackedOrigin]()
     var policy = PrintingPolicy(
-        rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](ptr),
+        rebind[Pointer[CXCursor, MutUntrackedOrigin]](ptr),
     )
     _ = raw
     _ = c

@@ -220,7 +220,7 @@ from clang.common import (
     _CXStringStorage,
     _copy_platform_availabilities,
     _dispose_platform_availabilities,
-    _take_cxstring,
+    _take_cxstring_value,
 )
 from clang.module import Module, wrap_module
 
@@ -228,12 +228,14 @@ from clang.translation_unit import (
     TranslationUnitState,
 )
 
+from clang.common import _out_ptr
+
 from std.collections import Array, List
 from std.iter import Iterable, Iterator, StopIteration
+from std.memory.alloc import unsafe_alloc
 from std.memory import (
     ArcPointer,
-    UnsafePointer,
-    alloc,
+    Pointer,
     OpaquePointer,
 )
 
@@ -398,22 +400,11 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if self._generation != self._tu[].generation:
             raise Error("Cursor is stale due to TranslationUnit reparse")
 
-    def _ptr(ref self) -> UnsafePointer[CXCursor, MutUntrackedOrigin]:
-        """Pointer to raw cursor storage for shim calls."""
-        return rebind[UnsafePointer[CXCursor, MutUntrackedOrigin]](
-            self._raw.unsafe_ptr(),
-        )
+    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXCursor, origin]:
+        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
 
-    def _const_ptr(self) -> UnsafePointer[CXCursor, ImmUntrackedOrigin]:
-        """Immutable pointer to raw cursor storage.
-
-        Use this if your shim signatures distinguish const input pointers.
-        If your generated `_ffi.mojo` currently expects MutUntrackedOrigin for
-        all pointers, keep using `_ptr()`.
-        """
-        return rebind[UnsafePointer[CXCursor, ImmUntrackedOrigin]](
-            self._raw.unsafe_ptr(),
-        )
+    def _const_ptr(self) -> Pointer[CXCursor, origin_of(self)]:
+        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin_of(self)]()
 
     def children(ref self) raises -> List[Cursor]:
         """Return immediate child cursors."""
@@ -656,9 +647,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
                 self._ptr(),
                 language_cs.ptr_for_out(),
                 defined_in_cs.ptr_for_out(),
-                rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                    is_generated.unsafe_ptr(),
-                ),
+                _out_ptr(is_generated[0]),
             )
         )
         _ = language_cs.take()
@@ -818,9 +807,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return overridden method cursors for this cursor."""
         self._check_valid()
         var overridden_slot: Array[
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], 1
+            Optional[Pointer[CXCursor, MutUntrackedOrigin]], 1
         ] = Array[
-            Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]], 1
+            Optional[Pointer[CXCursor, MutUntrackedOrigin]], 1
         ](
             fill=None
         )
@@ -831,14 +820,12 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         clang_getOverriddenCursors(
             self._ptr(),
             rebind[
-                UnsafePointer[
-                    Optional[UnsafePointer[CXCursor, MutUntrackedOrigin]],
+                Pointer[
+                    Optional[Pointer[CXCursor, MutUntrackedOrigin]],
                     MutUntrackedOrigin,
                 ]
             ](overridden_slot.unsafe_ptr()),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                num_slot.unsafe_ptr()
-            ),
+            _out_ptr(num_slot[0]),
         )
 
         var raw_ptr = overridden_slot[0]
@@ -847,7 +834,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         var out = List[Cursor]()
         if raw_ptr:
             for i in range(count):
-                var raw = (raw_ptr.value() + i)[].copy()
+                var raw = raw_ptr.value().unsafe_offset(i)[].copy()
                 out.append(Cursor(tu=self._tu, raw=raw))
             clang_disposeOverriddenCursors(raw_ptr.value())
         return out^
@@ -1276,7 +1263,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if index < 0:
             raise Error("Cursor.gcc_assembly_input_constraint: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), c_uint(index), True
+            self._tu, self._const_ptr(), c_uint(index), True
         ).constraint
 
     def gcc_assembly_input_expr(
@@ -1286,7 +1273,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if index < 0:
             raise Error("Cursor.gcc_assembly_input_expr: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), c_uint(index), True
+            self._tu, self._const_ptr(), c_uint(index), True
         ).expr.copy()
 
     def gcc_assembly_output_constraint(
@@ -1296,7 +1283,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if index < 0:
             raise Error("Cursor.gcc_assembly_output_constraint: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), c_uint(index), False
+            self._tu, self._const_ptr(), c_uint(index), False
         ).constraint
 
     def gcc_assembly_output_expr(
@@ -1306,7 +1293,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if index < 0:
             raise Error("Cursor.gcc_assembly_output_expr: index out of range")
         return _gcc_assembly_operand(
-            self._tu, self._ptr(), c_uint(index), False
+            self._tu, self._const_ptr(), c_uint(index), False
         ).expr.copy()
 
     def included_file(ref self) raises -> Optional[file_types.File]:
@@ -1338,28 +1325,28 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         var always_deprecated = c_int(0)
         var always_unavailable = c_int(0)
-        var dep_ptr = UnsafePointer(to=always_deprecated).unsafe_origin_cast[MutUntrackedOrigin]()
-        var unavail_ptr = UnsafePointer(to=always_unavailable).unsafe_origin_cast[MutUntrackedOrigin]()
+        var dep_ptr = Pointer(to=always_deprecated).unsafe_origin_cast[MutUntrackedOrigin]()
+        var unavail_ptr = Pointer(to=always_unavailable).unsafe_origin_cast[MutUntrackedOrigin]()
         var dep_message = _CXStringStorage()
         var unavail_message = _CXStringStorage()
-        var avail = alloc[CXPlatformAvailability](8)
+        var avail = unsafe_alloc[CXPlatformAvailability](8)
         var count = clang_getCursorPlatformAvailability(
             self._ptr(),
-            rebind[UnsafePointer[c_int, MutUntrackedOrigin]](dep_ptr),
+            rebind[Pointer[c_int, MutUntrackedOrigin]](dep_ptr),
             dep_message.ptr_for_out(),
-            rebind[UnsafePointer[c_int, MutUntrackedOrigin]](unavail_ptr),
+            rebind[Pointer[c_int, MutUntrackedOrigin]](unavail_ptr),
             unavail_message.ptr_for_out(),
-            rebind[UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]](
+            rebind[Pointer[CXPlatformAvailability, MutUntrackedOrigin]](
                 avail
             ),
             c_int(8),
         )
         var avail_ptr = rebind[
-            UnsafePointer[CXPlatformAvailability, MutUntrackedOrigin]
+            Pointer[CXPlatformAvailability, MutUntrackedOrigin]
         ](avail)
         var copied = _copy_platform_availabilities(avail_ptr, Int(count))
         _dispose_platform_availabilities(avail_ptr, Int(count))
-        avail.free()
+        avail.unsafe_free()
         return copied^
 
     # -----------------------------------------------------------------------
@@ -1465,17 +1452,8 @@ struct _GCCAssemblyOperandInfo(Movable):
     var expr: Optional[Cursor]
 
 
-def _take_cxstring_value(raw: CXString) raises -> String:
-    var slot = alloc[CXString](1)
-    slot[] = CXString(data=raw.data, private_flags=raw.private_flags)
-    var ptr = rebind[UnsafePointer[CXString, MutUntrackedOrigin]](slot)
-    var out = _take_cxstring(ptr)
-    slot.free()
-    return out
-
-
 def _string_list_from_cxstringset(
-    raw: Optional[UnsafePointer[CXStringSet, MutUntrackedOrigin]],
+    raw: Optional[Pointer[CXStringSet, MutUntrackedOrigin]],
 ) raises -> List[String]:
     var out = List[String]()
     if not raw:
@@ -1485,14 +1463,14 @@ def _string_list_from_cxstringset(
     var count = Int(raw.value()[].Count)
     if strings:
         for i in range(count):
-            out.append(_take_cxstring_value((strings.value() + i)[]))
+            out.append(_take_cxstring_value(strings.value().unsafe_offset(i)[]))
     clang_disposeStringSet(raw)
     return out^
 
 
 def _gcc_assembly_operand(
     tu: ArcPointer[TranslationUnitState],
-    cursor: UnsafePointer[CXCursor, MutUntrackedOrigin],
+    cursor: Pointer[mut=False, CXCursor, _],
     index: c_uint,
     is_input: Bool,
 ) raises -> _GCCAssemblyOperandInfo:
@@ -1526,24 +1504,24 @@ comptime MAX_CHILDREN = 4096
 
 @fieldwise_init
 struct _Collector(Movable):
-    var buffer: UnsafePointer[CXCursor, MutUntrackedOrigin]
+    var buffer: Pointer[CXCursor, MutUntrackedOrigin]
     var count: Int
     var capacity: Int
     var truncated: Bool
 
 
 def _visit_trampoline(
-    cursor: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
-    parent: Optional[UnsafePointer[CXCursor, ImmUntrackedOrigin]],
+    cursor: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
+    parent: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
     if not cursor:
         return CXChildVisit_Continue
 
     var opaque = client_data.value()
-    var collector = rebind[UnsafePointer[_Collector, MutUntrackedOrigin]](
-        rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](opaque),
+    var collector = rebind[Pointer[_Collector, MutUntrackedOrigin]](
+        rebind[Pointer[UInt8, MutUntrackedOrigin]](
+            rebind[Pointer[UInt8, MutUntrackedOrigin]](opaque),
         ),
     )
 
@@ -1552,7 +1530,7 @@ def _visit_trampoline(
         return CXChildVisit_Continue
 
     # Copy the CXCursor value itself. Do not memcpy a guessed byte count.
-    collector[].buffer[collector[].count] = cursor.value()[].copy()
+    collector[].buffer[unsafe_offset=collector[].count] = cursor.value()[].copy()
     collector[].count += 1
 
     _ = parent
@@ -1567,8 +1545,8 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
     var p = parent.copy()
     p._check_valid()
 
-    var buffer = alloc[CXCursor](MAX_CHILDREN)
-    var collector_box = alloc[_Collector](1)
+    var buffer = unsafe_alloc[CXCursor](MAX_CHILDREN)
+    var collector_box = unsafe_alloc[_Collector](1)
 
     collector_box[] = _Collector(
         buffer=buffer,
@@ -1579,8 +1557,8 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
 
     var client_data = CXClientData(
         rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
-            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](collector_box),
+            rebind[Pointer[UInt8, MutUntrackedOrigin]](
+                rebind[Pointer[UInt8, MutUntrackedOrigin]](collector_box),
             ),
         ),
     )
@@ -1595,8 +1573,8 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
     p._check_valid()
 
     if collector_box[].truncated:
-        collector_box.free()
-        buffer.free()
+        collector_box.unsafe_free()
+        buffer.unsafe_free()
         raise Error(
             (
                 t"collect_children: child count exceeded"
@@ -1609,12 +1587,12 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
     for i in range(collector_box[].count):
         var child = Cursor(
             tu=p._tu,
-            raw=buffer[i],
+            raw=buffer[unsafe_offset=i],
         )
         out.append(child^)
 
-    collector_box.free()
-    buffer.free()
+    collector_box.unsafe_free()
+    buffer.unsafe_free()
 
     return out^
 
@@ -1628,8 +1606,8 @@ def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
     """
     var p = parent.copy()
 
-    var buffer = alloc[CXCursor](MAX_CHILDREN)
-    var collector_box = alloc[_Collector](1)
+    var buffer = unsafe_alloc[CXCursor](MAX_CHILDREN)
+    var collector_box = unsafe_alloc[_Collector](1)
 
     collector_box[] = _Collector(
         buffer=buffer,
@@ -1640,8 +1618,8 @@ def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
 
     var client_data = CXClientData(
         rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
-            rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](
-                rebind[UnsafePointer[UInt8, MutUntrackedOrigin]](collector_box),
+            rebind[Pointer[UInt8, MutUntrackedOrigin]](
+                rebind[Pointer[UInt8, MutUntrackedOrigin]](collector_box),
             ),
         ),
     )
@@ -1657,12 +1635,12 @@ def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
     for i in range(collector_box[].count):
         var child = Cursor(
             tu=p._tu,
-            raw=buffer[i],
+            raw=buffer[unsafe_offset=i],
         )
         out.append(child^)
 
-    collector_box.free()
-    buffer.free()
+    collector_box.unsafe_free()
+    buffer.unsafe_free()
 
     return out^
 

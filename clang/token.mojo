@@ -49,8 +49,10 @@ from clang.cursor import Cursor
 from clang.source_range import SourceRange
 from clang.source_location import SourceLocation
 
+from clang.common import _out_ptr
+
 from std.iter import Iterable, Iterator, StopIteration
-from std.memory import ArcPointer, UnsafePointer
+from std.memory import ArcPointer, Pointer
 
 
 @fieldwise_init
@@ -129,10 +131,8 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr(ref self) -> UnsafePointer[CXToken, MutUntrackedOrigin]:
-        return rebind[UnsafePointer[CXToken, MutUntrackedOrigin]](
-            self._raw.unsafe_ptr(),
-        )
+    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXToken, origin]:
+        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
 
     def _cache_from_ffi(mut self) raises:
         self._check_valid()
@@ -203,12 +203,13 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Cursor(tu=self._tu)
+        var raw_token = self._raw[0].copy()
 
         clang_annotateTokens(
             self._tu_raw(),
-            self._ptr(),
+            _out_ptr(raw_token),
             c_uint(1),
-            out._ptr(),
+            _out_ptr(out._raw[0]),
         )
 
         return out^
@@ -223,7 +224,7 @@ struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
+    var _tokens: Optional[Pointer[CXToken, MutUntrackedOrigin]]
     var _count: c_uint
     var _index: Int
 
@@ -241,7 +242,7 @@ struct TokenGroupIterator[mut: Bool, //, origin: Origin[mut=mut]](
         if self._index >= Int(self._count):
             raise StopIteration()
 
-        var raw = (self._tokens.value() + self._index)[].copy()
+        var raw = self._tokens.value().unsafe_offset(self._index)[].copy()
         self._index += 1
         return Token(tu=self._tu, raw=raw, _unchecked=True)
 
@@ -267,7 +268,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _tokens: Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]
+    var _tokens: Optional[Pointer[CXToken, MutUntrackedOrigin]]
     var _count: c_uint
 
     def __init__(
@@ -303,8 +304,8 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
             )
 
         var token_storage = Array[
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
-        ](fill=Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]())
+            Optional[Pointer[CXToken, MutUntrackedOrigin]], 1
+        ](fill=Optional[Pointer[CXToken, MutUntrackedOrigin]]())
 
         var count_storage = Array[c_uint, 1](fill=c_uint(0))
 
@@ -312,21 +313,19 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
             self._tu_raw(),
             e._ptr(),
             Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                Pointer[
+                    Optional[Pointer[CXToken, MutUntrackedOrigin]],
                     MutUntrackedOrigin,
                 ]
             ](
                 rebind[
-                    UnsafePointer[
-                        Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                    Pointer[
+                        Optional[Pointer[CXToken, MutUntrackedOrigin]],
                         MutUntrackedOrigin,
                     ]
                 ](token_storage.unsafe_ptr())
             ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                count_storage.unsafe_ptr(),
-            ),
+            _out_ptr(count_storage[0]),
         )
 
         self._tokens = token_storage[0]
@@ -365,8 +364,8 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
             )
 
         var token_storage = Array[
-            Optional[UnsafePointer[CXToken, MutUntrackedOrigin]], 1
-        ](fill=Optional[UnsafePointer[CXToken, MutUntrackedOrigin]]())
+            Optional[Pointer[CXToken, MutUntrackedOrigin]], 1
+        ](fill=Optional[Pointer[CXToken, MutUntrackedOrigin]]())
 
         var count_storage = Array[c_uint, 1](fill=c_uint(0))
 
@@ -374,21 +373,19 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
             self._tu_raw(),
             e._ptr(),
             Optional[
-                UnsafePointer[
-                    Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                Pointer[
+                    Optional[Pointer[CXToken, MutUntrackedOrigin]],
                     MutUntrackedOrigin,
                 ]
             ](
                 rebind[
-                    UnsafePointer[
-                        Optional[UnsafePointer[CXToken, MutUntrackedOrigin]],
+                    Pointer[
+                        Optional[Pointer[CXToken, MutUntrackedOrigin]],
                         MutUntrackedOrigin,
                     ]
                 ](token_storage.unsafe_ptr())
             ),
-            rebind[UnsafePointer[c_uint, MutUntrackedOrigin]](
-                count_storage.unsafe_ptr(),
-            ),
+            _out_ptr(count_storage[0]),
         )
 
         self._tokens = token_storage[0]
@@ -433,7 +430,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
         if not self._tokens:
             raise Error("TokenGroup has no token buffer")
 
-        var raw = (self._tokens.value() + i)[].copy()
+        var raw = self._tokens.value().unsafe_offset(i)[].copy()
         return Token(tu=self._tu, raw=raw)
 
     def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:

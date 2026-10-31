@@ -17,7 +17,7 @@ from clang._ffi import (
 from clang.enums import PrintingPolicyProperty
 from clang.cursor import Cursor
 
-from std.memory import UnsafePointer
+from std.memory import Pointer
 
 
 struct PrintingPolicy(Movable, Writable):
@@ -35,7 +35,7 @@ struct PrintingPolicy(Movable, Writable):
             )
 
     def __init__(
-        out self, cursor_ptr: UnsafePointer[CXCursor, MutUntrackedOrigin]
+        out self, cursor_ptr: Pointer[CXCursor, MutUntrackedOrigin]
     ) raises:
         """Create a policy from a cursor.
 
