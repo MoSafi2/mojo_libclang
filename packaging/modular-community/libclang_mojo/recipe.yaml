@@ -1,9 +1,9 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 context:
   version: "0.2.0"
-  mojo_version: "=1.2.0"
+  mojo_version: "==1.2.0"
   llvm_version: "18.*"
-  rev: "4afcc0fae48ca2e577eee9574ef1e84459e9a48a"
+  rev: "6d7ce1973f8815f30f20a6271a2dc0c55445e010"
 
 package:
   name: "libclang_mojo"
@@ -15,6 +15,7 @@ source:
 
 build:
   number: 0
+  string: "mojo1_2_0_${{ target_platform | replace('-', '_') }}_0"
   script:
     interpreter: bash
     content:
@@ -23,6 +24,7 @@ build:
         mkdir -p "${PREFIX}/lib" "${PREFIX}/lib/mojo"
         if [[ "$(uname -s)" == "Darwin" ]]; then
           "${CC}" -dynamiclib \
+            "-DMOJO_LIBCLANG_RUNTIME_PATH=\"${PREFIX}/lib/libclang.dylib\"" \
             -I"${PREFIX}/include" -Ishim \
             -o "${PREFIX}/lib/libclang_mojo_shim.dylib" \
             shim/libclang_mojo_shim.c \
@@ -30,6 +32,7 @@ build:
             -Wl,-rpath,"${PREFIX}/lib"
         else
           "${CC}" -shared -fPIC \
+            "-DMOJO_LIBCLANG_RUNTIME_PATH=\"${PREFIX}/lib/libclang.so\"" \
             -I"${PREFIX}/include" -Ishim \
             -o "${PREFIX}/lib/libclang_mojo_shim.so" \
             shim/libclang_mojo_shim.c \
@@ -59,9 +62,11 @@ tests:
       content:
         - |
           set -euo pipefail
-          export LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH:-}"
-          export DYLD_LIBRARY_PATH="${PREFIX}/lib:${DYLD_LIBRARY_PATH:-}"
-          mojo run -I "${PREFIX}/lib/mojo" test_cindex_smoke.mojo
+          printf 'int add(int a, int b) { return a + b; }\n' > api.c
+          cp api.c api.cpp
+          printf 'int broken = ;\n' > invalid.c
+          mojo build -I "${PREFIX}/lib/mojo" test_cindex_smoke.mojo -o package-smoke
+          ./package-smoke
 
 about:
   homepage: https://github.com/MoSafi2/mojo_libclang

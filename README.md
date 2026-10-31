@@ -57,38 +57,53 @@ toolchain; compiled packages are not interchangeable across compiler versions.
 The raw FFI and layout checks are regenerated with mojo-bindgen at
 `ad2ae77898a738ac88d7d4b9b4d87ca96e874790`.
 
-## Installation
+## Production installation
 
-Install Pixi:
+The v0.2.0 release provides native conda packages for Linux x86-64, Linux ARM64,
+and macOS ARM64. Each package includes the precompiled `clang` module and native
+shim. Its dependencies install Mojo 1.2.0 and libclang 18 automatically.
 
-```bash
-curl -fsSL https://pixi.sh/install.sh | sh
-```
-
-Source releases include the Mojo bindings and C shim source. Install a native
-C compiler first (GCC or Clang on Linux, Xcode Command Line Tools on macOS),
-then build the stable release:
+Download and extract the conda channel bundle from the release:
 
 ```bash
-git clone --branch v0.2.0 https://github.com/MoSafi2/mojo_libclang.git
-cd mojo_libclang
-pixi install --locked -e dev
-pixi run --locked -e dev build-package-layout
+curl -fL -o libclang_mojo-0.2.0-conda-channel.tar.gz \
+  https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-conda-channel.tar.gz
+tar -xzf libclang_mojo-0.2.0-conda-channel.tar.gz
 ```
+
+Install into a production environment with Conda:
 
 ```bash
-pixi run --locked -e dev run-consumer /absolute/path/to/clang-demo/main.mojo
+conda create -n clang-prod --override-channels \
+  -c "file://$PWD/libclang_mojo-0.2.0-channel" \
+  -c https://conda.modular.com/max -c conda-forge \
+  libclang_mojo=0.2.0
 ```
 
-`run-consumer` compiles your program against `dist/libclang_mojo-prefix/lib/mojo`
-and makes the matching native shim available. It runs from your program's
-directory, so relative source/header paths resolve there. The program can use
-`from clang.cindex import Index` as in the example above.
+Use `from clang.cindex import Index` in your own application, as in the example
+above. Compile and run it within the environment:
 
-For nightly, clone `master` instead and follow the same commands. Pin a published
-nightly prerelease tag rather than `master` when you need a reproducible consumer.
-GitHub releases provide source archives; this repository does not publish binary
-downloads or conda packages as part of these releases.
+```bash
+conda run -n clang-prod mojo build main.mojo -o clang-tool
+conda run -n clang-prod ./clang-tool
+```
+
+Alternatively, add the same prebuilt package to a Pixi application:
+
+```bash
+pixi init clang-app \
+  -c "file://$PWD/libclang_mojo-0.2.0-channel" \
+  -c https://conda.modular.com/max -c conda-forge
+cd clang-app
+pixi add libclang_mojo=0.2.0
+pixi run mojo build main.mojo -o clang-tool
+pixi run ./clang-tool
+```
+
+Keep the application in its managed runtime environment on deployment hosts.
+There is no source checkout, binding generation, or manual shim build in this
+installation path. The release includes individual `.conda` files and
+`SHA256SUMS` as well as the complete channel bundle.
 
 ## Developing From Source
 

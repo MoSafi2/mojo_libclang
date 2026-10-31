@@ -44,3 +44,19 @@ jobs:
         run: pixi run --locked -e dev build-package-layout
       - name: Test external package consumer
         run: pixi run --locked -e dev check-consumer
+      - name: Build stable conda package
+        if: github.ref == 'refs/heads/codex/mojo-1.2'
+        run: pixi run --locked -e package build-recipe
+      - name: Install binary package and build a production consumer
+        if: github.ref == 'refs/heads/codex/mojo-1.2'
+        shell: bash
+        run: |
+          packages=(dist/conda/${{ matrix.platform }}/libclang_mojo-0.2.0-mojo1_2_0_*.conda)
+          test "${#packages[@]}" -eq 1
+          pixi run --locked -e package check-conda-consumer "${packages[0]}"
+      - uses: actions/upload-artifact@v4
+        if: github.ref == 'refs/heads/codex/mojo-1.2'
+        with:
+          name: libclang_mojo-0.2.0-${{ matrix.platform }}
+          path: dist/conda/${{ matrix.platform }}/libclang_mojo-0.2.0-mojo1_2_0_*.conda
+          if-no-files-found: error

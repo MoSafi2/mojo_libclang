@@ -62,6 +62,7 @@ rattler-build = ">=0.67.0,<0.68"
 render-recipe = "bash scripts/build_recipe.sh --render-only"
 build-recipe = "bash scripts/build_recipe.sh"
 upload-recipe = "bash scripts/upload_recipe.sh"
+check-conda-consumer = "python scripts/check_conda_consumer.py"
 
 [feature.docs.dependencies]
 nodejs = ">=25.7.0,<26"
