@@ -57,38 +57,41 @@ toolchain; compiled packages are not interchangeable across compiler versions.
 The raw FFI and layout checks are regenerated with mojo-bindgen at
 `ad2ae77898a738ac88d7d4b9b4d87ca96e874790`.
 
-## Installation
+## Install with Pixi
 
-Install Pixi:
+The [v0.2.0 release](https://github.com/MoSafi2/mojo_libclang/releases/tag/v0.2.0)
+and the [nightly prerelease](https://github.com/MoSafi2/mojo_libclang/releases/tag/v0.3.0-dev.20261031)
+provide prebuilt packages for Linux x86-64, Linux ARM64, and macOS ARM64.
+Choose a manifest for your compiler:
 
-```bash
-curl -fsSL https://pixi.sh/install.sh | sh
-```
+| Release | Mojo | Pixi manifest |
+| --- | --- | --- |
+| Stable `v0.2.0` | `1.2.0` | [Download](https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/pixi.toml) |
+| Prerelease `v0.3.0-dev.20261031` | `1.3.0.dev2026103105` | [Download](https://github.com/MoSafi2/mojo_libclang/releases/download/v0.3.0-dev.20261031/pixi.toml) |
 
-Source releases include the Mojo bindings and C shim source. Install a native
-C compiler first (GCC or Clang on Linux, Xcode Command Line Tools on macOS),
-then build the stable release:
+Pixi installs the matching compiler and libclang 18 automatically.
 
-```bash
-git clone --branch v0.2.0 https://github.com/MoSafi2/mojo_libclang.git
-cd mojo_libclang
-pixi install --locked -e dev
-pixi run --locked -e dev build-package-layout
-```
+With [Pixi](https://pixi.prefix.dev/latest/installation/) installed, run these
+commands in an empty application directory to install the stable release:
 
 ```bash
-pixi run --locked -e dev run-consumer /absolute/path/to/clang-demo/main.mojo
+curl -fL -o pixi.toml \
+  https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/pixi.toml
+pixi install
 ```
 
-`run-consumer` compiles your program against `dist/libclang_mojo-prefix/lib/mojo`
-and makes the matching native shim available. It runs from your program's
-directory, so relative source/header paths resolve there. The program can use
-`from clang.cindex import Index` as in the example above.
+For the nightly prerelease, download its manifest from the table instead.
+The manifest selects the package for your platform and verifies its checksum.
+Use `from clang.cindex import Index` in your application, as in the example
+above. Compile and run it with:
 
-For the tested nightly, clone `v0.3.0-dev.20261031` instead and follow the same commands. Pin a published
-nightly prerelease tag rather than `master` when you need a reproducible consumer.
-GitHub releases provide source archives; this repository does not publish binary
-downloads or conda packages as part of these releases.
+```bash
+pixi run mojo build main.mojo -o clang-tool
+pixi run ./clang-tool
+```
+
+Keep `pixi.toml` and the generated `pixi.lock` with your application. On deployment
+hosts, use `pixi install --locked` and run the executable with `pixi run`.
 
 ## Developing From Source
 

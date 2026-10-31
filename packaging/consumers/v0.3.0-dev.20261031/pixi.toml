@@ -1,0 +1,14 @@
+[workspace]
+name = "clang-app"
+channels = ["https://conda.modular.com/max-nightly", "conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
+requires-pixi = ">=0.80.0"
+
+[target.linux-64.dependencies]
+libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.3.0-dev.20261031/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_linux_64_0.conda", sha256 = "9fbd5a8f13b7fc683a858a3180b6ca6ceca7950a0288b9f13e843352582d03b2" }
+
+[target.linux-aarch64.dependencies]
+libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.3.0-dev.20261031/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_linux_aarch64_0.conda", sha256 = "836d6525b9e7718f839eee7f4760295bb306b0f9570dd0b53382544db5a8f4cb" }
+
+[target.osx-arm64.dependencies]
+libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.3.0-dev.20261031/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_osx_arm64_0.conda", sha256 = "f43ff579f4880f3c23946c21cfd8fa37f5521f7608ccddd233efecd88134ec27" }
