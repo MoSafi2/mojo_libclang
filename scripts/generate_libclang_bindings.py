@@ -486,6 +486,12 @@ def discover_libclang_library() -> Path | None:
 
 def build_compile_args(include_root: Path) -> list[str]:
     args = [f"-I{include_root}"]
+    if sys.platform == "darwin":
+        # libclang does not inherit Apple's SDK selection from the cc driver.
+        sdk = os.environ.get("SDKROOT") or subprocess.check_output(
+            ["xcrun", "--sdk", "macosx", "--show-sdk-path"], text=True
+        ).strip()
+        args.extend(["-isysroot", sdk])
     seen = set(args)
     try:
         defaults = _default_system_compile_args()
