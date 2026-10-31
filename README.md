@@ -57,53 +57,32 @@ toolchain; compiled packages are not interchangeable across compiler versions.
 The raw FFI and layout checks are regenerated with mojo-bindgen at
 `ad2ae77898a738ac88d7d4b9b4d87ca96e874790`.
 
-## Production installation
+## Install with Pixi
 
-The v0.2.0 release provides native conda packages for Linux x86-64, Linux ARM64,
-and macOS ARM64. Each package includes the precompiled `clang` module and native
-shim. Its dependencies install Mojo 1.2.0 and libclang 18 automatically.
+The [v0.2.0 release](https://github.com/MoSafi2/mojo_libclang/releases/tag/v0.2.0)
+provides prebuilt packages for Linux x86-64, Linux ARM64, and macOS ARM64.
+Pixi installs the matching Mojo 1.2.0 compiler and libclang 18 automatically.
 
-Download and extract the conda channel bundle from the release:
+With [Pixi](https://pixi.prefix.dev/latest/installation/) installed, run these
+commands in an empty application directory:
 
 ```bash
-curl -fL -o libclang_mojo-0.2.0-conda-channel.tar.gz \
-  https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-conda-channel.tar.gz
-tar -xzf libclang_mojo-0.2.0-conda-channel.tar.gz
+curl -fL -o pixi.toml \
+  https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/pixi.toml
+pixi install
 ```
 
-Install into a production environment with Conda:
+The manifest selects the package for your platform and verifies its checksum.
+Use `from clang.cindex import Index` in your application, as in the example
+above. Compile and run it with:
 
 ```bash
-conda create -n clang-prod --override-channels \
-  -c "file://$PWD/libclang_mojo-0.2.0-channel" \
-  -c https://conda.modular.com/max -c conda-forge \
-  libclang_mojo=0.2.0
-```
-
-Use `from clang.cindex import Index` in your own application, as in the example
-above. Compile and run it within the environment:
-
-```bash
-conda run -n clang-prod mojo build main.mojo -o clang-tool
-conda run -n clang-prod ./clang-tool
-```
-
-Alternatively, add the same prebuilt package to a Pixi application:
-
-```bash
-pixi init clang-app \
-  -c "file://$PWD/libclang_mojo-0.2.0-channel" \
-  -c https://conda.modular.com/max -c conda-forge
-cd clang-app
-pixi add libclang_mojo=0.2.0
 pixi run mojo build main.mojo -o clang-tool
 pixi run ./clang-tool
 ```
 
-Keep the application in its managed runtime environment on deployment hosts.
-There is no source checkout, binding generation, or manual shim build in this
-installation path. The release includes individual `.conda` files and
-`SHA256SUMS` as well as the complete channel bundle.
+Keep `pixi.toml` and the generated `pixi.lock` with your application. On deployment
+hosts, use `pixi install --locked` and run the executable with `pixi run`.
 
 ## Developing From Source
 
