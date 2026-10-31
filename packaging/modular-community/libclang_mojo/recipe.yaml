@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/prefix-dev/recipe-format/main/schema.json
 context:
-  version: "0.1.0"
+  version: "0.2.0"
   mojo_version: "=1.2.0"
   llvm_version: "18.*"
   rev: "d9cc4a61f6c49e37e44f1479e33a04a28870dda2"
@@ -48,7 +48,7 @@ requirements:
     - mojo-compiler ${{ mojo_version }}
   run:
     - libclang ${{ llvm_version }}
-    - ${{ pin_compatible('mojo-compiler') }}
+    - mojo-compiler ${{ mojo_version }}
 
 tests:
   - files:

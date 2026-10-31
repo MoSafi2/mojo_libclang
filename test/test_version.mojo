@@ -14,7 +14,7 @@ def _check(cond: Bool, msg: String = "") raises:
 
 def test_version_info() raises:
     var info = version_info()
-    assert_equal(info.libclang_mojo_version, "0.1.0")
+    assert_equal(info.libclang_mojo_version, "0.2.0")
     assert_equal(info.generated_cindex_version_major, Int(CINDEX_VERSION_MAJOR))
     assert_equal(info.generated_cindex_version_minor, Int(CINDEX_VERSION_MINOR))
     assert_equal(info.generated_cindex_version, Int(CINDEX_VERSION))
