@@ -9,6 +9,18 @@ import tempfile
 import argparse
 
 
+def prepare_traversal_fixtures(directory: Path) -> None:
+    directory.mkdir(parents=True, exist_ok=True)
+    for count in (0, 3, 4095, 4096, 4097, 5000, 10000):
+        (directory / f"children_{count}.c").write_text(
+            "".join(f"int child_{i};\n" for i in range(count)))
+    (directory / "nested.c").write_text(
+        "struct Parent {\n" + "".join(f"int child_{i};\n" for i in range(5000)) + "};\n")
+    (directory / "tree.c").write_text("".join(
+        f"struct Parent_{parent} {{\n" + "".join(f"int child_{child};\n" for child in range(150)) + "};\n"
+        for parent in range(40)))
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     env = os.environ.copy()
@@ -21,6 +33,9 @@ def main() -> int:
     failed = []
     with tempfile.TemporaryDirectory(prefix="libclang-tests-") as directory:
         work = Path(directory)
+        fixtures = work / "traversal-fixtures"
+        prepare_traversal_fixtures(fixtures)
+        env["LIBCLANG_TRAVERSAL_FIXTURES"] = str(fixtures)
         oracle = work / ("oracle.dylib" if sys.platform == "darwin" else "oracle.so")
         subprocess.run([os.environ.get("CC", "cc"),
                         "-dynamiclib" if sys.platform == "darwin" else "-shared", "-fPIC",
@@ -30,7 +45,7 @@ def main() -> int:
         modes = ("run", "build") if options.mode == "both" else (options.mode,)
         cases = [(path, mode, []) for mode in modes for path in files]
         cases.extend((root / "test" / filename, "build", ["-O0"])
-                     for filename in ("test_ffi.mojo", "test_abi.mojo"))
+                     for filename in ("test_ffi.mojo", "test_abi.mojo", "test_cursor_traversal.mojo"))
         for path, mode, flags in cases:
             label = f"{path.relative_to(root)} [{mode} {' '.join(flags)}]"
             print(f"\n== {label} ==", flush=True)

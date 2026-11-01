@@ -9,7 +9,8 @@ This repository generates direct Mojo C FFI bindings for LLVM libclang with
 - Check deterministic generation twice: `pixi run --locked check-generated`.
 - Full JIT, compiled, and focused -O0 tests: `pixi run --locked test`.
 - Run a single ordinary wrapper test: `pixi run --locked run-test <test-file>`.
-- The ABI and raw FFI tests also need the test-only C oracle; use the full runner.
+- The ABI/raw FFI tests need the test-only C oracle and traversal tests need
+  generated fixtures; use the full runner.
 - Build layout tests: `pixi run --locked build-test test/_ffi_layout_tests.mojo`.
 - Build and verify installed layout: `pixi run --locked check-consumer`.
 - Build native package: `pixi run --locked -e package build-recipe`.
@@ -47,6 +48,10 @@ The nightly prerelease keeps version 0.3.0.dev20261031 and tag
 v0.3.0-dev.20261031; conda build 1 identifies the shimless rebuild. Keep the
 recipe pinned to immutable tested source, and verify its runtime source matches
 the checkout before publishing. Stable v0.2.0 is a separate track.
+The current prerelease is rolling latest: replace its existing conda package
+assets in place, retaining the version, tag, and build number. Update the tag to
+the latest validated source and refresh its manifest, bundle, and checksums.
+Keep release notes brief, focused on package and source installation.
 
 Do not delete or revert user changes. When changing bindings, update the
 generator and regenerate. Do not commit package outputs, cached environments,

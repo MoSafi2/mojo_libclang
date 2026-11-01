@@ -46,6 +46,7 @@ tests:
           printf 'struct Point { int x; int y; };\nint add(int a, int b) { return a + b; }\n' > api.c
           cp api.c api.cpp
           printf 'int broken = ;\n' > invalid.c
+          for ((i=0; i<5000; ++i)); do printf 'int child_%s;\n' "$i"; done > many_children.c
           mojo build -I "${PREFIX}/lib/mojo" test_cindex_smoke.mojo -o package-smoke
           ./package-smoke
 

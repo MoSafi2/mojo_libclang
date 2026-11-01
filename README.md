@@ -9,6 +9,7 @@ High-level Mojo bindings for LLVM `libclang`.
 - Exposes most of `libclang` API for `C`, `C++`, and some `obj-C`
 - Parse C and C++ source files with libclang.
 - Inspect cursor spelling, kind, location, extent, parents, and type.
+- Traverse all children using growable storage, without a fixed sibling cap.
 - Read diagnostics with formatted messages.
 - Query canonical types, pointee types, result types, fields, and declarations.
 

@@ -2,7 +2,7 @@
 from clang.index import Index
 from clang.common import (
     UnsavedFile,
-        )
+)
 from clang.source_range import SourceRange
 from clang.cursor import Cursor
 from clang.translation_unit import TranslationUnit, TUResourceUsage
@@ -16,6 +16,7 @@ from clang._ffi import (
     CXCursor_VarDecl,
 )
 
+from std.os import getenv
 from std.ffi import c_uint
 from std.testing import (
     assert_equal,
@@ -29,7 +30,13 @@ from std.testing import (
 comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
 comptime MISSING_PATH: String = "test/fixtures/__nonexistent__._"
 comptime INVALID_PATH: String = "test/fixtures/raw_ffi_probe_invalid.c"
-comptime SAVE_PATH: String = "/tmp/libclang_test_tu_save.ast"
+
+
+def _save_path() -> String:
+    var directory = getenv("TMPDIR")
+    if not directory:
+        directory = "/tmp"
+    return directory + "/libclang_test_tu_save.ast"
 
 
 def _check(cond: Bool, msg: String) raises:
@@ -118,9 +125,9 @@ def test_get_location_invalid_path_raises() raises:
     with assert_raises():
         _ = tu.location(
             MISSING_PATH,
-        1,
-        1,
-    )
+            1,
+            1,
+        )
 
 
 def test_location_for_offset_invalid_path_raises() raises:
@@ -172,7 +179,10 @@ def test_tokens_nonempty() raises:
     var tu = _parse_fixture()
     var extent = tu.extent(
         FIXTURE_PATH,
-        1, 1, 1, 100,
+        1,
+        1,
+        1,
+        100,
     )
     var tokens = tu.tokens(extent)
     _check(Int(tokens.__len__()) > 0, "expected at least one token")
@@ -227,9 +237,9 @@ def test_reparse_twice() raises:
 
 def test_save_then_read() raises:
     var tu = _parse_fixture()
-    tu.save(SAVE_PATH)
+    tu.save(_save_path())
     var index = Index.create()
-    var tu2 = index.read(SAVE_PATH)
+    var tu2 = index.read(_save_path())
     _check(
         tu2.spelling().byte_length() > 0,
         "restored TU should have non-empty spelling",
@@ -238,9 +248,9 @@ def test_save_then_read() raises:
 
 def test_save_then_read_cursor() raises:
     var tu = _parse_fixture()
-    tu.save(SAVE_PATH)
+    tu.save(_save_path())
     var index = Index.create()
-    var tu2 = index.read(SAVE_PATH)
+    var tu2 = index.read(_save_path())
     var c = tu2.cursor()
     _check(not c.is_null(), "restored TU cursor should not be null")
 
@@ -252,8 +262,8 @@ def test_from_source() raises:
 
 def test_from_ast_file() raises:
     var tu = _parse_fixture()
-    tu.save(SAVE_PATH)
-    var tu2 = TranslationUnit.from_ast_file(SAVE_PATH)
+    tu.save(_save_path())
+    var tu2 = TranslationUnit.from_ast_file(_save_path())
     _check(
         tu2.spelling().byte_length() > 0,
         "from_ast_file should produce a TU with non-empty spelling",
@@ -278,7 +288,10 @@ def test_includes_with_actual_include() raises:
 def test_translation_unit_generation_and_state() raises:
     var tu = _parse_fixture()
     _check(tu._generation_id() == 0, "initial generation should be 0")
-    _check(tu._shared_state()[].generation == tu._generation_id(), "state generation matches")
+    _check(
+        tu._shared_state()[].generation == tu._generation_id(),
+        "state generation matches",
+    )
 
 
 def test_translation_unit_raw() raises:
@@ -289,7 +302,10 @@ def test_translation_unit_raw() raises:
 
 def test_translation_unit_len() raises:
     var tu = _parse_invalid()
-    _check(Int(tu.__len__()) > 0, "invalid TU should have positive diagnostic count")
+    _check(
+        Int(tu.__len__()) > 0,
+        "invalid TU should have positive diagnostic count",
+    )
 
 
 def test_translation_unit_write_to() raises:

@@ -80,6 +80,7 @@ def main() -> None:
         for filename in ("api.c", "api.cpp"):
             (app / filename).write_text("struct Point { int x; int y; };\nint add(int a, int b) { return a + b; }\n")
         (app / "invalid.c").write_text("int broken = ;\n")
+        (app / "many_children.c").write_text("".join(f"int child_{i};\n" for i in range(5000)))
         subprocess.run(["pixi", "install"], cwd=app, env=env, check=True)
         if list((app / ".pixi/envs/default/lib").glob("*clang*shim*")):
             raise ValueError("Fresh consumer environment contains a native shim")

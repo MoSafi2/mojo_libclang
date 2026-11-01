@@ -2,6 +2,7 @@
 from clang.index import Index
 from clang.translation_unit import TranslationUnit
 from clang.enums import TranslationUnitFlags
+from std.os import getenv
 from std.testing import (
     assert_equal,
     assert_true,
@@ -13,7 +14,13 @@ from std.testing import (
 
 comptime FIXTURE_PATH: String = "test/fixtures/type_test_fixture.c"
 comptime MISSING_PATH: String = "test/fixtures/__nonexistent__._"
-comptime SAVE_PATH: String = "/tmp/libclang_test_index_save.ast"
+
+
+def _save_path() -> String:
+    var directory = getenv("TMPDIR")
+    if not directory:
+        directory = "/tmp"
+    return directory + "/libclang_test_index_save.ast"
 
 
 def _check(cond: Bool, msg: String) raises:
@@ -195,14 +202,17 @@ def test_index_write_to() raises:
 def test_index_default_editing_options() raises:
     var index = Index.create()
     var opts = index.default_editing_options()
-    _check(Int(opts.as_c_uint()) >= 0, "default editing options should be non-negative")
+    _check(
+        Int(opts.as_c_uint()) >= 0,
+        "default editing options should be non-negative",
+    )
 
 
 def test_index_read_success() raises:
     var index = Index.create()
     var tu = index.parse(FIXTURE_PATH)
-    tu.save(SAVE_PATH)
-    var tu2 = index.read(SAVE_PATH)
+    tu.save(_save_path())
+    var tu2 = index.read(_save_path())
     _check(tu2.spelling().byte_length() > 0, "read should load saved AST")
 
 

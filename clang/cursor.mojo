@@ -1392,7 +1392,7 @@ struct CursorChildrenIterator(Iterator, Movable):
     def __init__(out self, ref cursor: Cursor):
         self._tu = cursor._tu
         self._generation = cursor._generation
-        self._parent_raw = cursor._raw.copy().copy()
+        self._parent_raw = cursor._raw.copy()
         self._children = List[Cursor]()
         self._index = 0
         self._buffered = False
@@ -1453,15 +1453,10 @@ def _gcc_assembly_operand(
     )
 
 
-comptime MAX_CHILDREN = 4096
-
-
 @fieldwise_init
 struct _Collector(Movable):
-    var buffer: Pointer[CXCursor, MutUntrackedOrigin]
-    var count: Int
-    var capacity: Int
-    var truncated: Bool
+    var tu: ArcPointer[TranslationUnitState]
+    var children: List[Cursor]
 
 
 def _visit_trampoline(
@@ -1469,123 +1464,40 @@ def _visit_trampoline(
     parent: CXCursor,
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
-    var opaque = client_data.value()
-    var collector = rebind[Pointer[_Collector, MutUntrackedOrigin]](
-        rebind[Pointer[UInt8, MutUntrackedOrigin]](
-            rebind[Pointer[UInt8, MutUntrackedOrigin]](opaque),
-        ),
-    )
-
-    if collector[].count >= collector[].capacity:
-        collector[].truncated = True
-        return CXChildVisit_Continue
-
-    # Copy the CXCursor value itself. Do not memcpy a guessed byte count.
-    collector[].buffer[unsafe_offset=collector[].count] = cursor.copy()
-    collector[].count += 1
-
+    var collector = client_data.value().unsafe_bitcast[_Collector]()
+    var child = Cursor(tu=collector[].tu, raw=cursor)
+    collector[].children.append(child^)
     _ = parent
     return CXChildVisit_Continue
 
 
 def collect_children(parent: Cursor) raises -> List[Cursor]:
-    """Collect the immediate children of `parent`.
-
-    The returned cursors keep the same translation-unit state as `parent`.
-    """
-    var p = parent.copy()
-    p._check_valid()
-
-    var buffer = unsafe_alloc[CXCursor](MAX_CHILDREN)
-    var collector_box = unsafe_alloc[_Collector](1)
-
-    collector_box[] = _Collector(
-        buffer=buffer,
-        count=0,
-        capacity=MAX_CHILDREN,
-        truncated=False,
-    )
-
-    var client_data = CXClientData(
-        rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
-            rebind[Pointer[UInt8, MutUntrackedOrigin]](
-                rebind[Pointer[UInt8, MutUntrackedOrigin]](collector_box),
-            ),
-        ),
-    )
-
-    _ = clang_visitChildren(p._raw, _visit_trampoline, client_data)
-
-    # Catch a reparse that happened during or immediately after traversal.
-    p._check_valid()
-
-    if collector_box[].truncated:
-        collector_box.unsafe_free()
-        buffer.unsafe_free()
-        raise Error(
-            (
-                t"collect_children: child count exceeded"
-                t" MAX_CHILDREN={MAX_CHILDREN}"
-            ),
-        )
-
-    var out = List[Cursor]()
-
-    for i in range(collector_box[].count):
-        var child = Cursor(
-            tu=p._tu,
-            raw=buffer[unsafe_offset=i],
-        )
-        out.append(child^)
-
-    collector_box.unsafe_free()
-    buffer.unsafe_free()
-
-    return out^
+    """Collect all immediate children while retaining their translation unit."""
+    parent._check_valid()
+    var children = _collect_children_unchecked(parent)
+    # Reject results if the translation unit was reparsed during traversal.
+    parent._check_valid()
+    return children^
 
 
 def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
-    """Collect immediate children without raising.
+    """Collect all children without raising across the C callback.
 
-    Used by `CursorChildrenIterator.__next__`, which may only raise
-    `StopIteration`. The caller must ensure `parent` is valid. If the child
-    count exceeds `MAX_CHILDREN`, the result is silently truncated.
+    Both explicit collection and iteration use this growable collector. The
+    caller checks translation-unit validity. libclang visits synchronously, so
+    the collector stays at a stable address for the entire callback run.
     """
-    var p = parent.copy()
-
-    var buffer = unsafe_alloc[CXCursor](MAX_CHILDREN)
-    var collector_box = unsafe_alloc[_Collector](1)
-
-    collector_box[] = _Collector(
-        buffer=buffer,
-        count=0,
-        capacity=MAX_CHILDREN,
-        truncated=False,
-    )
-
-    var client_data = CXClientData(
-        rebind[OpaquePointer[mut=True, MutUntrackedOrigin]](
-            rebind[Pointer[UInt8, MutUntrackedOrigin]](
-                rebind[Pointer[UInt8, MutUntrackedOrigin]](collector_box),
-            ),
-        ),
-    )
-
-    _ = clang_visitChildren(p._raw, _visit_trampoline, client_data)
-
-    var out = List[Cursor]()
-
-    for i in range(collector_box[].count):
-        var child = Cursor(
-            tu=p._tu,
-            raw=buffer[unsafe_offset=i],
-        )
-        out.append(child^)
-
-    collector_box.unsafe_free()
-    buffer.unsafe_free()
-
-    return out^
+    var collector = unsafe_alloc[_Collector](1)
+    collector.unsafe_write(_Collector(tu=parent._tu, children=List[Cursor]()))
+    var client_data: CXClientData = collector.unsafe_bitcast[
+        NoneType
+    ]().unsafe_origin_cast[MutUntrackedOrigin]()
+    _ = clang_visitChildren(parent._raw, _visit_trampoline, client_data)
+    var children = List[Cursor]()
+    swap(children, collector[].children)
+    collector.unsafe_deinit_pointee()
+    collector.unsafe_free()
+    return children^
 
 
 def walk_preorder(root: Cursor) raises -> List[Cursor]:

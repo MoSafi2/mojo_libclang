@@ -1,6 +1,7 @@
 from clang.cindex import CursorKind, Index, version_info
 from std.testing import assert_equal, assert_true
 
+
 def main() raises:
     var index = Index.create()
     for filename in ["api.c", "api.cpp"]:
@@ -28,6 +29,20 @@ def main() raises:
     assert_true(Int(invalid.num_diagnostics()) > 0)
     for diagnostic in invalid.diagnostics():
         assert_true(diagnostic.format().byte_length() > 0)
+    var wide_tu = index.parse("many_children.c")
+    assert_equal(Int(wide_tu.num_diagnostics()), 0)
+    var wide_root = wide_tu.cursor()
+    var wide_children = wide_root.children()
+    assert_equal(len(wide_children), 5000)
+    assert_equal(wide_children[4999].spelling(), "child_4999")
+    var seen = 0
+    for child in wide_root:
+        assert_equal(child.spelling(), "child_" + String(seen))
+        seen += 1
+    assert_equal(seen, 5000)
+    var preorder = wide_root.walk_preorder()
+    assert_equal(len(preorder), 5001)
+    assert_equal(preorder[5000].spelling(), "child_4999")
     var info = version_info()
     assert_true(info.runtime_clang_version.byte_length() > 0)
     assert_equal(info.libclang_mojo_version, "0.3.0.dev20261031")

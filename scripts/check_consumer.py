@@ -38,6 +38,20 @@ def main() raises:
     assert_true(Int(invalid.num_diagnostics()) > 0)
     for diagnostic in invalid.diagnostics():
         assert_true(diagnostic.format().byte_length() > 0)
+    var wide_tu = index.parse("many_children.c")
+    assert_equal(Int(wide_tu.num_diagnostics()), 0)
+    var wide_root = wide_tu.cursor()
+    var wide_children = wide_root.children()
+    assert_equal(len(wide_children), 5000)
+    assert_equal(wide_children[4999].spelling(), "child_4999")
+    var seen = 0
+    for child in wide_root:
+        assert_equal(child.spelling(), "child_" + String(seen))
+        seen += 1
+    assert_equal(seen, 5000)
+    var preorder = wide_root.walk_preorder()
+    assert_equal(len(preorder), 5001)
+    assert_equal(preorder[5000].spelling(), "child_4999")
     var info = version_info()
     assert_true(info.runtime_clang_version.byte_length() > 0)
     print("External consumer passed:", info.libclang_mojo_version)
@@ -63,6 +77,7 @@ def main() -> None:
         for name in ("api.c", "api.cpp"):
             (work / name).write_text("struct Point { int x; int y; };\nint add(int a, int b) { return a + b; }\n")
         (work / "invalid.c").write_text("int broken = ;\n")
+        (work / "many_children.c").write_text("".join(f"int child_{i};\n" for i in range(5000)))
         subprocess.run(
             ["mojo", "build", "-I", str(prefix / "lib" / "mojo"), str(work / "main.mojo"), "-o", str(work / "consumer")],
             cwd=work, env=env, check=True,
