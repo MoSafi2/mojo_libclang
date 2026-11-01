@@ -5,7 +5,7 @@ reference to the owning `TranslationUnitState`.
 
 Important:
 
-* The raw `CXSourceLocation` value is stored in `Array[CXSourceLocation, 1]`.
+* The raw `CXSourceLocation` value is stored inline.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The location becomes stale after `TranslationUnit.reparse()` if the generation changes.
 * FFI calls pass `CXSourceLocation` values using the native C calling convention.
@@ -45,7 +45,7 @@ from clang.file import File
 
 from clang.common import _out_ptr
 
-from std.memory import ArcPointer, Pointer, OpaquePointer
+from std.memory import ArcPointer
 
 
 @fieldwise_init
@@ -65,7 +65,7 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: Array[CXSourceLocation, 1]
+    var _raw: CXSourceLocation
     var _file: CXFile
     var _line: c_uint
     var _column: c_uint
@@ -75,16 +75,12 @@ struct SourceLocation(Copyable, Movable, Writable):
     def __init__(out self, tu: tu_module.TranslationUnit) raises:
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = Array[CXSourceLocation, 1](
-            fill=_zero_source_location(),
-        )
+        self._raw = clang_getNullLocation()
         self._file = CXFile(None)
         self._line = c_uint(0)
         self._column = c_uint(0)
         self._offset = c_uint(0)
         self._file_name = String()
-
-        (self._ptr())[] = clang_getNullLocation()
 
     def __init__(
         out self,
@@ -92,16 +88,12 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises:
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = Array[CXSourceLocation, 1](
-            fill=_zero_source_location(),
-        )
+        self._raw = clang_getNullLocation()
         self._file = CXFile(None)
         self._line = c_uint(0)
         self._column = c_uint(0)
         self._offset = c_uint(0)
         self._file_name = String()
-
-        (self._ptr())[] = clang_getNullLocation()
 
     def _check_valid(self) raises:
         if not self._tu[].alive:
@@ -114,15 +106,10 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr[
-        origin: Origin, //
-    ](ref[origin] self) -> Pointer[CXSourceLocation, origin]:
-        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
-
     def _raw_value(ref self) raises -> CXSourceLocation:
         """Return a copied raw ``CXSourceLocation`` value."""
         self._check_valid()
-        return self._raw[0].copy()
+        return self._raw.copy()
 
     def _cache_from_ffi(mut self) raises:
         self._check_valid()
@@ -135,8 +122,7 @@ struct SourceLocation(Copyable, Movable, Writable):
 
         self._file_name = String()
         if file:
-            var cs = _CXStringStorage()
-            (cs.ptr_for_out())[] = clang_getFileName(file)
+            var cs = _CXStringStorage(raw=clang_getFileName(file))
             self._file_name = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
@@ -172,7 +158,7 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises -> Self:
         """Create a ``SourceLocation`` from a copied raw value."""
         var out = Self(tu=tu)
-        out._raw[0] = raw.copy()
+        out._raw = raw.copy()
         out._cache_from_ffi()
         return out^
 
@@ -190,7 +176,7 @@ struct SourceLocation(Copyable, Movable, Writable):
             )
 
         var out = Self(tu=tu)
-        (out._ptr())[] = clang_getLocation(
+        out._raw = clang_getLocation(
             out._tu_raw(), file, c_uint(line), c_uint(column)
         )
         out._cache_from_ffi()
@@ -210,7 +196,7 @@ struct SourceLocation(Copyable, Movable, Writable):
             )
 
         var out = Self(tu=tu)
-        (out._ptr())[] = clang_getLocation(
+        out._raw = clang_getLocation(
             out._tu_raw(), file, c_uint(line), c_uint(column)
         )
         out._cache_from_ffi()
@@ -227,7 +213,7 @@ struct SourceLocation(Copyable, Movable, Writable):
             raise Error("SourceLocation.from_offset: offset must be >= 0")
 
         var out = Self(tu=tu)
-        (out._ptr())[] = clang_getLocationForOffset(
+        out._raw = clang_getLocationForOffset(
             out._tu_raw(), file, c_uint(offset)
         )
         out._cache_from_ffi()
@@ -244,7 +230,7 @@ struct SourceLocation(Copyable, Movable, Writable):
             raise Error("SourceLocation.from_offset: offset must be >= 0")
 
         var out = Self(tu=tu)
-        (out._ptr())[] = clang_getLocationForOffset(
+        out._raw = clang_getLocationForOffset(
             out._tu_raw(), file, c_uint(offset)
         )
         out._cache_from_ffi()
@@ -255,20 +241,20 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises -> Tuple[CXFile, c_uint, c_uint, c_uint]:
         self._check_valid()
 
-        var file_out = Array[CXFile, 1](fill=CXFile(None))
-        var line_out = Array[c_uint, 1](fill=c_uint(0))
-        var col_out = Array[c_uint, 1](fill=c_uint(0))
-        var off_out = Array[c_uint, 1](fill=c_uint(0))
+        var file_out = CXFile(None)
+        var line_out = c_uint(0)
+        var col_out = c_uint(0)
+        var off_out = c_uint(0)
 
         clang_getSpellingLocation(
-            (self._ptr())[],
-            _out_ptr(file_out[0]),
-            _out_ptr(line_out[0]),
-            _out_ptr(col_out[0]),
-            _out_ptr(off_out[0]),
+            self._raw,
+            _out_ptr(file_out),
+            _out_ptr(line_out),
+            _out_ptr(col_out),
+            _out_ptr(off_out),
         )
 
-        return (file_out[0], line_out[0], col_out[0], off_out[0])
+        return (file_out, line_out, col_out, off_out)
 
     def _raw_file(ref self) raises -> CXFile:
         """Return the raw ``CXFile`` handle for this location."""
@@ -320,19 +306,19 @@ struct SourceLocation(Copyable, Movable, Writable):
     def is_in_system_header(ref self) raises -> Bool:
         """Return true when this location is in a system header."""
         self._check_valid()
-        return Bool(clang_Location_isInSystemHeader((self._ptr())[]))
+        return Bool(clang_Location_isInSystemHeader(self._raw))
 
     def is_from_main_file(ref self) raises -> Bool:
         """Return true when this location comes from the main file."""
         self._check_valid()
-        return Bool(clang_Location_isFromMainFile((self._ptr())[]))
+        return Bool(clang_Location_isFromMainFile(self._raw))
 
     def __eq__(self, other: SourceLocation) -> Bool:
         return (
             self._generation == other._generation
-            and self._raw[0].ptr_data_0 == other._raw[0].ptr_data_0
-            and self._raw[0].ptr_data_1 == other._raw[0].ptr_data_1
-            and self._raw[0].int_data == other._raw[0].int_data
+            and self._raw.ptr_data_0 == other._raw.ptr_data_0
+            and self._raw.ptr_data_1 == other._raw.ptr_data_1
+            and self._raw.int_data == other._raw.int_data
         )
 
     def __ne__(self, other: SourceLocation) -> Bool:
@@ -362,9 +348,3 @@ struct SourceLocation(Copyable, Movable, Writable):
 
     def __ge__(ref self, ref other: SourceLocation) raises -> Bool:
         return not self.__lt__(other)
-
-
-def _zero_source_location() -> CXSourceLocation:
-    return CXSourceLocation(
-        ptr_data_0=None, ptr_data_1=None, int_data=c_uint(0)
-    )

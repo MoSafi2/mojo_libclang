@@ -4,7 +4,7 @@
 `__deinit__`.
 
 Returned `Token` values do not borrow pointers into that buffer. Each `Token`
-owns a copied `CXToken` value in `Array[CXToken, 1]`, plus an
+owns a copied `CXToken` value inline, plus an
 `ArcPointer[TranslationUnitState]` keepalive reference to the originating
 translation unit.
 
@@ -72,7 +72,7 @@ struct Token(Copyable, Movable, Writable):
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int
-    var _raw: Array[CXToken, 1]
+    var _raw: CXToken
     var _spelling: String
     var _kind: TokenKind
 
@@ -84,7 +84,7 @@ struct Token(Copyable, Movable, Writable):
         """Create a token wrapper from a copied raw token tied to `tu`."""
         self._tu = tu._shared_state()
         self._generation = self._tu[].generation
-        self._raw = Array[CXToken, 1](fill=raw)
+        self._raw = raw.copy()
         self._spelling = String()
         self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi()
@@ -97,7 +97,7 @@ struct Token(Copyable, Movable, Writable):
         """Create a token wrapper from a copied raw token."""
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = Array[CXToken, 1](fill=raw)
+        self._raw = raw.copy()
         self._spelling = String()
         self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi()
@@ -115,7 +115,7 @@ struct Token(Copyable, Movable, Writable):
         """
         self._tu = tu
         self._generation = tu[].generation
-        self._raw = Array[CXToken, 1](fill=raw)
+        self._raw = raw.copy()
         self._spelling = String()
         self._kind = TokenKind(c_uint(0))
         self._cache_from_ffi_unchecked()
@@ -131,9 +131,6 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXToken, origin]:
-        return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
-
     def _cache_from_ffi(mut self) raises:
         self._check_valid()
         self._cache_from_ffi_unchecked()
@@ -144,13 +141,12 @@ struct Token(Copyable, Movable, Writable):
         Uses the raw TU handle directly. The caller is responsible for
         guaranteeing the TU is alive.
         """
-        self._kind = clang_getTokenKind((self._ptr())[])
+        self._kind = clang_getTokenKind(self._raw)
 
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_getTokenSpelling(
-            self._tu[]._raw_unchecked(), (self._ptr())[]
+        var cs = _CXStringStorage(
+            raw=clang_getTokenSpelling(self._tu[]._raw_unchecked(), self._raw)
         )
-        self._spelling = cs._take_unchecked()
+        self._spelling = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write(
@@ -176,7 +172,7 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
-        (out._ptr())[] = clang_getTokenLocation(self._tu_raw(), (self._ptr())[])
+        out._raw = clang_getTokenLocation(self._tu_raw(), self._raw)
         out.refresh()
         return out^
 
@@ -185,7 +181,7 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = SourceRange(tu=self._tu)
-        (out._ptr())[] = clang_getTokenExtent(self._tu_raw(), (self._ptr())[])
+        out._raw = clang_getTokenExtent(self._tu_raw(), self._raw)
         return out^
 
     def cursor(ref self) raises -> Cursor:
@@ -193,13 +189,13 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Cursor(tu=self._tu)
-        var raw_token = self._raw[0].copy()
+        var raw_token = self._raw.copy()
 
         clang_annotateTokens(
             self._tu_raw(),
             _out_ptr(raw_token),
             c_uint(1),
-            _out_ptr(out._raw[0]),
+            _out_ptr(out._raw),
         )
 
         return out^
@@ -301,7 +297,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
 
         clang_tokenize(
             self._tu_raw(),
-            (e._ptr())[],
+            e._raw,
             Optional[
                 Pointer[
                     Optional[Pointer[CXToken, MutUntrackedOrigin]],
@@ -361,7 +357,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
 
         clang_tokenize(
             self._tu_raw(),
-            (e._ptr())[],
+            e._raw,
             Optional[
                 Pointer[
                     Optional[Pointer[CXToken, MutUntrackedOrigin]],

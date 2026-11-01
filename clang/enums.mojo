@@ -351,8 +351,7 @@ struct CursorKind(Equatable, Hashable, ImplicitlyCopyable, Writable):
         return self._value
 
     def spelling(self) raises -> String:
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_getCursorKindSpelling(self._value)
+        var cs = _CXStringStorage(raw=clang_getCursorKindSpelling(self._value))
         return cs.take()
 
     def is_declaration(self) -> Bool:
@@ -612,8 +611,7 @@ struct TypeKind(Equatable, Hashable, ImplicitlyCopyable, Writable):
         return self._value
 
     def spelling(self) raises -> String:
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_getTypeKindSpelling(self._value)
+        var cs = _CXStringStorage(raw=clang_getTypeKindSpelling(self._value))
         return cs.take()
 
     def __eq__(self, other: Self) -> Bool:

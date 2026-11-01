@@ -28,7 +28,7 @@ struct PrintingPolicy(Movable, Writable):
     def __init__(out self, ref cursor: Cursor) raises:
         """Create a printing policy for `cursor`."""
         cursor._check_valid()
-        self._raw = clang_getCursorPrintingPolicy((cursor._ptr())[])
+        self._raw = clang_getCursorPrintingPolicy(cursor._raw)
         if not self._raw:
             raise Error(
                 "PrintingPolicy: clang_getCursorPrintingPolicy returned null"

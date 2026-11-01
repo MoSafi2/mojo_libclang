@@ -10,10 +10,10 @@ The generator uses ``mojo-bindgen`` as a library:
 
 Environment overrides:
   LIBCLANG_HEADERS_DIR     Directory containing clang-c/*.h or the clang-c dir.
-  LIBCLANG_LIBRARY         Path to libclang used for generation metadata checks.
+  LIBCLANG_LIBRARY         Path to libclang used for generation metadata reporting.
   LIBCLANG_FFI_OUT         Output Mojo file. Defaults to clang/_ffi.mojo.
   LIBCLANG_FFI_IR_OUT      Optional layout-normalized CIR JSON output path.
-  LIBCLANG_ORIGINAL_IR_OUT Optional pre-rewrite normalized CIR JSON output path.
+  LIBCLANG_ORIGINAL_IR_OUT Optional pre-layout normalized CIR JSON output path.
 """
 
 from __future__ import annotations
@@ -129,7 +129,6 @@ def main() -> int:
     header_version = read_cindex_version(primary)
     library_path = discover_libclang_library()
     runtime_version = query_libclang_version(library_path)
-    validate_header_runtime_compatibility(primary, runtime_version)
 
     analysis = orchestrator.analyze_with_artifacts(direct_unit)
     expected = {decl.link_name for decl in direct_unit.decls if isinstance(decl, Function)}
@@ -387,17 +386,8 @@ def query_libclang_version(library_path: Path | None) -> str | None:
         return None
 
 
-def parse_runtime_major(version_text: str | None) -> int | None:
-    if not version_text:
-        return None
-    match = re.search(r"\bclang version\s+(\d+)", version_text)
-    if match is None:
-        return None
-    return int(match.group(1))
 
 
-def validate_header_runtime_compatibility(primary: Path, runtime_version: str | None) -> None:
-    del primary, runtime_version
 
 
 def discover_libclang_library() -> Path | None:

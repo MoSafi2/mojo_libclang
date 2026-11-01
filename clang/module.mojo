@@ -37,15 +37,13 @@ struct Module(Copyable, Movable, Writable):
     def name(ref self) raises -> String:
         """Return the module's short name."""
         self._check_valid()
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_Module_getName(self._raw)
+        var cs = _CXStringStorage(raw=clang_Module_getName(self._raw))
         return cs.take()
 
     def full_name(ref self) raises -> String:
         """Return the module's fully qualified name."""
         self._check_valid()
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_Module_getFullName(self._raw)
+        var cs = _CXStringStorage(raw=clang_Module_getFullName(self._raw))
         return cs.take()
 
     def is_system(ref self) raises -> Bool:

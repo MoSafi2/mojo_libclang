@@ -82,7 +82,7 @@ struct Rewriter(Movable, Writable):
         self._check_valid()
         var loc_copy = loc.copy()
         clang_CXRewriter_insertTextBefore(
-            self._raw, (loc_copy._ptr())[], _borrow_c_string(text)
+            self._raw, loc_copy._raw, _borrow_c_string(text)
         )
 
     def replace_text(
@@ -94,14 +94,14 @@ struct Rewriter(Movable, Writable):
         self._check_valid()
         var extent_copy = extent.copy()
         clang_CXRewriter_replaceText(
-            self._raw, (extent_copy._ptr())[], _borrow_c_string(replacement)
+            self._raw, extent_copy._raw, _borrow_c_string(replacement)
         )
 
     def remove_text(ref self, extent: source_range_types.SourceRange) raises:
         """Remove the text covered by `extent`."""
         self._check_valid()
         var extent_copy = extent.copy()
-        clang_CXRewriter_removeText(self._raw, (extent_copy._ptr())[])
+        clang_CXRewriter_removeText(self._raw, extent_copy._raw)
 
     def overwrite_changed_files(ref self) raises -> Int:
         """Write changes back to disk and return libclang's status code."""

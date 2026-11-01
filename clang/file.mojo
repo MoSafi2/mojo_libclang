@@ -117,8 +117,7 @@ struct File(Copyable, Movable, Writable):
 
         self._name = String()
         if self._raw:
-            var cs = _CXStringStorage()
-            (cs.ptr_for_out())[] = clang_getFileName(self._raw)
+            var cs = _CXStringStorage(raw=clang_getFileName(self._raw))
             self._name = cs.take()
 
     @staticmethod
@@ -216,8 +215,7 @@ struct File(Copyable, Movable, Writable):
         """Return the real path name reported by libclang."""
         self._check_valid()
 
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_File_tryGetRealPathName(self._raw)
+        var cs = _CXStringStorage(raw=clang_File_tryGetRealPathName(self._raw))
         return cs.take()
 
     def is_multiple_include_guarded(ref self) raises -> Bool:

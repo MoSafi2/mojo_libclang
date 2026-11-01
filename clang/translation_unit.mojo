@@ -107,8 +107,7 @@ struct TargetInfo(Movable, Writable):
 
     def triple(ref self) raises -> String:
         """Return the target triple string for the translation unit."""
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_TargetInfo_getTriple(self._raw)
+        var cs = _CXStringStorage(raw=clang_TargetInfo_getTriple(self._raw))
         return cs.take()
 
     def pointer_width(ref self) -> Int:
@@ -138,13 +137,8 @@ struct TUResourceUsage(Movable, Sized, Writable):
         """
         self._raw = raw.copy()
 
-    def _ptr[
-        origin: Origin, //
-    ](ref[origin] self) -> Pointer[CXTUResourceUsage, origin]:
-        return Pointer(to=self._raw).unsafe_origin_cast[origin]()
-
     def __deinit__(deinit self):
-        clang_disposeCXTUResourceUsage((self._ptr())[])
+        clang_disposeCXTUResourceUsage(self._raw)
 
     def __len__(self) -> Int:
         """Return the number of resource-usage entries."""
@@ -202,17 +196,7 @@ def target_info_for_tu(raw: CXTranslationUnit) raises -> TargetInfo:
 
 def resource_usage_for_tu(raw: CXTranslationUnit) -> TUResourceUsage:
     """Return resource-usage data for a raw translation-unit handle."""
-    var out = TUResourceUsage(
-        CXTUResourceUsage(
-            data=Optional[OpaquePointer[mut=True, MutUntrackedOrigin]](),
-            numEntries=c_uint(0),
-            entries=Optional[
-                Pointer[CXTUResourceUsageEntry, MutUntrackedOrigin]
-            ](),
-        )
-    )
-    (out._ptr())[] = clang_getCXTUResourceUsage(raw)
-    return out^
+    return TUResourceUsage(clang_getCXTUResourceUsage(raw))
 
 
 struct TranslationUnit(Copyable, Movable, Writable):
@@ -287,16 +271,15 @@ struct TranslationUnit(Copyable, Movable, Writable):
 
     def spelling(ref self) raises -> String:
         """Return libclang's spelling for this translation unit."""
-        var cs = _CXStringStorage()
-        (cs.ptr_for_out())[] = clang_getTranslationUnitSpelling(
-            self._raw_handle()
+        var cs = _CXStringStorage(
+            raw=clang_getTranslationUnitSpelling(self._raw_handle())
         )
         return cs.take()
 
     def cursor(ref self) raises -> Cursor:
         """Return the root cursor for this translation unit."""
         var out = Cursor(tu=self._shared_state())
-        (out._ptr())[] = clang_getTranslationUnitCursor(self._raw_handle())
+        out._raw = clang_getTranslationUnitCursor(self._raw_handle())
         return out^
 
     def num_diagnostics(ref self) raises -> Int:
@@ -426,7 +409,7 @@ struct TranslationUnit(Copyable, Movable, Writable):
     def cursor_for_location(ref self, ref loc: SourceLocation) raises -> Cursor:
         """Return the most specific cursor at `loc`."""
         var out = Cursor(tu=self._shared_state())
-        (out._ptr())[] = clang_getCursor(self._raw_handle(), (loc._ptr())[])
+        out._raw = clang_getCursor(self._raw_handle(), loc._raw)
         return out^
 
     def save(

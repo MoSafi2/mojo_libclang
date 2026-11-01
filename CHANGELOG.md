@@ -5,6 +5,7 @@
 Shimless rebuild on 2026-11-01 (conda build 1):
 
 - Remove the native shim and call libclang directly with its C ABI.
+- Store wrapper records inline and consolidate value-based string ownership, removing synthetic pointer accessors and output slots.
 - Restore by-value raw function and callback signatures while preserving `clang.cindex`.
 - Normalize fixed-array record fields deterministically and verify C layouts and bidirectional aggregate calls.
 - Test JIT and compiled executables on all three native platforms; package only the Mojo module and runtime dependencies.
