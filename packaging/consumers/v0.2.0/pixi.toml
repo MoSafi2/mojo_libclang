@@ -5,10 +5,10 @@ platforms = ["linux-64", "linux-aarch64", "osx-arm64"]
 requires-pixi = ">=0.80.0"
 
 [target.linux-64.dependencies]
-libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-mojo1_2_0_linux_64_0.conda", sha256 = "723aa2384961a2a754d03c0eb9ec23d204031d953368cc4f993b4a1740c35f7f" }
+libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-mojo1_2_0_linux_64_1.conda", sha256 = "5374b46c32d99503ada5d004ad7e30459fdf3245559d3139ce53b7265973d9ee" }
 
 [target.linux-aarch64.dependencies]
-libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-mojo1_2_0_linux_aarch64_0.conda", sha256 = "f58bd2ce3bc37d64807582c3645d11158d21adbaff16294168ef8b3570d72e38" }
+libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-mojo1_2_0_linux_aarch64_1.conda", sha256 = "5c469eb4adbdf4c12102a6ffb7cd228b35a9e8eac3d9792f08a4786817354b9c" }
 
 [target.osx-arm64.dependencies]
-libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-mojo1_2_0_osx_arm64_0.conda", sha256 = "2736bad767f15134c579a7a3b75a19cdc6bd6df7f5cf98a6ac56947d90d52947" }
+libclang_mojo = { url = "https://github.com/MoSafi2/mojo_libclang/releases/download/v0.2.0/libclang_mojo-0.2.0-mojo1_2_0_osx_arm64_1.conda", sha256 = "5237d600361d841a133b09681d1587fa599534beb82787560116f37c3a52d3ea" }
