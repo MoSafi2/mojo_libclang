@@ -55,6 +55,8 @@ Choose a source revision matching your compiler:
 Nightly prerelease conda build 1 calls libclang directly,
 without a native shim. Its raw `clang._ffi` functions use actual C signatures
 with by-value structs and callbacks; `clang.cindex` retains its public API.
+Raw fixed-array fields use numbered fields, such as `CXCursor.data_0` through
+`data_2`, to preserve their C layout and support by-value calls.
 Refresh the prerelease Pixi manifest and lockfile when upgrading from build 0.
 
 Both tracks use libclang 18. Rebuild compiled Mojo modules with the selected
