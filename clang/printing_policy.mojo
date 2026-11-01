@@ -28,7 +28,7 @@ struct PrintingPolicy(Movable, Writable):
     def __init__(out self, ref cursor: Cursor) raises:
         """Create a printing policy for `cursor`."""
         cursor._check_valid()
-        self._raw = clang_getCursorPrintingPolicy(cursor._ptr())
+        self._raw = clang_getCursorPrintingPolicy((cursor._ptr())[])
         if not self._raw:
             raise Error(
                 "PrintingPolicy: clang_getCursorPrintingPolicy returned null"
@@ -42,7 +42,7 @@ struct PrintingPolicy(Movable, Writable):
         The caller must ensure the cursor pointer is valid for the duration of
         the call.
         """
-        self._raw = clang_getCursorPrintingPolicy(cursor_ptr)
+        self._raw = clang_getCursorPrintingPolicy((cursor_ptr)[])
         if not self._raw:
             raise Error(
                 "PrintingPolicy: clang_getCursorPrintingPolicy returned null"
@@ -72,9 +72,7 @@ struct PrintingPolicy(Movable, Writable):
         if value < 0:
             raise Error("PrintingPolicy.set_property: value must be >= 0")
         clang_PrintingPolicy_setProperty(
-            self._raw,
-            property.as_c_uint(),
-            c_uint(value),
+            self._raw, property.as_c_uint(), c_uint(value)
         )
 
     def write_to(self, mut writer: Some[Writer]):

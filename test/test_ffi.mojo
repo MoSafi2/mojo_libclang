@@ -73,8 +73,26 @@ from std.memory.alloc import unsafe_alloc
 from std.memory import Pointer
 from std.testing import assert_equal, assert_true, TestSuite
 from clang.common import _alloc_c_string, _c_string, _out_ptr
+from clang._ffi import (
+    CXCursorAndRangeVisitor,
+    CXSourceRange,
+    CXIdxDeclInfo,
+    IndexerCallbacks,
+    clang_findReferencesInFile,
+    clang_IndexAction_create,
+    clang_IndexAction_dispose,
+    clang_indexTranslationUnit,
+    clang_indexLoc_getCXSourceLocation,
+    clang_Cursor_getParsedComment,
+    clang_Comment_getKind,
+)
+from std.ffi import OwnedDLHandle
+from std.os import getenv
+from std.sys.info import size_of
 
-comptime _CArgs = Optional[Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]]
+comptime _CArgs = Optional[
+    Pointer[Optional[Pointer[c_char, ImmUntrackedOrigin]], ImmUntrackedOrigin]
+]
 
 
 def _check(condition: Bool, message: String) raises:
@@ -104,24 +122,19 @@ def _cxstring_ptr(
     return rebind[Pointer[CXString, MutUntrackedOrigin]](storage)
 
 
-def _take_cxstring(
-    ptr: Pointer[CXString, MutUntrackedOrigin]
-) raises -> String:
-    var c_string = clang_getCString(ptr)
+def _take_cxstring(ptr: Pointer[CXString, MutUntrackedOrigin]) raises -> String:
+    var c_string = clang_getCString((ptr)[])
     if not c_string:
-        clang_disposeString(ptr)
+        clang_disposeString((ptr)[])
         raise Error("libclang returned a null C string")
     var value = String(unsafe_from_utf8_ptr=c_string.value())
-    clang_disposeString(ptr)
+    clang_disposeString((ptr)[])
     return value
 
 
 def _source_location_zero() -> CXSourceLocation:
     return CXSourceLocation(
-        ptr_data=Array[
-            Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2
-        ](fill=None),
-        int_data=c_uint(0),
+        ptr_data_0=None, ptr_data_1=None, int_data=c_uint(0)
     )
 
 
@@ -133,9 +146,8 @@ def _source_location_ptr(
 
 def _source_range_zero() -> CXSourceRange:
     return CXSourceRange(
-        ptr_data=Array[
-            Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2
-        ](fill=None),
+        ptr_data_0=None,
+        ptr_data_1=None,
         begin_int_data=c_uint(0),
         end_int_data=c_uint(0),
     )
@@ -151,9 +163,9 @@ def _cursor_zero() -> CXCursor:
     return CXCursor(
         kind=CXCursorKind(0),
         xdata=c_int(0),
-        data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 3](
-            fill=None
-        ),
+        data_0=None,
+        data_1=None,
+        data_2=None,
     )
 
 
@@ -164,12 +176,7 @@ def _cursor_ptr(
 
 
 def _type_zero() -> CXType:
-    return CXType(
-        kind=CXTypeKind(0),
-        data=Array[Optional[OpaquePointer[mut=True, MutUntrackedOrigin]], 2](
-            fill=None
-        ),
-    )
+    return CXType(kind=CXTypeKind(0), data_0=None, data_1=None)
 
 
 def _type_ptr(
@@ -197,7 +204,7 @@ def _parse_file(
 
 def test_version_string() raises:
     var version = _alloc_cxstring()
-    clang_getClangVersion(_cxstring_ptr(version))
+    (_cxstring_ptr(version))[] = clang_getClangVersion()
     var text = _take_cxstring(_cxstring_ptr(version))
     version.unsafe_free()
     _check(text.byte_length() > 0, "clang version string was empty")
@@ -208,20 +215,20 @@ def test_null_aggregates() raises:
     var range = Array[CXSourceRange, 1](fill=_source_range_zero())
     var cursor = Array[CXCursor, 1](fill=_cursor_zero())
 
-    clang_getNullLocation(_source_location_ptr(loc))
-    clang_getNullRange(_source_range_ptr(range))
-    clang_getNullCursor(_cursor_ptr(cursor))
+    (_source_location_ptr(loc))[] = clang_getNullLocation()
+    (_source_range_ptr(range))[] = clang_getNullRange()
+    (_cursor_ptr(cursor))[] = clang_getNullCursor()
 
     _check(
-        Bool(clang_Range_isNull(_source_range_ptr(range))),
+        Bool(clang_Range_isNull((_source_range_ptr(range))[])),
         "null range was not null",
     )
     _check(
-        Bool(clang_Cursor_isNull(_cursor_ptr(cursor))),
+        Bool(clang_Cursor_isNull((_cursor_ptr(cursor))[])),
         "null cursor was not null",
     )
     _check(
-        clang_getCursorKind(_cursor_ptr(cursor)) == CXCursor_FirstInvalid,
+        clang_getCursorKind((_cursor_ptr(cursor))[]) == CXCursor_FirstInvalid,
         "null cursor kind was not CXCursor_FirstInvalid",
     )
 
@@ -241,9 +248,9 @@ def test_parse_file_and_strings() raises:
         var file_name = _alloc_cxstring()
         var real_path = _alloc_cxstring()
         var tu_spelling = _alloc_cxstring()
-        clang_getFileName(_cxstring_ptr(file_name), file)
-        clang_File_tryGetRealPathName(_cxstring_ptr(real_path), file)
-        clang_getTranslationUnitSpelling(_cxstring_ptr(tu_spelling), tu)
+        (_cxstring_ptr(file_name))[] = clang_getFileName(file)
+        (_cxstring_ptr(real_path))[] = clang_File_tryGetRealPathName(file)
+        (_cxstring_ptr(tu_spelling))[] = clang_getTranslationUnitSpelling(tu)
 
         var file_time = clang_getFileTime(file)
         _check(Bool(clang_File_isEqual(file, file)), "file equality failed")
@@ -272,23 +279,27 @@ def test_cursor_lookup_type_and_spelling() raises:
         var cursor_name = _alloc_cxstring()
         var type_name = _alloc_cxstring()
 
-        clang_getLocation(_source_location_ptr(loc), tu, file, 1, 5)
-        clang_getCursor(_cursor_ptr(cursor), tu, _source_location_ptr(loc))
-        var kind = clang_getCursorKind(_cursor_ptr(cursor))
+        (_source_location_ptr(loc))[] = clang_getLocation(tu, file, 1, 5)
+        (_cursor_ptr(cursor))[] = clang_getCursor(
+            tu, (_source_location_ptr(loc))[]
+        )
+        var kind = clang_getCursorKind((_cursor_ptr(cursor))[])
         _check(
             kind == CXCursor_FunctionDecl,
             "expected FunctionDecl at line 1 column 5",
         )
 
-        clang_getCursorType(_type_ptr(typ), _cursor_ptr(cursor))
+        (_type_ptr(typ))[] = clang_getCursorType((_cursor_ptr(cursor))[])
         _check(
             typ[0].kind != CXType_Invalid, "function cursor type was invalid"
         )
-        clang_getCursorSpelling(_cxstring_ptr(cursor_name), _cursor_ptr(cursor))
-        clang_getTypeSpelling(_cxstring_ptr(type_name), _type_ptr(typ))
+        (_cxstring_ptr(cursor_name))[] = clang_getCursorSpelling(
+            (_cursor_ptr(cursor))[]
+        )
+        (_cxstring_ptr(type_name))[] = clang_getTypeSpelling((_type_ptr(typ))[])
 
-        clang_disposeString(_cxstring_ptr(cursor_name))
-        clang_disposeString(_cxstring_ptr(type_name))
+        clang_disposeString((_cxstring_ptr(cursor_name))[])
+        clang_disposeString((_cxstring_ptr(type_name))[])
         cursor_name.unsafe_free()
         type_name.unsafe_free()
     finally:
@@ -307,9 +318,7 @@ def test_locations_ranges_and_tokens() raises:
         if not file:
             raise Error("clang_getFile returned null")
 
-        var start = Array[CXSourceLocation, 1](
-            fill=_source_location_zero()
-        )
+        var start = Array[CXSourceLocation, 1](fill=_source_location_zero())
         var end = Array[CXSourceLocation, 1](fill=_source_location_zero())
         var range = Array[CXSourceRange, 1](fill=_source_range_zero())
         var spelling_file = Array[CXFile, 1](fill=None)
@@ -317,19 +326,25 @@ def test_locations_ranges_and_tokens() raises:
         var spelling_column = Array[c_uint, 1](fill=c_uint(0))
         var spelling_offset = Array[c_uint, 1](fill=c_uint(0))
 
-        clang_getLocation(_source_location_ptr(start), tu, file, 1, 1)
-        clang_getLocation(_source_location_ptr(end), tu, file, 1, 23)
-        clang_getRange(
-            _source_range_ptr(range),
-            _source_location_ptr(start),
-            _source_location_ptr(end),
+        (_source_location_ptr(start))[] = clang_getLocation(tu, file, 1, 1)
+        (_source_location_ptr(end))[] = clang_getLocation(tu, file, 1, 23)
+        (_source_range_ptr(range))[] = clang_getRange(
+            (_source_location_ptr(start))[], (_source_location_ptr(end))[]
         )
         clang_getSpellingLocation(
-            _source_location_ptr(start),
-            Pointer(to=spelling_file[0]).unsafe_origin_cast[MutUntrackedOrigin](),
-            Pointer(to=spelling_line[0]).unsafe_origin_cast[MutUntrackedOrigin](),
-            Pointer(to=spelling_column[0]).unsafe_origin_cast[MutUntrackedOrigin](),
-            Pointer(to=spelling_offset[0]).unsafe_origin_cast[MutUntrackedOrigin](),
+            (_source_location_ptr(start))[],
+            Pointer(to=spelling_file[0]).unsafe_origin_cast[
+                MutUntrackedOrigin
+            ](),
+            Pointer(to=spelling_line[0]).unsafe_origin_cast[
+                MutUntrackedOrigin
+            ](),
+            Pointer(to=spelling_column[0]).unsafe_origin_cast[
+                MutUntrackedOrigin
+            ](),
+            Pointer(to=spelling_offset[0]).unsafe_origin_cast[
+                MutUntrackedOrigin
+            ](),
         )
         _check(spelling_line[0] == 1, "spelling line mismatch")
         _check(spelling_column[0] == 1, "spelling column mismatch")
@@ -340,8 +355,10 @@ def test_locations_ranges_and_tokens() raises:
         var token_count = Array[c_uint, 1](fill=c_uint(0))
         clang_tokenize(
             tu,
-            _source_range_ptr(range),
-            Pointer(to=token_storage[0]).unsafe_origin_cast[MutUntrackedOrigin](),
+            (_source_range_ptr(range))[],
+            Pointer(to=token_storage[0]).unsafe_origin_cast[
+                MutUntrackedOrigin
+            ](),
             Pointer(to=token_count[0]).unsafe_origin_cast[MutUntrackedOrigin](),
         )
         _check(token_count[0] > 0, "clang_tokenize returned zero tokens")
@@ -357,15 +374,23 @@ def test_locations_ranges_and_tokens() raises:
             var token_extent = Array[CXSourceRange, 1](
                 fill=_source_range_zero()
             )
-            var token_kind = clang_getTokenKind(first)
-            clang_getTokenSpelling(_cxstring_ptr(token_text), tu, first)
-            clang_getTokenLocation(_source_location_ptr(token_loc), tu, first)
-            clang_getTokenExtent(_source_range_ptr(token_extent), tu, first)
+            var token_kind = clang_getTokenKind((first)[])
+            (_cxstring_ptr(token_text))[] = clang_getTokenSpelling(
+                tu, (first)[]
+            )
+            (_source_location_ptr(token_loc))[] = clang_getTokenLocation(
+                tu, (first)[]
+            )
+            (_source_range_ptr(token_extent))[] = clang_getTokenExtent(
+                tu, (first)[]
+            )
             _check(
-                not Bool(clang_Range_isNull(_source_range_ptr(token_extent))),
+                not Bool(
+                    clang_Range_isNull((_source_range_ptr(token_extent))[])
+                ),
                 "token extent was null",
             )
-            clang_disposeString(_cxstring_ptr(token_text))
+            clang_disposeString((_cxstring_ptr(token_text))[])
             token_text.unsafe_free()
         finally:
             clang_disposeTokens(tu, token_storage[0].value(), token_count[0])
@@ -386,34 +411,30 @@ def test_equality() raises:
             raise Error("clang_getFile returned null")
 
         var loc = Array[CXSourceLocation, 1](fill=_source_location_zero())
-        var null_loc = Array[CXSourceLocation, 1](
-            fill=_source_location_zero()
-        )
+        var null_loc = Array[CXSourceLocation, 1](fill=_source_location_zero())
         var range = Array[CXSourceRange, 1](fill=_source_range_zero())
-        var null_range = Array[CXSourceRange, 1](
-            fill=_source_range_zero()
-        )
+        var null_range = Array[CXSourceRange, 1](fill=_source_range_zero())
         var cursor = Array[CXCursor, 1](fill=_cursor_zero())
         var null_cursor = Array[CXCursor, 1](fill=_cursor_zero())
         var typ = Array[CXType, 1](fill=_type_zero())
         var invalid_type = Array[CXType, 1](fill=_type_zero())
 
-        clang_getLocation(_source_location_ptr(loc), tu, file, 1, 5)
-        clang_getNullLocation(_source_location_ptr(null_loc))
-        clang_getRange(
-            _source_range_ptr(range),
-            _source_location_ptr(loc),
-            _source_location_ptr(loc),
+        (_source_location_ptr(loc))[] = clang_getLocation(tu, file, 1, 5)
+        (_source_location_ptr(null_loc))[] = clang_getNullLocation()
+        (_source_range_ptr(range))[] = clang_getRange(
+            (_source_location_ptr(loc))[], (_source_location_ptr(loc))[]
         )
-        clang_getNullRange(_source_range_ptr(null_range))
-        clang_getCursor(_cursor_ptr(cursor), tu, _source_location_ptr(loc))
-        clang_getNullCursor(_cursor_ptr(null_cursor))
-        clang_getCursorType(_type_ptr(typ), _cursor_ptr(cursor))
+        (_source_range_ptr(null_range))[] = clang_getNullRange()
+        (_cursor_ptr(cursor))[] = clang_getCursor(
+            tu, (_source_location_ptr(loc))[]
+        )
+        (_cursor_ptr(null_cursor))[] = clang_getNullCursor()
+        (_type_ptr(typ))[] = clang_getCursorType((_cursor_ptr(cursor))[])
 
         _check(
             Bool(
                 clang_equalLocations(
-                    _source_location_ptr(loc), _source_location_ptr(loc)
+                    (_source_location_ptr(loc))[], (_source_location_ptr(loc))[]
                 )
             ),
             "location self equality failed",
@@ -421,7 +442,8 @@ def test_equality() raises:
         _check(
             not Bool(
                 clang_equalLocations(
-                    _source_location_ptr(loc), _source_location_ptr(null_loc)
+                    (_source_location_ptr(loc))[],
+                    (_source_location_ptr(null_loc))[],
                 )
             ),
             "location/null equality was true",
@@ -429,7 +451,7 @@ def test_equality() raises:
         _check(
             Bool(
                 clang_equalRanges(
-                    _source_range_ptr(range), _source_range_ptr(range)
+                    (_source_range_ptr(range))[], (_source_range_ptr(range))[]
                 )
             ),
             "range self equality failed",
@@ -437,19 +459,24 @@ def test_equality() raises:
         _check(
             not Bool(
                 clang_equalRanges(
-                    _source_range_ptr(range), _source_range_ptr(null_range)
+                    (_source_range_ptr(range))[],
+                    (_source_range_ptr(null_range))[],
                 )
             ),
             "range/null equality was true",
         )
         _check(
-            Bool(clang_equalCursors(_cursor_ptr(cursor), _cursor_ptr(cursor))),
+            Bool(
+                clang_equalCursors(
+                    (_cursor_ptr(cursor))[], (_cursor_ptr(cursor))[]
+                )
+            ),
             "cursor self equality failed",
         )
         _check(
             Bool(
                 clang_equalCursors(
-                    _cursor_ptr(null_cursor), _cursor_ptr(null_cursor)
+                    (_cursor_ptr(null_cursor))[], (_cursor_ptr(null_cursor))[]
                 )
             ),
             "null cursor equality failed",
@@ -457,17 +484,21 @@ def test_equality() raises:
         _check(
             not Bool(
                 clang_equalCursors(
-                    _cursor_ptr(cursor), _cursor_ptr(null_cursor)
+                    (_cursor_ptr(cursor))[], (_cursor_ptr(null_cursor))[]
                 )
             ),
             "cursor/null equality was true",
         )
         _check(
-            Bool(clang_equalTypes(_type_ptr(typ), _type_ptr(typ))),
+            Bool(clang_equalTypes((_type_ptr(typ))[], (_type_ptr(typ))[])),
             "type self equality failed",
         )
         _check(
-            not Bool(clang_equalTypes(_type_ptr(typ), _type_ptr(invalid_type))),
+            not Bool(
+                clang_equalTypes(
+                    (_type_ptr(typ))[], (_type_ptr(invalid_type))[]
+                )
+            ),
             "type/invalid equality was true",
         )
 
@@ -490,8 +521,10 @@ def test_diagnostics() raises:
             raise Error("clang_getDiagnostic returned null")
         try:
             var spelling = _alloc_cxstring()
-            clang_getDiagnosticSpelling(_cxstring_ptr(spelling), diagnostic)
-            clang_disposeString(_cxstring_ptr(spelling))
+            (_cxstring_ptr(spelling))[] = clang_getDiagnosticSpelling(
+                diagnostic
+            )
+            clang_disposeString((_cxstring_ptr(spelling))[])
             spelling.unsafe_free()
         finally:
             clang_disposeDiagnostic(diagnostic)
@@ -543,15 +576,13 @@ def test_unsaved_parse() raises:
 
 
 def _visit_child_callback(
-    cursor: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
-    parent: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
+    cursor: CXCursor,
+    parent: CXCursor,
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
     if not client_data:
         return CXChildVisit_Continue
-    var count = rebind[Pointer[c_uint, MutUntrackedOrigin]](
-        client_data.value()
-    )
+    var count = rebind[Pointer[c_uint, MutUntrackedOrigin]](client_data.value())
     count[] = count[] + 1
     _ = cursor
     _ = parent
@@ -567,14 +598,16 @@ def test_visit_children() raises:
     try:
         var tu_cursor = Array[CXCursor, 1](fill=_cursor_zero())
         var count = Array[c_uint, 1](fill=c_uint(0))
-        clang_getTranslationUnitCursor(_cursor_ptr(tu_cursor), tu)
+        (_cursor_ptr(tu_cursor))[] = clang_getTranslationUnitCursor(tu)
         var result = clang_visitChildren(
-            _cursor_ptr(tu_cursor),
+            (_cursor_ptr(tu_cursor))[],
             _visit_child_callback,
             Optional[Pointer[NoneType, MutUntrackedOrigin]](
                 rebind[Pointer[NoneType, MutUntrackedOrigin]](
                     rebind[Pointer[c_uint, MutUntrackedOrigin]](
-                        Pointer(to=count[0]).unsafe_origin_cast[MutUntrackedOrigin]()
+                        Pointer(to=count[0]).unsafe_origin_cast[
+                            MutUntrackedOrigin
+                        ]()
                     ),
                 ),
             ),
@@ -582,6 +615,91 @@ def test_visit_children() raises:
         _check(result == 0, "clang_visitChildren returned non-zero")
         _check(count[0] > 0, "clang_visitChildren did not visit any children")
     finally:
+        clang_disposeTranslationUnit(tu)
+        clang_disposeIndex(index)
+
+
+def _reference_callback(
+    context: CXClientData, cursor: CXCursor, extent: CXSourceRange
+) abi("C") -> c_uint:
+    if (
+        cursor.kind == CXCursor_FunctionDecl or cursor.kind == 101
+    ) and extent.begin_int_data != 0:
+        context.value().unsafe_bitcast[c_uint]()[] += 1
+    return c_uint(1)
+
+
+def _index_callback(
+    context: CXClientData,
+    info: Optional[Pointer[CXIdxDeclInfo, ImmUntrackedOrigin]],
+) abi("C") -> None:
+    if info:
+        var location = clang_indexLoc_getCXSourceLocation(info.value()[].loc)
+        if (
+            location.int_data != 0
+            and info.value()[].cursor.kind == CXCursor_FunctionDecl
+        ):
+            context.value().unsafe_bitcast[c_uint]()[] += 1
+
+
+def _break_callback(
+    cursor: CXCursor, parent: CXCursor, context: CXClientData
+) abi("C") -> CXChildVisitResult:
+    _ = cursor
+    _ = parent
+    context.value().unsafe_bitcast[c_uint]()[] += 1
+    return CXChildVisitResult(0)
+
+
+def test_native_callback_tables_and_early_exit() raises:
+    var index = clang_createIndex(0, 0)
+    var path = String("test/fixtures/raw_ffi_probe_fixture.c")
+    var tu = _parse_file(index, path)
+    var action = clang_IndexAction_create(index)
+    var callbacks = unsafe_alloc[IndexerCallbacks](1)
+    try:
+        var count = c_uint(0)
+        var context: CXClientData = (
+            Pointer(to=count)
+            .unsafe_bitcast[NoneType]()
+            .unsafe_origin_cast[MutUntrackedOrigin]()
+        )
+        var root = clang_getTranslationUnitCursor(tu)
+        assert_equal(
+            clang_visitChildren(root, _break_callback, context), c_uint(1)
+        )
+        assert_equal(count, c_uint(1))
+        var file = clang_getFile(tu, _as_c_string(path))
+        var location = clang_getLocation(tu, file, c_uint(1), c_uint(5))
+        var cursor = clang_getCursor(tu, location)
+        var comment = clang_Cursor_getParsedComment(cursor)
+        assert_equal(clang_Comment_getKind(comment), c_uint(0))
+        count = 0
+        var visitor = CXCursorAndRangeVisitor(context, _reference_callback)
+        assert_equal(
+            clang_findReferencesInFile(cursor, file, visitor), c_uint(0)
+        )
+        assert_equal(count, c_uint(2))
+        var oracle = OwnedDLHandle(getenv("LIBCLANG_ABI_ORACLE"))
+        var zero = oracle.get_function[NoneType]("oracle_zero_callbacks")
+        zero(callbacks)
+        callbacks[].indexDeclaration = _index_callback
+        count = 0
+        assert_equal(
+            clang_indexTranslationUnit(
+                action,
+                context,
+                callbacks,
+                c_uint(size_of[IndexerCallbacks]()),
+                c_uint(0),
+                tu,
+            ),
+            c_int(0),
+        )
+        assert_equal(count, c_uint(2))
+    finally:
+        callbacks.unsafe_free()
+        clang_IndexAction_dispose(action)
         clang_disposeTranslationUnit(tu)
         clang_disposeIndex(index)
 

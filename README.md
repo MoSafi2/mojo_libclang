@@ -52,6 +52,11 @@ Choose a source revision matching your compiler:
 | `v0.2.0` / `codex/mojo-1.2` | `1.2.0` | Stable release / stable maintenance |
 | `v0.3.0-dev.20261031` / `master` | `1.3.0.dev2026103105` | Nightly prerelease / nightly development |
 
+Nightly prerelease conda build 1 calls libclang directly,
+without a native shim. Its raw `clang._ffi` functions use actual C signatures
+with by-value structs and callbacks; `clang.cindex` retains its public API.
+Refresh the prerelease Pixi manifest and lockfile when upgrading from build 0.
+
 Both tracks use libclang 18. Rebuild compiled Mojo modules with the selected
 toolchain; compiled packages are not interchangeable across compiler versions.
 The raw FFI and layout checks are regenerated with mojo-bindgen at
@@ -103,16 +108,15 @@ cd mojo_libclang
 pixi install --locked -e dev
 ```
 
-Run the wrapper test suite through the local shim:
+Run all tests through both Mojo execution and compiled executables:
 
 ```bash
 pixi run --locked -e dev test
 ```
 
-To run one test file after building the shim:
+To run one test file:
 
 ```bash
-pixi run --locked -e dev build-shim
 pixi run --locked -e dev run-test test/test_translation_unit.mojo
 ```
 
@@ -135,9 +139,7 @@ Generation updates:
 
 - `clang/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
-- `shim/libclang_mojo_shim.h`
-- `shim/libclang_mojo_shim.c`
-- `shim/libclang_mojo_shim.so`
+- `clang/_metadata.mojo`
 
 Do not edit generated low-level files by hand, either update the generator or
 add a deterministic patch.

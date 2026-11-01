@@ -7,7 +7,7 @@ Important:
 - `Cursor` does not own libclang AST memory.
 - `Cursor` keeps the owning TranslationUnit alive through ArcPointer.
 - `Cursor` becomes stale after TranslationUnit.reparse() if generation changes.
-- Every FFI call passes `CXCursor *` to the shim, never `CXCursor` by value.
+- FFI calls pass `CXCursor` values using the native C calling convention.
 
 Typical usage:
 
@@ -308,12 +308,12 @@ struct CursorSet(Movable, Writable):
     def contains(ref self, ref cursor: Cursor) raises -> Bool:
         """Return true if `cursor` is already in the set."""
         cursor._check_valid()
-        return Bool(clang_CXCursorSet_contains(self._raw, cursor._ptr()))
+        return Bool(clang_CXCursorSet_contains(self._raw, (cursor._ptr())[]))
 
     def insert(ref self, ref cursor: Cursor) raises -> Bool:
         """Insert `cursor`; return true when it was not already present."""
         cursor._check_valid()
-        return Bool(clang_CXCursorSet_insert(self._raw, cursor._ptr()))
+        return Bool(clang_CXCursorSet_insert(self._raw, (cursor._ptr())[]))
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("CursorSet()")
@@ -349,7 +349,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._raw = Array[CXCursor, 1](
             fill=_zero_cursor(),
         )
-        clang_getNullCursor(self._ptr())
+        (self._ptr())[] = clang_getNullCursor()
 
     def __init__(out self, tu: tu_module.TranslationUnit, raw: CXCursor):
         self._tu = tu._shared_state()
@@ -367,7 +367,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             fill=_zero_cursor(),
         )
 
-        clang_getNullCursor(self._ptr())
+        (self._ptr())[] = clang_getNullCursor()
 
     def __init__(
         out self,
@@ -390,7 +390,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def __eq__(ref self, ref other: Self) raises -> Bool:
         if self._generation != other._generation:
             return False
-        return Bool(clang_equalCursors(self._ptr(), other._ptr()))
+        return Bool(clang_equalCursors((self._ptr())[], (other._ptr())[]))
 
     def __ne__(ref self, ref other: Self) raises -> Bool:
         return not self.__eq__(other)
@@ -458,37 +458,38 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def is_null(ref self) raises -> Bool:
         """Return true if this cursor is libclang's null cursor."""
         self._check_valid()
-        return Bool(clang_Cursor_isNull(self._ptr()))
+        return Bool(clang_Cursor_isNull((self._ptr())[]))
 
     def kind(ref self) raises -> CursorKind:
         """Return the libclang cursor kind."""
         self._check_valid()
-        return CursorKind(clang_getCursorKind(self._ptr()))
+        return CursorKind(clang_getCursorKind((self._ptr())[]))
 
     def hash(ref self) raises -> Int:
         """Return libclang's stable hash for this cursor."""
         self._check_valid()
-        return Int(clang_hashCursor(self._ptr()))
+        return Int(clang_hashCursor((self._ptr())[]))
 
     def spelling(ref self) raises -> String:
         """Return the cursor spelling."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_getCursorSpelling(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getCursorSpelling((self._ptr())[])
         return cs.take()
 
     def display_name(ref self) raises -> String:
         """Return the display name for this cursor."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_getCursorDisplayName(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getCursorDisplayName((self._ptr())[])
         return cs.take()
 
     def usr(ref self) raises -> Optional[String]:
-        """Return the unified symbol resolution string for this cursor, if any."""
+        """Return the unified symbol resolution string for this cursor, if any.
+        """
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_getCursorUSR(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getCursorUSR((self._ptr())[])
         return cs.take_optional()
 
     # -----------------------------------------------------------------------
@@ -498,7 +499,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def is_definition(ref self) raises -> Bool:
         """Return true if this cursor is a definition."""
         self._check_valid()
-        return Bool(clang_isCursorDefinition(self._ptr()))
+        return Bool(clang_isCursorDefinition((self._ptr())[]))
 
     def is_declaration(ref self) raises -> Bool:
         """Return true if this cursor kind is a declaration."""
@@ -533,7 +534,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def is_invalid_declaration(ref self) raises -> Bool:
         """Return true if libclang marks this declaration invalid."""
         self._check_valid()
-        return Bool(clang_isInvalidDeclaration(self._ptr()))
+        return Bool(clang_isInvalidDeclaration((self._ptr())[]))
 
     def is_translation_unit(ref self) raises -> Bool:
         """Return true if this is the translation-unit cursor."""
@@ -553,7 +554,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def has_attrs(ref self) raises -> Bool:
         """Return true if this cursor has attributes."""
         self._check_valid()
-        return Bool(clang_Cursor_hasAttrs(self._ptr()))
+        return Bool(clang_Cursor_hasAttrs((self._ptr())[]))
 
     # -----------------------------------------------------------------------
     # C++ method predicates
@@ -561,43 +562,43 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def is_pure_virtual(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isPureVirtual(self._ptr()))
+        return Bool(clang_CXXMethod_isPureVirtual((self._ptr())[]))
 
     def is_static(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isStatic(self._ptr()))
+        return Bool(clang_CXXMethod_isStatic((self._ptr())[]))
 
     def is_virtual(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isVirtual(self._ptr()))
+        return Bool(clang_CXXMethod_isVirtual((self._ptr())[]))
 
     def is_virtual_base(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_isVirtualBase(self._ptr()))
+        return Bool(clang_isVirtualBase((self._ptr())[]))
 
     def is_const(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isConst(self._ptr()))
+        return Bool(clang_CXXMethod_isConst((self._ptr())[]))
 
     def is_defaulted(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isDefaulted(self._ptr()))
+        return Bool(clang_CXXMethod_isDefaulted((self._ptr())[]))
 
     def is_deleted(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isDeleted(self._ptr()))
+        return Bool(clang_CXXMethod_isDeleted((self._ptr())[]))
 
     def is_move_assignment_operator(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isMoveAssignmentOperator(self._ptr()))
+        return Bool(clang_CXXMethod_isMoveAssignmentOperator((self._ptr())[]))
 
     def is_copy_assignment_operator(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isCopyAssignmentOperator(self._ptr()))
+        return Bool(clang_CXXMethod_isCopyAssignmentOperator((self._ptr())[]))
 
     def is_explicit(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXMethod_isExplicit(self._ptr()))
+        return Bool(clang_CXXMethod_isExplicit((self._ptr())[]))
 
     def is_explicit_method(ref self) raises -> Bool:
         """Alias for ``is_explicit()`` that matches the Python binding name."""
@@ -605,46 +606,46 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def is_converting_constructor(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXConstructor_isConvertingConstructor(self._ptr()))
+        return Bool(
+            clang_CXXConstructor_isConvertingConstructor((self._ptr())[])
+        )
 
     def is_copy_constructor(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXConstructor_isCopyConstructor(self._ptr()))
+        return Bool(clang_CXXConstructor_isCopyConstructor((self._ptr())[]))
 
     def is_default_constructor(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXConstructor_isDefaultConstructor(self._ptr()))
+        return Bool(clang_CXXConstructor_isDefaultConstructor((self._ptr())[]))
 
     def is_move_constructor(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXConstructor_isMoveConstructor(self._ptr()))
+        return Bool(clang_CXXConstructor_isMoveConstructor((self._ptr())[]))
 
     def is_mutable_field(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXField_isMutable(self._ptr()))
+        return Bool(clang_CXXField_isMutable((self._ptr())[]))
 
     def is_abstract_record(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_CXXRecord_isAbstract(self._ptr()))
+        return Bool(clang_CXXRecord_isAbstract((self._ptr())[]))
 
     def is_scoped_enum(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_EnumDecl_isScoped(self._ptr()))
+        return Bool(clang_EnumDecl_isScoped((self._ptr())[]))
 
     def is_variadic(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_isVariadic(self._ptr()))
+        return Bool(clang_Cursor_isVariadic((self._ptr())[]))
 
     def is_external_symbol(ref self) raises -> Bool:
         self._check_valid()
         var language_cs = _CXStringStorage()
         var defined_in_cs = _CXStringStorage()
-        var is_generated: Array[c_uint, 1] = Array[c_uint, 1](
-            fill=c_uint(0)
-        )
+        var is_generated: Array[c_uint, 1] = Array[c_uint, 1](fill=c_uint(0))
         var result = Bool(
             clang_Cursor_isExternalSymbol(
-                self._ptr(),
+                (self._ptr())[],
                 language_cs.ptr_for_out(),
                 defined_in_cs.ptr_for_out(),
                 _out_ptr(is_generated[0]),
@@ -656,68 +657,70 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
     def has_var_decl_global_storage(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_hasVarDeclGlobalStorage(self._ptr()))
+        return Bool(clang_Cursor_hasVarDeclGlobalStorage((self._ptr())[]))
 
     def has_var_decl_external_storage(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_hasVarDeclExternalStorage(self._ptr()))
+        return Bool(clang_Cursor_hasVarDeclExternalStorage((self._ptr())[]))
 
     def is_anonymous(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_isAnonymous(self._ptr()))
+        return Bool(clang_Cursor_isAnonymous((self._ptr())[]))
 
     def is_anonymous_record_decl(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_isAnonymousRecordDecl(self._ptr()))
+        return Bool(clang_Cursor_isAnonymousRecordDecl((self._ptr())[]))
 
     def is_macro_function_like(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_isMacroFunctionLike(self._ptr()))
+        return Bool(clang_Cursor_isMacroFunctionLike((self._ptr())[]))
 
     def is_macro_builtin(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_isMacroBuiltin(self._ptr()))
+        return Bool(clang_Cursor_isMacroBuiltin((self._ptr())[]))
 
     def is_inline_namespace(ref self) raises -> Bool:
         self._check_valid()
-        return Bool(clang_Cursor_isInlineNamespace(self._ptr()))
+        return Bool(clang_Cursor_isInlineNamespace((self._ptr())[]))
 
     def is_const_qualified_type(ref self) raises -> Bool:
         from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
-        clang_getCursorType(t._ptr(), self._ptr())
-        return Bool(clang_isConstQualifiedType(t._ptr()))
+        (t._ptr())[] = clang_getCursorType((self._ptr())[])
+        return Bool(clang_isConstQualifiedType((t._ptr())[]))
 
     def is_volatile_qualified_type(ref self) raises -> Bool:
         from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
-        clang_getCursorType(t._ptr(), self._ptr())
-        return Bool(clang_isVolatileQualifiedType(t._ptr()))
+        (t._ptr())[] = clang_getCursorType((self._ptr())[])
+        return Bool(clang_isVolatileQualifiedType((t._ptr())[]))
 
     def is_restrict_qualified_type(ref self) raises -> Bool:
         from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
-        clang_getCursorType(t._ptr(), self._ptr())
-        return Bool(clang_isRestrictQualifiedType(t._ptr()))
+        (t._ptr())[] = clang_getCursorType((self._ptr())[])
+        return Bool(clang_isRestrictQualifiedType((t._ptr())[]))
 
     def is_pod_type(ref self) raises -> Bool:
         from clang.type_ import Type
 
         self._check_valid()
         var t = Type(tu=self._tu)
-        clang_getCursorType(t._ptr(), self._ptr())
-        return Bool(clang_isPODType(t._ptr()))
+        (t._ptr())[] = clang_getCursorType((self._ptr())[])
+        return Bool(clang_isPODType((t._ptr())[]))
 
     def access_specifier(ref self) raises -> AccessSpecifier:
         """Return the C++ access specifier for this cursor."""
         self._check_valid()
-        return AccessSpecifier(c_uint(clang_getCXXAccessSpecifier(self._ptr())))
+        return AccessSpecifier(
+            c_uint(clang_getCXXAccessSpecifier((self._ptr())[]))
+        )
 
     # -----------------------------------------------------------------------
     # Cursor relations
@@ -728,9 +731,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Self(self._tu)
-        clang_getCursorSemanticParent(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorSemanticParent((self._ptr())[])
 
-        if Bool(clang_Cursor_isNull(out._ptr())):
+        if Bool(clang_Cursor_isNull((out._ptr())[])):
             return None
 
         return Optional[Self](out^)
@@ -740,9 +743,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Self(self._tu)
-        clang_getCursorLexicalParent(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorLexicalParent((self._ptr())[])
 
-        if Bool(clang_Cursor_isNull(out._ptr())):
+        if Bool(clang_Cursor_isNull((out._ptr())[])):
             return None
 
         return Optional[Self](out^)
@@ -752,9 +755,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Self(self._tu)
-        clang_getCursorReferenced(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorReferenced((self._ptr())[])
 
-        if Bool(clang_Cursor_isNull(out._ptr())):
+        if Bool(clang_Cursor_isNull((out._ptr())[])):
             return None
 
         return Optional[Self](out^)
@@ -764,9 +767,9 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Self(self._tu)
-        clang_getCursorDefinition(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorDefinition((self._ptr())[])
 
-        if Bool(clang_Cursor_isNull(out._ptr())):
+        if Bool(clang_Cursor_isNull((out._ptr())[])):
             return None
 
         return Optional[Self](out^)
@@ -775,7 +778,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return the initializer cursor for a variable declaration, if any."""
         self._check_valid()
         var out = Self(self._tu)
-        clang_Cursor_getVarDeclInitializer(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Cursor_getVarDeclInitializer((self._ptr())[])
         if out.is_null():
             return None
         return Optional[Self](out^)
@@ -785,7 +788,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Self(self._tu)
-        clang_getCanonicalCursor(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCanonicalCursor((self._ptr())[])
         return out^
 
     def equals(ref self, ref other: Self) raises -> Bool:
@@ -797,7 +800,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if self._generation != other._generation:
             return False
 
-        return Bool(clang_equalCursors(self._ptr(), other._ptr()))
+        return Bool(clang_equalCursors((self._ptr())[], (other._ptr())[]))
 
     # -----------------------------------------------------------------------
     # Cursor info (pretty-printed, overridden, overloaded, template)
@@ -808,17 +811,11 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         var overridden_slot: Array[
             Optional[Pointer[CXCursor, MutUntrackedOrigin]], 1
-        ] = Array[
-            Optional[Pointer[CXCursor, MutUntrackedOrigin]], 1
-        ](
-            fill=None
-        )
-        var num_slot: Array[c_uint, 1] = Array[c_uint, 1](
-            fill=c_uint(0)
-        )
+        ] = Array[Optional[Pointer[CXCursor, MutUntrackedOrigin]], 1](fill=None)
+        var num_slot: Array[c_uint, 1] = Array[c_uint, 1](fill=c_uint(0))
 
         clang_getOverriddenCursors(
-            self._ptr(),
+            (self._ptr())[],
             rebind[
                 Pointer[
                     Optional[Pointer[CXCursor, MutUntrackedOrigin]],
@@ -842,7 +839,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def num_overloaded_decls(ref self) raises -> Int:
         """Return the number of overloaded declarations referenced here."""
         self._check_valid()
-        return Int(clang_getNumOverloadedDecls(self._ptr()))
+        return Int(clang_getNumOverloadedDecls((self._ptr())[]))
 
     def overloaded_decl(ref self, index: Int) raises -> Self:
         """Return overloaded declaration `index`."""
@@ -850,23 +847,23 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if index < 0:
             raise Error("Cursor.overloaded_decl: index out of range")
         var out = Self(self._tu)
-        clang_getOverloadedDecl(out._ptr(), self._ptr(), c_uint(index))
+        (out._ptr())[] = clang_getOverloadedDecl((self._ptr())[], c_uint(index))
         return out^
 
     def num_template_arguments(ref self) raises -> Int:
         """Return the number of template arguments available on this cursor."""
         self._check_valid()
-        return Int(clang_Cursor_getNumTemplateArguments(self._ptr()))
+        return Int(clang_Cursor_getNumTemplateArguments((self._ptr())[]))
 
-    def template_argument_kind(
-        ref self, i: Int
-    ) raises -> TemplateArgumentKind:
+    def template_argument_kind(ref self, i: Int) raises -> TemplateArgumentKind:
         """Return the template-argument kind for argument `i`."""
         self._check_valid()
         if i < 0:
             raise Error("Cursor.template_argument_kind: index out of range")
         return TemplateArgumentKind(
-            c_uint(clang_Cursor_getTemplateArgumentKind(self._ptr(), c_uint(i)))
+            c_uint(
+                clang_Cursor_getTemplateArgumentKind((self._ptr())[], c_uint(i))
+            )
         )
 
     def template_argument_type(ref self, i: Int) raises -> Type:
@@ -877,8 +874,8 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if i < 0:
             raise Error("Cursor.template_argument_type: index out of range")
         var out = Type(tu=self._tu)
-        clang_Cursor_getTemplateArgumentType(
-            out._ptr(), self._ptr(), c_uint(i)
+        (out._ptr())[] = clang_Cursor_getTemplateArgumentType(
+            (self._ptr())[], c_uint(i)
         )
         out._cache_spelling()
         return out^
@@ -888,11 +885,11 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         if i < 0:
             raise Error("Cursor.template_argument_value: index out of range")
-        return Int(clang_Cursor_getTemplateArgumentValue(self._ptr(), c_uint(i)))
+        return Int(
+            clang_Cursor_getTemplateArgumentValue((self._ptr())[], c_uint(i))
+        )
 
-    def template_argument_unsigned_value(
-        ref self, i: Int
-    ) raises -> Int:
+    def template_argument_unsigned_value(ref self, i: Int) raises -> Int:
         """Return the unsigned value of non-type template argument `i`."""
         self._check_valid()
         if i < 0:
@@ -900,14 +897,16 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
                 "Cursor.template_argument_unsigned_value: index out of range"
             )
         return Int(
-            clang_Cursor_getTemplateArgumentUnsignedValue(self._ptr(), c_uint(i))
+            clang_Cursor_getTemplateArgumentUnsignedValue(
+                (self._ptr())[], c_uint(i)
+            )
         )
 
     def specialized_cursor_template(ref self) raises -> Optional[Self]:
         """Return the specialized template cursor, if any."""
         self._check_valid()
         var out = Self(self._tu)
-        clang_getSpecializedCursorTemplate(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getSpecializedCursorTemplate((self._ptr())[])
         if out.is_null():
             return None
         return Optional[Self](out^)
@@ -915,7 +914,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def template_kind(ref self) raises -> CursorKind:
         """Return the cursor kind for the underlying template declaration."""
         self._check_valid()
-        return CursorKind(clang_getTemplateCursorKind(self._ptr()))
+        return CursorKind(clang_getTemplateCursorKind((self._ptr())[]))
 
     # -----------------------------------------------------------------------
     # Arguments and tokens
@@ -924,7 +923,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def num_arguments(ref self) raises -> Int:
         """Return the number of arguments on a callable cursor."""
         self._check_valid()
-        return Int(clang_Cursor_getNumArguments(self._ptr()))
+        return Int(clang_Cursor_getNumArguments((self._ptr())[]))
 
     def argument(ref self, i: Int) raises -> Self:
         """Return argument cursor `i`."""
@@ -932,7 +931,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         if i < 0:
             raise Error("Cursor.argument: index out of range")
         var out = Self(self._tu)
-        clang_Cursor_getArgument(out._ptr(), self._ptr(), c_uint(i))
+        (out._ptr())[] = clang_Cursor_getArgument((self._ptr())[], c_uint(i))
         return out^
 
     def arguments(ref self) raises -> List[Cursor]:
@@ -961,14 +960,14 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return the brief documentation comment text, if any."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Cursor_getBriefCommentText(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_Cursor_getBriefCommentText((self._ptr())[])
         return cs.take_optional()
 
     def raw_comment(ref self) raises -> Optional[String]:
         """Return the raw documentation comment text, if any."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Cursor_getRawCommentText(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_Cursor_getRawCommentText((self._ptr())[])
         return cs.take_optional()
 
     def comment_range(ref self) raises -> source_range_types.SourceRange:
@@ -977,7 +976,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         self._check_valid()
         var out = SourceRange(self._tu)
-        clang_Cursor_getCommentRange(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Cursor_getCommentRange((self._ptr())[])
         return out^
 
     def spelling_name_range(
@@ -990,11 +989,8 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         self._check_valid()
         var out = SourceRange(self._tu)
-        clang_Cursor_getSpellingNameRange(
-            out._ptr(),
-            self._ptr(),
-            piece_index,
-            options,
+        (out._ptr())[] = clang_Cursor_getSpellingNameRange(
+            (self._ptr())[], piece_index, options
         )
         return out^
 
@@ -1008,11 +1004,8 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         self._check_valid()
         var out = SourceRange(self._tu)
-        clang_getCursorReferenceNameRange(
-            out._ptr(),
-            self._ptr(),
-            name_flags,
-            piece_index,
+        (out._ptr())[] = clang_getCursorReferenceNameRange(
+            (self._ptr())[], name_flags, piece_index
         )
         return out^
 
@@ -1023,34 +1016,38 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def linkage(ref self) raises -> LinkageKind:
         """Return the linkage kind for this cursor."""
         self._check_valid()
-        return LinkageKind(c_uint(clang_getCursorLinkage(self._ptr())))
+        return LinkageKind(c_uint(clang_getCursorLinkage((self._ptr())[])))
 
     def visibility(ref self) raises -> VisibilityKind:
         """Return the visibility kind for this cursor."""
         self._check_valid()
-        return VisibilityKind(c_uint(clang_getCursorVisibility(self._ptr())))
+        return VisibilityKind(
+            c_uint(clang_getCursorVisibility((self._ptr())[]))
+        )
 
     def availability(ref self) raises -> AvailabilityKind:
         """Return the availability kind for this cursor."""
         self._check_valid()
         return AvailabilityKind(
-            c_uint(clang_getCursorAvailability(self._ptr()))
+            c_uint(clang_getCursorAvailability((self._ptr())[]))
         )
 
     def language(ref self) raises -> LanguageKind:
         """Return the source language kind for this cursor."""
         self._check_valid()
-        return LanguageKind(c_uint(clang_getCursorLanguage(self._ptr())))
+        return LanguageKind(c_uint(clang_getCursorLanguage((self._ptr())[])))
 
     def tls_kind(ref self) raises -> TLSKind:
         """Return the TLS kind for this cursor."""
         self._check_valid()
-        return TLSKind(c_uint(clang_getCursorTLSKind(self._ptr())))
+        return TLSKind(c_uint(clang_getCursorTLSKind((self._ptr())[])))
 
     def storage_class(ref self) raises -> StorageClass:
         """Return the storage class for this cursor."""
         self._check_valid()
-        return StorageClass(c_uint(clang_Cursor_getStorageClass(self._ptr())))
+        return StorageClass(
+            c_uint(clang_Cursor_getStorageClass((self._ptr())[]))
+        )
 
     def cursor_exception_specification_kind(
         ref self,
@@ -1058,28 +1055,28 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return the exception-specification kind for this cursor."""
         self._check_valid()
         return enums_types.ExceptionSpecificationKind(
-            c_uint(clang_getCursorExceptionSpecificationType(self._ptr()))
+            c_uint(clang_getCursorExceptionSpecificationType((self._ptr())[]))
         )
 
     def is_bitfield(ref self) raises -> Bool:
         """Return true if this field declaration is a bit-field."""
         self._check_valid()
-        return Bool(clang_Cursor_isBitField(self._ptr()))
+        return Bool(clang_Cursor_isBitField((self._ptr())[]))
 
     def bitfield_width(ref self) raises -> Int:
         """Return the bit width of a bit-field declaration."""
         self._check_valid()
-        return Int(clang_getFieldDeclBitWidth(self._ptr()))
+        return Int(clang_getFieldDeclBitWidth((self._ptr())[]))
 
     def offset_of_field(ref self) raises -> Int:
         """Return the bit offset of a field within its parent record."""
         self._check_valid()
-        return Int(clang_Cursor_getOffsetOfField(self._ptr()))
+        return Int(clang_Cursor_getOffsetOfField((self._ptr())[]))
 
     def is_function_inlined(ref self) raises -> Bool:
         """Return true if libclang marks this function as inlined."""
         self._check_valid()
-        return Bool(clang_Cursor_isFunctionInlined(self._ptr()))
+        return Bool(clang_Cursor_isFunctionInlined((self._ptr())[]))
 
     def underlying_typedef_type(ref self) raises -> Type:
         """Return the underlying type of a typedef declaration."""
@@ -1087,7 +1084,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         self._check_valid()
         var out = Type(tu=self._tu)
-        clang_getTypedefDeclUnderlyingType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getTypedefDeclUnderlyingType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -1097,7 +1094,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         self._check_valid()
         var out = Type(tu=self._tu)
-        clang_getEnumDeclIntegerType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getEnumDeclIntegerType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -1105,21 +1102,21 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return the primary mangled name for this cursor."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Cursor_getMangling(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_Cursor_getMangling((self._ptr())[])
         return cs.take()
 
     def cxx_manglings(ref self) raises -> List[String]:
         """Return all C++ manglings for this cursor."""
         self._check_valid()
         return _string_list_from_cxstringset(
-            clang_Cursor_getCXXManglings(self._ptr())
+            clang_Cursor_getCXXManglings((self._ptr())[])
         )
 
     def objc_manglings(ref self) raises -> List[String]:
         """Return all Objective-C manglings for this cursor."""
         self._check_valid()
         return _string_list_from_cxstringset(
-            clang_Cursor_getObjCManglings(self._ptr())
+            clang_Cursor_getObjCManglings((self._ptr())[])
         )
 
     def enum_value(ref self) raises -> Int:
@@ -1153,15 +1150,15 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             or uk == TypeKind.ULONG_LONG
             or uk == TypeKind.UINT128
         ):
-            return Int(clang_getEnumConstantDeclUnsignedValue(self._ptr()))
+            return Int(clang_getEnumConstantDeclUnsignedValue((self._ptr())[]))
 
-        return Int(clang_getEnumConstantDeclValue(self._ptr()))
+        return Int(clang_getEnumConstantDeclValue((self._ptr())[]))
 
     def objc_type_encoding(ref self) raises -> String:
         """Return the Objective-C type encoding for this cursor."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_getDeclObjCTypeEncoding(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getDeclObjCTypeEncoding((self._ptr())[])
         return cs.take()
 
     def iboutlet_collection_type(ref self) raises -> Optional[Type]:
@@ -1170,7 +1167,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
 
         self._check_valid()
         var out = Type(tu=self._tu)
-        clang_getIBOutletCollectionType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getIBOutletCollectionType((self._ptr())[])
         if out.kind() == TypeKind.INVALID:
             return None
         out._cache_spelling()
@@ -1179,20 +1176,21 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def objc_selector_index(ref self) raises -> Int:
         """Return the selector index for an Objective-C method piece."""
         self._check_valid()
-        return Int(clang_Cursor_getObjCSelectorIndex(self._ptr()))
+        return Int(clang_Cursor_getObjCSelectorIndex((self._ptr())[]))
 
     def is_dynamic_call(ref self) raises -> Bool:
         """Return true if this Objective-C call is dynamically dispatched."""
         self._check_valid()
-        return Bool(clang_Cursor_isDynamicCall(self._ptr()))
+        return Bool(clang_Cursor_isDynamicCall((self._ptr())[]))
 
     def receiver_type(ref self) raises -> Optional[Type]:
-        """Return the receiver type for an Objective-C message expression, if any."""
+        """Return the receiver type for an Objective-C message expression, if any.
+        """
         from clang.type_ import Type
 
         self._check_valid()
         var out = Type(tu=self._tu)
-        clang_Cursor_getReceiverType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Cursor_getReceiverType((self._ptr())[])
         if out.kind() == TypeKind.INVALID:
             return None
         out._cache_spelling()
@@ -1205,34 +1203,42 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return Objective-C property attribute flags."""
         self._check_valid()
         if reserved < 0:
-            raise Error("Cursor.objc_property_attributes: reserved must be >= 0")
+            raise Error(
+                "Cursor.objc_property_attributes: reserved must be >= 0"
+            )
         return Int(
-            clang_Cursor_getObjCPropertyAttributes(self._ptr(), c_uint(reserved))
+            clang_Cursor_getObjCPropertyAttributes(
+                (self._ptr())[], c_uint(reserved)
+            )
         )
 
     def objc_property_getter_name(ref self) raises -> String:
         """Return the getter name for an Objective-C property."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Cursor_getObjCPropertyGetterName(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_Cursor_getObjCPropertyGetterName(
+            (self._ptr())[]
+        )
         return cs.take()
 
     def objc_property_setter_name(ref self) raises -> String:
         """Return the setter name for an Objective-C property."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Cursor_getObjCPropertySetterName(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_Cursor_getObjCPropertySetterName(
+            (self._ptr())[]
+        )
         return cs.take()
 
     def objc_decl_qualifiers(ref self) raises -> Int:
         """Return Objective-C declaration qualifier flags."""
         self._check_valid()
-        return Int(clang_Cursor_getObjCDeclQualifiers(self._ptr()))
+        return Int(clang_Cursor_getObjCDeclQualifiers((self._ptr())[]))
 
     def is_objc_optional(ref self) raises -> Bool:
         """Return true if this Objective-C declaration is optional."""
         self._check_valid()
-        return Bool(clang_Cursor_isObjCOptional(self._ptr()))
+        return Bool(clang_Cursor_isObjCOptional((self._ptr())[]))
 
     def binary_opcode(ref self) raises -> BinaryOperator:
         """Alias for `binary_operator()`."""
@@ -1242,33 +1248,34 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         """Return the spelling of this cursor's binary operator kind."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_getBinaryOperatorKindSpelling(
-            cs.ptr_for_out(),
-            c_uint(self.binary_opcode().as_c_uint()),
+        (cs.ptr_for_out())[] = clang_getBinaryOperatorKindSpelling(
+            c_uint(self.binary_opcode().as_c_uint())
         )
         return cs.take()
 
     def binary_operator(ref self) raises -> BinaryOperator:
         """Return the binary operator kind for a binary operator cursor."""
         self._check_valid()
-        return BinaryOperator(clang_getCursorBinaryOperatorKind(self._ptr()))
+        return BinaryOperator(
+            clang_getCursorBinaryOperatorKind((self._ptr())[])
+        )
 
     def unary_operator(ref self) raises -> UnaryOperator:
         """Return the unary operator kind for a unary operator cursor."""
         self._check_valid()
-        return UnaryOperator(clang_getCursorUnaryOperatorKind(self._ptr()))
+        return UnaryOperator(clang_getCursorUnaryOperatorKind((self._ptr())[]))
 
     def gcc_assembly_input_constraint(ref self, index: Int) raises -> String:
         """Return the GCC inline-assembly input constraint at `index`."""
         if index < 0:
-            raise Error("Cursor.gcc_assembly_input_constraint: index out of range")
+            raise Error(
+                "Cursor.gcc_assembly_input_constraint: index out of range"
+            )
         return _gcc_assembly_operand(
             self._tu, self._const_ptr(), c_uint(index), True
         ).constraint
 
-    def gcc_assembly_input_expr(
-        ref self, index: Int
-    ) raises -> Optional[Self]:
+    def gcc_assembly_input_expr(ref self, index: Int) raises -> Optional[Self]:
         """Return the GCC inline-assembly input expression at `index`."""
         if index < 0:
             raise Error("Cursor.gcc_assembly_input_expr: index out of range")
@@ -1276,19 +1283,17 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
             self._tu, self._const_ptr(), c_uint(index), True
         ).expr.copy()
 
-    def gcc_assembly_output_constraint(
-        ref self, index: Int
-    ) raises -> String:
+    def gcc_assembly_output_constraint(ref self, index: Int) raises -> String:
         """Return the GCC inline-assembly output constraint at `index`."""
         if index < 0:
-            raise Error("Cursor.gcc_assembly_output_constraint: index out of range")
+            raise Error(
+                "Cursor.gcc_assembly_output_constraint: index out of range"
+            )
         return _gcc_assembly_operand(
             self._tu, self._const_ptr(), c_uint(index), False
         ).constraint
 
-    def gcc_assembly_output_expr(
-        ref self, index: Int
-    ) raises -> Optional[Self]:
+    def gcc_assembly_output_expr(ref self, index: Int) raises -> Optional[Self]:
         """Return the GCC inline-assembly output expression at `index`."""
         if index < 0:
             raise Error("Cursor.gcc_assembly_output_expr: index out of range")
@@ -1297,11 +1302,12 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         ).expr.copy()
 
     def included_file(ref self) raises -> Optional[file_types.File]:
-        """Return the included file for an inclusion directive cursor, if any."""
+        """Return the included file for an inclusion directive cursor, if any.
+        """
         from clang.file import File
 
         self._check_valid()
-        var raw = clang_getIncludedFile(self._ptr())
+        var raw = clang_getIncludedFile((self._ptr())[])
         if not raw:
             return None
         var f = File(tu=self._tu, raw=raw)
@@ -1310,12 +1316,12 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
     def module(ref self) raises -> Optional[Module]:
         """Return the module associated with this cursor, if any."""
         self._check_valid()
-        return wrap_module(self._tu, clang_Cursor_getModule(self._ptr()))
+        return wrap_module(self._tu, clang_Cursor_getModule((self._ptr())[]))
 
     def evaluate(ref self) raises -> Optional[EvalResult]:
         """Evaluate this cursor as a constant expression, if possible."""
         self._check_valid()
-        var raw = clang_Cursor_Evaluate(self._ptr())
+        var raw = clang_Cursor_Evaluate((self._ptr())[])
         if not raw:
             return None
         return Optional[EvalResult](EvalResult(raw))
@@ -1325,20 +1331,22 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
         var always_deprecated = c_int(0)
         var always_unavailable = c_int(0)
-        var dep_ptr = Pointer(to=always_deprecated).unsafe_origin_cast[MutUntrackedOrigin]()
-        var unavail_ptr = Pointer(to=always_unavailable).unsafe_origin_cast[MutUntrackedOrigin]()
+        var dep_ptr = Pointer(to=always_deprecated).unsafe_origin_cast[
+            MutUntrackedOrigin
+        ]()
+        var unavail_ptr = Pointer(to=always_unavailable).unsafe_origin_cast[
+            MutUntrackedOrigin
+        ]()
         var dep_message = _CXStringStorage()
         var unavail_message = _CXStringStorage()
         var avail = unsafe_alloc[CXPlatformAvailability](8)
         var count = clang_getCursorPlatformAvailability(
-            self._ptr(),
+            (self._ptr())[],
             rebind[Pointer[c_int, MutUntrackedOrigin]](dep_ptr),
             dep_message.ptr_for_out(),
             rebind[Pointer[c_int, MutUntrackedOrigin]](unavail_ptr),
             unavail_message.ptr_for_out(),
-            rebind[Pointer[CXPlatformAvailability, MutUntrackedOrigin]](
-                avail
-            ),
+            rebind[Pointer[CXPlatformAvailability, MutUntrackedOrigin]](avail),
             c_int(8),
         )
         var avail_ptr = rebind[
@@ -1364,7 +1372,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Type(self._tu)
-        clang_getCursorType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorType((self._ptr())[])
         return out^
 
     def result_type(ref self) raises -> Type:
@@ -1374,7 +1382,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = Type(self._tu)
-        clang_getCursorResultType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorResultType((self._ptr())[])
         return out^
 
     def location(ref self) raises -> source_location_types.SourceLocation:
@@ -1384,7 +1392,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = SourceLocation(self._tu)
-        clang_getCursorLocation(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorLocation((self._ptr())[])
         out.refresh()
         return out^
 
@@ -1395,7 +1403,7 @@ struct Cursor(Copyable, Iterable, Movable, Writable):
         self._check_valid()
 
         var out = SourceRange(self._tu)
-        clang_getCursorExtent(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCursorExtent((self._ptr())[])
         return out^
 
     def __iter__(ref self) -> Self.IteratorType[origin_of(self)]:
@@ -1487,15 +1495,15 @@ def _gcc_assembly_operand(
 def _zero_cursor() -> CXCursor:
     """Return a zero-initialized `CXCursor` value.
 
-    This is only used as initial storage before a shim function writes the real
+    This is only used as initial storage before a libclang call supplies the real
     cursor value.
     """
     return CXCursor(
         kind=CXCursorKind(c_uint(0)),
         xdata=c_int(0),
-        data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 3](
-            fill=None
-        ),
+        data_0=None,
+        data_1=None,
+        data_2=None,
     )
 
 
@@ -1511,13 +1519,10 @@ struct _Collector(Movable):
 
 
 def _visit_trampoline(
-    cursor: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
-    parent: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
+    cursor: CXCursor,
+    parent: CXCursor,
     client_data: CXClientData,
 ) abi("C") -> CXChildVisitResult:
-    if not cursor:
-        return CXChildVisit_Continue
-
     var opaque = client_data.value()
     var collector = rebind[Pointer[_Collector, MutUntrackedOrigin]](
         rebind[Pointer[UInt8, MutUntrackedOrigin]](
@@ -1530,7 +1535,7 @@ def _visit_trampoline(
         return CXChildVisit_Continue
 
     # Copy the CXCursor value itself. Do not memcpy a guessed byte count.
-    collector[].buffer[unsafe_offset=collector[].count] = cursor.value()[].copy()
+    collector[].buffer[unsafe_offset=collector[].count] = cursor.copy()
     collector[].count += 1
 
     _ = parent
@@ -1563,11 +1568,7 @@ def collect_children(parent: Cursor) raises -> List[Cursor]:
         ),
     )
 
-    _ = clang_visitChildren(
-        p._ptr(),
-        _visit_trampoline,
-        client_data,
-    )
+    _ = clang_visitChildren((p._ptr())[], _visit_trampoline, client_data)
 
     # Catch a reparse that happened during or immediately after traversal.
     p._check_valid()
@@ -1624,11 +1625,7 @@ def _collect_children_unchecked(parent: Cursor) -> List[Cursor]:
         ),
     )
 
-    _ = clang_visitChildren(
-        p._ptr(),
-        _visit_trampoline,
-        client_data,
-    )
+    _ = clang_visitChildren((p._ptr())[], _visit_trampoline, client_data)
 
     var out = List[Cursor]()
 

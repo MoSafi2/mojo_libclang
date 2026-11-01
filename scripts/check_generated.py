@@ -13,8 +13,6 @@ OUTPUTS = (
     "clang/_ffi.mojo",
     "clang/_metadata.mojo",
     "test/_ffi_layout_tests.mojo",
-    "shim/libclang_mojo_shim.h",
-    "shim/libclang_mojo_shim.c",
 )
 
 

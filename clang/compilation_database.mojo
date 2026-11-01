@@ -114,13 +114,13 @@ struct CompileCommand(Copyable, Movable, Writable):
     def directory(ref self) raises -> String:
         """Return the command working directory."""
         var cs = _CXStringStorage()
-        clang_CompileCommand_getDirectory(cs.ptr_for_out(), self._raw)
+        (cs.ptr_for_out())[] = clang_CompileCommand_getDirectory(self._raw)
         return cs.take()
 
     def filename(ref self) raises -> String:
         """Return the source file this command builds."""
         var cs = _CXStringStorage()
-        clang_CompileCommand_getFilename(cs.ptr_for_out(), self._raw)
+        (cs.ptr_for_out())[] = clang_CompileCommand_getFilename(self._raw)
         return cs.take()
 
     def num_args(ref self) -> Int:
@@ -132,7 +132,7 @@ struct CompileCommand(Copyable, Movable, Writable):
         if i < 0 or i >= self.num_args():
             raise Error("CompileCommand arg index out of range")
         var cs = _CXStringStorage()
-        clang_CompileCommand_getArg(cs.ptr_for_out(), self._raw, c_uint(i))
+        (cs.ptr_for_out())[] = clang_CompileCommand_getArg(self._raw, c_uint(i))
         return cs.take()
 
     def arguments(ref self) raises -> List[String]:
@@ -152,8 +152,8 @@ struct CompileCommand(Copyable, Movable, Writable):
         if i < 0 or i >= self.num_mapped_sources():
             raise Error("CompileCommand mapped source index out of range")
         var cs = _CXStringStorage()
-        clang_CompileCommand_getMappedSourcePath(
-            cs.ptr_for_out(), self._raw, c_uint(i)
+        (cs.ptr_for_out())[] = clang_CompileCommand_getMappedSourcePath(
+            self._raw, c_uint(i)
         )
         return cs.take()
 
@@ -162,8 +162,8 @@ struct CompileCommand(Copyable, Movable, Writable):
         if i < 0 or i >= self.num_mapped_sources():
             raise Error("CompileCommand mapped source index out of range")
         var cs = _CXStringStorage()
-        clang_CompileCommand_getMappedSourceContent(
-            cs.ptr_for_out(), self._raw, c_uint(i)
+        (cs.ptr_for_out())[] = clang_CompileCommand_getMappedSourceContent(
+            self._raw, c_uint(i)
         )
         return cs.take()
 
@@ -268,9 +268,9 @@ struct CompilationDatabase(Movable, Writable):
 
         var raw = clang_CompilationDatabase_fromDirectory(
             _borrow_c_string(build_dir),
-            rebind[
-                Pointer[CXCompilationDatabase_Error, MutUntrackedOrigin]
-            ](err.unsafe_ptr()),
+            rebind[Pointer[CXCompilationDatabase_Error, MutUntrackedOrigin]](
+                err.unsafe_ptr()
+            ),
         )
 
         if not raw:
@@ -294,8 +294,7 @@ struct CompilationDatabase(Movable, Writable):
     ) raises -> CompileCommands:
         """Return compile commands for `filename`."""
         var raw = clang_CompilationDatabase_getCompileCommands(
-            self._state[].raw(),
-            _borrow_c_string(filename),
+            self._state[].raw(), _borrow_c_string(filename)
         )
 
         if not raw:

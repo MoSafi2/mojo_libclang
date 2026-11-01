@@ -21,9 +21,18 @@ def main() raises:
         for cursor in root:
             if cursor.kind() == CursorKind.FUNCTION_DECL:
                 assert_equal(cursor.spelling(), "add")
+                assert_equal(cursor.location().line(), 2)
+                var function_type = cursor.type()
+                assert_equal(function_type.spelling(), "int (int, int)")
                 var tokens = cursor.tokens()
                 assert_true(len(tokens) > 0)
                 found = True
+            elif cursor.kind() == CursorKind.STRUCT_DECL:
+                var record_type = cursor.type()
+                var fields = record_type.fields()
+                assert_equal(len(fields), 2)
+                assert_equal(fields[0].spelling(), "x")
+                assert_equal(fields[1].spelling(), "y")
         assert_true(found)
     var invalid = index.parse("invalid.c")
     assert_true(Int(invalid.num_diagnostics()) > 0)
@@ -39,13 +48,8 @@ def main() -> None:
     root = Path(__file__).resolve().parents[1]
     prefix = root / "dist" / "libclang_mojo-prefix"
     env = os.environ.copy()
-    env["MOJO_BINDGEN_LIBCLANG_MOJO_SHIM_LIBRARY_PATH"] = str(
-        prefix / "lib" / ("libclang_mojo_shim.dylib" if os.uname().sysname == "Darwin" else "libclang_mojo_shim.so")
-    )
-    for variable in ("LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH"):
-        env[variable] = os.pathsep.join(
-            [str(prefix / "lib"), str(Path(env["CONDA_PREFIX"]) / "lib"), env.get(variable, "")]
-        )
+    for name in ("MOJO_BINDGEN_LIBRARY_PATH", "MOJO_BINDGEN_CLANG_LIBRARY_PATH"):
+        env.pop(name, None)
     if len(sys.argv) > 1:
         source = Path(sys.argv[1]).resolve(strict=True)
         subprocess.run(
@@ -57,12 +61,13 @@ def main() -> None:
         work = Path(directory)
         (work / "main.mojo").write_text(SOURCE)
         for name in ("api.c", "api.cpp"):
-            (work / name).write_text("int add(int a, int b) { return a + b; }\n")
+            (work / name).write_text("struct Point { int x; int y; };\nint add(int a, int b) { return a + b; }\n")
         (work / "invalid.c").write_text("int broken = ;\n")
         subprocess.run(
-            ["mojo", "run", "-I", str(prefix / "lib" / "mojo"), str(work / "main.mojo")],
+            ["mojo", "build", "-I", str(prefix / "lib" / "mojo"), str(work / "main.mojo"), "-o", str(work / "consumer")],
             cwd=work, env=env, check=True,
         )
+        subprocess.run([str(work / "consumer")], cwd=work, env=env, check=True)
 
 
 if __name__ == "__main__":

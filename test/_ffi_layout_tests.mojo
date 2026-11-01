@@ -39,17 +39,19 @@ def test_layout_CXSourceLocation() raises:
     comptime r = reflect[CXSourceLocation]
     _check_eq("CXSourceLocation.size", Int(size_of[CXSourceLocation]()), 24)
     _check_eq("CXSourceLocation.align", Int(align_of[CXSourceLocation]()), 8)
-    _check_eq("CXSourceLocation.ptr_data.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("CXSourceLocation.int_data.offset", Int(r.field_offset[index=1]()), 16)
+    _check_eq("CXSourceLocation.ptr_data_0.offset", Int(r.field_offset[index=0]()), 0)
+    _check_eq("CXSourceLocation.ptr_data_1.offset", Int(r.field_offset[index=1]()), 8)
+    _check_eq("CXSourceLocation.int_data.offset", Int(r.field_offset[index=2]()), 16)
 
 
 def test_layout_CXSourceRange() raises:
     comptime r = reflect[CXSourceRange]
     _check_eq("CXSourceRange.size", Int(size_of[CXSourceRange]()), 24)
     _check_eq("CXSourceRange.align", Int(align_of[CXSourceRange]()), 8)
-    _check_eq("CXSourceRange.ptr_data.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("CXSourceRange.begin_int_data.offset", Int(r.field_offset[index=1]()), 16)
-    _check_eq("CXSourceRange.end_int_data.offset", Int(r.field_offset[index=2]()), 20)
+    _check_eq("CXSourceRange.ptr_data_0.offset", Int(r.field_offset[index=0]()), 0)
+    _check_eq("CXSourceRange.ptr_data_1.offset", Int(r.field_offset[index=1]()), 8)
+    _check_eq("CXSourceRange.begin_int_data.offset", Int(r.field_offset[index=2]()), 16)
+    _check_eq("CXSourceRange.end_int_data.offset", Int(r.field_offset[index=3]()), 20)
 
 
 def test_layout_CXSourceRangeList() raises:
@@ -107,7 +109,9 @@ def test_layout_CXCursor() raises:
     _check_eq("CXCursor.align", Int(align_of[CXCursor]()), 8)
     _check_eq("CXCursor.kind.offset", Int(r.field_offset[index=0]()), 0)
     _check_eq("CXCursor.xdata.offset", Int(r.field_offset[index=1]()), 4)
-    _check_eq("CXCursor.data.offset", Int(r.field_offset[index=2]()), 8)
+    _check_eq("CXCursor.data_0.offset", Int(r.field_offset[index=2]()), 8)
+    _check_eq("CXCursor.data_1.offset", Int(r.field_offset[index=3]()), 16)
+    _check_eq("CXCursor.data_2.offset", Int(r.field_offset[index=4]()), 24)
 
 
 def test_layout_CXPlatformAvailability() raises:
@@ -127,15 +131,19 @@ def test_layout_CXType() raises:
     _check_eq("CXType.size", Int(size_of[CXType]()), 24)
     _check_eq("CXType.align", Int(align_of[CXType]()), 8)
     _check_eq("CXType.kind.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("CXType.data.offset", Int(r.field_offset[index=1]()), 8)
+    _check_eq("CXType.data_0.offset", Int(r.field_offset[index=1]()), 8)
+    _check_eq("CXType.data_1.offset", Int(r.field_offset[index=2]()), 16)
 
 
 def test_layout_CXToken() raises:
     comptime r = reflect[CXToken]
     _check_eq("CXToken.size", Int(size_of[CXToken]()), 24)
     _check_eq("CXToken.align", Int(align_of[CXToken]()), 8)
-    _check_eq("CXToken.int_data.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("CXToken.ptr_data.offset", Int(r.field_offset[index=1]()), 16)
+    _check_eq("CXToken.int_data_0.offset", Int(r.field_offset[index=0]()), 0)
+    _check_eq("CXToken.int_data_1.offset", Int(r.field_offset[index=1]()), 4)
+    _check_eq("CXToken.int_data_2.offset", Int(r.field_offset[index=2]()), 8)
+    _check_eq("CXToken.int_data_3.offset", Int(r.field_offset[index=3]()), 12)
+    _check_eq("CXToken.ptr_data.offset", Int(r.field_offset[index=4]()), 16)
 
 
 def test_layout_CXCompletionResult() raises:
@@ -166,8 +174,9 @@ def test_layout_CXIdxLoc() raises:
     comptime r = reflect[CXIdxLoc]
     _check_eq("CXIdxLoc.size", Int(size_of[CXIdxLoc]()), 24)
     _check_eq("CXIdxLoc.align", Int(align_of[CXIdxLoc]()), 8)
-    _check_eq("CXIdxLoc.ptr_data.offset", Int(r.field_offset[index=0]()), 0)
-    _check_eq("CXIdxLoc.int_data.offset", Int(r.field_offset[index=1]()), 16)
+    _check_eq("CXIdxLoc.ptr_data_0.offset", Int(r.field_offset[index=0]()), 0)
+    _check_eq("CXIdxLoc.ptr_data_1.offset", Int(r.field_offset[index=1]()), 8)
+    _check_eq("CXIdxLoc.int_data.offset", Int(r.field_offset[index=2]()), 16)
 
 
 def test_layout_CXIdxIncludedFileInfo() raises:

@@ -5,25 +5,19 @@ The generator uses ``mojo-bindgen`` as a library:
 
 1. Parse libclang's public ``clang-c`` headers to CIR.
 2. Run mojo-bindgen's normal CIR validation/canonicalization passes.
-3. Rewrite every libclang function so Mojo never calls a C signature that
-   passes or returns libclang aggregate handles by value.
-4. Emit a deterministic C shim/header from that same rewrite.
-5. Emit Mojo bindings and layout tests from the rewritten CIR.
+3. Normalize by-value record layouts without changing C signatures.
+4. Emit direct libclang bindings and layout tests.
 
 Environment overrides:
   LIBCLANG_HEADERS_DIR     Directory containing clang-c/*.h or the clang-c dir.
-  LIBCLANG_LIBRARY         Path to libclang.so/dylib/dll used to build the shim.
+  LIBCLANG_LIBRARY         Path to libclang used for generation metadata checks.
   LIBCLANG_FFI_OUT         Output Mojo file. Defaults to clang/_ffi.mojo.
-  LIBCLANG_FFI_IR_OUT      Optional rewritten CIR JSON output path.
+  LIBCLANG_FFI_IR_OUT      Optional layout-normalized CIR JSON output path.
   LIBCLANG_ORIGINAL_IR_OUT Optional pre-rewrite normalized CIR JSON output path.
-  LIBCLANG_SHIM_OUT        Output shared library for the shim.
-  LIBCLANG_INSTALL_SHIM    Copy shim into the active environment lib dir.
-                           Defaults to 1.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import ctypes
 import re
@@ -33,11 +27,12 @@ import sys
 import tempfile
 import tomllib
 from pathlib import Path
+from dataclasses import replace
 
 try:
-    from scripts.abi_shim_rewriter import ABIShimConfig, ABIShimRewriter
+    from scripts.direct_abi import normalize_direct_abi
 except ModuleNotFoundError:
-    from abi_shim_rewriter import ABIShimConfig, ABIShimRewriter
+    from direct_abi import normalize_direct_abi
 
 from mojo_bindgen.analysis.pipeline import AnalysisOrchestrator
 from mojo_bindgen.codegen.mojo_ir_printer import MojoIRPrintOptions, render_mojo_module
@@ -47,6 +42,7 @@ from mojo_bindgen.ir import (
     Enum,
     Function,
     FunctionDecl,
+    FunctionKind,
     GlobalVar,
     MacroDecl,
     Struct,
@@ -62,11 +58,6 @@ from mojo_bindgen.parsing.parser import _default_system_compile_args
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FFI_MOJO_OUT = REPO_ROOT / "clang" / "_ffi.mojo"
 DEFAULT_LAYOUT_TEST_OUT = REPO_ROOT / "test" / "_ffi_layout_tests.mojo"
-DEFAULT_SHIM_OUT = REPO_ROOT / "shim" / (
-    "libclang_mojo_shim.dylib" if sys.platform == "darwin" else "libclang_mojo_shim.so"
-)
-DEFAULT_SHIM_HEADER = REPO_ROOT / "shim" / "libclang_mojo_shim.h"
-DEFAULT_SHIM_SRC = REPO_ROOT / "shim" / "libclang_mojo_shim.c"
 DEFAULT_METADATA_OUT = REPO_ROOT / "clang" / "_metadata.mojo"
 
 HEADER_NAMES = (
@@ -102,9 +93,8 @@ def main() -> int:
     ir_out = optional_output_path("LIBCLANG_FFI_IR_OUT")
     original_ir_out = optional_output_path("LIBCLANG_ORIGINAL_IR_OUT")
     layout_out = Path(os.environ.get("LIBCLANG_LAYOUT_TEST_OUT", DEFAULT_LAYOUT_TEST_OUT)).resolve()
-    shim_out = Path(os.environ.get("LIBCLANG_SHIM_OUT", DEFAULT_SHIM_OUT)).resolve()
 
-    output_paths = [mojo_out, layout_out, shim_out, DEFAULT_SHIM_HEADER, DEFAULT_SHIM_SRC]
+    output_paths = [mojo_out, layout_out]
     if ir_out is not None:
         output_paths.append(ir_out)
     if original_ir_out is not None:
@@ -118,8 +108,8 @@ def main() -> int:
         BindgenOrchestrator(
             BindgenOptions(
                 header=primary,
-                library="libclang_mojo_shim",
-                link_name="clang_mojo_shim",
+                library="libclang",
+                link_name="clang",
                 linking="owned_dl_handle",
                 module_comment=True,
                 emit_doc_comments=True,
@@ -130,26 +120,26 @@ def main() -> int:
     if original_ir_out is not None:
         original_ir_out.write_text(normalized_unit.to_json(), encoding="utf-8")
 
-    rewritten = ABIShimRewriter(normalized_unit, libclang_shim_config()).rewrite()
-    DEFAULT_SHIM_HEADER.write_text(rewritten.header_text, encoding="utf-8")
-    DEFAULT_SHIM_SRC.write_text(rewritten.source_text, encoding="utf-8")
+    direct_unit = normalize_direct_abi(replace(normalized_unit, decls=[
+        decl for decl in normalized_unit.decls if keep_libclang_decl(decl)
+    ]))
     if ir_out is not None:
-        ir_out.write_text(rewritten.unit.to_json(), encoding="utf-8")
+        ir_out.write_text(direct_unit.to_json(), encoding="utf-8")
 
     header_version = read_cindex_version(primary)
     library_path = discover_libclang_library()
     runtime_version = query_libclang_version(library_path)
     validate_header_runtime_compatibility(primary, runtime_version)
-    build_shim(include_root, library_path, shim_out)
-    install_shim_for_loader(shim_out)
 
-    analysis = orchestrator.analyze_with_artifacts(rewritten.unit)
-    # The upstream C pointer mapper conservatively makes every pointer nullable.
-    # Our synthetic aggregate pointers are always dereferenced by the shim.
-    for decl in analysis.mojo_module.decls:
-        if isinstance(decl, FunctionDecl):
-            for index in rewritten.nonnull_params.get(decl.link_name, ()):
-                decl.params[index].type.nullable = False
+    analysis = orchestrator.analyze_with_artifacts(direct_unit)
+    expected = {decl.link_name for decl in direct_unit.decls if isinstance(decl, Function)}
+    emitted = {decl.link_name for decl in analysis.mojo_module.decls if isinstance(decl, FunctionDecl)}
+    if expected != emitted:
+        raise SystemExit(f"Function inventory mismatch: {expected ^ emitted}")
+    stubs = [decl.link_name for decl in analysis.mojo_module.decls
+             if isinstance(decl, FunctionDecl) and decl.kind != FunctionKind.WRAPPER]
+    if stubs:
+        raise SystemExit(f"Unsupported direct FFI functions: {stubs}")
     mojo_source = render_mojo_module(
         analysis.mojo_module,
         MojoIRPrintOptions(module_comment=True, emit_doc_comments=False),
@@ -170,9 +160,7 @@ def main() -> int:
     print(f"generated: {display_path(mojo_out)}")
     print(f"generated: {display_path(layout_out)}")
     print(f"generated: {display_path(DEFAULT_METADATA_OUT)}")
-    print(f"generated: {display_path(DEFAULT_SHIM_HEADER)}")
-    print(f"generated: {display_path(DEFAULT_SHIM_SRC)}")
-    print(f"shim:      {display_path(shim_out)}")
+    print(f"direct C functions: {len(emitted)}")
     if ir_out is not None:
         print(f"generated: {display_path(ir_out)}")
     if original_ir_out is not None:
@@ -194,8 +182,8 @@ def parse_unit(primary: Path, headers: list[Path], include_root: Path) -> Unit:
     options = BindgenOptions(
         header=primary,
         include_headers=include_headers,
-        library="libclang_mojo_shim",
-        link_name="clang_mojo_shim",
+        library="libclang",
+        link_name="clang",
         clang_options=ClangOptions(raw_args=tuple(compile_args)),
         linking="owned_dl_handle",
         module_comment=True,
@@ -255,29 +243,6 @@ def layout_import_module(mojo_out: Path) -> str:
     return stem
 
 
-def libclang_shim_config() -> ABIShimConfig:
-    return ABIShimConfig(
-        shim_library="libclang_mojo_shim",
-        shim_link_name="clang_mojo_shim",
-        header_includes=(
-            "<clang-c/BuildSystem.h>",
-            "<clang-c/CXCompilationDatabase.h>",
-            "<clang-c/CXDiagnostic.h>",
-            "<clang-c/CXFile.h>",
-            "<clang-c/CXSourceLocation.h>",
-            "<clang-c/CXString.h>",
-            "<clang-c/Documentation.h>",
-            "<clang-c/FatalErrorHandler.h>",
-            "<clang-c/Index.h>",
-            "<clang-c/Rewrite.h>",
-        ),
-        generated_by="scripts/generate_libclang_bindings.py",
-        runtime_symbol_subject="libclang",
-        runtime_path_macro="MOJO_LIBCLANG_RUNTIME_PATH",
-        windows_runtime_library_names=("libclang.dll",),
-        posix_runtime_library_names=("libclang.so", "libclang.so.1", "libclang.dylib"),
-        keep_decl=keep_libclang_decl,
-    )
 
 
 def keep_libclang_decl(decl: Decl) -> bool:
@@ -508,67 +473,8 @@ def build_compile_args(include_root: Path) -> list[str]:
     return args
 
 
-def build_shim(include_root: Path, library_path: Path | None, shim_out: Path) -> None:
-    cc = shutil.which("cc")
-    if cc is None:
-        raise SystemExit("error: C compiler not found; required to build libclang shim")
-    if sys.platform == "darwin":
-        shared_args = ["-dynamiclib"]
-    else:
-        shared_args = ["-shared", "-fPIC"]
-    cmd = [
-        cc,
-        *shared_args,
-        "-I",
-        str(include_root),
-        "-I",
-        str(DEFAULT_SHIM_HEADER.parent),
-        "-o",
-        str(shim_out),
-        str(DEFAULT_SHIM_SRC),
-    ]
-    if library_path is not None:
-        cmd.extend(
-            [
-                "-DMOJO_LIBCLANG_RUNTIME_PATH="
-                + json.dumps(str(library_path.resolve())),
-            ]
-        )
-        cmd.extend(
-            [
-                "-L",
-                str(library_path.parent),
-                str(library_path),
-                "-Wl,-rpath," + str(library_path.parent),
-            ]
-        )
-    else:
-        cmd.append("-lclang")
-    run(cmd)
 
 
-def install_shim_for_loader(shim_out: Path) -> None:
-    disabled_values = {"0", "false", "False", "no"}
-    if os.environ.get("LIBCLANG_INSTALL_SHIM", "1") in disabled_values:
-        return
-
-    installed = False
-    for lib_dir in active_environment_library_dirs():
-        if not lib_dir.is_dir():
-            continue
-        target = lib_dir / shim_out.name
-        if target.resolve() == shim_out.resolve():
-            installed = True
-            continue
-        shutil.copy2(shim_out, target)
-        print(f"installed shim: {display_path(target)}")
-        installed = True
-
-    if not installed:
-        print(
-            "warning: no active environment lib directory found for shim install; "
-            "runtime loading may require MOJO_BINDGEN_LIBCLANG_MOJO_SHIM_LIBRARY_PATH"
-        )
 
 
 def active_environment_library_dirs() -> list[Path]:
@@ -605,6 +511,7 @@ def build_layout_tests(layout_out: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="mojo-libclang-layout-") as temp_dir:
         binary_out = Path(temp_dir) / layout_out.stem
         run([mojo, "build", "-I", ".", "-o", str(binary_out), str(layout_out)])
+        run([str(binary_out)])
 
 
 def run(cmd: list[str]) -> None:

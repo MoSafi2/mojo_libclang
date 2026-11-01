@@ -8,7 +8,7 @@ Important:
 * The raw `CXSourceLocation` value is stored in `Array[CXSourceLocation, 1]`.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The location becomes stale after `TranslationUnit.reparse()` if the generation changes.
-* Every FFI call passes `CXSourceLocation *` to the shim, never `CXSourceLocation` by value.
+* FFI calls pass `CXSourceLocation` values using the native C calling convention.
 
 Typical usage:
 
@@ -84,7 +84,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._offset = c_uint(0)
         self._file_name = String()
 
-        clang_getNullLocation(self._ptr())
+        (self._ptr())[] = clang_getNullLocation()
 
     def __init__(
         out self,
@@ -101,7 +101,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._offset = c_uint(0)
         self._file_name = String()
 
-        clang_getNullLocation(self._ptr())
+        (self._ptr())[] = clang_getNullLocation()
 
     def _check_valid(self) raises:
         if not self._tu[].alive:
@@ -114,7 +114,9 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._check_valid()
         return self._tu[].raw()
 
-    def _ptr[origin: Origin, //](ref[origin] self) -> Pointer[CXSourceLocation, origin]:
+    def _ptr[
+        origin: Origin, //
+    ](ref[origin] self) -> Pointer[CXSourceLocation, origin]:
         return Pointer(to=self._raw[0]).unsafe_origin_cast[origin]()
 
     def _raw_value(ref self) raises -> CXSourceLocation:
@@ -134,7 +136,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         self._file_name = String()
         if file:
             var cs = _CXStringStorage()
-            clang_getFileName(cs.ptr_for_out(), file)
+            (cs.ptr_for_out())[] = clang_getFileName(file)
             self._file_name = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
@@ -183,15 +185,13 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises -> Self:
         """Create a location from one-based `line` and `column` in `file`."""
         if line < 1 or column < 1:
-            raise Error("SourceLocation.from_position: line and column must be >= 1")
+            raise Error(
+                "SourceLocation.from_position: line and column must be >= 1"
+            )
 
         var out = Self(tu=tu)
-        clang_getLocation(
-            out._ptr(),
-            out._tu_raw(),
-            file,
-            c_uint(line),
-            c_uint(column),
+        (out._ptr())[] = clang_getLocation(
+            out._tu_raw(), file, c_uint(line), c_uint(column)
         )
         out._cache_from_ffi()
         return out^
@@ -205,15 +205,13 @@ struct SourceLocation(Copyable, Movable, Writable):
     ) raises -> Self:
         """Create a location from one-based `line` and `column` in `file`."""
         if line < 1 or column < 1:
-            raise Error("SourceLocation.from_position: line and column must be >= 1")
+            raise Error(
+                "SourceLocation.from_position: line and column must be >= 1"
+            )
 
         var out = Self(tu=tu)
-        clang_getLocation(
-            out._ptr(),
-            out._tu_raw(),
-            file,
-            c_uint(line),
-            c_uint(column),
+        (out._ptr())[] = clang_getLocation(
+            out._tu_raw(), file, c_uint(line), c_uint(column)
         )
         out._cache_from_ffi()
         return out^
@@ -229,11 +227,8 @@ struct SourceLocation(Copyable, Movable, Writable):
             raise Error("SourceLocation.from_offset: offset must be >= 0")
 
         var out = Self(tu=tu)
-        clang_getLocationForOffset(
-            out._ptr(),
-            out._tu_raw(),
-            file,
-            c_uint(offset),
+        (out._ptr())[] = clang_getLocationForOffset(
+            out._tu_raw(), file, c_uint(offset)
         )
         out._cache_from_ffi()
         return out^
@@ -249,11 +244,8 @@ struct SourceLocation(Copyable, Movable, Writable):
             raise Error("SourceLocation.from_offset: offset must be >= 0")
 
         var out = Self(tu=tu)
-        clang_getLocationForOffset(
-            out._ptr(),
-            out._tu_raw(),
-            file,
-            c_uint(offset),
+        (out._ptr())[] = clang_getLocationForOffset(
+            out._tu_raw(), file, c_uint(offset)
         )
         out._cache_from_ffi()
         return out^
@@ -269,7 +261,7 @@ struct SourceLocation(Copyable, Movable, Writable):
         var off_out = Array[c_uint, 1](fill=c_uint(0))
 
         clang_getSpellingLocation(
-            self._ptr(),
+            (self._ptr())[],
             _out_ptr(file_out[0]),
             _out_ptr(line_out[0]),
             _out_ptr(col_out[0]),
@@ -328,18 +320,18 @@ struct SourceLocation(Copyable, Movable, Writable):
     def is_in_system_header(ref self) raises -> Bool:
         """Return true when this location is in a system header."""
         self._check_valid()
-        return Bool(clang_Location_isInSystemHeader(self._ptr()))
+        return Bool(clang_Location_isInSystemHeader((self._ptr())[]))
 
     def is_from_main_file(ref self) raises -> Bool:
         """Return true when this location comes from the main file."""
         self._check_valid()
-        return Bool(clang_Location_isFromMainFile(self._ptr()))
+        return Bool(clang_Location_isFromMainFile((self._ptr())[]))
 
     def __eq__(self, other: SourceLocation) -> Bool:
         return (
             self._generation == other._generation
-            and self._raw[0].ptr_data[0] == other._raw[0].ptr_data[0]
-            and self._raw[0].ptr_data[1] == other._raw[0].ptr_data[1]
+            and self._raw[0].ptr_data_0 == other._raw[0].ptr_data_0
+            and self._raw[0].ptr_data_1 == other._raw[0].ptr_data_1
             and self._raw[0].int_data == other._raw[0].int_data
         )
 
@@ -374,6 +366,5 @@ struct SourceLocation(Copyable, Movable, Writable):
 
 def _zero_source_location() -> CXSourceLocation:
     return CXSourceLocation(
-        ptr_data=Array[Optional[OpaquePointer[mut=False, ImmUntrackedOrigin]], 2](fill=None),
-        int_data=c_uint(0),
+        ptr_data_0=None, ptr_data_1=None, int_data=c_uint(0)
     )

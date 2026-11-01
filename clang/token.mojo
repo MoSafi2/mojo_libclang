@@ -144,13 +144,11 @@ struct Token(Copyable, Movable, Writable):
         Uses the raw TU handle directly. The caller is responsible for
         guaranteeing the TU is alive.
         """
-        self._kind = clang_getTokenKind(self._ptr())
+        self._kind = clang_getTokenKind((self._ptr())[])
 
         var cs = _CXStringStorage()
-        clang_getTokenSpelling(
-            cs.ptr_for_out(),
-            self._tu[]._raw_unchecked(),
-            self._ptr(),
+        (cs.ptr_for_out())[] = clang_getTokenSpelling(
+            self._tu[]._raw_unchecked(), (self._ptr())[]
         )
         self._spelling = cs._take_unchecked()
 
@@ -178,11 +176,7 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
-        clang_getTokenLocation(
-            out._ptr(),
-            self._tu_raw(),
-            self._ptr(),
-        )
+        (out._ptr())[] = clang_getTokenLocation(self._tu_raw(), (self._ptr())[])
         out.refresh()
         return out^
 
@@ -191,11 +185,7 @@ struct Token(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = SourceRange(tu=self._tu)
-        clang_getTokenExtent(
-            out._ptr(),
-            self._tu_raw(),
-            self._ptr(),
-        )
+        (out._ptr())[] = clang_getTokenExtent(self._tu_raw(), (self._ptr())[])
         return out^
 
     def cursor(ref self) raises -> Cursor:
@@ -311,7 +301,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
 
         clang_tokenize(
             self._tu_raw(),
-            e._ptr(),
+            (e._ptr())[],
             Optional[
                 Pointer[
                     Optional[Pointer[CXToken, MutUntrackedOrigin]],
@@ -371,7 +361,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
 
         clang_tokenize(
             self._tu_raw(),
-            e._ptr(),
+            (e._ptr())[],
             Optional[
                 Pointer[
                     Optional[Pointer[CXToken, MutUntrackedOrigin]],
@@ -406,9 +396,7 @@ struct TokenGroup(Iterable, Movable, Sized, Writable):
         if self._tokens:
             try:
                 clang_disposeTokens(
-                    self._tu[].raw(),
-                    self._tokens.value(),
-                    self._count,
+                    self._tu[].raw(), self._tokens.value(), self._count
                 )
             except:
                 pass

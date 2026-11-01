@@ -135,9 +135,9 @@ def _dispose_platform_availabilities(
 # ---------------------------------------------------------------------------
 
 
-def _out_ptr[T: AnyType, origin: MutOrigin, //](
-    ref[origin] value: T,
-) -> Optional[Pointer[T, origin]]:
+def _out_ptr[
+    T: AnyType, origin: MutOrigin, //
+](ref[origin] value: T,) -> Optional[Pointer[T, origin]]:
     """Borrow one typed output slot without discarding its owner origin."""
     return Optional(Pointer(to=value))
 
@@ -176,11 +176,11 @@ def _take_cxstring_optional(
     Empty strings remain `Some(String(""))`.
     """
     try:
-        if case .Some(ptr) = clang_getCString(cxstr_ref):
+        if case .Some(ptr) = clang_getCString((cxstr_ref)[]):
             return String(unsafe_from_utf8_ptr=ptr)
         return None
     finally:
-        clang_disposeString(cxstr_ref)
+        clang_disposeString((cxstr_ref)[])
 
 
 def _take_cxstring_value(raw: CXString) raises -> String:
@@ -199,7 +199,7 @@ struct _CXStringStorage(Movable):
     Usage:
 
         var cs = _CXStringStorage()
-        clang_getCursorSpelling(cs.ptr_for_out(), cursor_ptr)
+        (cs.ptr_for_out())[] = clang_getCursorSpelling((cursor_ptr)[])
         var spelling = cs.take()
 
     The `CXString` is stored inline — no heap allocation.  `ptr_for_out()`
@@ -241,12 +241,12 @@ struct _CXStringStorage(Movable):
             return String("")
         self._has_value = False
         var ptr = self._as_ptr()
-        var c_string = clang_getCString(ptr)
+        var c_string = clang_getCString((ptr)[])
         if not c_string:
-            clang_disposeString(ptr)
+            clang_disposeString((ptr)[])
             return String("")
         var value = String(unsafe_from_utf8_ptr=c_string.value())
-        clang_disposeString(ptr)
+        clang_disposeString((ptr)[])
         return value
 
     def take_optional(mut self) raises -> Optional[String]:
@@ -258,7 +258,7 @@ struct _CXStringStorage(Movable):
 
     def __deinit__(deinit self):
         if self._has_value:
-            clang_disposeString(self._as_ptr())
+            clang_disposeString((self._as_ptr())[])
 
 
 # ---------------------------------------------------------------------------

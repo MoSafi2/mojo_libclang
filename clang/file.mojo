@@ -118,7 +118,7 @@ struct File(Copyable, Movable, Writable):
         self._name = String()
         if self._raw:
             var cs = _CXStringStorage()
-            clang_getFileName(cs.ptr_for_out(), self._raw)
+            (cs.ptr_for_out())[] = clang_getFileName(self._raw)
             self._name = cs.take()
 
     @staticmethod
@@ -163,12 +163,11 @@ struct File(Copyable, Movable, Writable):
         """Look up `filename` in `tu`, returning `None` when absent."""
         var tu_state = tu._shared_state()
         if not tu_state[].alive:
-            raise Error("File.from_name: tu_module.TranslationUnit used after disposal")
+            raise Error(
+                "File.from_name: tu_module.TranslationUnit used after disposal"
+            )
 
-        var handle = clang_getFile(
-            tu_state[].raw(),
-            _borrow_c_string(filename),
-        )
+        var handle = clang_getFile(tu_state[].raw(), _borrow_c_string(filename))
 
         if not handle:
             return None
@@ -181,14 +180,14 @@ struct File(Copyable, Movable, Writable):
         tu: ArcPointer[TranslationUnitState],
         var filename: String,
     ) raises -> Optional[Self]:
-        """Look up `filename` in a shared TU state, returning `None` when absent."""
+        """Look up `filename` in a shared TU state, returning `None` when absent.
+        """
         if not tu[].alive:
-            raise Error("File.from_name: tu_module.TranslationUnit used after disposal")
+            raise Error(
+                "File.from_name: tu_module.TranslationUnit used after disposal"
+            )
 
-        var handle = clang_getFile(
-            tu[].raw(),
-            _borrow_c_string(filename),
-        )
+        var handle = clang_getFile(tu[].raw(), _borrow_c_string(filename))
 
         if not handle:
             return None
@@ -218,17 +217,14 @@ struct File(Copyable, Movable, Writable):
         self._check_valid()
 
         var cs = _CXStringStorage()
-        clang_File_tryGetRealPathName(cs.ptr_for_out(), self._raw)
+        (cs.ptr_for_out())[] = clang_File_tryGetRealPathName(self._raw)
         return cs.take()
 
     def is_multiple_include_guarded(ref self) raises -> Bool:
         """Return true if libclang sees this file as include-guarded."""
         self._check_valid()
         return Bool(
-            clang_isFileMultipleIncludeGuarded(
-                self._tu[].raw(),
-                self._raw,
-            )
+            clang_isFileMultipleIncludeGuarded(self._tu[].raw(), self._raw)
         )
 
     def __eq__(ref self, ref other: Self) raises -> Bool:

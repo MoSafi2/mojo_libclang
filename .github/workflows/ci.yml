@@ -5,12 +5,18 @@ on:
     branches: [master, codex/mojo-1.2]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_url_check:
+        description: Verify the amended prerelease download URLs on all platforms
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   validate:
+    if: ${{ !inputs.release_url_check }}
     name: ${{ matrix.platform }}
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
@@ -29,6 +35,8 @@ jobs:
             regeneration_args: --platform-local
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: prefix-dev/setup-pixi@v0.9.4
         with:
           pixi-version: v0.80.0
@@ -36,6 +44,15 @@ jobs:
           environments: dev
       - name: Install locked toolchain
         run: pixi install --locked -e dev
+      - name: Verify recipe source matches the runtime being tested
+        run: |
+          pixi run --locked -e dev python - <<'PY'
+          import pathlib, re, subprocess
+          recipe = pathlib.Path("packaging/modular-community/libclang_mojo/recipe.yaml").read_text()
+          revision = re.search(r'^  rev: "([0-9a-f]{40})"$', recipe, re.M).group(1)
+          subprocess.run(["git", "diff", "--exit-code", revision, "HEAD", "--", "clang"], check=True)
+          print("Verified immutable package source:", revision)
+          PY
       - name: Test checked-in source
         run: pixi run --locked -e dev test
       - name: Verify deterministic generation twice
@@ -49,11 +66,30 @@ jobs:
       - name: Install binary package and build a production consumer
         shell: bash
         run: |
-          packages=(dist/conda/${{ matrix.platform }}/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_*.conda)
+          packages=(dist/conda/${{ matrix.platform }}/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_*_1.conda)
           test "${#packages[@]}" -eq 1
           pixi run --locked -e package check-conda-consumer "${packages[0]}"
       - uses: actions/upload-artifact@v4
         with:
           name: libclang_mojo-0.3.0.dev20261031-${{ matrix.platform }}
-          path: dist/conda/${{ matrix.platform }}/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_*.conda
+          path: dist/conda/${{ matrix.platform }}/libclang_mojo-0.3.0.dev20261031-mojo1_3_0_dev2026103105_*_1.conda
           if-no-files-found: error
+
+  published-consumer:
+    if: ${{ inputs.release_url_check }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm, macos-15]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          pixi-version: v0.80.0
+          environments: package
+      - name: Verify published manifest, payload, checksum, and compiled consumer
+        run: >-
+          pixi run --locked -e package check-conda-consumer
+          --release-manifest https://github.com/MoSafi2/mojo_libclang/releases/download/v0.3.0-dev.20261031/pixi.toml

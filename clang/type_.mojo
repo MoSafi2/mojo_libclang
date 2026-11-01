@@ -8,7 +8,7 @@ Important:
 * The raw `CXType` value is stored in `Array[CXType, 1]`.
 * The owning translation unit is kept alive through `ArcPointer[TranslationUnitState]`.
 * The type becomes stale after `TranslationUnit.reparse()` if the generation changes.
-* Every FFI call passes `CXType *` to the shim, never `CXType` by value.
+* FFI calls pass `CXType` values using the native C calling convention.
 
 Typical usage:
 
@@ -177,7 +177,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var cs = _CXStringStorage()
-        clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getTypeSpelling((self._ptr())[])
         self._spelling = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
@@ -198,7 +198,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var cs = _CXStringStorage()
-        clang_getTypeSpelling(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getTypeSpelling((self._ptr())[])
         return cs.take()
 
     def canonical(ref self) raises -> Type:
@@ -206,7 +206,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getCanonicalType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getCanonicalType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -215,7 +215,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getPointeeType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getPointeeType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -224,7 +224,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getUnqualifiedType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getUnqualifiedType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -233,7 +233,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getNonReferenceType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getNonReferenceType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -242,7 +242,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getResultType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getResultType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -251,7 +251,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getElementType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getElementType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -260,24 +260,24 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_getArrayElementType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getArrayElementType((self._ptr())[])
         out._cache_spelling()
         return out^
 
     def array_size(ref self) raises -> Int:
         """Return the array size reported by libclang."""
         self._check_valid()
-        return Int(clang_getArraySize(self._ptr()))
+        return Int(clang_getArraySize((self._ptr())[]))
 
     def element_count(ref self) raises -> Int:
         """Return the number of elements reported by libclang."""
         self._check_valid()
-        return Int(clang_getNumElements(self._ptr()))
+        return Int(clang_getNumElements((self._ptr())[]))
 
     def num_arg_types(ref self) raises -> Int:
         """Return the number of function argument types."""
         self._check_valid()
-        return Int(clang_getNumArgTypes(self._ptr()))
+        return Int(clang_getNumArgTypes((self._ptr())[]))
 
     def arg_type(ref self, i: Int) raises -> Type:
         """Return function argument type `i`."""
@@ -286,7 +286,7 @@ struct Type(Copyable, Movable, Writable):
             raise Error("Type.arg_type: index out of range")
 
         var out = Type(tu=self._tu)
-        clang_getArgType(out._ptr(), self._ptr(), c_uint(i))
+        (out._ptr())[] = clang_getArgType((self._ptr())[], c_uint(i))
         out._cache_spelling()
         return out^
 
@@ -307,7 +307,7 @@ struct Type(Copyable, Movable, Writable):
     def num_template_args(ref self) raises -> Int:
         """Return the number of template type arguments."""
         self._check_valid()
-        return Int(clang_Type_getNumTemplateArguments(self._ptr()))
+        return Int(clang_Type_getNumTemplateArguments((self._ptr())[]))
 
     def template_argument_type(ref self, i: Int) raises -> Type:
         """Return template type argument `i`."""
@@ -316,7 +316,9 @@ struct Type(Copyable, Movable, Writable):
             raise Error("Type.template_argument_type: index out of range")
 
         var out = Type(tu=self._tu)
-        clang_Type_getTemplateArgumentAsType(out._ptr(), self._ptr(), c_uint(i))
+        (out._ptr())[] = clang_Type_getTemplateArgumentAsType(
+            (self._ptr())[], c_uint(i)
+        )
         out._cache_spelling()
         return out^
 
@@ -327,7 +329,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Cursor(tu=self._tu)
-        clang_getTypeDeclaration(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_getTypeDeclaration((self._ptr())[])
 
         if out.is_null():
             return None
@@ -339,7 +341,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_Type_getNamedType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Type_getNamedType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -348,7 +350,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_Type_getClassType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Type_getClassType((self._ptr())[])
         out._cache_spelling()
         return out^
 
@@ -361,7 +363,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var out = Type(tu=self._tu)
-        clang_Type_getValueType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Type_getValueType((self._ptr())[])
 
         if out.kind() == TypeKind.INVALID:
             return None
@@ -373,7 +375,7 @@ struct Type(Copyable, Movable, Writable):
         """Return the modified type for attributed-wrapper types, if any."""
         self._check_valid()
         var out = Type(tu=self._tu)
-        clang_Type_getModifiedType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Type_getModifiedType((self._ptr())[])
         if out.kind() == TypeKind.INVALID:
             return None
         out._cache_spelling()
@@ -387,8 +389,7 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var result = clang_Type_getOffsetOf(
-            self._ptr(),
-            _borrow_c_string(fieldname),
+            (self._ptr())[], _borrow_c_string(fieldname)
         )
 
         if result < c_long_long(0):
@@ -402,12 +403,12 @@ struct Type(Copyable, Movable, Writable):
     def align(ref self) raises -> Int:
         """Return the alignment of this type in bytes."""
         self._check_valid()
-        return Int(clang_Type_getAlignOf(self._ptr()))
+        return Int(clang_Type_getAlignOf((self._ptr())[]))
 
     def size(ref self) raises -> Int:
         """Return the size of this type in bytes."""
         self._check_valid()
-        return Int(clang_Type_getSizeOf(self._ptr()))
+        return Int(clang_Type_getSizeOf((self._ptr())[]))
 
     def translation_unit(ref self) raises -> tu_module.TranslationUnit:
         """Return the TranslationUnit to which this type belongs."""
@@ -419,7 +420,7 @@ struct Type(Copyable, Movable, Writable):
     def ref_qualifier(ref self) raises -> RefQualifierKind:
         """Return the C++ ref-qualifier kind for a function type."""
         self._check_valid()
-        return RefQualifierKind(clang_Type_getCXXRefQualifier(self._ptr()))
+        return RefQualifierKind(clang_Type_getCXXRefQualifier((self._ptr())[]))
 
     def exception_specification_kind(
         ref self,
@@ -427,24 +428,24 @@ struct Type(Copyable, Movable, Writable):
         """Return the exception-specification kind for a function type."""
         self._check_valid()
         return ExceptionSpecificationKind(
-            c_uint(clang_getExceptionSpecificationType(self._ptr())),
+            c_uint(clang_getExceptionSpecificationType((self._ptr())[])),
         )
 
     def calling_conv(ref self) raises -> CallingConv:
         """Return the calling convention for a function type."""
         self._check_valid()
-        return CallingConv(clang_getFunctionTypeCallingConv(self._ptr()))
+        return CallingConv(clang_getFunctionTypeCallingConv((self._ptr())[]))
 
     def address_space(ref self) raises -> Int:
         """Return the address space number for this type."""
         self._check_valid()
-        return Int(clang_getAddressSpace(self._ptr()))
+        return Int(clang_getAddressSpace((self._ptr())[]))
 
     def nullability(ref self) raises -> TypeNullabilityKind:
         """Return the nullability annotation for this type."""
         self._check_valid()
         return TypeNullabilityKind(
-            c_uint(clang_Type_getNullability(self._ptr()))
+            c_uint(clang_Type_getNullability((self._ptr())[]))
         )
 
     def typedef_name(ref self) raises -> String:
@@ -452,45 +453,45 @@ struct Type(Copyable, Movable, Writable):
         self._check_valid()
 
         var cs = _CXStringStorage()
-        clang_getTypedefName(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_getTypedefName((self._ptr())[])
         return cs.take()
 
     def objc_encoding(ref self) raises -> String:
         """Return the Objective-C encoding for this type."""
         self._check_valid()
         var cs = _CXStringStorage()
-        clang_Type_getObjCEncoding(cs.ptr_for_out(), self._ptr())
+        (cs.ptr_for_out())[] = clang_Type_getObjCEncoding((self._ptr())[])
         return cs.take()
 
     def is_const_qualified(ref self) raises -> Bool:
         """Return true if this type has a top-level `const` qualifier."""
         self._check_valid()
-        return Bool(clang_isConstQualifiedType(self._ptr()))
+        return Bool(clang_isConstQualifiedType((self._ptr())[]))
 
     def is_volatile_qualified(ref self) raises -> Bool:
         """Return true if this type has a top-level `volatile` qualifier."""
         self._check_valid()
-        return Bool(clang_isVolatileQualifiedType(self._ptr()))
+        return Bool(clang_isVolatileQualifiedType((self._ptr())[]))
 
     def is_restrict_qualified(ref self) raises -> Bool:
         """Return true if this type has a top-level `restrict` qualifier."""
         self._check_valid()
-        return Bool(clang_isRestrictQualifiedType(self._ptr()))
+        return Bool(clang_isRestrictQualifiedType((self._ptr())[]))
 
     def is_function_variadic(ref self) raises -> Bool:
         """Return true if this is a variadic function type."""
         self._check_valid()
-        return Bool(clang_isFunctionTypeVariadic(self._ptr()))
+        return Bool(clang_isFunctionTypeVariadic((self._ptr())[]))
 
     def is_pod(ref self) raises -> Bool:
         """Return true if libclang classifies this type as POD."""
         self._check_valid()
-        return Bool(clang_isPODType(self._ptr()))
+        return Bool(clang_isPODType((self._ptr())[]))
 
     def is_transparent_tag_typedef(ref self) raises -> Bool:
         """Return true if this typedef is a transparent tag typedef."""
         self._check_valid()
-        return Bool(clang_Type_isTransparentTagTypedef(self._ptr()))
+        return Bool(clang_Type_isTransparentTagTypedef((self._ptr())[]))
 
     def fields(ref self) raises -> List[cursor_types.Cursor]:
         """Return field declaration cursors for this record type."""
@@ -512,7 +513,7 @@ struct Type(Copyable, Movable, Writable):
             )
         )
         _ = clang_Type_visitFields(
-            self._ptr(), _field_visitor_trampoline, client_data
+            (self._ptr())[], _field_visitor_trampoline, client_data
         )
         var out = List[cursor_types.Cursor]()
         for i in range(len(collector_box[].out)):
@@ -524,23 +525,24 @@ struct Type(Copyable, Movable, Writable):
         """Return the Objective-C object base type, if any."""
         self._check_valid()
         var out = Type(tu=self._tu)
-        clang_Type_getObjCObjectBaseType(out._ptr(), self._ptr())
+        (out._ptr())[] = clang_Type_getObjCObjectBaseType((self._ptr())[])
         if out.kind() == TypeKind.INVALID:
             return None
         out._cache_spelling()
         return Optional[Type](out^)
 
     def objc_protocol_decls(ref self) raises -> List[cursor_types.Cursor]:
-        """Return Objective-C protocol declaration cursors referenced by this type."""
+        """Return Objective-C protocol declaration cursors referenced by this type.
+        """
         from clang.cursor import Cursor
 
         self._check_valid()
         var out = List[cursor_types.Cursor]()
-        var count = clang_Type_getNumObjCProtocolRefs(self._ptr())
+        var count = clang_Type_getNumObjCProtocolRefs((self._ptr())[])
         for i in range(Int(count)):
             var cursor = cursor_types.Cursor(tu=self._tu)
-            clang_Type_getObjCProtocolDecl(
-                cursor._ptr(), self._ptr(), c_uint(i)
+            (cursor._ptr())[] = clang_Type_getObjCProtocolDecl(
+                (self._ptr())[], c_uint(i)
             )
             if not cursor.is_null():
                 out.append(cursor^)
@@ -550,10 +552,12 @@ struct Type(Copyable, Movable, Writable):
         """Return Objective-C type arguments referenced by this type."""
         self._check_valid()
         var out = List[Type]()
-        var count = clang_Type_getNumObjCTypeArgs(self._ptr())
+        var count = clang_Type_getNumObjCTypeArgs((self._ptr())[])
         for i in range(Int(count)):
             var typ = Type(tu=self._tu)
-            clang_Type_getObjCTypeArg(typ._ptr(), self._ptr(), c_uint(i))
+            (typ._ptr())[] = clang_Type_getObjCTypeArg(
+                (self._ptr())[], c_uint(i)
+            )
             if typ.kind() != TypeKind.INVALID:
                 typ._cache_spelling()
                 out.append(typ^)
@@ -569,19 +573,14 @@ struct Type(Copyable, Movable, Writable):
         if self._tu[].raw() != other._tu[].raw():
             return False
 
-        return Bool(clang_equalTypes(self._ptr(), other._ptr()))
+        return Bool(clang_equalTypes((self._ptr())[], (other._ptr())[]))
 
     def __ne__(ref self, ref other: Self) raises -> Bool:
         return not self.__eq__(other)
 
 
 def _zero_type() -> CXType:
-    return CXType(
-        kind=CXTypeKind(c_uint(0)),
-        data=Array[Optional[OpaquePointer[mut=True, MutUntrackedOrigin]], 2](
-            fill=None
-        ),
-    )
+    return CXType(kind=CXTypeKind(c_uint(0)), data_0=None, data_1=None)
 
 
 @fieldwise_init
@@ -591,21 +590,16 @@ struct _TypeFieldCollector(Movable):
 
 
 def _field_visitor_trampoline(
-    cursor_ptr: Optional[Pointer[CXCursor, ImmUntrackedOrigin]],
+    raw_cursor: CXCursor,
     client_data: CXClientData,
 ) abi("C") -> c_uint:
-    if not cursor_ptr:
-        return CXVisit_Continue
-
     var collector = rebind[Pointer[_TypeFieldCollector, MutUntrackedOrigin]](
         rebind[Pointer[UInt8, MutUntrackedOrigin]](
-            rebind[Pointer[UInt8, MutUntrackedOrigin]](
-                client_data.value()
-            )
+            rebind[Pointer[UInt8, MutUntrackedOrigin]](client_data.value())
         )
     )
 
-    var cursor = cursor_types.Cursor(tu=collector[].tu, raw=cursor_ptr.value()[].copy())
+    var cursor = cursor_types.Cursor(tu=collector[].tu, raw=raw_cursor.copy())
     collector[].out.append(cursor^)
 
     return CXVisit_Continue
