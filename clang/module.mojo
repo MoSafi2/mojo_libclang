@@ -37,15 +37,13 @@ struct Module(Copyable, Movable, Writable):
     def name(ref self) raises -> String:
         """Return the module's short name."""
         self._check_valid()
-        var cs = _CXStringStorage()
-        clang_Module_getName(cs.ptr_for_out(), self._raw)
+        var cs = _CXStringStorage(raw=clang_Module_getName(self._raw))
         return cs.take()
 
     def full_name(ref self) raises -> String:
         """Return the module's fully qualified name."""
         self._check_valid()
-        var cs = _CXStringStorage()
-        clang_Module_getFullName(cs.ptr_for_out(), self._raw)
+        var cs = _CXStringStorage(raw=clang_Module_getFullName(self._raw))
         return cs.take()
 
     def is_system(ref self) raises -> Bool:
@@ -81,9 +79,7 @@ struct Module(Copyable, Movable, Writable):
         )
         for i in range(Int(count)):
             var header = clang_Module_getTopLevelHeader(
-                self._tu[].raw(),
-                self._raw,
-                c_uint(i),
+                self._tu[].raw(), self._raw, c_uint(i)
             )
             if header:
                 out.append(File(tu=self._tu, raw=header))

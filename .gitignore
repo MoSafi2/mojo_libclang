@@ -2,9 +2,6 @@
 .pixi/*
 !.pixi/config.toml
 
-# generated shim
-shim/libclang_mojo_shim.so
-shim/libclang_mojo_shim.dylib
 __pycache__/
 *.py[cod]
 

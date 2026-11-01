@@ -9,7 +9,7 @@ from clang.common import (
     UnsavedFile,
     UnsavedFileArena,
 )
-from clang._ffi import CXString
+from clang._ffi import CXString, clang_getClangVersion
 from std.collections import List
 from std.ffi import c_uint, c_int, c_ulong
 from std.memory.alloc import unsafe_alloc
@@ -73,9 +73,9 @@ def test_cxstring_storage_create() raises:
     _check(True, "_CXStringStorage creation should succeed")
 
 
-def test_cxstring_storage_ptr_not_null() raises:
+def test_cxstring_storage_out_parameter() raises:
     var cs = _CXStringStorage()
-    var ptr = cs.ptr()
+    var ptr = cs.ptr_for_out()
     _ = ptr
     _check(True, "ptr() should return successfully")
 
@@ -98,7 +98,7 @@ def test_cxstring_storage_take_optional_null() raises:
 
 def test_cxstring_storage_drop() raises:
     var cs = _CXStringStorage()
-    _ = cs.ptr()
+    _ = cs.ptr_for_out()
     _check(True, "create-and-drop should succeed")
 
 
@@ -106,35 +106,18 @@ def test_cxstring_storage_drop() raises:
 
 
 def test_take_cxstring_null_data_returns_empty() raises:
-    var owned = unsafe_alloc[CXString](1)
-    owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[Pointer[CXString, MutUntrackedOrigin]](owned)
-    var s = _take_cxstring(raw)
-    assert_equal(
-        s,
-        String(""),
-        "_take_cxstring with null data should return empty string",
-    )
-    owned.unsafe_free()
+    assert_equal(_take_cxstring(CXString(None, c_uint(0))), "")
 
 
 def test_take_cxstring_disposes_storage() raises:
-    var owned = unsafe_alloc[CXString](1)
-    owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[Pointer[CXString, MutUntrackedOrigin]](owned)
-    _ = _take_cxstring(raw)
-    owned.unsafe_free()
+    var storage = _CXStringStorage(raw=clang_getClangVersion())
+    assert_true(storage.take().byte_length() > 0)
+    assert_equal(storage.take(), "")
+    assert_equal(storage.take_optional(), None)
 
 
 def test_take_cxstring_optional_null_returns_none() raises:
-    var owned = unsafe_alloc[CXString](1)
-    owned[] = CXString(data=None, private_flags=c_uint(0))
-    var raw = rebind[Pointer[CXString, MutUntrackedOrigin]](owned)
-    var s = _take_cxstring_optional(raw)
-    assert_equal(
-        s, None, "_take_cxstring_optional with null data should return None"
-    )
-    owned.unsafe_free()
+    assert_equal(_take_cxstring_optional(CXString(None, c_uint(0))), None)
 
 
 def test_unsaved_file_write_to() raises:

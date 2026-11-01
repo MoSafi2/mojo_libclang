@@ -12,7 +12,8 @@ from clang.common import _CXStringStorage
 
 @fieldwise_init
 struct LibclangMojoVersionInfo(Copyable, Movable, Writable):
-    """Version information for the Mojo package, generated headers, and runtime."""
+    """Version information for the Mojo package, generated headers, and runtime.
+    """
 
     var libclang_mojo_version: String
     var generated_cindex_version_major: Int
@@ -24,8 +25,7 @@ struct LibclangMojoVersionInfo(Copyable, Movable, Writable):
 
 def version_info() raises -> LibclangMojoVersionInfo:
     """Return structured version information without printing."""
-    var cs = _CXStringStorage()
-    clang_getClangVersion(cs.ptr_for_out())
+    var cs = _CXStringStorage(raw=clang_getClangVersion())
     return LibclangMojoVersionInfo(
         libclang_mojo_version=String(LIBCLANG_MOJO_VERSION),
         generated_cindex_version_major=Int(CINDEX_VERSION_MAJOR),

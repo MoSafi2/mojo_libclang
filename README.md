@@ -7,8 +7,9 @@ High-level Mojo bindings for LLVM `libclang`.
 ## Highlights
 
 - Exposes most of `libclang` API for `C`, `C++`, and some `obj-C`
-- Parse C and C++ source files with libclang.
+- Parse C/C++ files and unsaved in-memory buffers.
 - Inspect cursor spelling, kind, location, extent, parents, and type.
+- Traverse all children using growable storage, without a fixed sibling cap.
 - Read diagnostics with formatted messages.
 - Query canonical types, pointee types, result types, fields, and declarations.
 
@@ -50,7 +51,14 @@ Choose a source revision matching your compiler:
 | Source | Mojo | Purpose |
 | --- | --- | --- |
 | `v0.2.0` / `codex/mojo-1.2` | `1.2.0` | Stable release / stable maintenance |
-| `master` | Exact nightly pinned in its manifest and lockfile | Nightly development |
+| `master` | Exact nightly pinned in its manifest | Nightly development |
+
+Stable conda build 1 calls libclang directly,
+without a native shim. Its raw `clang._ffi` functions use actual C signatures
+with by-value structs and callbacks; `clang.cindex` retains its public API.
+Raw fixed-array fields use numbered fields, such as `CXCursor.data_0` through
+`data_2`, to preserve their C layout and support by-value calls.
+Refresh the stable Pixi manifest and lockfile when upgrading from build 0.
 
 Both tracks use libclang 18. Rebuild compiled Mojo modules with the selected
 toolchain; compiled packages are not interchangeable across compiler versions.
@@ -61,10 +69,10 @@ The raw FFI and layout checks are regenerated with mojo-bindgen at
 
 The [v0.2.0 release](https://github.com/MoSafi2/mojo_libclang/releases/tag/v0.2.0)
 provides prebuilt packages for Linux x86-64, Linux ARM64, and macOS ARM64.
-Pixi installs the matching Mojo 1.2.0 compiler and libclang 18 automatically.
+Pixi installs the matching compiler and libclang 18 automatically.
 
 With [Pixi](https://pixi.prefix.dev/latest/installation/) installed, run these
-commands in an empty application directory:
+commands in an empty application directory to install the stable release:
 
 ```bash
 curl -fL -o pixi.toml \
@@ -89,21 +97,20 @@ hosts, use `pixi install --locked` and run the executable with `pixi run`.
 Clone this repository and install the development environment:
 
 ```bash
-git clone https://github.com/MoSafi2/mojo_libclang.git
+git clone --branch codex/mojo-1.2 https://github.com/MoSafi2/mojo_libclang.git
 cd mojo_libclang
 pixi install --locked -e dev
 ```
 
-Run the wrapper test suite through the local shim:
+Run all tests through both Mojo execution and compiled executables:
 
 ```bash
 pixi run --locked -e dev test
 ```
 
-To run one test file after building the shim:
+To run one test file:
 
 ```bash
-pixi run --locked -e dev build-shim
 pixi run --locked -e dev run-test test/test_translation_unit.mojo
 ```
 
@@ -126,9 +133,7 @@ Generation updates:
 
 - `clang/_ffi.mojo`
 - `test/_ffi_layout_tests.mojo`
-- `shim/libclang_mojo_shim.h`
-- `shim/libclang_mojo_shim.c`
-- `shim/libclang_mojo_shim.so`
+- `clang/_metadata.mojo`
 
 Do not edit generated low-level files by hand, either update the generator or
 add a deterministic patch.

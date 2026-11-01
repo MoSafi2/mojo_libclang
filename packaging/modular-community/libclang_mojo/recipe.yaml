@@ -3,7 +3,7 @@ context:
   version: "0.2.0"
   mojo_version: "==1.2.0"
   llvm_version: "18.*"
-  rev: "6d7ce1973f8815f30f20a6271a2dc0c55445e010"
+  rev: "e8448e3d0b6d4cbe1da5e3ffa71a2bd06e04356a"
 
 package:
   name: "libclang_mojo"
@@ -14,39 +14,20 @@ source:
     rev: ${{ rev }}
 
 build:
-  number: 0
-  string: "mojo1_2_0_${{ target_platform | replace('-', '_') }}_0"
+  number: 1
+  string: "mojo1_2_0_${{ target_platform | replace('-', '_') }}_1"
   script:
     interpreter: bash
     content:
       - |
         set -euo pipefail
         mkdir -p "${PREFIX}/lib" "${PREFIX}/lib/mojo"
-        if [[ "$(uname -s)" == "Darwin" ]]; then
-          "${CC}" -dynamiclib \
-            "-DMOJO_LIBCLANG_RUNTIME_PATH=\"${PREFIX}/lib/libclang.dylib\"" \
-            -I"${PREFIX}/include" -Ishim \
-            -o "${PREFIX}/lib/libclang_mojo_shim.dylib" \
-            shim/libclang_mojo_shim.c \
-            -L"${PREFIX}/lib" -lclang \
-            -Wl,-rpath,"${PREFIX}/lib"
-        else
-          "${CC}" -shared -fPIC \
-            "-DMOJO_LIBCLANG_RUNTIME_PATH=\"${PREFIX}/lib/libclang.so\"" \
-            -I"${PREFIX}/include" -Ishim \
-            -o "${PREFIX}/lib/libclang_mojo_shim.so" \
-            shim/libclang_mojo_shim.c \
-            -L"${PREFIX}/lib" -lclang \
-            -Wl,-rpath,"${PREFIX}/lib"
-        fi
         mojo precompile clang -o "${PREFIX}/lib/mojo/clang.mojoc"
 
 requirements:
   build:
-    - ${{ compiler('c') }}
     - mojo-compiler ${{ mojo_version }}
   host:
-    - clangdev ${{ llvm_version }}
     - libclang ${{ llvm_version }}
     - mojo-compiler ${{ mojo_version }}
   run:
@@ -62,9 +43,10 @@ tests:
       content:
         - |
           set -euo pipefail
-          printf 'int add(int a, int b) { return a + b; }\n' > api.c
+          printf 'struct Point { int x; int y; };\nint add(int a, int b) { return a + b; }\n' > api.c
           cp api.c api.cpp
           printf 'int broken = ;\n' > invalid.c
+          for ((i=0; i<5000; ++i)); do printf 'int child_%s;\n' "$i"; done > many_children.c
           mojo build -I "${PREFIX}/lib/mojo" test_cindex_smoke.mojo -o package-smoke
           ./package-smoke
 

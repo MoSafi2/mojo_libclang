@@ -109,7 +109,8 @@ struct Index(Copyable, Movable, Writable):
         var options = raw_options.copy()
         var raw = clang_createIndexWithOptions(
             rebind[Pointer[CXIndexOptions, ImmUntrackedOrigin]](
-                Pointer(to=options)).unsafe_origin_cast[MutUntrackedOrigin]()
+                Pointer(to=options)
+            ).unsafe_origin_cast[MutUntrackedOrigin]()
         )
         if not raw:
             raise Error(
@@ -145,8 +146,7 @@ struct Index(Copyable, Movable, Writable):
     def set_invocation_emission_path(ref self, var path: String) raises:
         """Set the directory used for libclang invocation emission files."""
         clang_CXIndex_setInvocationEmissionPathOption(
-            self._raw_handle(),
-            _borrow_c_string(path),
+            self._raw_handle(), _borrow_c_string(path)
         )
 
     def write_to(self, mut writer: Some[Writer]):
@@ -160,7 +160,9 @@ struct Index(Copyable, Movable, Writable):
 
     def default_editing_options(self) -> TranslationUnitFlags:
         """Return libclang's default editing translation-unit parse options."""
-        return TranslationUnitFlags(clang_defaultEditingTranslationUnitOptions())
+        return TranslationUnitFlags(
+            clang_defaultEditingTranslationUnitOptions()
+        )
 
     def parse(
         ref self,
@@ -174,10 +176,9 @@ struct Index(Copyable, Movable, Writable):
         `UnsavedFileArena` keeps unsaved-file strings alive until the call
         returns. argv strings and slot buffer are allocated and freed inline.
 
-        Note: Manual argv build avoids a Mojo compiler bug where
-        Optional[Pointer[...]] values produced across a function
-        boundary are corrupted when passed to _bindgen_function wrappers
-        with many parameters.
+        Argument buffers are released after the C call. The borrowed pointer
+        from UnsavedFileArena keeps its record array and C strings alive until
+        libclang has consumed them.
         """
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
@@ -190,9 +191,7 @@ struct Index(Copyable, Movable, Writable):
             ]
         ] = None
         if n > 0:
-            var raw = unsafe_alloc[
-                Pointer[c_char, ImmUntrackedOrigin]
-            ](n)
+            var raw = unsafe_alloc[Pointer[c_char, ImmUntrackedOrigin]](n)
             argv_buf = raw
             for i in range(n):
                 var s = _alloc_c_string(args[i])
@@ -200,7 +199,9 @@ struct Index(Copyable, Movable, Writable):
                 raw[unsafe_offset=i] = _c_string(s)
 
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = Pointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
+        var out_ptr = Pointer(to=out_tu).unsafe_origin_cast[
+            MutUntrackedOrigin
+        ]()
 
         var c_path = _borrow_c_string(path)
         var arg_ptr: Optional[
@@ -211,14 +212,16 @@ struct Index(Copyable, Movable, Writable):
         ] = unsafe_cast[
             Type=Optional[Pointer[c_char, ImmUntrackedOrigin]],
             origin=ImmUntrackedOrigin,
-        ](argv_buf)
+        ](
+            argv_buf
+        )
         var arg_count = c_int(n)
-        var unsaved_ptr = unsaved_arena.ptr()
         var unsaved_count = unsaved_arena.count()
+        var unsaved_ptr = unsaved_arena.ptr()
         var raw_opts = options.as_c_uint()
-        var out_raw = rebind[
-            Pointer[CXTranslationUnit, MutUntrackedOrigin]
-        ](out_ptr)
+        var out_raw = rebind[Pointer[CXTranslationUnit, MutUntrackedOrigin]](
+            out_ptr
+        )
         var raw_err = clang_parseTranslationUnit2(
             self._raw_handle(),
             c_path,
@@ -246,7 +249,9 @@ struct Index(Copyable, Movable, Writable):
     def read(ref self, var path: String) raises -> TranslationUnit:
         """Read a serialized AST file into a `TranslationUnit`."""
         var out_tu: CXTranslationUnit = CXTranslationUnit()
-        var out_ptr = Pointer(to=out_tu).unsafe_origin_cast[MutUntrackedOrigin]()
+        var out_ptr = Pointer(to=out_tu).unsafe_origin_cast[
+            MutUntrackedOrigin
+        ]()
 
         var err = ErrorCode(
             clang_createTranslationUnit2(

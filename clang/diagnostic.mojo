@@ -58,7 +58,7 @@ from clang._ffi import (
 )
 
 from clang.enums import DiagnosticSeverity, DiagnosticDisplayOptions
-from clang.common import _CXStringStorage
+from clang.common import _CXStringStorage, _out_ptr
 from clang.state import TranslationUnitState
 from clang.source_location import SourceLocation
 from clang.source_range import SourceRange
@@ -179,9 +179,10 @@ struct Diagnostic(Movable, Writable):
         var options = DiagnosticDisplayOptions(
             clang_defaultDiagnosticDisplayOptions(),
         )
-        var cs = _CXStringStorage()
-        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, options.as_c_uint())
-        self._formatted = cs._take_unchecked()
+        var cs = _CXStringStorage(
+            raw=clang_formatDiagnostic(self._raw, options.as_c_uint())
+        )
+        self._formatted = cs.take()
 
     def write_to(self, mut writer: Some[Writer]):
         writer.write("Diagnostic(", self._formatted, ")")
@@ -195,8 +196,7 @@ struct Diagnostic(Movable, Writable):
         """Return the diagnostic spelling text."""
         self._check_valid()
 
-        var cs = _CXStringStorage()
-        clang_getDiagnosticSpelling(cs.ptr_for_out(), self._raw)
+        var cs = _CXStringStorage(raw=clang_getDiagnosticSpelling(self._raw))
         return cs.take()
 
     def location(ref self) raises -> SourceLocation:
@@ -204,7 +204,7 @@ struct Diagnostic(Movable, Writable):
         self._check_valid()
 
         var out = SourceLocation(tu=self._tu)
-        clang_getDiagnosticLocation(out._ptr(), self._raw)
+        out._raw = clang_getDiagnosticLocation(self._raw)
         out._cache_from_ffi()
         return out^
 
@@ -217,21 +217,19 @@ struct Diagnostic(Movable, Writable):
         """Return the category name for this diagnostic."""
         self._check_valid()
 
-        var cs = _CXStringStorage()
-        clang_getDiagnosticCategoryText(cs.ptr_for_out(), self._raw)
+        var cs = _CXStringStorage(
+            raw=clang_getDiagnosticCategoryText(self._raw)
+        )
         return cs.take()
 
     def option(ref self) raises -> String:
         """Return the warning option associated with this diagnostic."""
         self._check_valid()
 
-        var option = _CXStringStorage()
         var disable = _CXStringStorage()
 
-        clang_getDiagnosticOption(
-            option.ptr_for_out(),
-            self._raw,
-            disable.ptr_for_out(),
+        var option = _CXStringStorage(
+            raw=clang_getDiagnosticOption(self._raw, disable.ptr_for_out())
         )
 
         # Dispose the disable-option string by converting it to owned Mojo
@@ -244,13 +242,10 @@ struct Diagnostic(Movable, Writable):
         """Return the option that disables this diagnostic."""
         self._check_valid()
 
-        var option = _CXStringStorage()
         var disable = _CXStringStorage()
 
-        clang_getDiagnosticOption(
-            option.ptr_for_out(),
-            self._raw,
-            disable.ptr_for_out(),
+        var option = _CXStringStorage(
+            raw=clang_getDiagnosticOption(self._raw, disable.ptr_for_out())
         )
 
         # Dispose the option string by converting it to owned Mojo string and
@@ -272,7 +267,7 @@ struct Diagnostic(Movable, Writable):
             raise Error("Diagnostic.range: index out of range")
 
         var out = SourceRange(tu=self._tu)
-        clang_getDiagnosticRange(out._ptr(), self._raw, c_uint(i))
+        out._raw = clang_getDiagnosticRange(self._raw, c_uint(i))
         return out^
 
     def num_fixits(ref self) raises -> Int:
@@ -288,13 +283,10 @@ struct Diagnostic(Movable, Writable):
             raise Error("Diagnostic.fixit: index out of range")
 
         var range_out = SourceRange(tu=self._tu)
-        var cs = _CXStringStorage()
-
-        clang_getDiagnosticFixIt(
-            cs.ptr_for_out(),
-            self._raw,
-            c_uint(i),
-            range_out._ptr(),
+        var cs = _CXStringStorage(
+            raw=clang_getDiagnosticFixIt(
+                self._raw, c_uint(i), _out_ptr(range_out._raw)
+            )
         )
 
         return FixIt(range=range_out^, value=cs.take())
@@ -323,8 +315,9 @@ struct Diagnostic(Movable, Writable):
             opts = DiagnosticDisplayOptions(
                 clang_defaultDiagnosticDisplayOptions(),
             )
-        var cs = _CXStringStorage()
-        clang_formatDiagnostic(cs.ptr_for_out(), self._raw, opts.as_c_uint())
+        var cs = _CXStringStorage(
+            raw=clang_formatDiagnostic(self._raw, opts.as_c_uint())
+        )
         return cs.take()
 
     def formatted(mut self) raises -> String:
@@ -343,9 +336,9 @@ struct Diagnostic(Movable, Writable):
         _ = self._tu  # The raw diagnostics borrow this owner through disposal.
 
 
-struct DiagnosticSetIterator[
-    mut: Bool, //, origin: Origin[mut=mut]
-](Movable, Iterator):
+struct DiagnosticSetIterator[mut: Bool, //, origin: Origin[mut=mut]](
+    Iterator, Movable
+):
     """Iterator over diagnostics in a `DiagnosticSet`."""
 
     comptime Element = Diagnostic
@@ -378,7 +371,7 @@ struct DiagnosticSetIterator[
         )
 
 
-struct DiagnosticSet(Movable, Sized, Writable, Iterable):
+struct DiagnosticSet(Iterable, Movable, Sized, Writable):
     """Wrapper around `CXDiagnosticSet`.
 
     A `DiagnosticSet` may either own the raw diagnostic set or borrow it,
@@ -387,7 +380,9 @@ struct DiagnosticSet(Movable, Sized, Writable, Iterable):
 
     comptime IteratorType[
         iterable_mut: Bool, //, iterable_origin: Origin[mut=iterable_mut]
-    ]: Iterator = DiagnosticSetIterator[mut=iterable_mut, origin=iterable_origin]
+    ]: Iterator = DiagnosticSetIterator[
+        mut=iterable_mut, origin=iterable_origin
+    ]
 
     var _tu: ArcPointer[TranslationUnitState]
     var _generation: Int

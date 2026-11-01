@@ -99,7 +99,7 @@ def _copy_platform_availabilities(
         var raw_ptr = raw_items.unsafe_offset(i)
         out.append(
             PlatformAvailability(
-                platform=_take_cxstring_value(raw_ptr[].Platform),
+                platform=_take_cxstring(raw_ptr[].Platform),
                 introduced=VersionTriple(
                     major=Int(raw_ptr[].Introduced.Major),
                     minor=Int(raw_ptr[].Introduced.Minor),
@@ -116,7 +116,7 @@ def _copy_platform_availabilities(
                     subminor=Int(raw_ptr[].Obsoleted.Subminor),
                 ),
                 unavailable=Bool(raw_ptr[].Unavailable),
-                message=_take_cxstring_optional_value(raw_ptr[].Message),
+                message=_take_cxstring_optional(raw_ptr[].Message),
             )
         )
     return out^
@@ -135,9 +135,9 @@ def _dispose_platform_availabilities(
 # ---------------------------------------------------------------------------
 
 
-def _out_ptr[T: AnyType, origin: MutOrigin, //](
-    ref[origin] value: T,
-) -> Optional[Pointer[T, origin]]:
+def _out_ptr[
+    T: AnyType, origin: MutOrigin, //
+](ref[origin] value: T,) -> Optional[Pointer[T, origin]]:
     """Borrow one typed output slot without discarding its owner origin."""
     return Optional(Pointer(to=value))
 
@@ -154,57 +154,25 @@ def _borrow_c_string(
 # ---------------------------------------------------------------------------
 
 
-def _take_cxstring(
-    cxstr_ref: Pointer[CXString, _],
-) raises -> String:
-    """Copy a `CXString` into an owned Mojo `String` and dispose it.
-
-    The input `CXString` is consumed. Public wrapper APIs should return
-    `String`, never `CXString`.
-    """
-    if case .Some(value) = _take_cxstring_optional(cxstr_ref):
+def _take_cxstring(raw: CXString) -> String:
+    """Copy a returned CXString into Mojo storage and dispose its C resource."""
+    if case .Some(value) = _take_cxstring_optional(raw):
         return value
     return String()
 
 
-def _take_cxstring_optional(
-    cxstr_ref: Pointer[CXString, _],
-) raises -> Optional[String]:
-    """Copy a `CXString` into `Optional[String]` and dispose it.
-
-    Use this for libclang APIs that can return a null `CXString` sentinel.
-    Empty strings remain `Some(String(""))`.
-    """
+def _take_cxstring_optional(raw: CXString) -> Optional[String]:
+    """Consume a CXString; distinguish a null sentinel from an empty string."""
     try:
-        if case .Some(ptr) = clang_getCString(cxstr_ref):
+        if case .Some(ptr) = clang_getCString(raw):
             return String(unsafe_from_utf8_ptr=ptr)
         return None
     finally:
-        clang_disposeString(cxstr_ref)
-
-
-def _take_cxstring_value(raw: CXString) raises -> String:
-    var cs = _CXStringStorage(raw=raw)
-    return cs.take()
-
-
-def _take_cxstring_optional_value(raw: CXString) raises -> Optional[String]:
-    var cs = _CXStringStorage(raw=raw)
-    return cs.take_optional()
+        clang_disposeString(raw)
 
 
 struct _CXStringStorage(Movable):
-    """Inline `CXString` wrapper with Mojo `String` conversion.
-
-    Usage:
-
-        var cs = _CXStringStorage()
-        clang_getCursorSpelling(cs.ptr_for_out(), cursor_ptr)
-        var spelling = cs.take()
-
-    The `CXString` is stored inline — no heap allocation.  `ptr_for_out()`
-    marks the storage as containing a libclang-owned CXString.  If `take()`
-    is forgotten, the destructor disposes it.
+    """Own a returned CXString or a genuine C output parameter until consumed.
     """
 
     var _value: CXString
@@ -215,50 +183,28 @@ struct _CXStringStorage(Movable):
         self._has_value = False
 
     def __init__(out self, raw: CXString):
-        self._value = CXString(data=raw.data, private_flags=raw.private_flags)
+        self._value = raw.copy()
         self._has_value = True
-
-    @always_inline
-    def _as_ptr(mut self) -> Pointer[CXString, origin_of(self)]:
-        return Pointer(to=self._value).unsafe_origin_cast[origin_of(self)]()
 
     def ptr_for_out(mut self) -> Pointer[CXString, origin_of(self)]:
         self._has_value = True
-        return self._as_ptr()
+        return Pointer(to=self._value).unsafe_origin_cast[origin_of(self)]()
 
-    def ptr(mut self) -> Pointer[CXString, origin_of(self)]:
-        return self._as_ptr()
-
-    def take(mut self) raises -> String:
+    def take(mut self) -> String:
         if not self._has_value:
-            return String("")
+            return String()
         self._has_value = False
-        var ptr = self._as_ptr()
-        return _take_cxstring(ptr)
+        return _take_cxstring(self._value)
 
-    def _take_unchecked(mut self) -> String:
-        if not self._has_value:
-            return String("")
-        self._has_value = False
-        var ptr = self._as_ptr()
-        var c_string = clang_getCString(ptr)
-        if not c_string:
-            clang_disposeString(ptr)
-            return String("")
-        var value = String(unsafe_from_utf8_ptr=c_string.value())
-        clang_disposeString(ptr)
-        return value
-
-    def take_optional(mut self) raises -> Optional[String]:
+    def take_optional(mut self) -> Optional[String]:
         if not self._has_value:
             return None
         self._has_value = False
-        var ptr = self._as_ptr()
-        return _take_cxstring_optional(ptr)
+        return _take_cxstring_optional(self._value)
 
     def __deinit__(deinit self):
         if self._has_value:
-            clang_disposeString(self._as_ptr())
+            clang_disposeString(self._value)
 
 
 # ---------------------------------------------------------------------------
@@ -301,8 +247,12 @@ struct UnsavedFileArena(Movable):
                 Length=c_ulong(files[i].contents.byte_length()),
             )
 
-    def ptr(self) -> Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]]:
-        return self._slots
+    def ptr(mut self) -> Optional[Pointer[CXUnsavedFile, origin_of(self)]]:
+        """Borrow the rows and pin their owning C-string buffers through C use.
+        """
+        if case .Some(slots) = self._slots:
+            return slots.unsafe_origin_cast[origin_of(self)]()
+        return None
 
     def count(self) -> c_uint:
         return self._count
