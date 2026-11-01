@@ -45,7 +45,7 @@ def main() -> int:
         modes = ("run", "build") if options.mode == "both" else (options.mode,)
         cases = [(path, mode, []) for mode in modes for path in files]
         cases.extend((root / "test" / filename, "build", ["-O0"])
-                     for filename in ("test_ffi.mojo", "test_abi.mojo", "test_cursor_traversal.mojo"))
+                     for filename in ("test_ffi.mojo", "test_abi.mojo", "test_cursor_traversal.mojo", "test_unsaved_files.mojo"))
         for path, mode, flags in cases:
             label = f"{path.relative_to(root)} [{mode} {' '.join(flags)}]"
             print(f"\n== {label} ==", flush=True)

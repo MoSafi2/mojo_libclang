@@ -247,8 +247,12 @@ struct UnsavedFileArena(Movable):
                 Length=c_ulong(files[i].contents.byte_length()),
             )
 
-    def ptr(self) -> Optional[Pointer[CXUnsavedFile, MutUntrackedOrigin]]:
-        return self._slots
+    def ptr(mut self) -> Optional[Pointer[CXUnsavedFile, origin_of(self)]]:
+        """Borrow the rows and pin their owning C-string buffers through C use.
+        """
+        if case .Some(slots) = self._slots:
+            return slots.unsafe_origin_cast[origin_of(self)]()
+        return None
 
     def count(self) -> c_uint:
         return self._count

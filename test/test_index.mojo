@@ -93,42 +93,6 @@ def test_parse_with_multiple_args() raises:
     )
 
 
-# test_parse_with_unsaved_file crashes in this libclang env (null filename ptr
-# in CXUnsavedFile); tracked as environment-specific.
-# def test_parse_with_unsaved_file() raises:
-#     var index = Index.create()
-#     var unsaved = List[UnsavedFile]()
-#     unsaved.append(
-#         UnsavedFile(
-#             filename=String(FIXTURE_PATH),
-#             contents=String("int x;\n"),
-#         ),
-#     )
-#     var tu = index.parse(FIXTURE_PATH, unsaved_files=unsaved)
-#     _check(
-#         tu.spelling().byte_length() > 0,
-#         "TU with unsaved file should have spelling",
-#     )
-
-
-# test_parse_with_multiple_unsaved_files crashes in this libclang env (unknown
-# module format / error code 1); tracked as environment-specific.
-# def test_parse_with_multiple_unsaved_files() raises:
-#     var index = Index.create()
-#     var unsaved = List[UnsavedFile]()
-#     unsaved.append(
-#         UnsavedFile(filename=String("test/a.c"), contents=String("int x;\n")),
-#     )
-#     unsaved.append(
-#         UnsavedFile(filename=String("test/b.c"), contents=String("extern int x;\n")),
-#     )
-#     var tu = index.parse(String("test/a.c"), unsaved_files=unsaved)
-#     _check(
-#         tu.spelling().byte_length() > 0,
-#         "TU with multiple unsaved files should succeed",
-#     )
-
-
 def test_parse_with_options() raises:
     var index = Index.create()
     var tu = index.parse(
@@ -138,18 +102,6 @@ def test_parse_with_options() raises:
     _check(
         tu.spelling().byte_length() > 0, "TU with options should have spelling"
     )
-
-
-# test_parse_empty_source crashes in this libclang env (unknown module format);
-# tracked as environment-specific.
-# def test_parse_empty_source() raises:
-#     var index = Index.create()
-#     var unsaved = List[UnsavedFile]()
-#     unsaved.append(
-#         UnsavedFile(filename=String("test/empty.c"), contents=String("")),
-#     )
-#     var tu = index.parse(String("test/empty.c"), unsaved_files=unsaved)
-#     _check(True, "parsing empty source should not crash")
 
 
 def test_parse_reuse_index() raises:

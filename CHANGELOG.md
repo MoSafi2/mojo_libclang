@@ -5,6 +5,7 @@
 Shimless rebuild on 2026-11-01 (conda build 1):
 
 - Remove the native shim and call libclang directly with its C ABI.
+- Keep unsaved-file arena buffers alive through parse and reparse by returning an owner-borrowed pointer. Restore empty, large, Unicode, and multiple-file support.
 - Remove the 4096-child traversal cap using a shared growable collector; iteration no longer truncates larger parents.
 - Store wrapper records inline and consolidate value-based string ownership, removing synthetic pointer accessors and output slots.
 - Restore by-value raw function and callback signatures while preserving `clang.cindex`.

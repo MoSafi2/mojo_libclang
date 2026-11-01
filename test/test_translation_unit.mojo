@@ -206,24 +206,6 @@ def test_reparse_no_changes() raises:
     _check(not c.is_null(), "cursor should be valid after reparse")
 
 
-# test_reparse_with_content_change triggers libclang crash during reparsing in
-# this environment (unknown module format); tracked as environment-specific.
-# def test_reparse_with_content_change() raises:
-#     var tu = _parse_fixture()
-#     var unsaved = List[UnsavedFile]()
-#     unsaved.append(
-#         UnsavedFile(
-#             filename=String(FIXTURE_PATH),
-#             contents=String("int y;\n"),
-#         ),
-#     )
-#     tu.reparse(unsaved_files=unsaved)
-#     var cursor = tu.cursor()
-#     var children = cursor.children()
-#     _check(Int(children.__len__()) > 0,
-#            "reparsed TU should have children")
-
-
 def test_reparse_twice() raises:
     var tu = _parse_fixture()
     tu.reparse()

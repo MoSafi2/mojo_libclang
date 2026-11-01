@@ -1,4 +1,4 @@
-from clang.cindex import CursorKind, Index, version_info
+from clang.cindex import CursorKind, Index, UnsavedFile, version_info
 from std.testing import assert_equal, assert_true
 
 
@@ -29,6 +29,34 @@ def main() raises:
     assert_true(Int(invalid.num_diagnostics()) > 0)
     for diagnostic in invalid.diagnostics():
         assert_true(diagnostic.format().byte_length() > 0)
+    for filename in ["api.c", "api.cpp"]:
+        var files = List[UnsavedFile]()
+        files.append(
+            UnsavedFile(filename=String(filename), contents="int from_buffer;")
+        )
+        var memory_tu = index.parse(String(filename), unsaved_files=files)
+        assert_equal(Int(memory_tu.num_diagnostics()), 0)
+        var memory_root = memory_tu.cursor()
+        var memory_children = memory_root.children()
+        assert_equal(len(memory_children), 1)
+        assert_equal(memory_children[0].spelling(), "from_buffer")
+        var updated = List[UnsavedFile]()
+        updated.append(
+            UnsavedFile(
+                filename=String(filename), contents="int after_reparse;"
+            )
+        )
+        memory_tu.reparse(unsaved_files=updated)
+        var updated_root = memory_tu.cursor()
+        var updated_children = updated_root.children()
+        assert_equal(len(updated_children), 1)
+        assert_equal(updated_children[0].spelling(), "after_reparse")
+        var empty = List[UnsavedFile]()
+        empty.append(UnsavedFile(filename=String(filename), contents=""))
+        memory_tu.reparse(unsaved_files=empty)
+        var empty_root = memory_tu.cursor()
+        var empty_children = empty_root.children()
+        assert_equal(len(empty_children), 0)
     var wide_tu = index.parse("many_children.c")
     assert_equal(Int(wide_tu.num_diagnostics()), 0)
     var wide_root = wide_tu.cursor()

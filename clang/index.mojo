@@ -176,10 +176,9 @@ struct Index(Copyable, Movable, Writable):
         `UnsavedFileArena` keeps unsaved-file strings alive until the call
         returns. argv strings and slot buffer are allocated and freed inline.
 
-        Note: Manual argv build avoids a Mojo compiler bug where
-        Optional[Pointer[...]] values produced across a function
-        boundary are corrupted when passed to _bindgen_function wrappers
-        with many parameters.
+        Argument buffers are released after the C call. The borrowed pointer
+        from UnsavedFileArena keeps its record array and C strings alive until
+        libclang has consumed them.
         """
         var unsaved_arena = UnsavedFileArena(unsaved_files)
 
@@ -217,8 +216,8 @@ struct Index(Copyable, Movable, Writable):
             argv_buf
         )
         var arg_count = c_int(n)
-        var unsaved_ptr = unsaved_arena.ptr()
         var unsaved_count = unsaved_arena.count()
+        var unsaved_ptr = unsaved_arena.ptr()
         var raw_opts = options.as_c_uint()
         var out_raw = rebind[Pointer[CXTranslationUnit, MutUntrackedOrigin]](
             out_ptr
