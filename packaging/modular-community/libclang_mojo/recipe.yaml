@@ -3,7 +3,7 @@ context:
   version: "0.2.0"
   mojo_version: "==1.2.0"
   llvm_version: "18.*"
-  rev: "e8448e3d0b6d4cbe1da5e3ffa71a2bd06e04356a"
+  rev: "d4d7c267b82a23a96676b5d301b8ebe405180b27"
 
 package:
   name: "libclang_mojo"
